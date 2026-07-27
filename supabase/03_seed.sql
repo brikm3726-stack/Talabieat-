@@ -4,17 +4,21 @@
 -- ============================================================================
 
 -- ------------------------------------------------------------- CATÉGORIES
-insert into public.categories (slug, name_fr, name_ar, icon, sort_order) values
-  ('pizza',        'Pizza',              'بيتزا',        '🍕', 1),
-  ('tacos',        'Tacos',              'تاكوس',        '🌯', 2),
-  ('burger',       'Burgers',            'برغر',         '🍔', 3),
-  ('sandwich',     'Sandwichs',          'ساندويتش',     '🥪', 4),
-  ('poulet',       'Poulet',             'دجاج',         '🍗', 5),
-  ('traditionnel', 'Plats traditionnels','أكلات تقليدية','🥘', 6),
-  ('dessert',      'Desserts',           'حلويات',       '🍰', 7),
-  ('boisson',      'Boissons',           'مشروبات',      '🥤', 8),
-  ('autre',        'Autres',             'أخرى',         '🍽️', 9)
-on conflict (slug) do nothing;
+-- image_url pointe vers les pastilles livrées avec le site.
+insert into public.categories (slug, name_fr, name_ar, icon, image_url, sort_order) values
+  ('pizza',        'Pizza',              'بيتزا',        '🍕', 'assets/img/categories/pizza.jpg',        1),
+  ('tacos',        'Tacos',              'تاكوس',        '🌯', 'assets/img/categories/tacos.jpg',        2),
+  ('burger',       'Burgers',            'برغر',         '🍔', 'assets/img/categories/burger.jpg',       3),
+  ('sandwich',     'Sandwichs',          'ساندويتش',     '🥪', 'assets/img/categories/sandwich.jpg',     4),
+  ('traditionnel', 'Plats traditionnels','أكلات تقليدية','🥘', 'assets/img/categories/traditionnel.jpg', 5),
+  ('dessert',      'Desserts',           'حلويات',       '🍰', 'assets/img/categories/dessert.jpg',      6),
+  ('boisson',      'Boissons',           'مشروبات',      '🥤', 'assets/img/categories/boisson.jpg',      7),
+  ('autre',        'Autres',             'أخرى',         '🍽️', null,                                    8)
+on conflict (slug) do update
+  set name_fr = excluded.name_fr,
+      icon = excluded.icon,
+      image_url = excluded.image_url,
+      sort_order = excluded.sort_order;
 
 -- ------------------------------------------------------------------ ZONES
 -- Quartiers de la VILLE de Tizi Ouzou uniquement.

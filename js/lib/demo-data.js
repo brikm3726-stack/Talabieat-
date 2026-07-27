@@ -41,16 +41,17 @@
   }));
 
   /* ------------------------------------------------------------ CATÉGORIES */
+  /* image_url : pastille illustrée. L'emoji reste le repli quand il n'y en a pas. */
+  const CAT_IMG = 'assets/img/categories/';
   const CATEGORIES = [
-    { id: 'cat-pizza',  slug: 'pizza',        name_fr: 'Pizza',               icon: '🍕', sort_order: 1, is_active: true },
-    { id: 'cat-tacos',  slug: 'tacos',        name_fr: 'Tacos',               icon: '🌯', sort_order: 2, is_active: true },
-    { id: 'cat-burger', slug: 'burger',       name_fr: 'Burgers',             icon: '🍔', sort_order: 3, is_active: true },
-    { id: 'cat-sand',   slug: 'sandwich',     name_fr: 'Sandwichs',           icon: '🥪', sort_order: 4, is_active: true },
-    { id: 'cat-poulet', slug: 'poulet',       name_fr: 'Poulet',              icon: '🍗', sort_order: 5, is_active: true },
-    { id: 'cat-trad',   slug: 'traditionnel', name_fr: 'Plats traditionnels', icon: '🥘', sort_order: 6, is_active: true },
-    { id: 'cat-dess',   slug: 'dessert',      name_fr: 'Desserts',            icon: '🍰', sort_order: 7, is_active: true },
-    { id: 'cat-drink',  slug: 'boisson',      name_fr: 'Boissons',            icon: '🥤', sort_order: 8, is_active: true },
-    { id: 'cat-autre',  slug: 'autre',        name_fr: 'Autres',              icon: '🍽️', sort_order: 9, is_active: true }
+    { id: 'cat-pizza',  slug: 'pizza',        name_fr: 'Pizza',               icon: '🍕', image_url: CAT_IMG + 'pizza.jpg',        sort_order: 1, is_active: true },
+    { id: 'cat-tacos',  slug: 'tacos',        name_fr: 'Tacos',               icon: '🌯', image_url: CAT_IMG + 'tacos.jpg',        sort_order: 2, is_active: true },
+    { id: 'cat-burger', slug: 'burger',       name_fr: 'Burgers',             icon: '🍔', image_url: CAT_IMG + 'burger.jpg',       sort_order: 3, is_active: true },
+    { id: 'cat-sand',   slug: 'sandwich',     name_fr: 'Sandwichs',           icon: '🥪', image_url: CAT_IMG + 'sandwich.jpg',     sort_order: 4, is_active: true },
+    { id: 'cat-trad',   slug: 'traditionnel', name_fr: 'Plats traditionnels', icon: '🥘', image_url: CAT_IMG + 'traditionnel.jpg', sort_order: 5, is_active: true },
+    { id: 'cat-dess',   slug: 'dessert',      name_fr: 'Desserts',            icon: '🍰', image_url: CAT_IMG + 'dessert.jpg',      sort_order: 6, is_active: true },
+    { id: 'cat-drink',  slug: 'boisson',      name_fr: 'Boissons',            icon: '🥤', image_url: CAT_IMG + 'boisson.jpg',      sort_order: 7, is_active: true },
+    { id: 'cat-autre',  slug: 'autre',        name_fr: 'Autres',              icon: '🍽️', image_url: null,                         sort_order: 8, is_active: true }
   ];
 
   /* --------------------------------------------------------------- COMPTES */
@@ -137,7 +138,7 @@
       lat: 36.7050, lng: 4.0530,                          // approximatif — à corriger
       opens: '11:30', closes: '00:30',
       rating: 4.5, rcount: 96, fee: 200, min: 500, prep: 25,
-      cats: ['cat-burger', 'cat-poulet', 'cat-drink']
+      cats: ['cat-burger', 'cat-autre', 'cat-drink']
     })
   ];
 
@@ -185,14 +186,14 @@
   m('r-atelier', 'cat-drink',  'Jus pressé',          'Orange ou citron, 40 cl.', 350, []);
 
   /* Poutines : prix relevés sur la communication officielle de The Twelve */
-  m('r-twelve', 'cat-poulet', 'Poutine Poulet',      'Frites, cheddar fondu, poulet grillé et sauce maison.', 450,
+  m('r-twelve', 'cat-autre','Poutine Poulet',      'Frites, cheddar fondu, poulet grillé et sauce maison.', 450,
     [['Supplément cheddar', 80]]);
-  m('r-twelve', 'cat-poulet', 'Poutine Viande Hachée', 'Frites, cheddar fondu, viande hachée et ciboulette.', 500,
+  m('r-twelve', 'cat-autre','Poutine Viande Hachée', 'Frites, cheddar fondu, viande hachée et ciboulette.', 500,
     [['Supplément cheddar', 80]]);
   m('r-twelve', 'cat-burger', 'The Twelve Burger', 'Double steak, cheddar, oignons croustillants.', 950,
     [['Formule menu', 250], ['Bacon de dinde', 120]]);
   m('r-twelve', 'cat-burger', 'Chicken Burger',    'Filet de poulet pané, sauce spicy.', 850, [['Formule menu', 250]]);
-  m('r-twelve', 'cat-poulet', 'Tenders (6 pièces)','Poulet croustillant, 2 sauces au choix.', 700, [['Sauce supplémentaire', 60]]);
+  m('r-twelve', 'cat-autre','Tenders (6 pièces)','Poulet croustillant, 2 sauces au choix.', 700, [['Sauce supplémentaire', 60]]);
   m('r-twelve', 'cat-drink',  'Milkshake',         'Vanille, chocolat ou Oreo, 40 cl.', 450, []);
 
   /* --------------------------------------------------------------- LIVREURS */

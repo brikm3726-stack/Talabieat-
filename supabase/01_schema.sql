@@ -60,7 +60,8 @@ create table if not exists public.categories (
   slug        text unique not null,
   name_fr     text not null,
   name_ar     text,
-  icon        text default '🍽️',
+  icon        text default '🍽️',   -- repli quand il n'y a pas d'image
+  image_url   text,                 -- pastille illustrée
   sort_order  int not null default 0,
   is_active   boolean not null default true
 );

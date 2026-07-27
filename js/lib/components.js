@@ -67,11 +67,17 @@
 
     /* ------------------------------------------------------- catégories */
     categoryScroller(activeId, onPick) {
+      // pastille illustrée quand la catégorie a une image, emoji sinon
+      const bubble = c => c.image_url
+        ? '<div class="bubble has-img" style="background-image:url(' + U.escUrl(c.image_url) + ')"></div>'
+        : '<div class="bubble">' + (c.icon || '🍽️') + '</div>';
+
       const html = '<div class="cat-scroll">' +
-        '<div class="cat-item ' + (!activeId ? 'on' : '') + '" data-cat=""><div class="bubble">🍔</div><span>Tout</span></div>' +
+        '<div class="cat-item ' + (!activeId ? 'on' : '') + '" data-cat="">' +
+          '<div class="bubble bubble-all">Tout</div><span>Tout</span></div>' +
         Store.categories.map(c =>
           '<div class="cat-item ' + (activeId === c.id ? 'on' : '') + '" data-cat="' + c.id + '">' +
-            '<div class="bubble">' + c.icon + '</div><span>' + U.esc(c.name_fr) + '</span></div>').join('') +
+            bubble(c) + '<span>' + U.esc(c.name_fr) + '</span></div>').join('') +
         '</div>';
       return {
         html: html,

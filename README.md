@@ -90,7 +90,8 @@ platforme/
 │   ├── 02_security.sql        RLS par rôle, triggers, notifications
 │   ├── 03_seed.sql            quartiers de Tizi Ouzou ville, catégories, stockage
 │   ├── 04_geoloc.sql          mise à jour GPS (bases déjà installées)
-│   └── 05_tracking.sql        suivi du livreur en direct
+│   ├── 05_tracking.sql        suivi du livreur en direct
+│   └── 06_categories.sql      pastilles illustrées, retrait de « Poulet »
 │
 └── js/
     ├── app.js                 démarrage

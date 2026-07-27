@@ -8,8 +8,8 @@
 
   // ⚠️ Incrémenter la version dès que les données de démo changent : les
   // navigateurs qui ont déjà ouvert le site repartent alors des nouvelles données.
-  const KEY = 'talabi.db.v6';
-  const SESSION_KEY = 'talabi.session.v6';
+  const KEY = 'talabi.db.v7';
+  const SESSION_KEY = 'talabi.session.v7';
   let db = null;
   const listeners = [];
 
@@ -741,7 +741,8 @@
       requireAdmin();
       let c = data.id ? byId(db.categories, data.id) : null;
       if (!c) { c = { id: U.uid(), sort_order: db.categories.length, is_active: true }; db.categories.push(c); }
-      ['slug', 'name_fr', 'name_ar', 'icon', 'is_active'].forEach(k => { if (data[k] !== undefined) c[k] = data[k]; });
+      ['slug', 'name_fr', 'name_ar', 'icon', 'image_url', 'is_active']
+        .forEach(k => { if (data[k] !== undefined) c[k] = data[k]; });
       if (!c.slug) c.slug = (c.name_fr || 'cat').toLowerCase().replace(/[^a-z0-9]+/g, '-');
       commit('categories');
       return clone(c);

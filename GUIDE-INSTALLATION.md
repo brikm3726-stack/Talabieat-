@@ -104,6 +104,8 @@ Supabase est gratuit jusqu'à un volume déjà confortable pour démarrer.
 4. Nouvelle requête → même chose avec `supabase/03_seed.sql` → **Run**
 5. Nouvelle requête → même chose avec `supabase/05_tracking.sql` → **Run**
    *(permet au client de suivre son livreur en direct)*
+6. Nouvelle requête → même chose avec `supabase/06_categories.sql` → **Run**
+   *(pastilles illustrées des catégories)*
 
 Tu dois voir `Success. No rows returned` à chaque fois.
 

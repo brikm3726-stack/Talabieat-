@@ -380,8 +380,13 @@
             '<div class="h3">🍽️ Catégories</div>' +
             '<button class="btn btn-soft btn-sm" id="addCat">+ Ajouter</button></div>' +
           '<div class="chips" style="flex-wrap:wrap;overflow:visible">' +
-            Store.categories.map(c => '<span class="chip" data-cat2="' + U.esc(c.id) + '">' +
-              c.icon + ' ' + U.esc(c.name_fr) + ' <b style="opacity:.4">✕</b></span>').join('') +
+            Store.categories.map(c => '<span class="chip" data-cat2="' + U.esc(c.id) + '" ' +
+              'style="display:inline-flex;align-items:center;gap:7px">' +
+              (c.image_url
+                ? '<img src="' + U.escUrl(c.image_url) + '" alt="" style="width:24px;height:24px;' +
+                  'border-radius:50%;object-fit:cover">'
+                : '<span>' + (c.icon || '🍽️') + '</span>') +
+              U.esc(c.name_fr) + ' <b style="opacity:.4">✕</b></span>').join('') +
           '</div></div>' +
 
         (API.mode === 'demo'

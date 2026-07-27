@@ -523,7 +523,8 @@
     async saveCategory(data) {
       cache.categories = null;
       const body = {};
-      ['slug', 'name_fr', 'name_ar', 'icon', 'is_active'].forEach(k => { if (data[k] !== undefined) body[k] = data[k]; });
+      ['slug', 'name_fr', 'name_ar', 'icon', 'image_url', 'is_active']
+        .forEach(k => { if (data[k] !== undefined) body[k] = data[k]; });
       if (!body.slug && body.name_fr) body.slug = body.name_fr.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       if (data.id) return unwrap(await sb.from('categories').update(body).eq('id', data.id).select().single());
       return unwrap(await sb.from('categories').insert(body).select().single());
