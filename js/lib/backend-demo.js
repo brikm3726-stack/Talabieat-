@@ -8,8 +8,8 @@
 
   // ⚠️ Incrémenter la version dès que les données de démo changent : les
   // navigateurs qui ont déjà ouvert le site repartent alors des nouvelles données.
-  const KEY = 'talabi.db.v7';
-  const SESSION_KEY = 'talabi.session.v7';
+  const KEY = 'talabi.db.v8';
+  const SESSION_KEY = 'talabi.session.v8';
   let db = null;
   const listeners = [];
 

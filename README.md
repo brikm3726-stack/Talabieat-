@@ -34,6 +34,10 @@ chacun avec son propre compte gérant :
 
 Une commande arrive uniquement chez le gérant du restaurant choisi.
 
+**Melyza Tacos** a sa carte complète (150 plats : pizzas, tacos, burgers,
+sandwichs, chicken box, bowls, salades, desserts, boissons), reprise de ses
+affiches officielles. Les quatre autres n'ont encore que des exemples de départ.
+
 ### Tester le parcours complet
 
 Le bouton **🧪 TEST** en bas à droite change de compte en un clic et t'indique

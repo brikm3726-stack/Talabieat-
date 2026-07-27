@@ -9,8 +9,18 @@
    les coordonnées relevées sur Google Maps.
 
    ⚠️ MENUS
-   Le menu de Melyza Tacos reprend ses vrais plats et prix. Ceux des autres
-   restaurants sont des exemples de départ, à remplacer par les vraies cartes.
+   Melyza Tacos : carte complète relevée sur ses affiches officielles
+   (pizzas, tacos, burgers, sandwichs, chicken box, bowls, desserts, boissons).
+   Les quatre autres restaurants n'ont que des exemples de départ, à remplacer
+   par leurs vraies cartes.
+
+   ⚠️ TAILLES
+   La carte de Melyza propose deux formats (Small/Méga pour les pizzas,
+   Solo/Menu pour le reste). Le modèle de données n'ayant qu'un prix de base
+   et des suppléments, le prix affiché est celui du petit format et le grand
+   format est proposé en supplément. Une seule limite : chez Melyza les
+   suppléments de pizza comptent double en Méga, ce que le calcul ne sait pas
+   encore faire — c'est signalé dans la description de chaque pizza.
    ========================================================================== */
 (function (w) {
   'use strict';
@@ -102,7 +112,7 @@
       lat: 36.713198, lng: 4.043767, verified: true,      // relevé sur son site officiel
       phone: '0560566117', opens: '11:00', closes: '23:30',
       rating: 4.8, rcount: 214, fee: 200, min: 400, prep: 20,
-      cats: ['cat-tacos', 'cat-burger', 'cat-sand']
+      cats: ['cat-tacos', 'cat-burger', 'cat-sand', 'cat-pizza', 'cat-dess', 'cat-drink']
     }),
     r({
       id: 'r-ambassade', owner: 'u-ambassade', name: "L'Ambassade", img: 'ambassade',
@@ -157,15 +167,235 @@
     }));
   }
 
-  /* --- Melyza Tacos : vrais plats et vrais prix (site officiel) --- */
-  m('r-melyza', 'cat-tacos',  'Le Tacos Melyza',   'Viande au choix, frites, fromage fondu et sauce maison, le tout gratiné.', 750,
-    [['Viande supplémentaire', 200], ['Cheddar', 80], ['Sauce algérienne', 0], ['Sauce blanche', 0]]);
-  m('r-melyza', 'cat-burger', 'Mozzarella Burger', '2 steaks, jambon de dinde, mozzarella fondante, oignons caramélisés et champignons.', 850,
-    [['Formule menu (frites + boisson)', 150], ['Steak supplémentaire', 200]]);
-  m('r-melyza', 'cat-sand',   'Avocat Sandwich',   'Pain frais, thon, avocat, tomate et salade croquante.', 700,
-    [['Formule menu (frites + boisson)', 200]]);
-  m('r-melyza', 'cat-autre',  'Frites maison',     'Portion généreuse, sauce au choix.', 250, [['Cheddar fondu', 80]]);
-  m('r-melyza', 'cat-drink',  'Boisson 33 cl',     'Canette fraîche au choix.', 100, []);
+  /* ==================================================================
+     MELYZA TACOS — carte complète, relevée sur ses affiches officielles
+     ================================================================== */
+
+  /* Suppléments communs aux pizzas (250 DA l'unité sur la carte). */
+  const SUP_PIZZA = [
+    ['Viande hachée', 250], ['Merguez', 250], ['Poulet', 250], ['Thon', 250],
+    ['Champignons', 250], ['Cheddar', 250], ['Mozzarella', 250],
+    ['Camembert', 250], ['Gruyère', 250],
+    ['Pâte américaine graines de sésame', 100],
+    ['Pâte américaine fourrée au fromage fondu', 150]
+  ];
+  const MEGA_NOTE = ' Suppléments facturés ×2 en format Méga.';
+
+  /* small = prix Small, mega = prix Méga (null si la pizza n'existe qu'en Méga). */
+  function pizza(name, ing, small, mega) {
+    const opts = mega ? [['Format Méga (au lieu de Small)', mega - small]] : [];
+    m('r-melyza', 'cat-pizza', name, ing + MEGA_NOTE, small, opts.concat(SUP_PIZZA));
+  }
+
+  /* solo = prix seul, menu = prix formule (frites + boisson). */
+  function solo(cat, name, ing, prixSolo, prixMenu) {
+    m('r-melyza', cat, name, ing, prixSolo,
+      prixMenu ? [['Formule menu (frites + boisson)', prixMenu - prixSolo]] : []);
+  }
+
+  /* ---------------------------------------------------------- PIZZAS */
+  pizza('Pizza Végétarienne', 'Sauce tomate, mozzarella, cheddar, champignons, tomates fraîches, poivrons, herbes de Provence.', 600, 1700);
+  pizza('Pizza Thon',         'Sauce tomate, mozzarella, cheddar, thon, poivron, herbes de Provence.', 700, 1650);
+  pizza('Pizza Chicken',      'Sauce tomate, mozzarella, cheddar, poulet, poivrons, herbes de Provence.', 750, 1950);
+  pizza('Pizza Américaine',   'Sauce tomate, mozzarella, cheddar, viande hachée, poivrons, herbes de Provence.', 800, 2050);
+  pizza('Pizza Tropicale',    'Sauce tomate, mozzarella, cheddar, poulet, champignons, poivrons, herbes de Provence.', 900, 2200);
+  pizza('Pizza Orientale',    'Sauce tomate, mozzarella, cheddar, merguez, œuf, poivrons, herbes de Provence.', 900, 1950);
+  pizza('Pizza Barbecue',     'Sauce tomate, mozzarella, cheddar, viande hachée épicée, oignons, poivrons, herbes de Provence.', 900, 2100);
+  pizza('Pizza Spéciale',     'Sauce tomate, mozzarella, cheddar, viande hachée, poulet, merguez, poivrons, herbes de Provence.', 1100, 2250);
+  pizza('Pizza Mix Spécial',  'Sauce tomate, mozzarella, cheddar, viande hachée, poulet, champignons, poivrons, herbes de Provence.', 1100, 2250);
+  pizza('Pizza Fish House',   'Sauce tomate, mozzarella, cheddar, thon, crevettes, calamar, poivrons, herbes de Provence.', 1250, 2650);
+  pizza('Pizza Classique',    'Sauce tomate, mozzarella, cheddar, crevettes, champignons, poivrons, herbes de Provence.', 1250, 2500);
+  pizza('Pizza Queen',        'Sauce tomate, mozzarella, cheddar, poulet, ananas.', 900, 1650);
+  pizza('Pizza 3 Fromages',   'Sauce blanche, mozzarella, cheddar, camembert, herbes de Provence.', 800, 1900);
+  pizza('Pizza 4 Fromages',   'Sauce blanche, mozzarella, cheddar, gruyère, roquefort, herbes de Provence.', 1150, 2250);
+  pizza('Pizza Parisienne',   'Sauce blanche, mozzarella, cheddar, poulet, herbes de Provence.', 850, 1950);
+  pizza('Pizza Poulet Fumé',  'Sauce blanche, mozzarella, cheddar, poulet fumé, herbes de Provence.', 850, 1950);
+  pizza('Pizza Chicago',      'Sauce blanche, mozzarella, cheddar, viande hachée, saucisson fumé, herbes de Provence.', 950, 2250);
+  pizza('Pizza Chèvre Miel',  'Sauce blanche, gruyère, chèvre, miel, noix.', 900, 2200);
+  pizza('Pizza Saumon',       'Sauce blanche, mozzarella, cheddar, saumon, herbes de Provence.', 1300, 2500);
+  pizza('Pizza Spicy',        'Sauce tomate, cheddar, mozzarella, poulet épicé, huile piquante, poivron, herbes de Provence.', 900, 2150);
+  pizza('Pizza Anchois',      'Sauce tomate, cheddar, mozzarella, câpres, anchois, huile d’olive, herbes de Provence.', 950, 2250);
+  pizza('Pizza Boursin',      'Sauce blanche, boursin, mozzarella, cheddar, poulet fumé, herbes de Provence.', 950, 2200);
+  pizza('Pizza Pepperonis',   'Sauce tomate, mozzarella, cheddar, pepperonis.', 1100, 2250);
+  pizza('Pizza Végé Suprême', 'Sauce tomate, cheddar, mozzarella, tomate fraîche, champignons, maïs, oignon, poivron, herbes de Provence.', 700, 1800);
+  pizza('Pizza Raclette',     'Sauce tomate, cheddar, mozzarella, raclette artisanale, herbes de Provence.', 900, 2200);
+  pizza('Pizza Spéciale Melyza', 'La signature de la maison, garniture généreuse.', 1500, 3200);
+  pizza('My Pizza',           'Six (6) ingrédients au choix, composez la vôtre.', 1600, 2800);
+  pizza('Pizza Quatre Saisons', 'Poulet, viande hachée, merguez, champignons. Uniquement en format Méga.', 2600, null);
+
+  /* ------------------------------------------------ TACOS SPÉCIAUX */
+  solo('cat-tacos', 'Le Suisse',            'Escalope de poulet, fromage fondu, jambon de dinde, oignons caramélisés, gratiné cheddar, poivron, sauce au choix.', 750, 950);
+  solo('cat-tacos', 'Gratiné Chèvre Miel',  'Au poulet, gratiné chèvre et miel.', 700, 900);
+  solo('cat-tacos', 'Gratiné Boursin',      'Poulet, cheddar, boursin, sauce algérienne.', 750, 950);
+  solo('cat-tacos', 'Le Frenchy',           'Viande hachée, camembert, salami, oignons caramélisés, sauce miel moutarde.', 800, 1000);
+  solo('cat-tacos', 'Le Fumé',              'Cordon bleu, sauce barbecue, gratiné cheddar.', 700, 900);
+  solo('cat-tacos', 'Tacos Tenders',        'Tenders croustillants, frites et sauce au choix.', 600, 800);
+  /* Nouveautés */
+  solo('cat-tacos', 'Le Mythique',          'Gratiné gouda, cordon bleu, sauce barbecue.', 750, 950);
+  solo('cat-tacos', 'Le Légendaire',        'Gratiné mozzarella, nuggets, sauce burger.', 750, 950);
+  solo('cat-tacos', 'Le Montagnard',        'Gratinée raclette, jambon de poulet, tenders, sauce au choix.', 750, 950);
+  solo('cat-tacos', 'Le Fameux',            'Gratiné cheddar, viande hachée, champignons, sauce algérienne.', 850, 1050);
+
+  /* ------------------------------------------------------- BURGERS */
+  solo('cat-burger', 'Big Melyza',        '2 steaks, gruyère, champignons, cornichons, poivrons, sauce à l’ail.', 950, 1150);
+  solo('cat-burger', 'Big Crispy',        'Poulet pané, salade, tomate, oignons.', 650, 850);
+  solo('cat-burger', 'Franche Burger',    '2 steaks, camembert, cheddar, cornichons, sauce big burger.', 900, 1100);
+  solo('cat-burger', 'Mozzarella Burger', '2 steaks, jambon de dinde, mozzarella, oignons caramélisés, champignons.', 850, 1050);
+  solo('cat-burger', 'Big Fast',          '2 steaks, cheddar, œuf, oignons caramélisés.', 750, 950);
+  solo('cat-burger', 'Le Poivre',         'Steak haché, poulet haché, gouda, oignons caramélisés, sauce au poivre.', 750, 950);
+
+  /* ----------------------------------------------------- SANDWICHS */
+  solo('cat-sand', 'Melyza Spécial',   'Steak haché, fromage blanc, cheddar, salade, tomate, cornichons, champignons, oignons caramélisés, omelette, frites.', 900, 1100);
+  solo('cat-sand', 'Sandwich Avocat',  'Avocat, thon, tomate, salade, fromage à tartiner.', 700, 900);
+  solo('cat-sand', 'Sandwich Poulet',  'Poulet, camembert, cheddar, salade, tomate, cornichons, oignons caramélisés, frites.', 700, 900);
+
+  /* ------------------------------------------- CHICKEN BOX & BOWLS */
+  m('r-melyza', 'cat-autre', 'Chicken Box', 'Tenders, nuggets et cordon bleu réunis dans un seau.', 600, []);
+  /* Trois formats distincts : ce sont bien trois produits sur la carte,
+     pas un supplément — on ne peut pas commander M et XL à la fois. */
+  m('r-melyza', 'cat-autre', 'Tenders 3 pièces',     'Poulet croustillant, sauce au choix.', 350, []);
+  m('r-melyza', 'cat-autre', 'Tenders 6 pièces',     'Poulet croustillant, sauce au choix.', 550, []);
+  m('r-melyza', 'cat-autre', 'Tenders 12 pièces',    'Poulet croustillant, sauce au choix.', 1100, []);
+  m('r-melyza', 'cat-autre', 'Nuggets 3 pièces',     'Nuggets de poulet, sauce au choix.', 300, []);
+  m('r-melyza', 'cat-autre', 'Nuggets 6 pièces',     'Nuggets de poulet, sauce au choix.', 400, []);
+  m('r-melyza', 'cat-autre', 'Nuggets 12 pièces',    'Nuggets de poulet, sauce au choix.', 650, []);
+  m('r-melyza', 'cat-autre', 'Cordon Bleu 3 pièces', 'Cordon bleu pané, sauce au choix.', 450, []);
+  m('r-melyza', 'cat-autre', 'Cordon Bleu 6 pièces', 'Cordon bleu pané, sauce au choix.', 850, []);
+  m('r-melyza', 'cat-autre', 'Cordon Bleu 12 pièces','Cordon bleu pané, sauce au choix.', 1550, []);
+  solo('cat-autre', 'Tacos Bowl',              'Escalopes de poulet, cordon bleu, nuggets, tenders, sauces au choix.', 700, 900);
+  solo('cat-autre', 'Bowl Chèvre Miel Poulet', 'Frites, poulet, sauce fromage, cheddar gratiné, chèvre, miel.', 850, 1050);
+  solo('cat-autre', 'Spicy Bowl',              'Tenders, piment, sauce samouraï.', 800, 1000);
+
+  /* ------------------------------------------------------- SALADES */
+  m('r-melyza', 'cat-autre', 'Salade César',         'Salade, poulet, croûtons, parmesan.', 650, []);
+  m('r-melyza', 'cat-autre', 'Salade de Thon',       'Thon, crudités et œuf.', 450, []);
+  m('r-melyza', 'cat-autre', 'Salade Saumon Avocat', 'Saumon, avocat et crevettes.', 1050, []);
+  m('r-melyza', 'cat-autre', 'Salade Melyza',        'La grande salade composée de la maison.', 950, []);
+  m('r-melyza', 'cat-autre', 'Assiette de Fromages', 'Plateau de fromages affinés.', 1100, []);
+
+  /* ------------------------------------------------------ DESSERTS */
+  /* Suppléments desserts : 250 DA l'unité, boule de glace 100 DA. */
+  const SUP_DESSERT = [
+    ['Nutella', 250], ['Banane', 250], ['Fruits secs', 250], ['Ferrero', 250],
+    ['M&M’s', 250], ['Twix', 250], ['Kit-Kat', 250], ['Lion', 250], ['Mars', 250],
+    ['Snickers', 250], ['Bounty', 250], ['Raffaello', 250], ['Bueno', 250],
+    ['Pistache', 250], ['Boule de glace', 100]
+  ];
+  const BOULE = [['Boule de glace', 100]];
+
+  function dessert(name, desc, price, sups) {
+    m('r-melyza', 'cat-dess', name, desc, price, sups || BOULE);
+  }
+
+  dessert('Cheesecake Fraise',  'Cheesecake maison, coulis de fraise.', 400, SUP_DESSERT);
+  dessert('Cheesecake Lotus',   'Cheesecake maison, spéculoos Lotus.', 500, SUP_DESSERT);
+  dessert('Cheesecake Oreo',    'Cheesecake maison, biscuits Oreo.', 500, SUP_DESSERT);
+  dessert('Cheesecake Bueno',   'Cheesecake maison, Kinder Bueno.', 500, SUP_DESSERT);
+  dessert('Cheesecake Citron',  'Cheesecake maison, citron.', 500, SUP_DESSERT);
+  dessert('Cheesecake Nutella', 'Cheesecake maison, Nutella.', 600, SUP_DESSERT);
+  dessert('Cheesecake Pistache','Cheesecake maison, pistache.', 700, SUP_DESSERT);
+
+  dessert('Crêpe Nutella',     'Crêpe gourmande au Nutella.', 400, SUP_DESSERT);
+  dessert('Crêpe Banane',      'Crêpe gourmande à la banane.', 550, SUP_DESSERT);
+  dessert('Crêpe Pistache',    'Crêpe gourmande à la pistache.', 550, SUP_DESSERT);
+  dessert('Crêpe Lotus',       'Crêpe gourmande au Lotus.', 600, SUP_DESSERT);
+  dessert('Crêpe Fraise',      'Crêpe gourmande à la fraise.', 650, SUP_DESSERT);
+  dessert('Crêpe Oreo',        'Crêpe gourmande aux Oreo.', 650, SUP_DESSERT);
+  dessert('Crêpe Fruits Secs', 'Crêpe gourmande aux fruits secs.', 650, SUP_DESSERT);
+  dessert('Crêpe Fruits',      'Crêpe gourmande aux fruits frais.', 700, SUP_DESSERT);
+  dessert('Crêpe Bounty',      'Crêpe gourmande au Bounty.', 700, SUP_DESSERT);
+  dessert('Crêpe Bueno',       'Crêpe gourmande au Kinder Bueno.', 800, SUP_DESSERT);
+  dessert('Crêpe El Mordjene', 'Crêpe gourmande à la pâte El Mordjene.', 350, SUP_DESSERT);
+  dessert('Crêpe Spéciale',    'La grande crêpe garnie de la maison.', 1000, SUP_DESSERT);
+
+  dessert('Mousse au Chocolat',  'Mousse maison au chocolat noir.', 300);
+  dessert('Crème Brûlée',        'Crème vanille, caramel craquant.', 350);
+  dessert('Fondant au Chocolat', 'Cœur coulant, servi tiède.', 450);
+  dessert('Maxi Fruits',         'Grande coupe de fruits frais.', 900);
+
+  dessert('Tiramisu',          'Tiramisu classique au café.', 350);
+  dessert('Tiramisu Pistache', 'Tiramisu à la pistache.', 400);
+  dessert('Tiramisu Chocolat', 'Tiramisu au chocolat.', 350);
+  dessert('Tiramisu Citron',   'Tiramisu au citron.', 350);
+
+  /* ------------------------------------------------------ BOISSONS */
+  function boisson(name, desc, price, opts) {
+    m('r-melyza', 'cat-drink', name, desc, price, opts || []);
+  }
+  /* Les cafés lactés se déclinent vanille, caramel ou noisette (sans supplément). */
+  const AROMES = [['Vanille', 0], ['Caramel', 0], ['Noisette', 0]];
+
+  /* Boissons chaudes */
+  boisson('Espresso',        'Café serré.', 150);
+  boisson('Doppio',          'Double espresso.', 250);
+  boisson('Espresso Kinder', 'Espresso façon Kinder.', 300);
+  boisson('Americano',       'Café allongé, glacé ou nature.', 250);
+  boisson('Affogato',        'Espresso versé sur une glace vanille.', 300);
+  boisson('Thé Infusion',    'Infusion au choix.', 150);
+  boisson('Cappuccino',      'Café, lait, mousse onctueuse.', 350, AROMES);
+  boisson('Mocha',           'Café, chocolat et lait.', 350, AROMES);
+  boisson('Flat White',      'Café, lait micro-moussé.', 350, AROMES);
+  boisson('Latte',           'Café allongé au lait.', 350, AROMES);
+  boisson('Dalgona Coffee',  'Café fouetté, glacé ou nature.', 350);
+  boisson('Ice Tea',         'Thé glacé maison.', 250);
+
+  /* Glaces */
+  boisson('Boule de Glace',   'Une boule au parfum de votre choix.', 120);
+  boisson('Boule de Fraise',  'Une boule à la fraise.', 140);
+  boisson('Banana Split',     'Banane, glace, chantilly et chocolat.', 200);
+
+  /* Milkshakes */
+  boisson('Milkshake Vanille',              'Milkshake onctueux à la vanille.', 350);
+  boisson('Milkshake Caramel Beurre Salé',  'Milkshake au caramel beurre salé.', 450);
+  boisson('Milkshake Nutella',              'Milkshake au Nutella.', 450);
+  boisson('Milkshake Nutella Banane',       'Milkshake Nutella et banane.', 550);
+  boisson('Milkshake Snickers',             'Milkshake au Snickers.', 450);
+  boisson('Milkshake Bueno',                'Milkshake au Kinder Bueno.', 450);
+  boisson('Milkshake KitKat',               'Milkshake au KitKat.', 450);
+  boisson('Milkshake Oreo',                 'Milkshake aux Oreo.', 550);
+  boisson('Milkshake Avocat',               'Milkshake à l’avocat.', 800);
+
+  /* Mojitos */
+  boisson('Mojito Classique',        'Citron vert, menthe fraîche.', 450);
+  boisson('Pink Mojito',             'Mojito version fruits rouges.', 500);
+  boisson('Blue Mojito',             'Mojito au blue curaçao.', 500);
+  boisson('Mojito Fraise Menthe',    'Fraise et menthe fraîche.', 600);
+  boisson('Mojito Kiwi',             'Mojito au kiwi.', 700);
+  boisson('Mojito Inspiration du Chef', 'La création mojito du moment.', 800);
+
+  /* Jus naturels */
+  boisson('Jus de Citron',      'Pressé minute.', 400);
+  boisson('Jus d’Orange',       'Pressé minute.', 350);
+  boisson('Jus de Banane',      'Fruit frais mixé.', 350);
+  boisson('Jus de Fraise',      'Fruit frais mixé.', 400);
+  boisson('Jus de Pêche',       'Fruit frais mixé.', 350);
+  boisson('Jus de Grenade',     'Pressé minute.', 400);
+  boisson('Cocktail de Fruits', 'Assortiment de fruits frais.', 500);
+
+  /* Cocktails */
+  boisson('Cocktail Florida',        'Orange, ananas, fraise, citron.', 450);
+  boisson('Cocktail Rio',            'Citron, menthe, limonade, blue curaçao.', 450);
+  boisson('Cocktail Fleur d’Amour',  'Mangue, fraise, lait de coco.', 600);
+  boisson('Cocktail The Pink Lady',  'Ananas, goyave, fraise, citron.', 650);
+  boisson('Cocktail Hawaï',          'Ananas, orange, lait de coco.', 650);
+  boisson('Cocktail Bahama-Mama',    'Ananas, orange, fraise, grenadine.', 650);
+  boisson('Cocktail Bora-Bora',      'Citron, fruit de la passion, Sprite.', 650);
+  boisson('Cocktail Blue Lagoon',    'Limonade, citron, blue curaçao.', 650);
+  boisson('Cocktail Pina Colada',    'Ananas, lait de coco.', 700);
+  boisson('Cocktail Bahamas Kiwi',   'Kiwi et agrumes.', 750);
+  boisson('Cocktail Blue Star',      'Limonade, fruits rouges, blue curaçao.', 750);
+  boisson('Cocktail Strawberry Colada', 'Fraise, ananas.', 800);
+  boisson('Cocktail Inspiration du Chef', 'La création du moment.', 800);
+
+  /* Smoothies & frappuccinos */
+  boisson('Smoothie Pomme Kiwi',     'Pomme et kiwi mixés.', 700);
+  boisson('Smoothie Mangue Passion', 'Mangue et fruit de la passion.', 650);
+  boisson('Morning Smoothie',        'Le smoothie vitaminé du matin.', 750);
+  boisson('Frappé Noix',             'Frappé onctueux aux noix.', 700);
+  boisson('Frappuccino Vanille',     'Café glacé fouetté, vanille.', 350);
+  boisson('Frappuccino Caramel',     'Café glacé fouetté, caramel.', 350);
+  boisson('Frappuccino Fraise',      'Frappé glacé à la fraise.', 400);
+  boisson('Frappuccino Banane',      'Frappé glacé à la banane.', 400);
 
   /* --- Les cartes ci-dessous sont des EXEMPLES à remplacer --- */
   m('r-ambassade', 'cat-trad',  'Couscous royal',      'Semoule fine, agneau et légumes de saison.', 1400, []);
@@ -217,15 +447,17 @@
   const ORDERS = [];
   const ORDER_ITEMS = [];
 
-  addOrder('o1', 'delivered', -3, 'r-melyza', 'u-driver', [['mi-1', 2], ['mi-5', 2]]);
-  addOrder('o2', 'delivered', -1, 'r-atelier', 'u-driver', [['mi-14', 1]]);
+  /* Les plats sont désignés par leur nom : les identifiants « mi-N » dépendent
+     de l'ordre d'insertion et changeraient à chaque retouche de la carte. */
+  addOrder('o1', 'delivered', -3, 'r-melyza', 'u-driver', [['Le Suisse', 2], ['Milkshake Oreo', 2]]);
+  addOrder('o2', 'delivered', -1, 'r-atelier', 'u-driver', [['Burger de l’Atelier', 1]]);
 
   function addOrder(id, status, daysAgo, rid, driver, lines) {
     const rest = RESTAURANTS.find(x => x.id === rid);
     let subtotal = 0;
     lines.forEach(l => {
-      const it = MENU.find(x => x.id === l[0]);
-      if (!it) return;
+      const it = MENU.find(x => x.restaurant_id === rid && x.name === l[0]);
+      if (!it) throw new Error('Plat de démonstration introuvable : ' + l[0]);
       const lt = it.price * l[1];
       subtotal += lt;
       ORDER_ITEMS.push({
