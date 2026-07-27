@@ -26,9 +26,34 @@ Les données sont enregistrées **dans ton navigateur** (localStorage).
 | Livreur | `livreur@talabi.dz` |
 | Administrateur | `admin@talabi.dz` |
 
-> **Astuce pour tout tester d'un coup :** ouvre le site dans une fenêtre normale
-> (client) et une fenêtre de navigation privée (restaurant), passe une commande
-> côté client et regarde-la arriver côté restaurant.
+### Tester le parcours complet : le bouton 🧪
+
+En bas à droite de l'écran, un bouton **🧪 TEST** ouvre un panneau qui permet de
+**changer de compte en un clic**, sans mot de passe. C'est la bonne façon de
+dérouler un scénario entier :
+
+1. Connecte-toi en **client**, passe une commande
+2. Ouvre 🧪 → il t'indique *« Le restaurant doit accepter la commande »* et te
+   propose de basculer sur le bon compte restaurant
+3. Accepte, prépare, signale « prête »
+4. Ouvre 🧪 → il bascule sur un compte livreur, **le valide, le met en
+   disponible et le rattache au bon quartier** automatiquement
+5. Accepte la course, livre
+6. Ouvre 🧪 → retour au client pour confirmer la réception
+
+> ⚠️ **N'utilise pas de fenêtre de navigation privée pour tester.** En mode démo,
+> les données vivent dans la mémoire du navigateur, et une fenêtre privée possède
+> sa propre mémoire isolée : le livreur n'y verrait jamais la commande du client.
+> Reste dans le même onglet et utilise le bouton 🧪.
+
+**Trois conditions pour qu'un livreur voie une course** — c'est la cause n°1 de
+« je ne vois rien » :
+
+- son compte est **validé** par un administrateur ;
+- son statut est **Disponible** ;
+- son **quartier** est le même que celui de la commande.
+
+Le bouton 🧪 règle ces trois points d'un coup.
 
 **Limites du mode démo :** pas de connexion Google, pas d'email de réinitialisation,
 et chaque appareil a ses propres données. C'est normal — la suite règle tout ça.

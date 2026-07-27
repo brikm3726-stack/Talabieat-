@@ -741,6 +741,84 @@
       });
     },
 
+    /* ======================================================================
+       OUTILS DE TEST — mode démo uniquement.
+       En démo, tout le monde partage la même base locale : on peut donc
+       basculer d'un compte à l'autre sans mot de passe pour dérouler un
+       scénario complet (client → restaurant → livreur) dans un seul onglet.
+       ====================================================================== */
+
+    /** Tous les comptes de la base locale, regroupables par rôle. */
+    demoAccounts() {
+      const current = uid();
+      return db.profiles.map(p => {
+        const d = p.role === 'driver' ? byId(db.drivers, p.id) : null;
+        const r = p.role === 'restaurant' ? db.restaurants.find(x => x.owner_id === p.id) : null;
+        return {
+          id: p.id, email: p.email, full_name: p.full_name, role: p.role,
+          is_current: p.id === current,
+          is_blocked: p.is_blocked,
+          pending: d ? d.validation_status === 'pending' : r ? r.status === 'pending' : false,
+          // infos livreur, utiles pour comprendre pourquoi une course n'apparaît pas
+          driver_status: d ? d.status : null,
+          driver_approved: d ? d.validation_status === 'approved' : null,
+          zone_id: d ? d.zone_id : (r ? r.zone_id : p.zone_id),
+          zone_name: (byId(db.zones, d ? d.zone_id : (r ? r.zone_id : p.zone_id)) || {}).name || null
+        };
+      });
+    },
+
+    /** Rend un livreur immédiatement opérationnel sur une commande donnée. */
+    demoReadyDriver(driverId, zoneId) {
+      const d = byId(db.drivers, driverId);
+      if (!d) throw new Error('Ce compte n’est pas un livreur.');
+      d.validation_status = 'approved';
+      if (zoneId) d.zone_id = zoneId;
+      if (d.status === 'offline') d.status = 'available';
+      commit('drivers');
+      return clone(d);
+    },
+
+    /** Bascule instantanée vers un compte (sans mot de passe). */
+    demoSwitchTo(userId) {
+      const p = byId(db.profiles, userId);
+      if (!p) throw new Error('Compte introuvable.');
+      writeSession(p.id);
+      emit('session');
+      return clone(p);
+    },
+
+    /** Valide d'un coup les livreurs et restaurants en attente. */
+    demoApproveAll() {
+      let n = 0;
+      db.drivers.forEach(d => {
+        if (d.validation_status === 'pending') {
+          d.validation_status = 'approved';
+          notify(d.id, 'Compte livreur validé ✅', 'Vous pouvez maintenant accepter des livraisons.', 'driver_status', null);
+          n++;
+        }
+      });
+      db.restaurants.forEach(r => {
+        if (r.status === 'pending') {
+          r.status = 'approved';
+          notify(r.owner_id, 'Restaurant validé ✅', 'Votre restaurant est maintenant visible par les clients.', 'restaurant_status', null);
+          n++;
+        }
+      });
+      if (n) commit('*');
+      return n;
+    },
+
+    /** La commande la plus récente, pour guider le scénario de test. */
+    demoLastOrder() {
+      const o = db.orders.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+      if (!o) return null;
+      const out = expandOrder(o);
+      const rest = byId(db.restaurants, o.restaurant_id);
+      out.owner_id = rest ? rest.owner_id : null;
+      return out;
+    },
+
     /** Remet la base de démo à zéro */
     resetDemo() {
       try { localStorage.removeItem(KEY); localStorage.removeItem(SESSION_KEY); } catch (e) {}

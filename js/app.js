@@ -70,8 +70,9 @@
       setTimeout(() => splash.remove(), 380);
 
       if (API.mode === 'demo') {
-        setTimeout(() => UI.toast('Mode démonstration actif',
-          null, 'Données stockées dans ce navigateur. Configurez Supabase dans config.js pour la production.'), 900);
+        TestPanel.mount();
+        setTimeout(() => UI.toast('Mode démonstration actif', null,
+          'Utilisez le bouton 🧪 en bas à droite pour changer de compte et tester tout le parcours.'), 900);
       }
 
     } catch (e) {

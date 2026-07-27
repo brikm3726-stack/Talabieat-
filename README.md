@@ -21,6 +21,15 @@ Comptes de test — mot de passe `123456` :
 | 🛵 Livreur | `livreur@talabi.dz` |
 | ⚙️ Admin | `admin@talabi.dz` |
 
+### Tester le parcours complet
+
+Le bouton **🧪 TEST** en bas à droite change de compte en un clic et t'indique
+qui doit agir maintenant. Tu peux ainsi passer une commande en client, l'accepter
+en restaurant et la livrer en livreur **dans le même onglet**.
+
+> N'utilise pas de fenêtre privée en mode démo : elle a sa propre mémoire isolée
+> et ne verrait pas tes commandes.
+
 Pour passer en production (vraie base de données partagée + connexion Google) :
 👉 **[GUIDE-INSTALLATION.md](GUIDE-INSTALLATION.md)**
 
@@ -72,6 +81,7 @@ platforme/
     │   ├── ui.js              toasts, modales, upload d'images
     │   ├── components.js      cartes restaurant, plats, timeline
     │   ├── mappicker.js       choix de position sur carte + GPS + Google Maps
+    │   ├── testpanel.js       bouton 🧪 : changer de rôle (mode démo seulement)
     │   ├── router.js          navigation + gardes par rôle
     │   ├── shell.js           barre du haut, navigation, notifications
     │   ├── store.js           état global (profil, zone, panier)
