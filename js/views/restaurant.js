@@ -334,14 +334,10 @@
   }, GUARD);
 
   /* --------------------------------------------------- formulaire plat */
-  /* Modèles proposés en un clic — ce sont les découpages les plus courants
-     en Algérie. Le restaurateur reste libre de nommer ses formats. */
-  const FORMAT_PRESETS = [
-    { label: 'Solo / Menu', names: ['Solo', 'Menu'] },
-    { label: 'Small / Méga', names: ['Small', 'Méga'] },
-    { label: 'Small / Medium / Méga', names: ['Small', 'Medium', 'Méga'] },
-    { label: 'M / L / XL', names: ['M', 'L', 'XL'] }
-  ];
+  /* Un bouton par format courant : on appuie sur ceux dont on a besoin et on
+     saisit le prix de chacun. Rien n'oblige à les utiliser — « + Autre » permet
+     n'importe quel nom (Grande, Familiale, 6 pièces…). */
+  const QUICK_FORMATS = ['Solo', 'Menu', 'S', 'M', 'L', 'XL'];
 
   function itemSheet(item, onSaved) {
     const it = item || {};
@@ -381,12 +377,12 @@
 
         /* ---------------------------------------------------- FORMATS */
         '<div class="field"><label>Formats <span class="tiny">(le client en choisit un seul)</span></label>' +
-          '<div class="stack" style="gap:8px" id="vars">' + varRows() + '</div>' +
-          '<div id="varPresets" class="chips" style="flex-wrap:wrap;overflow:visible;margin-top:8px">' +
-            FORMAT_PRESETS.map((p, i) => '<button type="button" class="chip" data-preset="' + i + '">' +
-              U.esc(p.label) + '</button>').join('') +
-            '<button type="button" class="chip" data-vadd>+ Format</button>' +
+          '<div class="chips" style="flex-wrap:wrap;overflow:visible;margin-bottom:8px">' +
+            QUICK_FORMATS.map(n => '<button type="button" class="chip" data-quick="' + U.esc(n) + '">' +
+              U.esc(n) + '</button>').join('') +
+            '<button type="button" class="chip" data-vadd>+ Autre</button>' +
           '</div>' +
+          '<div class="stack" style="gap:8px" id="vars">' + varRows() + '</div>' +
           '<div class="hint" id="varHint"></div></div>' +
 
         /* ------------------------------------------------------ PRIX */
@@ -443,20 +439,37 @@
           const on = vars.length > 0;
           priceField.hidden = on;
           priceField.querySelector('[name=price]').required = !on;
+
+          const prix = vars.filter(v => v.price > 0).map(v => v.price);
           hint.textContent = on
-            ? 'Chaque format a son propre prix total (pas un supplément). Le menu affichera « dès ' +
-              U.money(vars.reduce((m, v) => Math.min(m, v.price || 0), vars[0].price || 0)) + ' ».'
-            : 'Laissez vide si le plat n’a qu’un seul prix. Sinon : Solo/Menu, Small/Méga…';
+            ? (prix.length
+                ? 'Chaque format a son propre prix total, pas un supplément. Le menu affichera « dès ' +
+                  U.money(Math.min.apply(null, prix)) + ' ».'
+                : 'Indiquez le prix de chaque format.')
+            : 'Appuyez sur un format si ce plat existe en plusieurs tailles. Sinon, laissez vide et donnez un prix unique.';
+
+          // un bouton allumé = ce format est déjà dans la liste
+          el.querySelectorAll('[data-quick]').forEach(b =>
+            b.classList.toggle('on', vars.some(v => v.name === b.dataset.quick)));
+
           vbox.querySelectorAll('[data-vrm]').forEach(b => b.onclick = () => {
             readVars(); vars.splice(+b.dataset.vrm, 1); repaintVars();
           });
           vbox.querySelectorAll('[data-vprice]').forEach(i => i.onchange = () => { readVars(); repaintVars(); });
+          vbox.querySelectorAll('[data-vname]').forEach(i => i.onchange = () => { readVars(); repaintVars(); });
         }
-        el.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => {
+
+        /* Chaque bouton ajoute son format, ou le retire si on rappuie dessus. */
+        el.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => {
           readVars();
-          const base = +el.querySelector('[name=price]').value || 0;
-          // on pré-remplit avec le prix déjà saisi : le gérant n'ajuste que la suite
-          vars = FORMAT_PRESETS[+b.dataset.preset].names.map(n => ({ name: n, price: base }));
+          const nom = b.dataset.quick;
+          const i = vars.findIndex(v => v.name === nom);
+          if (i >= 0) vars.splice(i, 1);
+          else {
+            // on reprend le prix unique déjà saisi comme point de départ
+            const base = +el.querySelector('[name=price]').value || 0;
+            vars.push({ name: nom, price: base });
+          }
           repaintVars();
         });
         el.querySelector('[data-vadd]').onclick = () => { readVars(); vars.push({ name: '', price: 0 }); repaintVars(); };
