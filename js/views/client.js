@@ -51,9 +51,10 @@
           results.innerHTML = UI.empty('🍽️', 'Aucun plat trouvé', 'Essayez un autre mot-clé ou changez de quartier.');
           return;
         }
+        const catOf = id => Store.categories.find(c => c.id === id) || {};
         results.innerHTML = '<div class="stack">' + dishes.map(d =>
           '<div data-goto="' + U.esc(d.restaurant.id) + '">' +
-            Cmp.dishRow(Object.assign({}, d, { is_available: true })) +
+            Cmp.dishRow(Object.assign({}, d, { is_available: true }), catOf(d.category_id)) +
             '<div class="tiny" style="margin:-6px 0 4px 13px">chez <b>' + U.esc(d.restaurant.name) + '</b> • ' +
               U.esc(d.restaurant.zone ? d.restaurant.zone.name : '') + '</div>' +
           '</div>').join('') + '</div>';
@@ -186,17 +187,23 @@
     view.querySelector('#back').onclick = () => Router.back();
 
     if (menu.length) {
-      const groups = catsOfMenu.map(c => ({ id: c.id, title: c.icon + ' ' + c.name_fr, icon: c.icon, items: menu.filter(m => m.category_id === c.id) }));
-      if (others.length) groups.push({ id: 'other', title: '🍽️ Autres', icon: '🍽️', items: others });
+      const groups = catsOfMenu.map(c => ({ id: c.id, name: c.name_fr, cat: c, items: menu.filter(m => m.category_id === c.id) }));
+      if (others.length) groups.push({ id: 'other', name: 'Autres', cat: { icon: '🍽️' }, items: others });
+
+      // logo de la catégorie, emoji seulement en repli
+      const gIcon = (g, big) => g.cat.image_url
+        ? '<span class="g-ic' + (big ? ' big' : '') + '" style="background-image:url(' + U.escUrl(g.cat.image_url) + ')"></span>'
+        : '<span class="g-ic emoji' + (big ? ' big' : '') + '">' + (g.cat.icon || '🍽️') + '</span>';
 
       view.querySelector('#menuNav').innerHTML = groups.map((g, i) =>
-        '<button class="chip ' + (i === 0 ? 'on' : '') + '" data-jump="g' + g.id + '">' + U.esc(g.title) + '</button>').join('');
+        '<button class="chip ' + (i === 0 ? 'on' : '') + '" data-jump="g' + g.id + '">' +
+          gIcon(g) + U.esc(g.name) + '</button>').join('');
 
       view.querySelector('#menu').innerHTML = groups.map(g =>
         '<section id="g' + g.id + '" style="scroll-margin-top:76px">' +
-          '<div class="section-head"><div class="h3">' + U.esc(g.title) + '</div>' +
+          '<div class="section-head"><div class="h3">' + gIcon(g, true) + U.esc(g.name) + '</div>' +
           '<span class="tiny">' + g.items.length + ' plat(s)</span></div>' +
-          '<div class="stack">' + g.items.map(m => Cmp.dishRow(m, g.icon)).join('') + '</div>' +
+          '<div class="stack">' + g.items.map(m => Cmp.dishRow(m, g.cat)).join('') + '</div>' +
         '</section>').join('');
 
       view.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {

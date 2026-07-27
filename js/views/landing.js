@@ -53,8 +53,8 @@
 
         /* -------------------------------------------------------- PARTENAIRES */
         '<div class="grid grid-auto" style="margin-top:34px">' +
-          promo('🏪', 'Vous avez un restaurant ?', 'Rejoignez Talabi, recevez des commandes dès aujourd’hui et gérez votre menu en toute autonomie.', 'Ajouter mon restaurant', '#/signup?role=restaurant') +
-          promo('🛵', 'Vous voulez livrer ?', 'Travaillez quand vous voulez dans votre quartier et gagnez sur chaque course.', 'Devenir livreur', '#/signup?role=driver') +
+          promo('🏪', 'Vous avez un restaurant ?', 'Rejoignez Talabi, recevez des commandes dès aujourd’hui et gérez votre menu en toute autonomie.', 'Ajouter mon restaurant', '#/signup?role=restaurant', 'assets/img/roles/restaurant.jpg') +
+          promo('🛵', 'Vous voulez livrer ?', 'Travaillez quand vous voulez dans votre quartier et gagnez sur chaque course.', 'Devenir livreur', '#/signup?role=driver', 'assets/img/roles/driver.jpg') +
         '</div>' +
       '</div>' +
 
@@ -110,9 +110,14 @@
       '<p class="sub" style="margin-top:10px">' + U.esc(text) + '</p></div>';
   }
 
-  function promo(icon, title, text, cta, href) {
+  /* img : logo du rôle sur pastille blanche (les logos sont sur fond blanc,
+     ils seraient illisibles à même le dégradé sombre de la carte). */
+  function promo(icon, title, text, cta, href, img) {
     return '<div class="card card-p" style="background:linear-gradient(140deg,#14161A,#26292F);color:#fff;border:none">' +
-      '<div style="font-size:32px">' + icon + '</div>' +
+      (img
+        ? '<div style="width:62px;height:62px;border-radius:18px;background:#fff center/78% no-repeat;' +
+          'background-image:url(' + U.escUrl(img) + ')"></div>'
+        : '<div style="font-size:32px">' + icon + '</div>') +
       '<div class="h2" style="margin-top:10px">' + U.esc(title) + '</div>' +
       '<p style="opacity:.75;font-size:14px;margin-top:8px">' + U.esc(text) + '</p>' +
       '<a class="btn btn-primary" style="margin-top:16px" href="' + href + '">' + U.esc(cta) + '</a></div>';

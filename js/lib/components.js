@@ -49,10 +49,17 @@
     },
 
     /* ------------------------------------------------------------ plat */
-    dishRow(m, catIcon) {
-      const img = m.image_url ? 'background-image:url(' + U.escUrl(m.image_url) + ')' : '';
+    /* cat : la catégorie du plat. Quand le plat n'a pas sa propre photo,
+       on affiche le logo de sa catégorie plutôt qu'un emoji ; l'emoji ne
+       sert que si la catégorie n'a pas de logo non plus. */
+    dishRow(m, cat) {
+      cat = cat || {};
+      const own = m.image_url ? U.escUrl(m.image_url) : '';
+      const fb = !own && cat.image_url ? U.escUrl(cat.image_url) : '';
+      const style = own ? 'background-image:url(' + own + ')'
+        : fb ? 'background-image:url(' + fb + ');background-size:74%;background-color:#fff' : '';
       return '<div class="dish ' + (m.is_available ? '' : 'off') + '" data-dish="' + U.esc(m.id) + '">' +
-        '<div class="dish-img" style="' + img + '">' + (img ? '' : (catIcon || '🍽️')) + '</div>' +
+        '<div class="dish-img" style="' + style + '">' + (own || fb ? '' : (cat.icon || '🍽️')) + '</div>' +
         '<div class="dish-body">' +
           '<div class="dish-name">' + U.esc(m.name) + '</div>' +
           (m.description ? '<div class="dish-desc">' + U.esc(m.description) + '</div>' : '') +

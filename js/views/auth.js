@@ -11,11 +11,19 @@
     '<path fill="#FBBC05" d="M10.4 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C1 16.3 0 20 0 24s1 7.7 2.6 10.8l7.8-6.1z"/>' +
     '<path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.4 0-11.7-3.7-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
 
+  /* img : logo du rôle. L'emoji reste le repli si l'image ne charge pas. */
+  const ROLE_IMG = 'assets/img/roles/';
   const ROLES = [
-    { v: 'client',     i: '🍔', t: 'Client',     d: 'Commander des repas et me faire livrer' },
-    { v: 'restaurant', i: '🏪', t: 'Restaurant', d: 'Vendre mes plats sur la plateforme' },
-    { v: 'driver',     i: '🛵', t: 'Livreur',    d: 'Livrer des commandes et gagner de l’argent' }
+    { v: 'client',     i: '🍔', img: ROLE_IMG + 'client.jpg',     t: 'Client',     d: 'Commander des repas et me faire livrer' },
+    { v: 'restaurant', i: '🏪', img: ROLE_IMG + 'restaurant.jpg', t: 'Restaurant', d: 'Vendre mes plats sur la plateforme' },
+    { v: 'driver',     i: '🛵', img: ROLE_IMG + 'driver.jpg',     t: 'Livreur',    d: 'Livrer des commandes et gagner de l’argent' }
   ];
+
+  function roleIcon(r) {
+    return r.img
+      ? '<div class="ic has-img" style="background-image:url(' + U.escUrl(r.img) + ')"></div>'
+      : '<div class="ic">' + r.i + '</div>';
+  }
 
   function shell(title, subtitle, inner) {
     return '<div class="wrap-sm page" style="max-width:460px">' +
@@ -100,7 +108,7 @@
 
         '<div class="stack" style="gap:9px" id="roles">' +
           ROLES.map(r => '<div class="role-card" data-role="' + r.v + '">' +
-            '<div class="ic">' + r.i + '</div>' +
+            roleIcon(r) +
             '<div class="grow"><b>' + r.t + '</b><div class="tiny">' + U.esc(r.d) + '</div></div>' +
             '<div data-check style="color:var(--brand);font-weight:800"></div></div>').join('') +
         '</div>' +
@@ -202,7 +210,7 @@
       same ? '' : 'Un compte Talabi correspond à un seul rôle',
       '<div class="card card-p stack">' +
 
-        '<div class="role-card on"><div class="ic">' + info.i + '</div>' +
+        '<div class="role-card on">' + roleIcon(info) +
           '<div class="grow"><b>' + U.esc(info.t) + '</b>' +
           '<div class="tiny">' + U.esc(info.d) + '</div></div></div>' +
 
