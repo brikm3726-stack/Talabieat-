@@ -247,6 +247,10 @@
     if (!item) return;
     let qty = 1;
     const opts = item.options || [];
+    const formats = item.variants || [];
+    let vIdx = 0;                      // format retenu, le premier par défaut
+
+    const basePrice = () => formats.length ? formats[vIdx].price : item.price;
 
     UI.sheet({
       title: item.name,
@@ -255,9 +259,19 @@
           ? '<div style="height:170px;border-radius:16px;background:#EDF0F5 center/cover no-repeat;background-image:url(' + U.escUrl(item.image_url) + ');margin-bottom:14px"></div>'
           : '') +
         (item.description ? '<p class="sub" style="margin-bottom:14px">' + U.esc(item.description) + '</p>' : '') +
-        '<div class="h2 price" style="margin-bottom:14px">' + U.money(item.price) + '</div>' +
+        (formats.length
+          ? '<div class="h3" style="margin-bottom:10px">Format</div><div class="stack" style="gap:8px;margin-bottom:16px">' +
+            formats.map((v, i) =>
+              '<label class="row-between opt-row" style="padding:11px 13px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer">' +
+                '<span class="row" style="gap:10px"><input type="radio" name="fmt" data-fmt="' + i + '"' +
+                  (i === 0 ? ' checked' : '') + ' style="width:18px;height:18px;accent-color:var(--brand)">' +
+                U.esc(v.name) + '</span>' +
+                '<b class="price">' + U.money(v.price) + '</b>' +
+              '</label>').join('') + '</div>'
+          : '<div class="h2 price" style="margin-bottom:14px">' + U.money(item.price) + '</div>') +
         (opts.length
-          ? '<div class="h3" style="margin-bottom:10px">Suppléments</div><div class="stack" style="gap:8px">' +
+          ? '<div class="h3" style="margin-bottom:10px">Suppléments <span class="tiny">(facultatif)</span></div>' +
+            '<div class="stack" style="gap:8px">' +
             opts.map((o, i) =>
               '<label class="row-between" style="padding:11px 13px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer">' +
                 '<span class="row" style="gap:10px"><input type="checkbox" data-opt="' + i + '" style="width:18px;height:18px;accent-color:var(--brand)">' +
@@ -268,7 +282,7 @@
       footer:
         '<div class="row" style="gap:12px">' +
           '<div class="qty"><button data-m>−</button><b id="q">1</b><button data-p>+</button></div>' +
-          '<button class="btn btn-primary grow" id="add">Ajouter • <span id="tot">' + U.money(item.price) + '</span></button>' +
+          '<button class="btn btn-primary grow" id="add">Ajouter • <span id="tot">' + U.money(basePrice()) + '</span></button>' +
         '</div>',
 
       onMount(el, api) {
@@ -277,19 +291,24 @@
         const refresh = () => {
           const extra = chosen().reduce((s, o) => s + (+o.extra_price || 0), 0);
           el.querySelector('#q').textContent = qty;
-          el.querySelector('#tot').textContent = U.money((item.price + extra) * qty);
+          el.querySelector('#tot').textContent = U.money((basePrice() + extra) * qty);
         };
         el.querySelector('[data-m]').onclick = () => { qty = Math.max(1, qty - 1); refresh(); };
         el.querySelector('[data-p]').onclick = () => { qty = Math.min(30, qty + 1); refresh(); };
         el.querySelectorAll('[data-opt]').forEach(c => c.onchange = refresh);
+        el.querySelectorAll('[data-fmt]').forEach(c => c.onchange = () => {
+          if (c.checked) { vIdx = +c.dataset.fmt; refresh(); }
+        });
 
         el.querySelector('#add').onclick = async function () {
           if (!resto.open_now) return UI.err('Restaurant fermé', 'Réouverture à ' + U.hhmm(resto.opens_at));
+          const v = formats.length ? formats[vIdx] : null;
           const ok = await Store.addToCart(resto, item, qty,
-            chosen().map(o => ({ name: o.name, extra_price: o.extra_price })));
+            chosen().map(o => ({ name: o.name, extra_price: o.extra_price })), v);
           if (!ok) return;
           api.close();
-          UI.ok(qty + '× ' + item.name + ' ajouté', 'Panier : ' + U.money(Store.cartSubtotal));
+          UI.ok(qty + '× ' + item.name + (v ? ' (' + v.name + ')' : '') + ' ajouté',
+                'Panier : ' + U.money(Store.cartSubtotal));
           Shell.renderNav();
           renderCartBar(document.getElementById('view'));
         };
@@ -349,6 +368,7 @@
                 (l.image_url ? ';background-image:url(' + U.escUrl(l.image_url) + ')' : '') + '">' +
                 (l.image_url ? '' : '🍽️') + '</div>' +
               '<div class="grow"><b style="font-size:14.5px">' + U.esc(l.name) + '</b>' +
+                (l.variant ? ' <span class="tag tag-muted">' + U.esc(l.variant.name) + '</span>' : '') +
                 ((l.options && l.options.length)
                   ? '<div class="tiny">+ ' + U.esc(l.options.map(o => o.name).join(', ')) + '</div>' : '') +
                 '<div class="price" style="margin-top:3px">' + U.money(Store.lineTotal(l)) + '</div></div>' +

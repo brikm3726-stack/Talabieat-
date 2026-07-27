@@ -4,7 +4,10 @@
 (function (w) {
   'use strict';
 
-  const CART_KEY = 'talabi.cart.v1';
+  // v2 : les lignes portent désormais un format. Un panier enregistré avant
+  // cette évolution n'en a pas et serait refusé à la commande — on repart de zéro
+  // plutôt que de bloquer le client sur un message qu'il ne comprendrait pas.
+  const CART_KEY = 'talabi.cart.v2';
   const ZONE_KEY = 'talabi.zone.v1';
 
   const subs = [];
@@ -77,7 +80,7 @@
      * Ajoute un plat. Un panier = un seul restaurant (règle classique du secteur).
      * Retourne false si l'utilisateur a refusé de vider son panier.
      */
-    async addToCart(restaurant, item, quantity, options) {
+    async addToCart(restaurant, item, quantity, options, variant) {
       if (Store.cart.items.length && Store.cart.restaurant_id !== restaurant.id) {
         const ok = await UI.confirm(
           'Changer de restaurant ?',
@@ -93,11 +96,15 @@
       Store.cart.zone_id = restaurant.zone_id;
 
       const opts = (options || []).slice().sort((a, b) => a.name.localeCompare(b.name));
-      const key = item.id + '|' + opts.map(o => o.name).join(',');
+      /* Le format fait partie de l'identité de la ligne : une pizza Small et
+         la même en Méga sont deux lignes distinctes, pas une quantité de 2. */
+      const key = item.id + '|' + (variant ? variant.id : '') + '|' + opts.map(o => o.name).join(',');
       const found = Store.cart.items.find(l => l.key === key);
       if (found) found.quantity += (quantity || 1);
       else Store.cart.items.push({
-        key: key, menu_item_id: item.id, name: item.name, price: item.price,
+        key: key, menu_item_id: item.id, name: item.name,
+        price: variant ? variant.price : item.price,
+        variant: variant ? { id: variant.id, name: variant.name } : null,
         image_url: item.image_url || null, options: opts, quantity: quantity || 1
       });
       Store.saveCart();

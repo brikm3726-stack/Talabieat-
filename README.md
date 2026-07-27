@@ -61,10 +61,13 @@ pour le livreur, puis **suit sa commande en direct** sur 7 étapes. Pendant la
 livraison, il **voit son livreur avancer sur une carte**, avec la distance
 restante et le temps estimé, et confirme la réception à l'arrivée.
 
-**Restaurant** — crée sa fiche (logo, couverture, adresse, horaires, catégories),
-gère son menu (plats, photos, prix, suppléments, activation/désactivation),
-reçoit les commandes, accepte ou refuse avec motif, fait avancer le statut, et
-consulte son chiffre d'affaires et ses produits les plus vendus.
+**Restaurant** — crée sa fiche en autonomie (logo, photo de couverture, adresse,
+position sur la carte, horaires, catégories) puis monte son menu lui-même :
+photo de chaque plat, description, catégorie, **formats** (Solo/Menu,
+Small/Medium/Méga, M/L/XL… chacun avec son propre prix) et **suppléments**
+cumulables. Il reçoit ensuite les commandes, accepte ou refuse avec motif, fait
+avancer le statut, et consulte son chiffre d’affaires et ses produits les plus
+vendus. Personne d’autre ne peut modifier sa carte.
 
 **Livreur** — s'inscrit, renseigne quartier et véhicule, attend la validation de
 l'admin, se met disponible, voit les courses de son quartier avec **distance GPS
@@ -95,7 +98,8 @@ platforme/
 │   ├── 03_seed.sql            quartiers de Tizi Ouzou ville, catégories, stockage
 │   ├── 04_geoloc.sql          mise à jour GPS (bases déjà installées)
 │   ├── 05_tracking.sql        suivi du livreur en direct
-│   └── 06_categories.sql      pastilles illustrées, retrait de « Poulet »
+│   ├── 06_categories.sql      pastilles illustrées, retrait de « Poulet »
+│   └── 07_formats.sql         formats des plats (Solo/Menu, Small/Méga…)
 │
 └── js/
     ├── app.js                 démarrage
@@ -154,7 +158,8 @@ tel quel sur Vercel, Netlify ou GitHub Pages.
 | `restaurants` | Fiches, horaires, frais, statut de validation |
 | `restaurant_categories` | Catégories de chaque restaurant |
 | `menu_items` | Plats : nom, prix, photo, disponibilité |
-| `menu_options` | Suppléments payants |
+| `menu_variants` | Formats d’un plat (Solo/Menu, Small/Méga…), un seul au choix |
+| `menu_options` | Suppléments payants, cumulables |
 | `drivers` | Véhicule, zone, disponibilité, validation, gains |
 | `addresses` | Carnet d'adresses des clients |
 | `orders` | Commandes, statuts, montants, horodatage de chaque étape |

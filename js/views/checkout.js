@@ -71,6 +71,7 @@
           '<div class="h3" style="margin-bottom:10px">Récapitulatif</div>' +
           Store.cart.items.map(l =>
             '<div class="oline"><span class="l"><b>' + l.quantity + '×</b> ' + U.esc(l.name) +
+            (l.variant ? ' <span class="tag tag-muted">' + U.esc(l.variant.name) + '</span>' : '') +
             ((l.options && l.options.length) ? '<br><span class="tiny">+ ' + U.esc(l.options.map(o => o.name).join(', ')) + '</span>' : '') +
             '</span><span>' + U.money(Store.lineTotal(l)) + '</span></div>').join('') +
           '<div class="divider"></div>' +
@@ -153,7 +154,8 @@
           client_name: Store.profile.full_name,
           note: note,
           items: Store.cart.items.map(l => ({
-            menu_item_id: l.menu_item_id, quantity: l.quantity, options: l.options || []
+            menu_item_id: l.menu_item_id, quantity: l.quantity,
+            options: l.options || [], variant: l.variant || null
           }))
         });
         Store.clearCart();

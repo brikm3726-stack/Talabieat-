@@ -155,13 +155,22 @@
   /* ------------------------------------------------------------------ MENUS */
   const MENU = [];
   const OPTIONS = [];
+  const VARIANTS = [];
 
+  /* price : prix unique, ou tableau de formats [['Solo', 750], ['Menu', 950]].
+     Avec des formats, menu_items.price vaut le moins cher — c'est lui qui
+     s'affiche dans les listes et qui sert au tri et à la recherche. */
   function m(rid, cat, name, desc, price, opts) {
     const id = 'mi-' + (MENU.length + 1);
+    const formats = Array.isArray(price) ? price : null;
     MENU.push({
       id: id, restaurant_id: rid, category_id: cat, name: name, description: desc,
-      price: price, image_url: null, is_available: true, sort_order: MENU.length, created_at: iso(-38)
+      price: formats ? formats.reduce((mn, f) => Math.min(mn, f[1]), formats[0][1]) : price,
+      image_url: null, is_available: true, sort_order: MENU.length, created_at: iso(-38)
     });
+    (formats || []).forEach((f, i) => VARIANTS.push({
+      id: id + '-v' + i, menu_item_id: id, name: f[0], price: f[1], sort_order: i, is_active: true
+    }));
     (opts || []).forEach((o, i) => OPTIONS.push({
       id: id + '-o' + i, menu_item_id: id, name: o[0], extra_price: o[1], is_active: true
     }));
@@ -183,14 +192,14 @@
 
   /* small = prix Small, mega = prix Méga (null si la pizza n'existe qu'en Méga). */
   function pizza(name, ing, small, mega) {
-    const opts = mega ? [['Format Méga (au lieu de Small)', mega - small]] : [];
-    m('r-melyza', 'cat-pizza', name, ing + MEGA_NOTE, small, opts.concat(SUP_PIZZA));
+    m('r-melyza', 'cat-pizza', name, ing + MEGA_NOTE,
+      mega ? [['Small', small], ['Méga', mega]] : small, SUP_PIZZA);
   }
 
-  /* solo = prix seul, menu = prix formule (frites + boisson). */
+  /* solo = prix seul, menu = prix avec frites et boisson. */
   function solo(cat, name, ing, prixSolo, prixMenu) {
-    m('r-melyza', cat, name, ing, prixSolo,
-      prixMenu ? [['Formule menu (frites + boisson)', prixMenu - prixSolo]] : []);
+    m('r-melyza', cat, name, ing,
+      prixMenu ? [['Solo', prixSolo], ['Menu (frites + boisson)', prixMenu]] : prixSolo);
   }
 
   /* ---------------------------------------------------------- PIZZAS */
@@ -251,17 +260,14 @@
 
   /* ------------------------------------------- CHICKEN BOX & BOWLS */
   m('r-melyza', 'cat-autre', 'Chicken Box', 'Tenders, nuggets et cordon bleu réunis dans un seau.', 600, []);
-  /* Trois formats distincts : ce sont bien trois produits sur la carte,
-     pas un supplément — on ne peut pas commander M et XL à la fois. */
-  m('r-melyza', 'cat-autre', 'Tenders 3 pièces',     'Poulet croustillant, sauce au choix.', 350, []);
-  m('r-melyza', 'cat-autre', 'Tenders 6 pièces',     'Poulet croustillant, sauce au choix.', 550, []);
-  m('r-melyza', 'cat-autre', 'Tenders 12 pièces',    'Poulet croustillant, sauce au choix.', 1100, []);
-  m('r-melyza', 'cat-autre', 'Nuggets 3 pièces',     'Nuggets de poulet, sauce au choix.', 300, []);
-  m('r-melyza', 'cat-autre', 'Nuggets 6 pièces',     'Nuggets de poulet, sauce au choix.', 400, []);
-  m('r-melyza', 'cat-autre', 'Nuggets 12 pièces',    'Nuggets de poulet, sauce au choix.', 650, []);
-  m('r-melyza', 'cat-autre', 'Cordon Bleu 3 pièces', 'Cordon bleu pané, sauce au choix.', 450, []);
-  m('r-melyza', 'cat-autre', 'Cordon Bleu 6 pièces', 'Cordon bleu pané, sauce au choix.', 850, []);
-  m('r-melyza', 'cat-autre', 'Cordon Bleu 12 pièces','Cordon bleu pané, sauce au choix.', 1550, []);
+  /* Les trois tailles de la carte deviennent trois formats du même produit :
+     le client en choisit un, il ne peut pas prendre M et XL à la fois. */
+  m('r-melyza', 'cat-autre', 'Tenders',     'Poulet croustillant, sauce au choix.',
+    [['M — 3 pièces', 350], ['L — 6 pièces', 550], ['XL — 12 pièces', 1100]]);
+  m('r-melyza', 'cat-autre', 'Nuggets',     'Nuggets de poulet, sauce au choix.',
+    [['M — 3 pièces', 300], ['L — 6 pièces', 400], ['XL — 12 pièces', 650]]);
+  m('r-melyza', 'cat-autre', 'Cordon Bleu', 'Cordon bleu pané, sauce au choix.',
+    [['M — 3 pièces', 450], ['L — 6 pièces', 850], ['XL — 12 pièces', 1550]]);
   solo('cat-autre', 'Tacos Bowl',              'Escalopes de poulet, cordon bleu, nuggets, tenders, sauces au choix.', 700, 900);
   solo('cat-autre', 'Bowl Chèvre Miel Poulet', 'Frites, poulet, sauce fromage, cheddar gratiné, chèvre, miel.', 850, 1050);
   solo('cat-autre', 'Spicy Bowl',              'Tenders, piment, sauce samouraï.', 800, 1000);
@@ -410,8 +416,10 @@
 
   m('r-atelier', 'cat-burger', 'Burger de l’Atelier', 'Steak maison, cheddar affiné, sauce signature.', 900,
     [['Double steak', 250], ['Bacon de dinde', 120]]);
-  m('r-atelier', 'cat-pizza',  'Pizza margherita',    'Sauce tomate, mozzarella, basilic.', 800, [['Grande taille', 300]]);
-  m('r-atelier', 'cat-pizza',  'Pizza 4 fromages',    'Mozzarella, gouda, cheddar, chèvre.', 1100, [['Grande taille', 300]]);
+  m('r-atelier', 'cat-pizza',  'Pizza margherita',    'Sauce tomate, mozzarella, basilic.',
+    [['Small', 800], ['Grande', 1100]]);
+  m('r-atelier', 'cat-pizza',  'Pizza 4 fromages',    'Mozzarella, gouda, cheddar, chèvre.',
+    [['Small', 1100], ['Grande', 1400]]);
   m('r-atelier', 'cat-dess',   'Pancakes',            'Sirop d’érable ou chocolat.', 550, []);
   m('r-atelier', 'cat-drink',  'Jus pressé',          'Orange ou citron, 40 cl.', 350, []);
 
@@ -420,9 +428,10 @@
     [['Supplément cheddar', 80]]);
   m('r-twelve', 'cat-autre','Poutine Viande Hachée', 'Frites, cheddar fondu, viande hachée et ciboulette.', 500,
     [['Supplément cheddar', 80]]);
-  m('r-twelve', 'cat-burger', 'The Twelve Burger', 'Double steak, cheddar, oignons croustillants.', 950,
-    [['Formule menu', 250], ['Bacon de dinde', 120]]);
-  m('r-twelve', 'cat-burger', 'Chicken Burger',    'Filet de poulet pané, sauce spicy.', 850, [['Formule menu', 250]]);
+  m('r-twelve', 'cat-burger', 'The Twelve Burger', 'Double steak, cheddar, oignons croustillants.',
+    [['Solo', 950], ['Menu (frites + boisson)', 1200]], [['Bacon de dinde', 120]]);
+  m('r-twelve', 'cat-burger', 'Chicken Burger',    'Filet de poulet pané, sauce spicy.',
+    [['Solo', 850], ['Menu (frites + boisson)', 1100]]);
   m('r-twelve', 'cat-autre','Tenders (6 pièces)','Poulet croustillant, 2 sauces au choix.', 700, [['Sauce supplémentaire', 60]]);
   m('r-twelve', 'cat-drink',  'Milkshake',         'Vanille, chocolat ou Oreo, 40 cl.', 450, []);
 
@@ -458,11 +467,16 @@
     lines.forEach(l => {
       const it = MENU.find(x => x.restaurant_id === rid && x.name === l[0]);
       if (!it) throw new Error('Plat de démonstration introuvable : ' + l[0]);
-      const lt = it.price * l[1];
+      // un plat à formats est forcément vendu dans l'un d'eux : on prend le
+      // premier, comme le ferait un client qui ne change pas le choix par défaut
+      const fmt = VARIANTS.filter(v => v.menu_item_id === it.id)[0] || null;
+      const unit = fmt ? fmt.price : it.price;
+      const lt = unit * l[1];
       subtotal += lt;
       ORDER_ITEMS.push({
         id: 'oi-' + ORDER_ITEMS.length, order_id: id, menu_item_id: it.id, name: it.name,
-        unit_price: it.price, quantity: l[1], options: [], line_total: lt
+        variant: fmt ? fmt.name : null,
+        unit_price: unit, quantity: l[1], options: [], line_total: lt
       });
     });
     const t = U.computeTotals(subtotal, rest.delivery_fee, null);
@@ -482,7 +496,7 @@
 
   w.DEMO = {
     zones: ZONES, categories: CATEGORIES, profiles: PROFILES, passwords: PASSWORDS,
-    restaurants: RESTAURANTS, menu_items: MENU, menu_options: OPTIONS,
+    restaurants: RESTAURANTS, menu_items: MENU, menu_options: OPTIONS, menu_variants: VARIANTS,
     drivers: DRIVERS, addresses: ADDRESSES, orders: ORDERS, order_items: ORDER_ITEMS,
     notifications: [],
     settings: {

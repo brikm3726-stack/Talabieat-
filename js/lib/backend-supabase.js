@@ -216,10 +216,16 @@
 
     /* -------------------------------------------------------------- MENU */
     async menuItems(restaurantId, opts) {
-      let q = sb.from('menu_items').select('*, options:menu_options(*)').eq('restaurant_id', restaurantId);
+      let q = sb.from('menu_items')
+        .select('*, options:menu_options(*), variants:menu_variants(*)')
+        .eq('restaurant_id', restaurantId);
       if (!(opts && opts.includeHidden)) q = q.eq('is_available', true);
       const list = unwrap(await q.order('sort_order'));
-      list.forEach(m => { m.options = (m.options || []).filter(o => o.is_active); });
+      list.forEach(m => {
+        m.options = (m.options || []).filter(o => o.is_active);
+        m.variants = (m.variants || []).filter(v => v.is_active)
+          .sort((a, b) => a.sort_order - b.sort_order);
+      });
       return list;
     },
 
@@ -240,6 +246,22 @@
           menu_item_id: item.id, name: o.name, extra_price: Math.max(0, parseInt(o.extra_price, 10) || 0)
         }));
         if (rows.length) unwrap(await sb.from('menu_options').insert(rows));
+      }
+
+      if (data.variants) {
+        await sb.from('menu_variants').delete().eq('menu_item_id', item.id);
+        const rows = data.variants.filter(v => v.name).map((v, i) => ({
+          menu_item_id: item.id, name: v.name,
+          price: Math.max(0, parseInt(v.price, 10) || 0), sort_order: i
+        }));
+        if (rows.length) {
+          unwrap(await sb.from('menu_variants').insert(rows));
+          // Le prix du plat suit le format le moins cher : c'est celui qui
+          // s'affiche dans les listes et qui sert au tri et à la recherche.
+          const low = rows.reduce((m, r) => Math.min(m, r.price), rows[0].price);
+          if (low !== item.price)
+            item = unwrap(await sb.from('menu_items').update({ price: low }).eq('id', item.id).select().single());
+        }
       }
       return item;
     },
@@ -285,13 +307,32 @@
       const map = {}; menu.forEach(m => map[m.id] = m);
 
       let subtotal = 0;
+      /* Les prix sont TOUJOURS relus dans la base : format, suppléments et prix
+         de base. Ce que le navigateur envoie ne sert qu'à désigner les choix,
+         jamais à fixer un montant. */
       const lines = payload.items.map(li => {
         const it = map[li.menu_item_id];
         if (!it) throw new Error('Un plat de votre panier n’est plus disponible.');
-        const extra = (li.options || []).reduce((s, o) => s + (+o.extra_price || 0), 0);
-        const unit = it.price + extra;
+
+        const formats = it.variants || [];
+        let base = it.price, vname = null;
+        if (formats.length) {
+          const chosen = formats.find(v => v.id === (li.variant && li.variant.id)) ||
+                         formats.find(v => v.name === (li.variant && li.variant.name));
+          if (!chosen) throw new Error('« ' + it.name + ' » se vend désormais en plusieurs formats. Retirez-le du panier et rajoutez-le en choisissant le vôtre.');
+          base = chosen.price; vname = chosen.name;
+        }
+
+        const opts = (li.options || [])
+          .map(o => (it.options || []).find(k => k.name === o.name))
+          .filter(Boolean)
+          .map(k => ({ name: k.name, extra_price: k.extra_price }));
+        const extra = opts.reduce((s, o) => s + o.extra_price, 0);
+
+        const unit = base + extra;
         subtotal += unit * li.quantity;
-        return { name: it.name, menu_item_id: it.id, unit_price: unit, quantity: li.quantity, options: li.options || [], line_total: unit * li.quantity };
+        return { name: it.name, menu_item_id: it.id, variant: vname, unit_price: unit,
+                 quantity: li.quantity, options: opts, line_total: unit * li.quantity };
       });
 
       if (subtotal < (rest.min_order || 0)) throw new Error('Minimum de commande : ' + U.money(rest.min_order));

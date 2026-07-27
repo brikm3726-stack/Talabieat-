@@ -110,23 +110,25 @@ Supabase est gratuit jusqu'à un volume déjà confortable pour démarrer.
 Tu dois voir `Success. No rows returned` à chaque fois.
 
 Vérifie dans **Table Editor** que tu as bien les tables : `profiles`, `restaurants`,
-`menu_items`, `orders`, `order_items`, `drivers`, `zones`, `categories`,
-`addresses`, `notifications`, `platform_settings`.
+`menu_items`, `menu_variants`, `orders`, `order_items`, `drivers`, `zones`,
+`categories`, `addresses`, `notifications`, `platform_settings`.
 
-**Ce que font ces 3 fichiers :**
+**Ce que font ces fichiers :**
 
 | Fichier | Rôle |
 |---|---|
-| `01_schema.sql` | Crée les 12 tables et leurs relations |
+| `01_schema.sql` | Crée les tables et leurs relations |
 | `02_security.sql` | Sécurité par ligne (RLS) : chaque rôle ne voit que ce qui le concerne, notifications automatiques, attribution des courses sans conflit |
-| `03_seed.sql` | Les 14 quartiers de la ville de Tizi Ouzou, les 9 catégories, le stockage des images |
+| `03_seed.sql` | Les 14 quartiers de la ville de Tizi Ouzou, les catégories, le stockage des images |
 | `05_tracking.sql` | Position du livreur + fonction `driver_position` qui n'ouvre le suivi qu'au client concerné, et seulement pendant la livraison |
 
-> **Tu avais déjà installé la base avant l'ajout des cartes ?**
-> Lance en plus `supabase/04_geoloc.sql` (positions GPS) puis
-> `supabase/05_tracking.sql` (suivi du livreur en direct). Ils ajoutent des
-> colonnes sans toucher à tes données. Sur une nouvelle installation, seul
-> `05_tracking.sql` reste utile : il crée la fonction `driver_position`.
+> **Tu avais déjà installé la base avant ces évolutions ?**
+> Lance en plus, dans cet ordre : `supabase/04_geoloc.sql` (positions GPS),
+> `supabase/05_tracking.sql` (suivi du livreur), `supabase/06_categories.sql`
+> (catégories illustrées) et `supabase/07_formats.sql` (formats des plats).
+> Ils ajoutent des colonnes et des tables **sans toucher à tes données**.
+> Sur une nouvelle installation, `01` + `02` contiennent déjà tout : seuls
+> `05_tracking.sql` et `03_seed.sql` restent nécessaires.
 
 ---
 

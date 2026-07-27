@@ -149,6 +149,20 @@ create table if not exists public.menu_options (
 );
 create index if not exists idx_menu_options_item on public.menu_options(menu_item_id);
 
+-- Formats d'un plat : Solo / Menu, Small / Medium / Méga…
+-- Le client en choisit UN SEUL (contrairement aux suppléments, cumulables).
+-- Le prix est absolu, pas un écart : le restaurateur saisit ce qu'il facture.
+-- Un plat sans ligne ici se vend au prix unique de menu_items.price.
+create table if not exists public.menu_variants (
+  id            uuid primary key default gen_random_uuid(),
+  menu_item_id  uuid not null references public.menu_items(id) on delete cascade,
+  name          text not null,
+  price         int not null check (price >= 0),
+  sort_order    int not null default 0,
+  is_active     boolean not null default true
+);
+create index if not exists idx_menu_variants_item on public.menu_variants(menu_item_id);
+
 -- ========================================================================
 --  LIVREURS
 -- ========================================================================
@@ -242,6 +256,7 @@ create table if not exists public.order_items (
   order_id      uuid not null references public.orders(id) on delete cascade,
   menu_item_id  uuid references public.menu_items(id) on delete set null,
   name          text not null,
+  variant       text,                              -- format choisi (Méga, Menu…), null si prix unique
   unit_price    int not null,
   quantity      int not null check (quantity > 0),
   options       jsonb not null default '[]'::jsonb,

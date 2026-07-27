@@ -64,7 +64,10 @@
           '<div class="dish-name">' + U.esc(m.name) + '</div>' +
           (m.description ? '<div class="dish-desc">' + U.esc(m.description) + '</div>' : '') +
           '<div class="row-between mt-auto" style="padding-top:8px">' +
-            '<span class="price">' + U.money(m.price) + '</span>' +
+            // plusieurs formats : le prix affiché est celui du plus petit
+            '<span class="price">' + ((m.variants && m.variants.length > 1)
+              ? '<span class="tiny" style="font-weight:600">dès </span>' + U.money(m.price)
+              : U.money(m.price)) + '</span>' +
             (m.is_available
               ? '<button class="add-btn" data-add="' + U.esc(m.id) + '">+</button>'
               : '<span class="tag tag-muted">Indisponible</span>') +
@@ -123,6 +126,8 @@
     orderLines(order) {
       return (order.items || []).map(i =>
         '<div class="oline"><span class="l"><b>' + i.quantity + '×</b> ' + U.esc(i.name) +
+        // le format compte autant que le nom : le cuisinier doit le voir
+        (i.variant ? ' <span class="tag tag-muted">' + U.esc(i.variant) + '</span>' : '') +
         ((i.options && i.options.length)
           ? '<br><span class="tiny">+ ' + U.esc(i.options.map(o => o.name).join(', ')) + '</span>' : '') +
         '</span><span>' + U.money(i.line_total) + '</span></div>').join('');

@@ -291,11 +291,15 @@
                   '<span class="switch"><input type="checkbox" data-toggle="' + U.esc(m.id) + '" ' +
                   (m.is_available ? 'checked' : '') + '><span class="track"><span class="knob"></span></span></span></div>' +
                 (m.description ? '<div class="dish-desc">' + U.esc(m.description) + '</div>' : '') +
+                ((m.variants && m.variants.length)
+                  ? '<div class="tiny" style="margin-top:4px">Formats : ' +
+                    U.esc(m.variants.map(v => v.name + ' ' + U.money(v.price)).join(' · ')) + '</div>' : '') +
                 ((m.options && m.options.length)
                   ? '<div class="tiny" style="margin-top:4px">Suppléments : ' +
                     U.esc(m.options.map(o => o.name).join(', ')) + '</div>' : '') +
                 '<div class="row-between mt-auto" style="padding-top:9px">' +
-                  '<span class="price">' + U.money(m.price) + '</span>' +
+                  '<span class="price">' + ((m.variants && m.variants.length > 1)
+                    ? '<span class="tiny" style="font-weight:600">dès </span>' : '') + U.money(m.price) + '</span>' +
                   '<span class="row" style="gap:6px">' +
                     '<button class="btn btn-ghost btn-sm" data-edit="' + U.esc(m.id) + '">Modifier</button>' +
                     '<button class="btn btn-danger btn-sm" data-del="' + U.esc(m.id) + '">🗑</button>' +
@@ -330,9 +334,19 @@
   }, GUARD);
 
   /* --------------------------------------------------- formulaire plat */
+  /* Modèles proposés en un clic — ce sont les découpages les plus courants
+     en Algérie. Le restaurateur reste libre de nommer ses formats. */
+  const FORMAT_PRESETS = [
+    { label: 'Solo / Menu', names: ['Solo', 'Menu'] },
+    { label: 'Small / Méga', names: ['Small', 'Méga'] },
+    { label: 'Small / Medium / Méga', names: ['Small', 'Medium', 'Méga'] },
+    { label: 'M / L / XL', names: ['M', 'L', 'XL'] }
+  ];
+
   function itemSheet(item, onSaved) {
     const it = item || {};
     let opts = (it.options || []).map(o => ({ name: o.name, extra_price: o.extra_price }));
+    let vars = (it.variants || []).map(v => ({ name: v.name, price: v.price }));
 
     function optRows() {
       return opts.map((o, i) =>
@@ -344,6 +358,17 @@
         '</div>').join('');
     }
 
+    function varRows() {
+      if (!vars.length) return '';
+      return vars.map((v, i) =>
+        '<div class="row" style="gap:8px" data-vrow="' + i + '">' +
+          '<input class="input grow" data-vname="' + i + '" placeholder="Ex : Méga" value="' + U.esc(v.name) + '">' +
+          '<input class="input" data-vprice="' + i + '" style="width:110px" type="number" min="0" step="10" ' +
+            'placeholder="Prix" value="' + (v.price || 0) + '">' +
+          '<button type="button" class="btn btn-danger btn-sm" data-vrm="' + i + '">✕</button>' +
+        '</div>').join('');
+    }
+
     UI.sheet({
       title: item ? 'Modifier le plat' : 'Nouveau plat',
       body: '<form id="mf" class="stack" novalidate>' +
@@ -352,14 +377,29 @@
           '<input class="input" name="name" placeholder="Ex : Tacos Poulet" value="' + U.esc(it.name || '') + '" required></div>' +
         '<div class="field"><label>Description</label>' +
           '<textarea class="input" name="description" placeholder="Ingrédients, accompagnement…">' + U.esc(it.description || '') + '</textarea></div>' +
-        '<div class="row" style="gap:10px;align-items:flex-end">' +
-          '<div class="field grow"><label>Prix (DZD) *</label>' +
-            '<input class="input" name="price" type="number" min="0" step="10" value="' + (it.price || '') + '" required></div>' +
-        '</div>' +
         Cmp.categorySelect('category_id', it.category_id, 'Catégorie') +
-        '<div class="field"><label>Suppléments <span class="tiny">(nom + prix)</span></label>' +
+
+        /* ---------------------------------------------------- FORMATS */
+        '<div class="field"><label>Formats <span class="tiny">(le client en choisit un seul)</span></label>' +
+          '<div class="stack" style="gap:8px" id="vars">' + varRows() + '</div>' +
+          '<div id="varPresets" class="chips" style="flex-wrap:wrap;overflow:visible;margin-top:8px">' +
+            FORMAT_PRESETS.map((p, i) => '<button type="button" class="chip" data-preset="' + i + '">' +
+              U.esc(p.label) + '</button>').join('') +
+            '<button type="button" class="chip" data-vadd>+ Format</button>' +
+          '</div>' +
+          '<div class="hint" id="varHint"></div></div>' +
+
+        /* ------------------------------------------------------ PRIX */
+        '<div class="field" id="priceField"><label>Prix (DZD) *</label>' +
+          '<input class="input" name="price" type="number" min="0" step="10" value="' + (it.price || '') + '" required>' +
+          '<div class="hint">Prix unique de ce plat.</div></div>' +
+
+        /* ----------------------------------------------- SUPPLÉMENTS */
+        '<div class="field"><label>Suppléments <span class="tiny">(facultatif, cumulables)</span></label>' +
           '<div class="stack" style="gap:8px" id="opts">' + optRows() + '</div>' +
-          '<button type="button" class="btn btn-ghost btn-sm" id="addOpt" style="margin-top:8px">+ Ajouter un supplément</button></div>' +
+          '<button type="button" class="btn btn-ghost btn-sm" id="addOpt" style="margin-top:8px">+ Ajouter un supplément</button>' +
+          '<div class="hint">Le prix saisi s’ajoute au prix du plat (ex : Cheddar +80).</div></div>' +
+
         '<label class="row" style="gap:9px;cursor:pointer"><input type="checkbox" name="is_available" ' +
           (it.is_available === false ? '' : 'checked') + ' style="width:18px;height:18px;accent-color:var(--brand)">' +
           '<span class="tiny">Plat disponible à la vente</span></label>' +
@@ -369,31 +409,87 @@
       onMount(el, api) {
         UI.bindImageFields(el);
         const box = el.querySelector('#opts');
+        const vbox = el.querySelector('#vars');
+        const priceField = el.querySelector('#priceField');
+        const hint = el.querySelector('#varHint');
 
+        /* ------------------------------------------------ suppléments */
         function readOpts() {
           opts = Array.prototype.slice.call(box.querySelectorAll('[data-orow]')).map(row => ({
             name: row.querySelector('[data-oname]').value.trim(),
             extra_price: +row.querySelector('[data-oprice]').value || 0
           })).filter(o => o.name);
         }
-        function repaint() { box.innerHTML = optRows(); bindOpts(); }
+        function repaintOpts() { box.innerHTML = optRows(); bindOpts(); }
         function bindOpts() {
           box.querySelectorAll('[data-orm]').forEach(b => b.onclick = () => {
-            readOpts(); opts.splice(+b.dataset.orm, 1); repaint();
+            readOpts(); opts.splice(+b.dataset.orm, 1); repaintOpts();
           });
         }
         bindOpts();
-        el.querySelector('#addOpt').onclick = () => { readOpts(); opts.push({ name: '', extra_price: 0 }); repaint(); };
+        el.querySelector('#addOpt').onclick = () => { readOpts(); opts.push({ name: '', extra_price: 0 }); repaintOpts(); };
 
+        /* ---------------------------------------------------- formats */
+        function readVars() {
+          vars = Array.prototype.slice.call(vbox.querySelectorAll('[data-vrow]')).map(row => ({
+            name: row.querySelector('[data-vname]').value.trim(),
+            price: +row.querySelector('[data-vprice]').value || 0
+          }));
+        }
+        /* Le champ « Prix » n'a de sens que sans format : sinon c'est le format
+           qui porte le prix, et laisser les deux visibles ferait douter. */
+        function repaintVars() {
+          vbox.innerHTML = varRows();
+          const on = vars.length > 0;
+          priceField.hidden = on;
+          priceField.querySelector('[name=price]').required = !on;
+          hint.textContent = on
+            ? 'Chaque format a son propre prix total (pas un supplément). Le menu affichera « dès ' +
+              U.money(vars.reduce((m, v) => Math.min(m, v.price || 0), vars[0].price || 0)) + ' ».'
+            : 'Laissez vide si le plat n’a qu’un seul prix. Sinon : Solo/Menu, Small/Méga…';
+          vbox.querySelectorAll('[data-vrm]').forEach(b => b.onclick = () => {
+            readVars(); vars.splice(+b.dataset.vrm, 1); repaintVars();
+          });
+          vbox.querySelectorAll('[data-vprice]').forEach(i => i.onchange = () => { readVars(); repaintVars(); });
+        }
+        el.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => {
+          readVars();
+          const base = +el.querySelector('[name=price]').value || 0;
+          // on pré-remplit avec le prix déjà saisi : le gérant n'ajuste que la suite
+          vars = FORMAT_PRESETS[+b.dataset.preset].names.map(n => ({ name: n, price: base }));
+          repaintVars();
+        });
+        el.querySelector('[data-vadd]').onclick = () => { readVars(); vars.push({ name: '', price: 0 }); repaintVars(); };
+        repaintVars();
+
+        /* ---------------------------------------------- enregistrement */
         el.querySelector('#save').onclick = async function () {
           const f = el.querySelector('#mf');
           const d = UI.formData(f);
           if (!d.name || d.name.length < 2) return UI.err('Indiquez le nom du plat');
-          if (!(+d.price >= 0) || d.price === '') return UI.err('Indiquez un prix valide');
           readOpts();
-          d.price = +d.price;
+          readVars();
+
+          const named = vars.filter(v => v.name);
+          if (vars.length && named.length !== vars.length)
+            return UI.err('Nommez chaque format', 'Ex : Solo, Menu, Méga… ou supprimez la ligne vide.');
+          if (named.length === 1)
+            return UI.err('Un seul format ne sert à rien', 'Ajoutez-en un deuxième, ou supprimez-le et indiquez un prix unique.');
+          if (named.some(v => !(v.price > 0)))
+            return UI.err('Chaque format doit avoir un prix');
+          const noms = named.map(v => v.name.toLowerCase());
+          if (noms.some((n, i) => noms.indexOf(n) !== i))
+            return UI.err('Deux formats portent le même nom');
+
+          if (named.length) d.price = named.reduce((m, v) => Math.min(m, v.price), named[0].price);
+          else {
+            if (!(+d.price >= 0) || d.price === '') return UI.err('Indiquez un prix valide');
+            d.price = +d.price;
+          }
+
           d.is_available = !!f.querySelector('[name=is_available]').checked;
           d.options = opts;
+          d.variants = named;
           if (item) d.id = item.id;
           UI.busy(this, true);
           try {

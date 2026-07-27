@@ -213,6 +213,7 @@ alter table public.restaurants           enable row level security;
 alter table public.restaurant_categories enable row level security;
 alter table public.menu_items            enable row level security;
 alter table public.menu_options          enable row level security;
+alter table public.menu_variants         enable row level security;
 alter table public.drivers               enable row level security;
 alter table public.addresses             enable row level security;
 alter table public.orders                enable row level security;
@@ -294,6 +295,15 @@ drop policy if exists opts_read on public.menu_options;
 create policy opts_read on public.menu_options for select using (true);
 drop policy if exists opts_write on public.menu_options;
 create policy opts_write on public.menu_options for all
+  using (exists (select 1 from public.menu_items m where m.id = menu_item_id and (public.owns_restaurant(m.restaurant_id) or public.is_admin())))
+  with check (exists (select 1 from public.menu_items m where m.id = menu_item_id and (public.owns_restaurant(m.restaurant_id) or public.is_admin())));
+
+-- Formats : mêmes règles que les suppléments — lecture publique,
+-- écriture réservée au propriétaire du restaurant du plat.
+drop policy if exists variants_read on public.menu_variants;
+create policy variants_read on public.menu_variants for select using (true);
+drop policy if exists variants_write on public.menu_variants;
+create policy variants_write on public.menu_variants for all
   using (exists (select 1 from public.menu_items m where m.id = menu_item_id and (public.owns_restaurant(m.restaurant_id) or public.is_admin())))
   with check (exists (select 1 from public.menu_items m where m.id = menu_item_id and (public.owns_restaurant(m.restaurant_id) or public.is_admin())));
 

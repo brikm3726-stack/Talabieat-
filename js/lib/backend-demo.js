@@ -8,8 +8,8 @@
 
   // ⚠️ Incrémenter la version dès que les données de démo changent : les
   // navigateurs qui ont déjà ouvert le site repartent alors des nouvelles données.
-  const KEY = 'talabi.db.v8';
-  const SESSION_KEY = 'talabi.session.v8';
+  const KEY = 'talabi.db.v9';
+  const SESSION_KEY = 'talabi.session.v9';
   let db = null;
   const listeners = [];
 
@@ -291,6 +291,9 @@
         .map(m => {
           const o = clone(m);
           o.options = db.menu_options.filter(x => x.menu_item_id === m.id && x.is_active).map(clone);
+          o.variants = (db.menu_variants || [])
+            .filter(x => x.menu_item_id === m.id && x.is_active)
+            .sort((a, b) => a.sort_order - b.sort_order).map(clone);
           return o;
         });
       return items;
@@ -321,6 +324,19 @@
           });
         });
       }
+
+      if (data.variants) {
+        db.menu_variants = (db.menu_variants || []).filter(v => v.menu_item_id !== it.id);
+        data.variants.filter(v => v.name).forEach((v, i) => db.menu_variants.push({
+          id: U.uid(), menu_item_id: it.id, name: v.name,
+          price: Math.max(0, parseInt(v.price, 10) || 0), sort_order: i, is_active: true
+        }));
+        // Le prix du plat devient celui du format le moins cher : c'est lui qui
+        // s'affiche dans les listes et qui sert au tri et à la recherche.
+        const mine = db.menu_variants.filter(v => v.menu_item_id === it.id);
+        if (mine.length) it.price = mine.reduce((min, v) => Math.min(min, v.price), mine[0].price);
+      }
+
       commit('menu_items');
       return clone(it);
     },
@@ -333,6 +349,7 @@
       if (u.role !== 'admin' && (!rest || rest.id !== it.restaurant_id)) throw new Error('Accès refusé.');
       db.menu_items = db.menu_items.filter(m => m.id !== id);
       db.menu_options = db.menu_options.filter(o => o.menu_item_id !== id);
+      db.menu_variants = (db.menu_variants || []).filter(v => v.menu_item_id !== id);
       commit('menu_items');
     },
 
@@ -386,13 +403,35 @@
       if (rest.status !== 'approved') throw new Error("Ce restaurant n'est pas disponible.");
 
       let subtotal = 0;
+      /* Les prix sont TOUJOURS relus dans la base : format, suppléments et prix
+         de base. Ce que le navigateur envoie ne sert qu'à désigner les choix,
+         jamais à fixer un montant — sinon n'importe qui pourrait s'offrir une
+         pizza à 0 DA en modifiant sa requête. */
       const lines = payload.items.map(li => {
         const it = byId(db.menu_items, li.menu_item_id);
         if (!it || !it.is_available) throw new Error('Un plat de votre panier n’est plus disponible.');
-        const extra = (li.options || []).reduce((s, o) => s + (+o.extra_price || 0), 0);
-        const lt = (it.price + extra) * li.quantity;
+
+        const formats = (db.menu_variants || []).filter(v => v.menu_item_id === it.id && v.is_active);
+        let base = it.price, vname = null;
+        if (formats.length) {
+          const chosen = formats.find(v => v.id === (li.variant && li.variant.id)) ||
+                         formats.find(v => v.name === (li.variant && li.variant.name));
+          if (!chosen) throw new Error('« ' + it.name + ' » se vend désormais en plusieurs formats. Retirez-le du panier et rajoutez-le en choisissant le vôtre.');
+          base = chosen.price; vname = chosen.name;
+        }
+
+        const known = db.menu_options.filter(o => o.menu_item_id === it.id && o.is_active);
+        const opts = (li.options || [])
+          .map(o => known.find(k => k.name === o.name))
+          .filter(Boolean)
+          .map(k => ({ name: k.name, extra_price: k.extra_price }));
+        const extra = opts.reduce((s, o) => s + o.extra_price, 0);
+
+        const unit = base + extra;
+        const lt = unit * li.quantity;
         subtotal += lt;
-        return { menu_item_id: it.id, name: it.name, unit_price: it.price + extra, quantity: li.quantity, options: li.options || [], line_total: lt };
+        return { menu_item_id: it.id, name: it.name, variant: vname, unit_price: unit,
+                 quantity: li.quantity, options: opts, line_total: lt };
       });
 
       if (subtotal < (rest.min_order || 0))
