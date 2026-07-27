@@ -337,7 +337,11 @@
   /* Un bouton par format courant : on appuie sur ceux dont on a besoin et on
      saisit le prix de chacun. Rien n'oblige à les utiliser — « + Autre » permet
      n'importe quel nom (Grande, Familiale, 6 pièces…). */
-  const QUICK_FORMATS = ['Solo', 'Menu', 'S', 'M', 'L', 'XL'];
+  const QUICK_FORMATS = [
+    'Solo', 'Menu',                                        // tacos, burgers, sandwichs
+    'Small', 'Medium', 'Large', 'Extra-Large',             // pizzas
+    'S', 'M', 'L', 'XL'                                    // versions courtes
+  ];
 
   function itemSheet(item, onSaved) {
     const it = item || {};
