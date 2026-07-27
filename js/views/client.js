@@ -180,7 +180,7 @@
         (r.open_now ? '' : '<div class="banner banner-warn" style="margin-top:14px">⏰ Ce restaurant est fermé. Vous pourrez commander dès sa réouverture (' + U.hhmm(r.opens_at) + ').</div>') +
 
         (menu.length
-          ? '<div id="menuNav" class="chips" style="margin-top:18px"></div><div id="menu" class="stack" style="margin-top:6px"></div>'
+          ? '<div id="menuNav" class="menu-tabs chips"></div><div id="menu" class="stack" style="margin-top:6px"></div>'
           : '<div style="margin-top:20px">' + UI.empty('📋', 'Menu en préparation', 'Ce restaurant n’a pas encore publié ses plats.') + '</div>') +
       '</div>';
 
@@ -195,33 +195,48 @@
         ? '<span class="g-ic' + (big ? ' big' : '') + '" style="background-image:url(' + U.escUrl(g.cat.image_url) + ')"></span>'
         : '<span class="g-ic emoji' + (big ? ' big' : '') + '">' + (g.cat.icon || '🍽️') + '</span>';
 
-      view.querySelector('#menuNav').innerHTML = groups.map((g, i) =>
-        '<button class="chip ' + (i === 0 ? 'on' : '') + '" data-jump="g' + g.id + '">' +
-          gIcon(g) + U.esc(g.name) + '</button>').join('');
+      const nav = view.querySelector('#menuNav');
+      const box = view.querySelector('#menu');
+      const openDish = id => dishSheet(r, menu.find(m => m.id === id));
+      let active = 0;
 
-      view.querySelector('#menu').innerHTML = groups.map(g =>
-        '<section id="g' + g.id + '" style="scroll-margin-top:76px">' +
+      nav.innerHTML = groups.map((g, i) =>
+        '<button class="chip" data-tab="' + i + '">' + gIcon(g) + U.esc(g.name) +
+          '<span class="chip-n">' + g.items.length + '</span></button>').join('');
+
+      /* Une seule catégorie affichée à la fois : les onglets remplacent le
+         contenu au lieu de faire défiler une page unique. */
+      function paintMenu() {
+        const g = groups[active];
+        nav.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', +b.dataset.tab === active));
+        box.innerHTML =
           '<div class="section-head"><div class="h3">' + gIcon(g, true) + U.esc(g.name) + '</div>' +
           '<span class="tiny">' + g.items.length + ' plat(s)</span></div>' +
-          '<div class="stack">' + g.items.map(m => Cmp.dishRow(m, g.cat)).join('') + '</div>' +
-        '</section>').join('');
+          '<div class="stack">' + g.items.map(m => Cmp.dishRow(m, g.cat)).join('') + '</div>';
 
-      view.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
-        view.querySelectorAll('[data-jump]').forEach(x => x.classList.toggle('on', x === b));
-        const t = view.querySelector('#' + b.dataset.jump);
-        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        box.querySelectorAll('[data-dish]').forEach(el => el.onclick = e => {
+          if (e.target.closest('[data-add]')) return;
+          openDish(el.dataset.dish);
+        });
+        box.querySelectorAll('[data-add]').forEach(el => el.onclick = e => {
+          e.stopPropagation();
+          openDish(el.dataset.add);
+        });
+      }
+
+      nav.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+        active = +b.dataset.tab;
+        paintMenu();
+        b.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        // si on était descendu dans la liste précédente, on remonte en haut de
+        // la nouvelle plutôt que d'atterrir au milieu du vide. La barre étant
+        // collante, son sommet vaut 60 dès qu'on a défilé au-delà.
+        if (nav.getBoundingClientRect().top <= 60) {
+          nav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       });
 
-      // ouverture de la fiche plat
-      const openDish = id => dishSheet(r, menu.find(m => m.id === id));
-      view.querySelectorAll('[data-dish]').forEach(el => el.onclick = e => {
-        if (e.target.closest('[data-add]')) return;
-        openDish(el.dataset.dish);
-      });
-      view.querySelectorAll('[data-add]').forEach(el => el.onclick = e => {
-        e.stopPropagation();
-        openDish(el.dataset.add);
-      });
+      paintMenu();
     }
 
     renderCartBar(view);

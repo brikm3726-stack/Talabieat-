@@ -222,13 +222,19 @@
     view.innerHTML = '<div class="wrap page">' +
       Cmp.pageHead('Mon menu', 'Ajoutez, modifiez et activez vos plats',
         '<button class="btn btn-primary" id="add">+ Ajouter un plat</button>') +
+      '<div id="menuNav" class="menu-tabs chips" hidden></div>' +
       '<div id="list"><div class="skel" style="height:110px"></div></div></div>';
 
+    const nav = view.querySelector('#menuNav');
     const list = view.querySelector('#list');
+    /* Catégorie ouverte, retenue par identifiant : elle survit aux
+       rechargements déclenchés par un ajout, une bascule ou une suppression. */
+    let activeCat = null;
 
     async function load() {
       const items = await API.safe(() => API.menuItems(rest.id, { includeHidden: true }), []);
       if (!items.length) {
+        nav.hidden = true;
         list.innerHTML = UI.empty('🍕', 'Votre menu est vide', 'Ajoutez votre premier plat pour commencer à vendre.',
           '<button class="btn btn-primary" id="add2">+ Ajouter un plat</button>');
         const a2 = list.querySelector('#add2');
@@ -239,15 +245,47 @@
       const byCat = {};
       items.forEach(i => { (byCat[i.category_id || 'other'] = byCat[i.category_id || 'other'] || []).push(i); });
 
-      list.innerHTML = Object.keys(byCat).map(cid => {
-        const c = Store.categories.find(x => x.id === cid);
-        return '<div class="section-head"><div class="h3">' +
-          (c ? c.icon + ' ' + U.esc(c.name_fr) : '🍽️ Autres') + '</div>' +
-          '<span class="tiny">' + byCat[cid].length + '</span></div>' +
-          '<div class="stack">' + byCat[cid].map(m =>
+      /* Ordre des onglets = ordre officiel des catégories (Store.categories est
+         déjà trié). Les clés d'un objet ne garantissent aucun ordre. */
+      const groups = Store.categories
+        .filter(c => byCat[c.id])
+        .map(c => ({ id: c.id, name: c.name_fr, cat: c, items: byCat[c.id] }));
+      if (byCat.other) groups.push({ id: 'other', name: 'Autres', cat: { icon: '🍽️' }, items: byCat.other });
+
+      if (!groups.some(g => g.id === activeCat)) activeCat = groups[0].id;
+
+      const gIcon = (g, big) => g.cat.image_url
+        ? '<span class="g-ic' + (big ? ' big' : '') + '" style="background-image:url(' + U.escUrl(g.cat.image_url) + ')"></span>'
+        : '<span class="g-ic emoji' + (big ? ' big' : '') + '">' + (g.cat.icon || '🍽️') + '</span>';
+
+      nav.hidden = groups.length < 2;
+      nav.innerHTML = groups.map(g =>
+        '<button class="chip ' + (g.id === activeCat ? 'on' : '') + '" data-tab="' + U.esc(g.id) + '">' +
+          gIcon(g) + U.esc(g.name) + '<span class="chip-n">' + g.items.length + '</span></button>').join('');
+      nav.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+        activeCat = b.dataset.tab;
+        paint();
+        b.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        if (nav.getBoundingClientRect().top <= 60) nav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      paint();
+
+      function paint() {
+        const g = groups.find(x => x.id === activeCat) || groups[0];
+        const c = g.cat;
+        nav.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === g.id));
+
+        list.innerHTML = '<div class="section-head"><div class="h3">' +
+          gIcon(g, true) + U.esc(g.name) + '</div>' +
+          '<span class="tiny">' + g.items.length + ' plat(s)</span></div>' +
+          '<div class="stack">' + g.items.map(m =>
             '<div class="dish ' + (m.is_available ? '' : 'off') + '">' +
-              '<div class="dish-img" style="' + (m.image_url ? 'background-image:url(' + U.escUrl(m.image_url) + ')' : '') + '">' +
-                (m.image_url ? '' : (c ? c.icon : '🍽️')) + '</div>' +
+              '<div class="dish-img" style="' +
+                (m.image_url ? 'background-image:url(' + U.escUrl(m.image_url) + ')'
+                  : c.image_url ? 'background-image:url(' + U.escUrl(c.image_url) + ');background-size:74%;background-color:#fff'
+                  : '') + '">' +
+                (m.image_url || c.image_url ? '' : (c.icon || '🍽️')) + '</div>' +
               '<div class="dish-body">' +
                 '<div class="row-between"><div class="dish-name">' + U.esc(m.name) + '</div>' +
                   '<span class="switch"><input type="checkbox" data-toggle="' + U.esc(m.id) + '" ' +
@@ -264,25 +302,27 @@
                   '</span>' +
                 '</div>' +
               '</div></div>').join('') + '</div>';
-      }).join('');
 
-      list.querySelectorAll('[data-edit]').forEach(b => b.onclick = () =>
-        itemSheet(items.find(x => x.id === b.dataset.edit), load));
+        /* La liste est reconstruite à chaque changement d'onglet :
+           les écouteurs doivent l'être aussi. */
+        list.querySelectorAll('[data-edit]').forEach(b => b.onclick = () =>
+          itemSheet(items.find(x => x.id === b.dataset.edit), load));
 
-      list.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
-        const it = items.find(x => x.id === b.dataset.del);
-        if (await UI.confirm('Supprimer « ' + it.name + ' » ?', 'Cette action est définitive.', 'Supprimer', true)) {
-          await API.safe(() => API.deleteMenuItem(it.id));
-          UI.ok('Plat supprimé');
+        list.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+          const it = items.find(x => x.id === b.dataset.del);
+          if (await UI.confirm('Supprimer « ' + it.name + ' » ?', 'Cette action est définitive.', 'Supprimer', true)) {
+            await API.safe(() => API.deleteMenuItem(it.id));
+            UI.ok('Plat supprimé');
+            load();
+          }
+        });
+
+        list.querySelectorAll('[data-toggle]').forEach(sw => sw.onchange = async () => {
+          await API.safe(() => API.saveMenuItem({ id: sw.dataset.toggle, is_available: sw.checked }));
+          UI.ok(sw.checked ? 'Plat activé' : 'Plat désactivé');
           load();
-        }
-      });
-
-      list.querySelectorAll('[data-toggle]').forEach(c => c.onchange = async () => {
-        await API.safe(() => API.saveMenuItem({ id: c.dataset.toggle, is_available: c.checked }));
-        UI.ok(c.checked ? 'Plat activé' : 'Plat désactivé');
-        load();
-      });
+        });
+      }
     }
 
     view.querySelector('#add').onclick = () => itemSheet(null, load);
