@@ -62,7 +62,7 @@
     { id: 'u-d2',        email: 'livreur2@talabi.dz',  full_name: 'Bilal Kaci',     phone: '0771889900', role: 'driver',     zone_id: 'z-nouvelle', is_blocked: false, created_at: iso(-8) },
 
     { id: 'u-melyza',    email: 'resto@talabi.dz',     full_name: 'Gérant Melyza Tacos',   phone: '0560566117', role: 'restaurant', zone_id: 'z-centre',   is_blocked: false, created_at: iso(-40) },
-    { id: 'u-sadoud',    email: 'sadoud@talabi.dz',    full_name: 'Gérant Maison Sadoud',  phone: null,         role: 'restaurant', zone_id: 'z-bordj',    is_blocked: false, created_at: iso(-38) },
+    { id: 'u-sadoudi',   email: 'sadoudi@talabi.dz',   full_name: 'Gérant Maison Sadoudi', phone: null,         role: 'restaurant', zone_id: 'z-bordj',    is_blocked: false, created_at: iso(-38) },
     { id: 'u-ambassade', email: 'ambassade@talabi.dz', full_name: "Gérant L'Ambassade",    phone: '0555004173', role: 'restaurant', zone_id: 'z-centre',   is_blocked: false, created_at: iso(-36) },
     { id: 'u-atelier',   email: 'atelier@talabi.dz',   full_name: "Gérant L'Atelier",      phone: null,         role: 'restaurant', zone_id: 'z-nouvelle', is_blocked: false, created_at: iso(-34) },
     { id: 'u-twelve',    email: 'twelve@talabi.dz',    full_name: 'Gérant The Twelve',     phone: null,         role: 'restaurant', zone_id: 'z-nouvelle', is_blocked: false, created_at: iso(-32) }
@@ -72,25 +72,31 @@
   PROFILES.forEach(p => { PASSWORDS[p.email] = '123456'; });
 
   /* ----------------------------------------------------------- RESTAURANTS */
+  const IMG = 'assets/img/restaurants/';
+
   function r(o) {
     return {
       id: o.id, owner_id: o.owner, name: o.name, description: o.desc,
-      logo_url: null, cover_url: null,
+      logo_url: o.img ? IMG + o.img + '-logo.jpg' : null,
+      cover_url: o.img ? IMG + o.img + '-cover.jpg' : null,
       address: o.address, zone_id: o.zone,
       lat: o.lat, lng: o.lng, gps_verified: !!o.verified,
       phone: o.phone || null,
       opens_at: o.opens || '11:00', closes_at: o.closes || '23:00',
       is_open: true, status: 'approved', reject_reason: null,
       rating: o.rating, rating_count: o.rcount,
-      delivery_fee: o.fee, min_order: o.min || 0, prep_time_min: o.prep || 25,
+      // Frais de livraison = valeur par défaut de la plateforme.
+      // Minimum de commande à 0 : je n'ai aucune donnée réelle là-dessus,
+      // chaque restaurant fixe le sien depuis son espace.
+      delivery_fee: o.fee, min_order: 0, prep_time_min: o.prep || 25,
       categories: o.cats, created_at: iso(-40)
     };
   }
 
   const RESTAURANTS = [
     r({
-      id: 'r-melyza', owner: 'u-melyza', name: 'Melyza Tacos',
-      desc: 'French tacos, burgers et sandwichs préparés minute. Le goût qui fait la différence.',
+      id: 'r-melyza', owner: 'u-melyza', name: 'Melyza Tacos', img: 'melyza',
+      desc: 'French tacos, burgers et sandwichs préparés minute. The best corner.',
       address: '20, Rue Boudelal Arezki', zone: 'z-centre',
       lat: 36.713198, lng: 4.043767, verified: true,      // relevé sur son site officiel
       phone: '0560566117', opens: '11:00', closes: '23:30',
@@ -98,8 +104,8 @@
       cats: ['cat-tacos', 'cat-burger', 'cat-sand']
     }),
     r({
-      id: 'r-ambassade', owner: 'u-ambassade', name: "L'Ambassade",
-      desc: 'Cuisine bistronomique et fait maison. La table de référence à Tizi Ouzou.',
+      id: 'r-ambassade', owner: 'u-ambassade', name: "L'Ambassade", img: 'ambassade',
+      desc: 'Restaurant depuis 1988. Cuisine bistronomique et fait maison, dressage soigné.',
       address: '14, Rue Douar Mohammed', zone: 'z-centre',
       lat: 36.7118, lng: 4.0455,                          // approximatif — à corriger
       phone: '0555004173', opens: '11:30', closes: '23:00',
@@ -107,8 +113,8 @@
       cats: ['cat-trad', 'cat-autre']
     }),
     r({
-      id: 'r-sadoud', owner: 'u-sadoud', name: 'Maison Sadoud',
-      desc: 'Cuisine traditionnelle kabyle et pâtisseries maison.',
+      id: 'r-sadoudi', owner: 'u-sadoudi', name: 'Maison Sadoudi', img: 'sadoudi',
+      desc: 'Depuis 1985 — goûtez la différence. Grillades, plats du terroir et pâtisseries maison.',
       address: 'Lotissement El Bordj, Rue Abdenouri Saïd', zone: 'z-bordj',
       lat: 36.7085, lng: 4.0500,                          // approximatif — à corriger
       opens: '10:30', closes: '22:30',
@@ -116,8 +122,8 @@
       cats: ['cat-trad', 'cat-dess']
     }),
     r({
-      id: 'r-atelier', owner: 'u-atelier', name: "L'Atelier en Ville",
-      desc: 'Burgers, pizzas et desserts dans une ambiance atelier. Ouvert de 7h à minuit.',
+      id: 'r-atelier', owner: 'u-atelier', name: "L'Atelier en Ville", img: 'atelier',
+      desc: 'Burgers, pizzas, planches et desserts dans une ambiance atelier. Ouvert de 7h à minuit.',
       address: 'Route vers Azib Ahmed, derrière la 2ᵉ porte Bastos', zone: 'z-nouvelle',
       lat: 36.6981, lng: 4.0574,                          // quartier Bastos (OpenStreetMap)
       opens: '07:00', closes: '23:59',
@@ -125,8 +131,8 @@
       cats: ['cat-burger', 'cat-pizza', 'cat-dess', 'cat-drink']
     }),
     r({
-      id: 'r-twelve', owner: 'u-twelve', name: 'The Twelve',
-      desc: 'Burgers signature, poulet croustillant et boissons maison.',
+      id: 'r-twelve', owner: 'u-twelve', name: 'The Twelve', img: 'twelve',
+      desc: 'Food & Coffee — poutines, burgers signature et poulet croustillant.',
       address: 'Nouvelle Ville, Tizi Ouzou', zone: 'z-nouvelle',
       lat: 36.7050, lng: 4.0530,                          // approximatif — à corriger
       opens: '11:30', closes: '00:30',
@@ -166,10 +172,10 @@
   m('r-ambassade', 'cat-autre', 'Entrecôte grillée',   'Accompagnement au choix.', 1800, []);
   m('r-ambassade', 'cat-autre', 'Salade de saison',    'Produits frais du marché.', 600, []);
 
-  m('r-sadoud', 'cat-trad', 'Couscous kabyle',      'Semoule, légumes et viande mijotée.', 1200, []);
-  m('r-sadoud', 'cat-trad', 'Chorba',               'Soupe traditionnelle.', 400, []);
-  m('r-sadoud', 'cat-trad', 'Tikourbabine',         'Spécialité kabyle aux boulettes de semoule.', 1000, []);
-  m('r-sadoud', 'cat-dess', 'Pâtisseries maison',   'Assortiment de 4 pièces.', 500, []);
+  m('r-sadoudi', 'cat-trad', 'Entrecôte grillée',    'Riz pilaf, gratin de pommes de terre et légumes du marché.', 1600, []);
+  m('r-sadoudi', 'cat-trad', 'Couscous kabyle',      'Semoule, légumes et viande mijotée.', 1200, []);
+  m('r-sadoudi', 'cat-trad', 'Chorba',               'Soupe traditionnelle.', 400, []);
+  m('r-sadoudi', 'cat-dess', 'Pâtisseries maison',   'Assortiment de 4 pièces.', 500, []);
 
   m('r-atelier', 'cat-burger', 'Burger de l’Atelier', 'Steak maison, cheddar affiné, sauce signature.', 900,
     [['Double steak', 250], ['Bacon de dinde', 120]]);
@@ -178,6 +184,11 @@
   m('r-atelier', 'cat-dess',   'Pancakes',            'Sirop d’érable ou chocolat.', 550, []);
   m('r-atelier', 'cat-drink',  'Jus pressé',          'Orange ou citron, 40 cl.', 350, []);
 
+  /* Poutines : prix relevés sur la communication officielle de The Twelve */
+  m('r-twelve', 'cat-poulet', 'Poutine Poulet',      'Frites, cheddar fondu, poulet grillé et sauce maison.', 450,
+    [['Supplément cheddar', 80]]);
+  m('r-twelve', 'cat-poulet', 'Poutine Viande Hachée', 'Frites, cheddar fondu, viande hachée et ciboulette.', 500,
+    [['Supplément cheddar', 80]]);
   m('r-twelve', 'cat-burger', 'The Twelve Burger', 'Double steak, cheddar, oignons croustillants.', 950,
     [['Formule menu', 250], ['Bacon de dinde', 120]]);
   m('r-twelve', 'cat-burger', 'Chicken Burger',    'Filet de poulet pané, sauce spicy.', 850, [['Formule menu', 250]]);

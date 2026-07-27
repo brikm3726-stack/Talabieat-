@@ -24,12 +24,18 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     },
 
-    /** Échappe pour un attribut style/url() */
+    /**
+     * Nettoie une URL avant de l'injecter dans un src ou un url() CSS.
+     * On bloque les schémas dangereux (javascript:, vbscript:…) tout en
+     * acceptant les chemins relatifs du projet — « assets/img/… ».
+     */
     escUrl(s) {
       if (!s) return '';
       const v = String(s).trim();
-      if (!/^(https?:|data:image\/|\/|\.)/i.test(v)) return '';
-      return v.replace(/["'\\<>]/g, '');
+      const scheme = v.match(/^([a-z][a-z0-9+.\-]*):/i);
+      if (scheme && !/^(https?|data)$/i.test(scheme[1])) return '';
+      if (/^data:/i.test(v) && !/^data:image\//i.test(v)) return '';
+      return v.replace(/["'\\<>\s]/g, '');
     },
 
     /* -------------------------------------------------------------- dates */

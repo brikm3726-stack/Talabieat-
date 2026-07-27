@@ -24,7 +24,7 @@ Les données sont enregistrées **dans ton navigateur** (localStorage).
 | Client | `client@talabi.dz` | — |
 | Restaurant | `resto@talabi.dz` | **Melyza Tacos** — Centre-ville |
 | Restaurant | `ambassade@talabi.dz` | L'Ambassade — Centre-ville |
-| Restaurant | `sadoud@talabi.dz` | Maison Sadoud — El Bordj |
+| Restaurant | `sadoudi@talabi.dz` | Maison Sadoudi — El Bordj |
 | Restaurant | `atelier@talabi.dz` | L'Atelier en Ville — Nouvelle Ville |
 | Restaurant | `twelve@talabi.dz` | The Twelve — Nouvelle Ville |
 | Livreur | `livreur@talabi.dz` | validé, Centre-ville |

@@ -28,7 +28,7 @@ chacun avec son propre compte gérant :
 |---|---|---|
 | Melyza Tacos | Centre-ville | `resto@talabi.dz` |
 | L'Ambassade | Centre-ville | `ambassade@talabi.dz` |
-| Maison Sadoud | El Bordj | `sadoud@talabi.dz` |
+| Maison Sadoudi | El Bordj | `sadoudi@talabi.dz` |
 | L'Atelier en Ville | Nouvelle Ville | `atelier@talabi.dz` |
 | The Twelve | Nouvelle Ville | `twelve@talabi.dz` |
 
@@ -81,7 +81,9 @@ zones, les catégories et les commissions.
 platforme/
 ├── index.html                 point d'entrée (application monopage)
 ├── config.js                  ⚙️ LES 2 CLÉS SUPABASE VONT ICI
-├── assets/css/app.css         design system complet
+├── assets/
+│   ├── css/app.css            design system complet
+│   └── img/                   logo Talabi + logos & couvertures des restaurants
 │
 ├── supabase/                  base de données PostgreSQL
 │   ├── 01_schema.sql          12 tables + relations
