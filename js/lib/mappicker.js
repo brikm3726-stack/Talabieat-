@@ -137,6 +137,68 @@
       return sheet;
     },
 
+    /**
+     * Carte de suivi : restaurant, client et livreur sur la même vue.
+     * MapPicker.live(el, { restaurant:{lat,lng}, client:{lat,lng}, driver:{lat,lng} })
+     * Retourne { update(points), destroy() } — les repères bougent sans
+     * recréer la carte, ce qui évite le clignotement à chaque rafraîchissement.
+     */
+    live(container, points) {
+      if (!MapPicker.available || !container) return null;
+
+      const map = L.map(container, { zoomControl: true, attributionControl: false });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+      const icon = (emoji, cls) => L.divIcon({
+        className: '', iconSize: [38, 38], iconAnchor: [19, 19],
+        html: '<div class="lm-pin ' + (cls || '') + '">' + emoji + '</div>'
+      });
+
+      const markers = {};
+      const defs = {
+        restaurant: ['🏪', 'lm-resto', 'Restaurant'],
+        client:     ['🏠', 'lm-client', 'Vous'],
+        driver:     ['🛵', 'lm-driver', 'Livreur']
+      };
+      let first = true;
+
+      function update(pts) {
+        const bounds = [];
+        Object.keys(defs).forEach(k => {
+          const p = pts && pts[k];
+          if (!p || !U.hasCoords(p)) {
+            if (markers[k]) { map.removeLayer(markers[k]); delete markers[k]; }
+            return;
+          }
+          const ll = [+p.lat, +p.lng];
+          bounds.push(ll);
+          if (markers[k]) markers[k].setLatLng(ll);
+          else markers[k] = L.marker(ll, { icon: icon(defs[k][0], defs[k][1]), title: defs[k][2] }).addTo(map);
+        });
+
+        if (!bounds.length) { map.setView([CITY.lat, CITY.lng], 13); return; }
+        if (first) {
+          bounds.length > 1
+            ? map.fitBounds(bounds, { padding: [42, 42], maxZoom: 16 })
+            : map.setView(bounds[0], 16);
+          first = false;
+        }
+      }
+
+      update(points);
+      setTimeout(() => map.invalidateSize(), 260);
+
+      return {
+        update: update,
+        recenter() {
+          const b = Object.keys(markers).map(k => markers[k].getLatLng());
+          if (b.length > 1) map.fitBounds(b, { padding: [42, 42], maxZoom: 16 });
+          else if (b.length) map.setView(b[0], 16);
+        },
+        destroy() { try { map.remove(); } catch (e) {} }
+      };
+    },
+
     /** Petite carte non modifiable, pour afficher une position */
     preview(container, lat, lng) {
       if (!MapPicker.available || !U.hasCoords({ lat: lat, lng: lng })) return null;

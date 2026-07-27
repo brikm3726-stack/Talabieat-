@@ -88,6 +88,8 @@ Supabase est gratuit jusqu'à un volume déjà confortable pour démarrer.
 2. Ouvre le fichier `supabase/01_schema.sql`, copie **tout** le contenu, colle-le, clique **Run**
 3. Nouvelle requête → même chose avec `supabase/02_security.sql` → **Run**
 4. Nouvelle requête → même chose avec `supabase/03_seed.sql` → **Run**
+5. Nouvelle requête → même chose avec `supabase/05_tracking.sql` → **Run**
+   *(permet au client de suivre son livreur en direct)*
 
 Tu dois voir `Success. No rows returned` à chaque fois.
 
@@ -102,11 +104,13 @@ Vérifie dans **Table Editor** que tu as bien les tables : `profiles`, `restaura
 | `01_schema.sql` | Crée les 12 tables et leurs relations |
 | `02_security.sql` | Sécurité par ligne (RLS) : chaque rôle ne voit que ce qui le concerne, notifications automatiques, attribution des courses sans conflit |
 | `03_seed.sql` | Les 14 quartiers de la ville de Tizi Ouzou, les 9 catégories, le stockage des images |
+| `05_tracking.sql` | Position du livreur + fonction `driver_position` qui n'ouvre le suivi qu'au client concerné, et seulement pendant la livraison |
 
 > **Tu avais déjà installé la base avant l'ajout des cartes ?**
-> Lance en plus `supabase/04_geoloc.sql`. Il ajoute les colonnes de position GPS
-> sans toucher à tes données. Sur une nouvelle installation, il est inutile :
-> `01_schema.sql` contient déjà ces colonnes.
+> Lance en plus `supabase/04_geoloc.sql` (positions GPS) puis
+> `supabase/05_tracking.sql` (suivi du livreur en direct). Ils ajoutent des
+> colonnes sans toucher à tes données. Sur une nouvelle installation, seul
+> `05_tracking.sql` reste utile : il crée la fonction `driver_position`.
 
 ---
 
@@ -328,6 +332,8 @@ avec les réglages par défaut) :
 | La carte reste grise / ne s'affiche pas | Pas de connexion internet : les fonds de carte viennent d'OpenStreetMap. Un bouton de secours permet quand même d'enregistrer la position GPS. |
 | « Autorisez l'accès à votre position » | Le navigateur bloque le GPS. Clique sur le cadenas 🔒 à gauche de l'adresse → Autoriser la position. Sur Chrome, le GPS ne marche pas toujours en ouvrant le fichier par double-clic : passe par `npx serve` ou le site en ligne. |
 | Le bouton « Y aller » n'apparaît pas chez le livreur | Le restaurant n'a pas placé sa position sur la carte, ou le client a une vieille adresse sans GPS. |
+| Le client ne voit pas son livreur sur la carte | Le livreur doit avoir autorisé la localisation sur son téléphone. Un bandeau « Activer » s'affiche dans son espace *Ma livraison*. Tant qu'il n'a rien partagé, le client lit « Position pas encore partagée ». |
+| Le suivi s'arrête après la livraison | C'est voulu : la position d'un livreur n'est visible que pendant sa course, et uniquement par le client concerné. |
 | Les images ne s'envoient pas | Le bucket `media` n'existe pas — relance `03_seed.sql`. |
 | Rien ne s'affiche, page blanche | Ouvre la console (F12). Si tu vois une erreur CORS, c'est que tu as ouvert `index.html` par double-clic alors que Supabase est configuré : utilise `npx serve`. |
 
@@ -340,9 +346,9 @@ dans l'ordre d'utilité :
 
 1. **Notifications push** — l'architecture est prête (table `notifications` +
    Realtime). Il reste à brancher un service Web Push ou Firebase Cloud Messaging.
-2. **Suivi du livreur sur la carte en direct** — les positions du restaurant et
-   du client sont déjà enregistrées ; il resterait à envoyer périodiquement la
-   position du livreur pendant la course pour l'afficher au client.
+2. **Itinéraire tracé sur la carte** — aujourd'hui le client voit le livreur
+   avancer et la distance restante ; afficher le tracé de la route demanderait
+   un service de calcul d'itinéraire (OSRM ou GraphHopper, gratuits).
 3. **Paiement en ligne** (SATIM / CIB / Edahabia) — aujourd'hui tout est en
    paiement à la livraison, ce qui reste le mode dominant en Algérie.
 4. **Notes et avis clients** — les colonnes `rating` et `rating_count` existent

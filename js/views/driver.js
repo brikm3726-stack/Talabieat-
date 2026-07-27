@@ -149,17 +149,50 @@
 
       view.innerHTML = '<div class="wrap-sm page">' +
         Cmp.pageHead('Ma livraison', 'Suivez et validez chaque étape') +
+        (active.length ? '<div id="shareBox" style="margin-bottom:14px"></div>' : '') +
         (active.length
           ? '<div class="stack">' + active.map(o => deliveryCard(o, true)).join('') + '</div>'
           : UI.empty('🛵', 'Aucune livraison en cours', 'Acceptez une course pour la voir apparaître ici.',
               '<a class="btn btn-primary" href="#/d/available">Voir les courses</a>')) +
       '</div>';
       bindDelivery(view, load);
+      if (active.length) paintShare();
+      LiveTrack.sync();
+    }
+
+    /* ------------------------------- bandeau de partage de position */
+    function paintShare() {
+      const box = view.querySelector('#shareBox');
+      if (!box) return;
+      const st = LiveTrack.state;
+
+      box.innerHTML = st.error
+        ? '<div class="banner banner-danger"><div class="grow">📡 ' + U.esc(st.error) +
+          '</div><button class="btn btn-danger btn-sm" id="shareNow">Réessayer</button></div>'
+        : st.running
+          ? '<div class="banner banner-ok"><div class="grow">📡 <b>Position partagée</b> — le client suit ' +
+            'votre progression en direct.' +
+            (st.lastSent ? ' <span style="opacity:.75">Dernier envoi ' + U.ago(st.lastSent) + '.</span>' : '') +
+            '</div></div>'
+          : '<div class="banner banner-warn"><div class="grow">📡 Partagez votre position pour que le client ' +
+            'vous suive.</div><button class="btn btn-primary btn-sm" id="shareNow">Activer</button></div>';
+
+      const b = box.querySelector('#shareNow');
+      if (b) b.onclick = async function () {
+        UI.busy(this, true);
+        try {
+          await LiveTrack.pushOnce();
+          LiveTrack.start();
+          UI.ok('Position partagée');
+        } catch (e) { UI.err(e.message); }
+        paintShare();
+      };
     }
 
     await load();
     const off = API.onChange(t => { if (t === 'orders' || t === '*') load(); });
-    return off;
+    const offTrack = LiveTrack.onChange(paintShare);
+    return () => { off(); offTrack(); };
   }, GUARD);
 
   /* ======================================================================
@@ -335,6 +368,10 @@
       UI.busy(this, true, 'Attribution…');
       try {
         await API.claimOrder(this.dataset.claim);
+        // on partage la position tout de suite : le client voit le livreur
+        // dès la prise en charge, sans attendre le premier cycle automatique
+        LiveTrack.pushOnce().catch(() => {});
+        LiveTrack.start();
         UI.ok('Course acceptée !', 'Rendez-vous au restaurant');
         Router.go('/d/active');
       } catch (e) { UI.busy(this, false); UI.err(e.message); reload(); }
@@ -355,6 +392,8 @@
       UI.busy(this, true);
       const r = await API.safe(() => API.updateOrderStatus(this.dataset.id, status), null);
       if (r) UI.ok(status === 'delivered' ? 'Livraison terminée 🎉' : 'Statut mis à jour');
+      if (status === 'delivering') LiveTrack.pushOnce().catch(() => {});
+      LiveTrack.sync();   // s'arrête tout seul une fois la course livrée
       reload();
     });
   }

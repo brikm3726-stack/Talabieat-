@@ -38,12 +38,21 @@
             : '<div class="center" style="padding:6px 0 2px">' +
                 '<div style="font-size:38px">🗺️</div>' +
                 '<b style="display:block;margin-top:8px">Où doit-on vous livrer ?</b>' +
-                '<p class="sub" style="margin:6px 0 14px">Placez le repère sur votre porte : le livreur ouvrira ' +
-                  'l’itinéraire directement dans Google Maps.</p>' +
-                '<button class="btn btn-primary btn-block btn-lg" id="pickNow">' +
-                  '📍 Choisir ma position sur la carte</button>' +
+                '<p class="sub" style="margin:6px 0 14px">Activez votre localisation : le livreur saura ' +
+                  'exactement où vous trouver et ouvrira l’itinéraire dans Google Maps.</p>' +
+                '<button class="btn btn-primary btn-block btn-lg" id="geoNow">' +
+                  '🎯 Activer ma localisation</button>' +
+                '<button class="btn btn-ghost btn-block btn-sm" id="pickNow" style="margin-top:9px">' +
+                  '🗺️ Ou placer le repère à la main</button>' +
               '</div>') +
         '</div>' +
+
+        /* ---- position manquante sur l'adresse choisie ---- */
+        (selected && !U.hasCoords(selected)
+          ? '<div class="banner banner-warn" style="margin-top:12px">' +
+            '<div class="grow">📍 Cette adresse n’a pas de position GPS — le livreur risque de vous chercher.</div>' +
+            '<button class="btn btn-primary btn-sm" id="fixGeo">Activer</button></div>'
+          : '') +
 
         /* ---- contact + note ---- */
         '<div class="card card-p" style="margin-top:14px">' +
@@ -90,12 +99,36 @@
         selected = addresses.find(a => a.id === el.dataset.addr);
         paint();
       });
-      const newAddr = () => addressSheet(null, saved => {
+      const newAddr = (initialPos) => addressSheet(null, saved => {
         addresses.push(saved); selected = saved; paint();
-      });
-      view.querySelector('#addAddr').onclick = newAddr;
+      }, initialPos);
+
+      view.querySelector('#addAddr').onclick = () => newAddr();
+
       const pn = view.querySelector('#pickNow');
-      if (pn) pn.onclick = newAddr;
+      if (pn) pn.onclick = () => newAddr();
+
+      // demande la permission de géolocalisation, puis ouvre la carte dessus
+      const gn = view.querySelector('#geoNow');
+      if (gn) gn.onclick = async function () {
+        UI.busy(this, true, 'Localisation…');
+        const p = await askGeolocation();
+        UI.busy(this, false);
+        newAddr(p);   // p peut être null : la carte s'ouvre alors sur la ville
+      };
+
+      // compléter la position d'une adresse déjà enregistrée
+      const fg = view.querySelector('#fixGeo');
+      if (fg) fg.onclick = async function () {
+        UI.busy(this, true, 'Localisation…');
+        const p = await askGeolocation();
+        UI.busy(this, false);
+        addressSheet(selected, saved => {
+          const i = addresses.findIndex(a => a.id === saved.id);
+          if (i >= 0) addresses[i] = saved;
+          selected = saved; paint();
+        }, p);
+      };
 
       view.querySelector('#confirm').onclick = submit;
     }
@@ -141,9 +174,36 @@
      La position sur la carte est l'élément central : c'est elle qui permet
      au livreur d'ouvrir directement l'itinéraire dans Google Maps.
      ====================================================================== */
-  function addressSheet(existing, onSaved) {
+  /**
+   * Demande la position au navigateur (déclenche « Autoriser la localisation »).
+   * Renvoie {lat,lng} ou null — un refus n'est pas une erreur bloquante :
+   * on retombe simplement sur le placement manuel du repère.
+   */
+  function askGeolocation() {
+    return new Promise(resolve => {
+      if (!navigator.geolocation) {
+        UI.err('Géolocalisation indisponible', 'Placez le repère à la main sur la carte.');
+        return resolve(null);
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => resolve({ lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6) }),
+        err => {
+          UI.err(
+            err.code === 1 ? 'Localisation refusée' : 'Position introuvable',
+            err.code === 1
+              ? 'Autorisez-la dans le navigateur, ou placez le repère à la main.'
+              : 'Placez le repère à la main sur la carte.'
+          );
+          resolve(null);
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+      );
+    });
+  }
+
+  function addressSheet(existing, onSaved, initialPos) {
     const a = existing || {};
-    let pos = U.hasCoords(a) ? { lat: +a.lat, lng: +a.lng } : null;
+    let pos = initialPos || (U.hasCoords(a) ? { lat: +a.lat, lng: +a.lng } : null);
 
     const m = UI.sheet({
       title: existing ? 'Modifier l’adresse' : 'Nouvelle adresse',
@@ -227,12 +287,14 @@
       }
     });
 
-    // sur une nouvelle adresse, on ouvre la carte tout de suite
-    if (!existing) setTimeout(() => {
+    // nouvelle adresse, ou position tout juste captée : on ouvre la carte
+    // immédiatement pour que l'utilisateur confirme le point exact
+    if (!existing || initialPos) setTimeout(() => {
       const b = m.el.querySelector('#pick');
       if (b) b.click();
     }, 380);
   }
 
   w.addressSheet = addressSheet;
+  w.askGeolocation = askGeolocation;
 })(window);

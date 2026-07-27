@@ -373,6 +373,23 @@
       return unwrap(await sb.from('drivers').insert(body).select().single());
     },
 
+    /* --------------------------------------------------- SUIVI EN DIRECT */
+    async updateMyPosition(lat, lng) {
+      if (!currentUser) return null;
+      const r = await sb.from('drivers').update({
+        last_lat: +lat, last_lng: +lng, last_position_at: new Date().toISOString()
+      }).eq('id', currentUser.id).select('last_lat, last_lng, last_position_at').maybeSingle();
+      if (r.error) { console.warn(r.error.message); return null; }
+      return r.data ? { lat: r.data.last_lat, lng: r.data.last_lng, at: r.data.last_position_at } : null;
+    },
+
+    async driverPosition(orderId) {
+      const r = await sb.rpc('driver_position', { p_order: orderId });
+      if (r.error) { console.warn(r.error.message); return null; }
+      const row = Array.isArray(r.data) ? r.data[0] : r.data;
+      return row && row.lat != null ? { lat: row.lat, lng: row.lng, at: row.at } : null;
+    },
+
     /* ------------------------------------------------------ NOTIFICATIONS */
     async notifications(limit) {
       if (!currentUser) return [];

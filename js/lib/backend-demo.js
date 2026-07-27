@@ -544,6 +544,39 @@
       return clone(d);
     },
 
+    /* ------------------------------------------------ SUIVI EN DIRECT */
+
+    /** Le livreur envoie sa position pendant une course. */
+    async updateMyPosition(lat, lng) {
+      const u = me(); if (!u) return null;
+      const d = byId(db.drivers, u.id);
+      if (!d) return null;
+      d.last_lat = +lat; d.last_lng = +lng;
+      d.last_position_at = new Date().toISOString();
+      commit('drivers');
+      return { lat: d.last_lat, lng: d.last_lng, at: d.last_position_at };
+    },
+
+    /**
+     * Position du livreur d'une commande.
+     * N'est renvoyée que pendant la livraison et qu'aux personnes concernées.
+     */
+    async driverPosition(orderId) {
+      const u = me(); if (!u) return null;
+      const o = byId(db.orders, orderId);
+      if (!o || !o.driver_id) return null;
+      if (['driver_assigned', 'delivering'].indexOf(o.status) < 0) return null;
+
+      const rest = byId(db.restaurants, o.restaurant_id);
+      const allowed = o.client_id === u.id || o.driver_id === u.id ||
+                      (rest && rest.owner_id === u.id) || u.role === 'admin';
+      if (!allowed) return null;
+
+      const d = byId(db.drivers, o.driver_id);
+      if (!d || d.last_lat == null) return null;
+      return { lat: d.last_lat, lng: d.last_lng, at: d.last_position_at };
+    },
+
     /* --------------------------------------------------- NOTIFICATIONS */
     async notifications(limit) {
       const u = me(); if (!u) return [];

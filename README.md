@@ -44,8 +44,9 @@ Pour passer en production (vraie base de données partagée + connexion Google) 
 **Client** — choisit son quartier, parcourt les restaurants ouverts, filtre par
 catégorie, cherche un plat, compose son panier avec suppléments, **place sa
 position exacte sur une carte** (ou via le GPS du téléphone), ajoute une note
-pour le livreur, puis **suit sa commande en direct** sur 7 étapes et confirme la
-réception.
+pour le livreur, puis **suit sa commande en direct** sur 7 étapes. Pendant la
+livraison, il **voit son livreur avancer sur une carte**, avec la distance
+restante et le temps estimé, et confirme la réception à l'arrivée.
 
 **Restaurant** — crée sa fiche (logo, couverture, adresse, horaires, catégories),
 gère son menu (plats, photos, prix, suppléments, activation/désactivation),
@@ -56,7 +57,8 @@ consulte son chiffre d'affaires et ses produits les plus vendus.
 l'admin, se met disponible, voit les courses de son quartier avec **distance GPS
 réelle**, montant et **gain estimé**, accepte, ouvre l'**itinéraire dans Google
 Maps** d'un tap (vers le restaurant puis vers le client), appelle les deux, puis
-valide la livraison.
+valide la livraison. Sa position est **partagée avec le client pendant la course
+uniquement**, et s'arrête automatiquement à la livraison.
 
 **Administrateur** — valide ou refuse restaurants et livreurs, bloque des comptes,
 modifie les utilisateurs, consulte toutes les commandes et statistiques, gère les
@@ -76,7 +78,8 @@ platforme/
 │   ├── 01_schema.sql          12 tables + relations
 │   ├── 02_security.sql        RLS par rôle, triggers, notifications
 │   ├── 03_seed.sql            quartiers de Tizi Ouzou ville, catégories, stockage
-│   └── 04_geoloc.sql          mise à jour GPS (bases déjà installées)
+│   ├── 04_geoloc.sql          mise à jour GPS (bases déjà installées)
+│   └── 05_tracking.sql        suivi du livreur en direct
 │
 └── js/
     ├── app.js                 démarrage
@@ -85,6 +88,7 @@ platforme/
     │   ├── ui.js              toasts, modales, upload d'images
     │   ├── components.js      cartes restaurant, plats, timeline
     │   ├── mappicker.js       choix de position sur carte + GPS + Google Maps
+    │   ├── livetrack.js       partage de la position du livreur pendant la course
     │   ├── testpanel.js       bouton 🧪 : changer de rôle (mode démo seulement)
     │   ├── router.js          navigation + gardes par rôle
     │   ├── shell.js           barre du haut, navigation, notifications
@@ -120,6 +124,9 @@ tel quel sur Vercel, Netlify ou GitHub Pages.
 - **Transitions de statut contrôlées** : un restaurant ne peut pas marquer une
   commande « livrée », un livreur ne peut pas l'accepter à la place du restaurant.
 - **Échappement HTML systématique** de toute donnée saisie par un utilisateur.
+- **La position d'un livreur n'est lisible que pendant sa course**, et seulement
+  par le client concerné, son restaurant et l'administration (fonction SQL
+  `driver_position`). Le partage s'arrête de lui-même à la livraison.
 
 ---
 

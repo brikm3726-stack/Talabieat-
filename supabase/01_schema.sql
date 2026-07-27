@@ -163,6 +163,10 @@ create table if not exists public.drivers (
   rating            numeric(2,1) not null default 5.0,
   total_deliveries  int not null default 0,
   total_earnings    int not null default 0,
+  -- dernière position connue, partagée pendant une livraison
+  last_lat          double precision,
+  last_lng          double precision,
+  last_position_at  timestamptz,
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now()
 );

@@ -77,6 +77,7 @@
       const canCancel = (o.status === 'pending' || o.status === 'accepted');
       const eta = etaText(o);
       const hasPos = U.hasCoords({ lat: o.address_lat, lng: o.address_lng });
+      const isLive = !!o.driver && ['driver_assigned', 'delivering'].indexOf(o.status) >= 0;
 
       view.innerHTML = '<div class="wrap-sm page">' +
 
@@ -93,15 +94,24 @@
           '<div style="opacity:.9;font-size:13.5px;margin-top:5px">' + U.esc(eta) + '</div>' +
         '</div>' +
 
-        /* ---- livreur ---- */
+        /* ---- livreur + suivi en direct ---- */
         (o.driver ?
           '<div class="card card-p" style="margin-top:14px">' +
             '<div class="row" style="gap:12px">' +
               UI.avatar(o.driver.full_name, null, 46) +
               '<div class="grow"><div class="tiny">Votre livreur</div>' +
-              '<b>' + U.esc(o.driver.full_name) + '</b></div>' +
+              '<b>' + U.esc(o.driver.full_name) + '</b>' +
+              '<div class="tiny" id="drvInfo">Recherche de sa position…</div></div>' +
               (o.driver.phone ? '<a class="btn btn-soft btn-sm" href="tel:' + U.esc(o.driver.phone) + '">📞 Appeler</a>' : '') +
-            '</div></div>' : '') +
+            '</div>' +
+            (isLive
+              ? '<div class="live-map" id="liveMap" style="margin-top:12px"></div>' +
+                '<div class="row" style="gap:8px;margin-top:8px">' +
+                  '<span class="tag tag-ok" id="liveTag">🔴 Suivi en direct</span>' +
+                  '<button class="btn btn-ghost btn-sm" id="recenter" style="margin-left:auto">Recentrer</button>' +
+                '</div>'
+              : '') +
+          '</div>' : '') +
 
         /* ---- timeline ---- */
         '<div class="card card-p" style="margin-top:14px">' +
@@ -158,7 +168,9 @@
 
       view.querySelector('#back').onclick = () => Router.back();
 
+      currentStatus = o.status;
       if (hasPos) MapPicker.preview(view.querySelector('#omap'), +o.address_lat, +o.address_lng);
+      isLive ? startLive(o) : stopLive();
 
       const cr = view.querySelector('#confirmRecep');
       if (cr) cr.onclick = async function () {
@@ -178,12 +190,68 @@
       };
     }
 
+    /* ------------------------------------------------ suivi en direct */
+    let liveMap = null, posTimer = null, currentStatus = null;
+
+    function stopLive() {
+      if (liveMap) { liveMap.destroy(); liveMap = null; }
+      if (posTimer) { clearInterval(posTimer); posTimer = null; }
+    }
+
+    function startLive(o) {
+      stopLive();
+      const el = view.querySelector('#liveMap');
+      if (!el) return;
+
+      const client = { lat: o.address_lat, lng: o.address_lng };
+      liveMap = MapPicker.live(el, { restaurant: o.restaurant, client: client });
+
+      const rc = view.querySelector('#recenter');
+      if (rc) rc.onclick = () => liveMap && liveMap.recenter();
+
+      const refresh = async () => {
+        const p = await API.safe(() => API.driverPosition(o.id), null);
+        const info = view.querySelector('#drvInfo');
+        const tag = view.querySelector('#liveTag');
+        if (!info) return;   // la page a changé
+
+        if (!p) {
+          info.textContent = 'Position pas encore partagée par le livreur.';
+          if (tag) { tag.className = 'tag tag-muted'; tag.textContent = '⚪ En attente du signal'; }
+          return;
+        }
+
+        if (liveMap) liveMap.update({ restaurant: o.restaurant, client: client, driver: p });
+        if (tag) { tag.className = 'tag tag-ok'; tag.textContent = '🔴 Suivi en direct'; }
+
+        // distance restante et temps estimé (≈ 22 km/h en ville)
+        if (U.hasCoords(client)) {
+          const km = U.haversine(p.lat, p.lng, +client.lat, +client.lng) * 1.3;
+          const min = Math.max(1, Math.round(km / 22 * 60));
+          info.innerHTML = '🛵 à <b>' + km.toFixed(1) + ' km</b> — environ <b>' + min + ' min</b>' +
+                           ' <span style="opacity:.6">(' + U.ago(p.at) + ')</span>';
+        } else {
+          info.textContent = 'Position mise à jour ' + U.ago(p.at);
+        }
+      };
+
+      refresh();
+      posTimer = setInterval(refresh, 12000);
+    }
+
     await load();
 
-    // rafraîchissement temps réel + filet de sécurité toutes les 20 s
+    // rafraîchissement à chaque évènement temps réel
     const off = API.onChange(t => { if (t === 'orders' || t === '*') load(); });
-    const timer = setInterval(load, 20000);
-    return () => { off(); clearInterval(timer); };
+
+    // filet de sécurité : on ne re-rend la page que si le statut a changé,
+    // pour ne pas casser la carte de suivi toutes les 20 secondes
+    const guard = setInterval(async () => {
+      const cur = await API.safe(() => API.order(params.id), null);
+      if (cur && cur.status !== currentStatus) load();
+    }, 20000);
+
+    return () => { off(); clearInterval(guard); stopLive(); };
   }, { auth: true });
 
   /* ------------------------------------------------------------ helpers */

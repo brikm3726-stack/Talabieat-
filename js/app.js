@@ -39,10 +39,12 @@
       API.onChange(async function (what) {
         if (what === 'session') {
           await Store.refreshProfile();
+          LiveTrack.sync();          // coupe le partage de position à la déconnexion
           Shell.render();
           Router.render();
           return;
         }
+        if (what === 'orders') LiveTrack.sync();
         // toute autre modification peut faire évoluer le compteur de notifications
         if (!Store.isLogged) return;
         await Store.refreshUnread();
@@ -62,6 +64,9 @@
 
       /* ---- 6. Navigation ---- */
       Router.start();
+
+      // un livreur qui rouvre l'app en pleine course reprend le partage
+      LiveTrack.sync();
 
       /* ---- 7. Fin du splash ---- */
       const splash = document.getElementById('splash');
