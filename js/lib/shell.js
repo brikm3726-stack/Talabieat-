@@ -67,8 +67,9 @@
 
       bar.innerHTML =
         '<div class="wrap topbar-in">' +
-          '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : '/') + '">' +
-            '<span class="brand-mark">🛵</span><span>' + U.esc(TALABI_CONFIG.APP_NAME) + '</span>' +
+          '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : '/') + '" ' +
+            'title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' +
+            '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" class="brand-logo">' +
           '</a>' +
 
           (showZone ?

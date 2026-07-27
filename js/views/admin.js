@@ -94,6 +94,12 @@
             '<div class="tiny" style="margin-top:6px">📍 ' + U.esc(r.address || '—') +
               (r.zone ? ' — ' + U.esc(r.zone.name) : '') + '</div>' +
             '<div class="tiny">📞 ' + U.esc(r.phone || '—') + ' • 🛵 ' + U.money(r.delivery_fee) + '</div>' +
+            '<div class="tiny">' + (U.hasCoords(r)
+              ? (r.gps_verified === false
+                  ? '<span style="color:var(--warn);font-weight:700">📍 position approximative — à vérifier</span>'
+                  : '📍 <a target="_blank" rel="noopener" style="color:var(--brand);font-weight:650" href="' +
+                    U.gmapsPin(r.lat, r.lng) + '">voir sur Google Maps ↗</a>')
+              : '<span style="color:var(--danger);font-weight:700">📍 aucune position GPS</span>') + '</div>' +
             '<div class="tiny">👤 ' + U.esc(r.owner ? (r.owner.full_name + ' — ' + r.owner.email) : '—') + '</div>' +
             (r.reject_reason ? '<div class="tiny" style="color:var(--danger)">Motif : ' + U.esc(r.reject_reason) + '</div>' : '') +
             '</div>' +
@@ -101,9 +107,23 @@
           '<div class="row" style="gap:9px;margin-top:13px;flex-wrap:wrap">' +
             (r.status !== 'approved' ? '<button class="btn btn-ok btn-sm" data-ok="' + U.esc(r.id) + '">✅ Valider</button>' : '') +
             (r.status !== 'rejected' ? '<button class="btn btn-danger btn-sm" data-no="' + U.esc(r.id) + '">⛔ Refuser</button>' : '') +
+            '<button class="btn btn-ghost btn-sm" data-pos="' + U.esc(r.id) + '">📍 Position</button>' +
             '<a class="btn btn-ghost btn-sm" href="#/resto/' + U.esc(r.id) + '">Voir la fiche</a>' +
           '</div>' +
         '</div>').join('') + '</div>';
+
+      list.querySelectorAll('[data-pos]').forEach(b => b.onclick = function () {
+        const r = rows.find(x => x.id === this.dataset.pos);
+        MapPicker.open({
+          title: 'Position de ' + r.name,
+          lat: r.lat, lng: r.lng,
+          onPick: async p => {
+            await API.safe(() => API.adminUpdateRestaurant(r.id, { lat: p.lat, lng: p.lng }));
+            UI.ok('Position enregistrée', r.name);
+            load();
+          }
+        });
+      });
 
       list.querySelectorAll('[data-ok]').forEach(b => b.onclick = async function () {
         UI.busy(this, true);

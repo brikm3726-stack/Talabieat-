@@ -20,7 +20,8 @@
   function shell(title, subtitle, inner) {
     return '<div class="wrap-sm page" style="max-width:460px">' +
       '<div class="center" style="margin:8px 0 22px">' +
-        '<div class="brand-mark" style="width:52px;height:52px;font-size:25px;border-radius:17px;margin:0 auto 12px">🛵</div>' +
+        '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
+          'style="width:150px;border-radius:18px;margin:0 auto 14px;display:block">' +
         '<div class="h1">' + U.esc(title) + '</div>' +
         '<div class="sub" style="margin-top:6px">' + U.esc(subtitle) + '</div>' +
       '</div>' + inner + '</div>';
@@ -87,9 +88,12 @@
      INSCRIPTION
      ====================================================================== */
   Router.add('/signup', async function (params, query, view) {
-    if (Store.isLogged) return Router.go(Router.homeFor(Store.role), true);
-
     let role = ROLES.some(r => r.v === query.role) ? query.role : 'client';
+
+    // Déjà connecté : on explique au lieu de renvoyer en silence vers l'accueil
+    // (c'est ce qui donnait l'impression que « Ajouter mon restaurant » ne
+    // faisait rien quand on était connecté en client).
+    if (Store.isLogged) return alreadyLogged(view, role);
 
     view.innerHTML = shell('Créer un compte', 'Choisissez votre type de compte',
       '<div class="card card-p stack">' +
@@ -182,6 +186,48 @@
       }
     };
   });
+
+  /* ----------------------------------------------------------------------
+     L'utilisateur est déjà connecté et clique sur « Ajouter mon restaurant »
+     ou « Devenir livreur ». Un compte = un rôle : on lui montre la marche à
+     suivre au lieu de le renvoyer sans explication.
+     ---------------------------------------------------------------------- */
+  function alreadyLogged(view, wanted) {
+    const info = ROLES.find(r => r.v === wanted) || ROLES[0];
+    const same = Store.role === wanted;
+    const home = Router.homeFor(Store.role);
+
+    view.innerHTML = shell(
+      same ? 'Vous y êtes déjà' : info.t + ' — compte requis',
+      same ? '' : 'Un compte Talabi correspond à un seul rôle',
+      '<div class="card card-p stack">' +
+
+        '<div class="role-card on"><div class="ic">' + info.i + '</div>' +
+          '<div class="grow"><b>' + U.esc(info.t) + '</b>' +
+          '<div class="tiny">' + U.esc(info.d) + '</div></div></div>' +
+
+        (same
+          ? '<p class="sub">Votre compte <b>' + U.esc(Store.profile.email || '') + '</b> est déjà un compte ' +
+            U.esc(info.t.toLowerCase()) + '. Rendez-vous dans votre espace pour continuer.</p>' +
+            '<a class="btn btn-primary btn-block btn-lg" href="#' + home + '">Ouvrir mon espace</a>'
+          : '<p class="sub">Vous êtes connecté en tant que <b>' +
+            U.esc(ROLES.find(r => r.v === Store.role) ? ROLES.find(r => r.v === Store.role).t : Store.role) +
+            '</b> avec <b>' + U.esc(Store.profile.email || '') + '</b>. ' +
+            'Pour devenir ' + U.esc(info.t.toLowerCase()) + ', créez un compte séparé avec une autre adresse email.</p>' +
+            '<button class="btn btn-primary btn-block btn-lg" id="switch">' +
+              'Se déconnecter et créer un compte ' + U.esc(info.t.toLowerCase()) + '</button>' +
+            '<a class="btn btn-ghost btn-block" href="#' + home + '">Rester sur mon compte actuel</a>') +
+      '</div>');
+
+    const sw = view.querySelector('#switch');
+    if (sw) sw.onclick = async function () {
+      UI.busy(this, true, 'Déconnexion…');
+      await API.signOut();
+      Store.clearCart(true);
+      await Store.refreshProfile();
+      Router.go('/signup?role=' + wanted, true);
+    };
+  }
 
   /* ======================================================================
      MOT DE PASSE OUBLIÉ

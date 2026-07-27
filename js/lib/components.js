@@ -30,6 +30,9 @@
             '<span class="dot-sep">🛵 ' + U.money(r.delivery_fee) + '</span>' +
           '</div>' +
           '<div class="tiny" style="margin-top:6px">📍 ' + U.esc(r.zone ? r.zone.name : '') + '</div>' +
+          (r.matched_dish
+            ? '<div class="tiny" style="margin-top:5px;color:var(--brand);font-weight:650">' +
+              '🍽️ propose « ' + U.esc(r.matched_dish) + ' »</div>' : '') +
         '</div></article>';
     },
 

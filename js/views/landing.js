@@ -61,7 +61,8 @@
       /* -------------------------------------------------------------- PIED */
       '<footer class="footer"><div class="wrap">' +
         '<div class="row-between" style="flex-wrap:wrap;gap:18px">' +
-          '<div><div class="brand" style="color:#fff"><span class="brand-mark">🛵</span>' + U.esc(TALABI_CONFIG.APP_NAME) + '</div>' +
+          '<div><img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
+            'style="height:52px;border-radius:12px;background:#fff;padding:5px">' +
           '<div class="tiny" style="color:rgba(255,255,255,.6);margin-top:8px;max-width:320px">' +
             'Plateforme algérienne de livraison de repas. Paiement à la livraison.</div></div>' +
           '<div class="stack" style="gap:6px">' +

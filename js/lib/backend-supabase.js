@@ -467,6 +467,16 @@
       return d;
     },
 
+    async adminUpdateRestaurant(id, patch) {
+      const body = {};
+      ['name', 'address', 'zone_id', 'phone', 'lat', 'lng', 'opens_at', 'closes_at',
+       'delivery_fee', 'min_order', 'prep_time_min', 'is_open'].forEach(k => {
+        if (patch[k] !== undefined) body[k] = patch[k];
+      });
+      body.updated_at = new Date().toISOString();
+      return unwrap(await sb.from('restaurants').update(body).eq('id', id).select().single());
+    },
+
     async setUserBlocked(id, blocked) {
       return unwrap(await sb.from('profiles').update({ is_blocked: !!blocked }).eq('id', id).select().single());
     },

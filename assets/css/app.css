@@ -391,6 +391,15 @@ tr:hover td{background:#FCFDFF}
 
 .splash{position:fixed;inset:0;background:var(--brand-grad);display:grid;place-items:center;z-index:500;color:#fff}
 .splash .brand-mark{width:64px;height:64px;border-radius:20px;background:rgba(255,255,255,.2);font-size:32px;margin:0 auto 14px;box-shadow:none}
+.splash-logo{
+  width:min(230px,62vw);border-radius:26px;background:#fff;padding:14px;
+  box-shadow:0 22px 50px -14px rgba(0,0,0,.45);animation:logoIn .5s cubic-bezier(.22,1,.36,1);
+}
+@keyframes logoIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+
+/* logo dans la barre du haut */
+.brand-logo{height:34px;width:auto;border-radius:9px;display:block}
+@media(min-width:700px){ .brand-logo{height:38px} }
 
 /* ------------------------------------------ bouton du panneau de test */
 .tp-btn{

@@ -62,10 +62,49 @@
         return;
       }
 
-      const list = await API.safe(() => API.restaurants({
-        zone_id: Store.zoneId, category_id: cat, q: term.trim() || null
-      }), []);
+      const q = term.trim();
+      const list = await searchRestaurants(q, Store.zoneId, cat);
+
+      // Rien dans le quartier choisi, mais des résultats ailleurs en ville :
+      // on le dit au lieu d'afficher un vide qui ressemble à une panne.
+      if (!list.length && Store.zoneId) {
+        const city = await searchRestaurants(q, null, cat);
+        if (city.length) {
+          results.innerHTML = UI.empty('📍', 'Rien dans ' + Store.zoneName(),
+            city.length + ' restaurant(s) correspondent ailleurs dans la ville.',
+            '<button class="btn btn-primary" id="allCity">Chercher dans toute la ville</button>');
+          results.querySelector('#allCity').onclick = () => { Store.setZone(null); Shell.renderTop(); load(); };
+          return;
+        }
+      }
       Cmp.restoGrid(list, results);
+    }
+
+    /**
+     * Recherche unifiée : un mot-clé peut désigner un restaurant OU un plat.
+     * Le champ promet « restaurant ou plat » — il doit tenir les deux.
+     */
+    async function searchRestaurants(q, zoneId, catId) {
+      const list = await API.safe(() => API.restaurants({
+        zone_id: zoneId, category_id: catId, q: q || null
+      }), []);
+
+      if (q.length < 2) return list;
+
+      const dishes = await API.safe(() => API.searchDishes(q, zoneId), []);
+      const seen = {};
+      list.forEach(r => seen[r.id] = true);
+
+      dishes.forEach(d => {
+        const rest = d.restaurant;
+        if (!rest || seen[rest.id]) return;
+        if (catId && (rest.categories || []).indexOf(catId) < 0) return;
+        seen[rest.id] = true;
+        rest.matched_dish = d.name;   // affiché sur la carte : « propose … »
+        list.push(rest);
+      });
+
+      return list.sort((a, b) => (b.open_now - a.open_now) || (b.rating - a.rating));
     }
 
     const onType = U.debounce(() => { term = view.querySelector('#q').value; load(); }, 320);

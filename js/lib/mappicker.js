@@ -34,8 +34,11 @@
         title: o.title || 'Choisir la position',
         body:
           '<div class="mp-search search">' +
-            '<input class="input" id="mpq" placeholder="Rechercher une rue, un repère…" autocomplete="off">' +
+            '<input class="input" id="mpq" autocomplete="off" ' +
+              'placeholder="Rue, repère, ou coordonnées Google Maps…">' +
           '</div>' +
+          '<div class="tiny" style="margin:-2px 0 8px">💡 Astuce : dans Google Maps, appuie longuement sur le ' +
+            'lieu, copie les coordonnées (ex. <b>36.7132, 4.0438</b>) et colle-les ici.</div>' +
           '<div id="mpres" class="mp-results"></div>' +
 
           '<div class="mp-map">' +
@@ -110,6 +113,17 @@
           q.oninput = U.debounce(async () => {
             const term = q.value.trim();
             if (term.length < 3) { resBox.innerHTML = ''; return; }
+
+            // coordonnées ou lien Google Maps collés : on y va directement
+            const c = parseCoords(term);
+            if (c) {
+              map.setView([c.lat, c.lng], 18);
+              resBox.innerHTML = '';
+              q.value = '';
+              UI.ok('Position appliquée', c.lat.toFixed(5) + ', ' + c.lng.toFixed(5));
+              return;
+            }
+
             const list = await search(term);
             if (!list.length) {
               resBox.innerHTML = '<div class="mp-item tiny">Aucun résultat</div>';
@@ -215,6 +229,33 @@
 
   /* ====================================================== OpenStreetMap */
 
+  /**
+   * Reconnaît une position collée par l'utilisateur :
+   *   « 36.7132, 4.0438 »
+   *   https://www.google.com/maps/@36.7132,4.0438,17z
+   *   https://maps.google.com/?q=36.7132,4.0438
+   *   …!3d36.7132!4d4.0438…
+   * Renvoie {lat,lng} ou null.
+   */
+  function parseCoords(text) {
+    const s = String(text).trim();
+    const pairs = [
+      /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,          // lien de partage Google Maps
+      /[@?&=/](-?\d{1,2}\.\d{4,}),\s*(-?\d{1,3}\.\d{4,})/,
+      /^(-?\d{1,2}(?:\.\d+)?)[,;\s]+(-?\d{1,3}(?:\.\d+)?)$/
+    ];
+    for (const rx of pairs) {
+      const m = s.match(rx);
+      if (!m) continue;
+      const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+      if (isFinite(lat) && isFinite(lng) &&
+          lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        return { lat: lat, lng: lng };
+      }
+    }
+    return null;
+  }
+
   /** Coordonnées → adresse lisible */
   async function reverse(lat, lng) {
     try {
@@ -277,6 +318,8 @@
       }
     });
   }
+
+  MapPicker.parseCoords = parseCoords;   // exposé pour les tests
 
   w.MapPicker = MapPicker;
 })(window);

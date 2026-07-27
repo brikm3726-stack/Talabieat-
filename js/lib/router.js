@@ -27,10 +27,16 @@
 
     go(path, replace) {
       const h = '#' + (path.charAt(0) === '/' ? path : '/' + path);
+
+      // Déjà sur cette adresse : aucun hashchange ne sera émis, on rend à la main.
+      if (('#' + Router.path()) === h) return Router.render();
+
+      // Sinon on laisse hashchange déclencher le rendu — une seule fois.
+      // (Rendre ici en plus provoquait deux rendus concurrents : le premier
+      // gardait des références vers des éléments que le second venait de
+      // remplacer, et ses résultats n'apparaissaient jamais.)
       if (replace) location.replace(h);
       else location.hash = h;
-      // si le hash est identique, on force le rendu
-      if (('#' + Router.path()) === h) Router.render();
     },
 
     back() { history.length > 1 ? history.back() : Router.go('/'); },

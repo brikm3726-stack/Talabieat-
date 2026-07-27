@@ -8,8 +8,8 @@
 
   // ⚠️ Incrémenter la version dès que les données de démo changent : les
   // navigateurs qui ont déjà ouvert le site repartent alors des nouvelles données.
-  const KEY = 'talabi.db.v4';
-  const SESSION_KEY = 'talabi.session.v4';
+  const KEY = 'talabi.db.v5';
+  const SESSION_KEY = 'talabi.session.v5';
   let db = null;
   const listeners = [];
 
@@ -669,6 +669,20 @@
         'driver_status', null);
       commit('drivers');
       return clone(d);
+    },
+
+    /** L'admin corrige une fiche restaurant (position, horaires, frais…). */
+    async adminUpdateRestaurant(id, patch) {
+      requireAdmin();
+      const r = byId(db.restaurants, id);
+      if (!r) throw new Error('Restaurant introuvable.');
+      ['name', 'address', 'zone_id', 'phone', 'lat', 'lng', 'opens_at', 'closes_at',
+       'delivery_fee', 'min_order', 'prep_time_min', 'is_open'].forEach(k => {
+        if (patch[k] !== undefined) r[k] = patch[k];
+      });
+      if (patch.lat !== undefined) r.gps_verified = true;
+      commit('restaurants');
+      return decorate(r);
     },
 
     async setUserBlocked(id, blocked) {

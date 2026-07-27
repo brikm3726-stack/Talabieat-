@@ -22,20 +22,34 @@ Les données sont enregistrées **dans ton navigateur** (localStorage).
 | Rôle | Email | Gère |
 |---|---|---|
 | Client | `client@talabi.dz` | — |
-| Restaurant | `resto@talabi.dz` | **Meliza Tacos** |
-| Restaurant | `pizza@talabi.dz` | Pizza Napoli |
-| Restaurant | `chawarma@talabi.dz` | Chawarma House |
-| Restaurant | `trad@talabi.dz` | Dar Djurdjura |
-| Restaurant | `burger@talabi.dz` | Big Burger TO |
-| Restaurant | `sweet@talabi.dz` | Sweet Corner |
-| Restaurant | `wiam@talabi.dz` | Snack El Wiam *(en attente de validation)* |
+| Restaurant | `resto@talabi.dz` | **Melyza Tacos** — Centre-ville |
+| Restaurant | `ambassade@talabi.dz` | L'Ambassade — Centre-ville |
+| Restaurant | `sadoud@talabi.dz` | Maison Sadoud — El Bordj |
+| Restaurant | `atelier@talabi.dz` | L'Atelier en Ville — Nouvelle Ville |
+| Restaurant | `twelve@talabi.dz` | The Twelve — Nouvelle Ville |
 | Livreur | `livreur@talabi.dz` | validé, Centre-ville |
 | Livreur | `livreur2@talabi.dz` | *en attente de validation* |
 | Administrateur | `admin@talabi.dz` | — |
 
 > ⚠️ **Chaque restaurant a son propre compte gérant.** Si le client commande chez
-> Pizza Napoli, c'est `pizza@talabi.dz` qui reçoit la commande — pas
+> L'Ambassade, c'est `ambassade@talabi.dz` qui reçoit la commande — pas
 > `resto@talabi.dz`. Le bouton 🧪 te bascule toujours sur le bon compte.
+
+### Corriger la position d'un restaurant
+
+Seule la position de **Melyza Tacos** est certifiée (36.713198, 4.043767, reprise
+de son site officiel). Les quatre autres sont des approximations calculées à
+partir de leur adresse : l'espace admin les signale en orange
+(*position approximative — à vérifier*).
+
+Pour corriger, compte par compte, en 30 secondes :
+
+1. Connecte-toi en **admin** → *Restaurants*
+2. Clique **📍 Position** sur le restaurant concerné
+3. Dans Google Maps, appuie longuement sur le lieu et **copie les coordonnées**
+4. Colle-les dans le champ de recherche de la carte (ex. `36.7132, 4.0438`) —
+   un lien Google Maps complet fonctionne aussi
+5. Ajuste si besoin en déplaçant la carte, puis **Confirmer**
 
 ### Tester le parcours complet : le bouton 🧪
 

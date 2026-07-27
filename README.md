@@ -17,13 +17,22 @@ Comptes de test — mot de passe `123456` :
 | Rôle | Email |
 |---|---|
 | 🍔 Client | `client@talabi.dz` |
-| 🏪 Restaurant | `resto@talabi.dz` *(gère Meliza Tacos)* |
+| 🏪 Restaurant | `resto@talabi.dz` *(gère Melyza Tacos)* |
 | 🛵 Livreur | `livreur@talabi.dz` |
 | ⚙️ Admin | `admin@talabi.dz` |
 
-Chaque restaurant a son propre compte gérant : `pizza@`, `chawarma@`, `trad@`,
-`burger@`, `sweet@`, `wiam@talabi.dz`. Une commande arrive uniquement chez le
-gérant du restaurant choisi.
+**Restaurants de démonstration** — cinq établissements réels de Tizi Ouzou,
+chacun avec son propre compte gérant :
+
+| Restaurant | Quartier | Compte |
+|---|---|---|
+| Melyza Tacos | Centre-ville | `resto@talabi.dz` |
+| L'Ambassade | Centre-ville | `ambassade@talabi.dz` |
+| Maison Sadoud | El Bordj | `sadoud@talabi.dz` |
+| L'Atelier en Ville | Nouvelle Ville | `atelier@talabi.dz` |
+| The Twelve | Nouvelle Ville | `twelve@talabi.dz` |
+
+Une commande arrive uniquement chez le gérant du restaurant choisi.
 
 ### Tester le parcours complet
 

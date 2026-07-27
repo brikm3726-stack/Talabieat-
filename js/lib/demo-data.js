@@ -1,19 +1,46 @@
 /* ==========================================================================
-   Données de démonstration
+   Données de démonstration — ville de Tizi Ouzou
    Utilisées uniquement quand Supabase n'est pas configuré (mode démo).
+   --------------------------------------------------------------------------
+   ⚠️ POSITIONS GPS
+   Seule celle de Melyza Tacos est certifiée (reprise de son propre site).
+   Les quatre autres sont des approximations à partir de leur adresse : à
+   corriger depuis l'espace Admin → Restaurants → « Position », en collant
+   les coordonnées relevées sur Google Maps.
+
+   ⚠️ MENUS
+   Le menu de Melyza Tacos reprend ses vrais plats et prix. Ceux des autres
+   restaurants sont des exemples de départ, à remplacer par les vraies cartes.
    ========================================================================== */
 (function (w) {
   'use strict';
 
-  const Z = (name, i) => ({ id: 'zone-' + i, name: name, wilaya: 'Tizi Ouzou', is_active: true, sort_order: i });
+  function iso(daysOffset) { return new Date(Date.now() + daysOffset * 86400000).toISOString(); }
 
-  // Quartiers de la VILLE de Tizi Ouzou uniquement (pas les communes de la wilaya)
-  const ZONES = [
-    'Centre-ville', 'Nouvelle Ville', 'M\'Douha', 'Redjaouna', 'Hasnaoua',
-    'Bekkar', 'Haute Ville', 'Boukhalfa', 'Kef Naâdja', 'Sidi Belloua',
-    'Timizart Loghbar', 'Tala Allam', 'Cité 20 Août', 'Oued Aïssi'
-  ].map(Z);
+  /* ------------------------------------------------------------------ ZONES */
+  /* Quartiers de la VILLE de Tizi Ouzou uniquement (pas les communes). */
+  const ZONE_NAMES = [
+    ['z-centre',    'Centre-ville'],
+    ['z-nouvelle',  'Nouvelle Ville'],
+    ['z-bordj',     'El Bordj'],
+    ['z-mdouha',    "M'Douha"],
+    ['z-hasnaoua',  'Hasnaoua'],
+    ['z-redjaouna', 'Redjaouna'],
+    ['z-bekkar',    'Bekkar'],
+    ['z-haute',     'Haute Ville'],
+    ['z-boukhalfa', 'Boukhalfa'],
+    ['z-kef',       'Kef Naâdja'],
+    ['z-sidi',      'Sidi Belloua'],
+    ['z-timizart',  'Timizart Loghbar'],
+    ['z-tala',      'Tala Allam'],
+    ['z-20aout',    'Cité 20 Août'],
+    ['z-oued',      'Oued Aïssi']
+  ];
+  const ZONES = ZONE_NAMES.map((z, i) => ({
+    id: z[0], name: z[1], wilaya: 'Tizi Ouzou', is_active: true, sort_order: i
+  }));
 
+  /* ------------------------------------------------------------ CATÉGORIES */
   const CATEGORIES = [
     { id: 'cat-pizza',  slug: 'pizza',        name_fr: 'Pizza',               icon: '🍕', sort_order: 1, is_active: true },
     { id: 'cat-tacos',  slug: 'tacos',        name_fr: 'Tacos',               icon: '🌯', sort_order: 2, is_active: true },
@@ -26,148 +53,167 @@
     { id: 'cat-autre',  slug: 'autre',        name_fr: 'Autres',              icon: '🍽️', sort_order: 9, is_active: true }
   ];
 
-  /* ------------------------------------------------------------ comptes démo */
+  /* --------------------------------------------------------------- COMPTES */
+  /* Un compte gérant = un seul restaurant. */
   const PROFILES = [
-    { id: 'u-client', email: 'client@talabi.dz',  full_name: 'Amine Belkacem', phone: '0550112233', role: 'client',     zone_id: 'zone-0', is_blocked: false, created_at: iso(-30) },
-    { id: 'u-resto',  email: 'resto@talabi.dz',   full_name: 'Karim Meziane',  phone: '0661223344', role: 'restaurant', zone_id: 'zone-0', is_blocked: false, created_at: iso(-40) },
-    { id: 'u-driver', email: 'livreur@talabi.dz', full_name: 'Sofiane Haddad', phone: '0770334455', role: 'driver',     zone_id: 'zone-0', is_blocked: false, created_at: iso(-20) },
-    { id: 'u-admin',  email: 'admin@talabi.dz',   full_name: 'Administrateur', phone: '0555000000', role: 'admin',      zone_id: 'zone-0', is_blocked: false, created_at: iso(-60) },
-    { id: 'u-r2',     email: 'pizza@talabi.dz',   full_name: 'Yacine Ould',    phone: '0662445566', role: 'restaurant', zone_id: 'zone-1', is_blocked: false, created_at: iso(-35) },
-    { id: 'u-r3',     email: 'chawarma@talabi.dz',full_name: 'Nadir Cherif',   phone: '0663556677', role: 'restaurant', zone_id: 'zone-2', is_blocked: false, created_at: iso(-25) },
-    { id: 'u-r4',     email: 'trad@talabi.dz',    full_name: 'Fatima Zohra',   phone: '0664667788', role: 'restaurant', zone_id: 'zone-4', is_blocked: false, created_at: iso(-15) },
-    { id: 'u-r5',     email: 'burger@talabi.dz',  full_name: 'Riad Benali',    phone: '0665778899', role: 'restaurant', zone_id: 'zone-0', is_blocked: false, created_at: iso(-10) },
-    { id: 'u-r6',     email: 'sweet@talabi.dz',   full_name: 'Lynda Ait Ali',  phone: '0666889900', role: 'restaurant', zone_id: 'zone-1', is_blocked: false, created_at: iso(-12) },
-    { id: 'u-r7',     email: 'wiam@talabi.dz',    full_name: 'Samir Ould Ali', phone: '0667990011', role: 'restaurant', zone_id: 'zone-3', is_blocked: false, created_at: iso(-5) },
-    { id: 'u-d2',     email: 'livreur2@talabi.dz',full_name: 'Bilal Kaci',     phone: '0771889900', role: 'driver',     zone_id: 'zone-1', is_blocked: false, created_at: iso(-8) }
+    { id: 'u-client',    email: 'client@talabi.dz',    full_name: 'Amine Belkacem', phone: '0550112233', role: 'client',     zone_id: 'z-centre',   is_blocked: false, created_at: iso(-30) },
+    { id: 'u-admin',     email: 'admin@talabi.dz',     full_name: 'Administrateur', phone: '0555000000', role: 'admin',      zone_id: 'z-centre',   is_blocked: false, created_at: iso(-60) },
+    { id: 'u-driver',    email: 'livreur@talabi.dz',   full_name: 'Sofiane Haddad', phone: '0770334455', role: 'driver',     zone_id: 'z-centre',   is_blocked: false, created_at: iso(-20) },
+    { id: 'u-d2',        email: 'livreur2@talabi.dz',  full_name: 'Bilal Kaci',     phone: '0771889900', role: 'driver',     zone_id: 'z-nouvelle', is_blocked: false, created_at: iso(-8) },
+
+    { id: 'u-melyza',    email: 'resto@talabi.dz',     full_name: 'Gérant Melyza Tacos',   phone: '0560566117', role: 'restaurant', zone_id: 'z-centre',   is_blocked: false, created_at: iso(-40) },
+    { id: 'u-sadoud',    email: 'sadoud@talabi.dz',    full_name: 'Gérant Maison Sadoud',  phone: null,         role: 'restaurant', zone_id: 'z-bordj',    is_blocked: false, created_at: iso(-38) },
+    { id: 'u-ambassade', email: 'ambassade@talabi.dz', full_name: "Gérant L'Ambassade",    phone: '0555004173', role: 'restaurant', zone_id: 'z-centre',   is_blocked: false, created_at: iso(-36) },
+    { id: 'u-atelier',   email: 'atelier@talabi.dz',   full_name: "Gérant L'Atelier",      phone: null,         role: 'restaurant', zone_id: 'z-nouvelle', is_blocked: false, created_at: iso(-34) },
+    { id: 'u-twelve',    email: 'twelve@talabi.dz',    full_name: 'Gérant The Twelve',     phone: null,         role: 'restaurant', zone_id: 'z-nouvelle', is_blocked: false, created_at: iso(-32) }
   ];
 
-  const PASSWORDS = {
-    'client@talabi.dz': '123456',
-    'resto@talabi.dz': '123456',
-    'livreur@talabi.dz': '123456',
-    'admin@talabi.dz': '123456',
-    'pizza@talabi.dz': '123456',
-    'chawarma@talabi.dz': '123456',
-    'trad@talabi.dz': '123456',
-    'burger@talabi.dz': '123456',
-    'sweet@talabi.dz': '123456',
-    'wiam@talabi.dz': '123456',
-    'livreur2@talabi.dz': '123456'
-  };
+  const PASSWORDS = {};
+  PROFILES.forEach(p => { PASSWORDS[p.email] = '123456'; });
 
-  /* ------------------------------------------------------------- restaurants */
-  const RESTAURANTS = [
-    r('r1', 'u-resto', 'Meliza Tacos',       'Tacos français généreux, sauces maison et frites fraîches.', 'zone-0', 'Rue Lamali Ahmed, Centre-ville',        '10:30', '23:30', 4.8, 214, 200, 400, 20, ['cat-tacos','cat-burger','cat-sand'], 36.7120, 4.0450),
-    r('r2', 'u-r2',    'Pizza Napoli',       'Vraie pâte italienne cuite au feu de bois.',                 'zone-1', 'Boulevard Krim Belkacem, Nouvelle Ville','11:00', '23:00', 4.6, 168, 250, 600, 25, ['cat-pizza','cat-drink'], 36.7168, 4.0530),
-    r('r3', 'u-r3',    'Chawarma House',     'Chawarma poulet & viande, assiettes et sandwichs.',          'zone-2', 'Cité des 600 Logements, M\'Douha',      '11:00', '00:30', 4.5, 302, 200, 350, 18, ['cat-sand','cat-poulet'], 36.7075, 4.0398),
-    r('r4', 'u-r4',    'Dar Djurdjura',      'Cuisine kabyle et algérienne : couscous, chorba, tikourbabine.', 'zone-4', 'Route de Hasnaoua',                 '10:00', '22:00', 4.9, 121, 300, 800, 35, ['cat-trad','cat-dess'], 36.7042, 4.0632),
-    r('r5', 'u-r5',    'Big Burger TO',      'Smash burgers, poulet croustillant et milkshakes.',          'zone-0', 'Place de l\'Olivier, Centre-ville',     '12:00', '01:00', 4.4, 189, 200, 500, 22, ['cat-burger','cat-poulet','cat-drink'], 36.7135, 4.0475),
-    r('r6', 'u-r6',    'Sweet Corner',       'Pâtisserie orientale, crêpes, gaufres et jus naturels.',     'zone-1', 'Avenue Abane Ramdane, Nouvelle Ville',  '09:00', '22:30', 4.7, 96,  150, 300, 15, ['cat-dess','cat-drink'], 36.7180, 4.0505)
-  ];
-  // un restaurant en attente de validation (pour tester l'espace admin)
-  // ⚠️ Un compte = un seul restaurant : l'application gère une fiche par gérant.
-  RESTAURANTS.push(Object.assign(
-    r('r7', 'u-r7', 'Snack El Wiam', 'Sandwichs et grillades — nouveau sur Talabi.', 'zone-3', 'Route de Redjaouna', '11:00', '23:00', 4.5, 0, 200, 0, 20, ['cat-sand'], 36.7255, 4.0410),
-    { status: 'pending' }
-  ));
-
-  /* -------------------------------------------------------------- menus */
-  const MENU = [];
-  const OPTIONS = [];
-
-  m('r1', 'cat-tacos',  'Tacos Simple',       'Viande au choix, frites, fromage, sauce maison.', 450, [['Supplément viande',150],['Cheddar',50],['Sauce algérienne',0]]);
-  m('r1', 'cat-tacos',  'Tacos Double',       '2 viandes, frites, fromage, sauce.',               650, [['Supplément viande',150],['Cheddar',50]]);
-  m('r1', 'cat-tacos',  'Tacos XXL',          '3 viandes, double fromage, frites.',               900, [['Cheddar',50],['Sauce blanche',0]]);
-  m('r1', 'cat-burger', 'Burger Meliza',      'Steak 150g, cheddar, oignons caramélisés.',        550, [['Double steak',200],['Bacon de dinde',100]]);
-  m('r1', 'cat-sand',   'Chawarma Poulet',    'Poulet mariné, crudités, sauce blanche.',          400, [['Frites dedans',50]]);
-  m('r1', 'cat-drink',  'Coca-Cola 33cl',     'Canette fraîche.',                                 100, []);
-  m('r1', 'cat-autre',  'Frites Maison',      'Portion généreuse, sauce au choix.',               200, [['Cheddar fondu',80]]);
-
-  m('r2', 'cat-pizza',  'Pizza Margherita',   'Sauce tomate, mozzarella, basilic.',               700, [['Grande taille',300],['Olives',50]]);
-  m('r2', 'cat-pizza',  'Pizza 4 Fromages',   'Mozzarella, gouda, cheddar, chèvre.',              1000, [['Grande taille',300]]);
-  m('r2', 'cat-pizza',  'Pizza Poulet BBQ',   'Poulet, sauce BBQ, poivrons, oignons.',            950, [['Grande taille',300],['Extra poulet',200]]);
-  m('r2', 'cat-pizza',  'Pizza Thon',         'Thon, olives, câpres, mozzarella.',                900, [['Grande taille',300]]);
-  m('r2', 'cat-drink',  'Jus d\'orange frais', 'Pressé à la commande, 40cl.',                      250, []);
-
-  m('r3', 'cat-sand',   'Chawarma Viande',    'Viande hachée, crudités, sauce algérienne.',       450, [['Fromage',60],['Frites dedans',50]]);
-  m('r3', 'cat-sand',   'Chawarma Mixte',     'Poulet + viande, sauce maison.',                   550, [['Fromage',60]]);
-  m('r3', 'cat-poulet', 'Assiette Chawarma',  'Chawarma, riz, salade et pain.',                   800, [['Supplément riz',100]]);
-  m('r3', 'cat-poulet', 'Poulet Rôti (1/2)',  'Poulet fermier rôti, frites incluses.',            750, []);
-  m('r3', 'cat-drink',  'Boisson gazeuse 1L', 'Coca / Fanta / Sprite.',                           180, []);
-
-  m('r4', 'cat-trad',   'Couscous Royal',     'Semoule fine, agneau, légumes de saison.',        1200, [['Supplément viande',400]]);
-  m('r4', 'cat-trad',   'Chorba Frik',        'Soupe traditionnelle à l\'agneau.',                350, []);
-  m('r4', 'cat-trad',   'Rechta Algéroise',   'Pâtes fraîches maison, poulet, navets.',          1100, []);
-  m('r4', 'cat-trad',   'Tadjine Zitoune',    'Poulet aux olives et champignons.',               1000, []);
-  m('r4', 'cat-dess',   'Baklawa (4 pièces)', 'Amandes, miel, fait maison.',                      400, []);
-  m('r4', 'cat-dess',   'Kalb El Louz',       'Dessert traditionnel à la semoule.',               300, []);
-
-  m('r5', 'cat-burger', 'Smash Classic',      'Double steak smashé, cheddar, pickles.',           750, [['Triple steak',250],['Bacon de dinde',100]]);
-  m('r5', 'cat-burger', 'Chicken Crispy',     'Filet de poulet pané, sauce spicy.',               700, [['Extra galette',200]]);
-  m('r5', 'cat-poulet', 'Tenders (6 pcs)',    'Poulet croustillant, 2 sauces au choix.',          650, [['Sauce supplémentaire',50]]);
-  m('r5', 'cat-autre',  'Menu Duo',           '2 burgers + 2 frites + 2 boissons.',              1900, []);
-  m('r5', 'cat-drink',  'Milkshake Oreo',     'Onctueux, 40cl.',                                  400, []);
-
-  m('r6', 'cat-dess',   'Crêpe Nutella',      'Nutella, banane, chantilly.',                      450, [['Amandes effilées',80]]);
-  m('r6', 'cat-dess',   'Gaufre Belge',       'Sucre glace, sauce au choix.',                     400, [['Boule de glace',150]]);
-  m('r6', 'cat-dess',   'Tiramisu',           'Recette italienne maison.',                        350, []);
-  m('r6', 'cat-drink',  'Jus Cocktail',       'Fraise, banane, mangue, fruits secs.',             500, []);
-
-  m('r7', 'cat-sand',   'Sandwich Merguez',   'Merguez grillées, frites, harissa.',               400, []);
-
-  /* ------------------------------------------------------------- livreurs */
-  const DRIVERS = [
-    { id: 'u-driver', vehicle: 'moto',    plate: '16-1234-118', zone_id: 'zone-0', status: 'available',
-      validation_status: 'approved', rating: 4.9, total_deliveries: 148, total_earnings: 23680, created_at: iso(-20) },
-    { id: 'u-d2',     vehicle: 'voiture', plate: '09-5678-116', zone_id: 'zone-1', status: 'offline',
-      validation_status: 'pending',  rating: 5.0, total_deliveries: 0,   total_earnings: 0,     created_at: iso(-8) }
-  ];
-
-  const ADDRESSES = [
-    { id: 'a1', user_id: 'u-client', label: 'Domicile', zone_id: 'zone-0',
-      street: 'Cité 20 Août, Bât C, Appt 12', details: '2e étage, porte gauche',
-      lat: 36.7145, lng: 4.0490,
-      phone: '0550112233', is_default: true, created_at: iso(-30) }
-  ];
-
-  /* -------------------------------------------------- helpers de fabrication */
-  function iso(daysOffset) { return new Date(Date.now() + daysOffset * 86400000).toISOString(); }
-
-  function r(id, owner, name, desc, zone, address, opens, closes, rating, rcount, fee, minOrder, prep, cats, lat, lng) {
+  /* ----------------------------------------------------------- RESTAURANTS */
+  function r(o) {
     return {
-      id: id, owner_id: owner, name: name, description: desc, logo_url: null, cover_url: null,
-      address: address, zone_id: zone, lat: lat, lng: lng,
-      phone: '026' + Math.floor(100000 + Math.random() * 899999),
-      opens_at: opens, closes_at: closes, is_open: true, status: 'approved', reject_reason: null,
-      rating: rating, rating_count: rcount, delivery_fee: fee, min_order: minOrder,
-      prep_time_min: prep, categories: cats, created_at: iso(-45)
+      id: o.id, owner_id: o.owner, name: o.name, description: o.desc,
+      logo_url: null, cover_url: null,
+      address: o.address, zone_id: o.zone,
+      lat: o.lat, lng: o.lng, gps_verified: !!o.verified,
+      phone: o.phone || null,
+      opens_at: o.opens || '11:00', closes_at: o.closes || '23:00',
+      is_open: true, status: 'approved', reject_reason: null,
+      rating: o.rating, rating_count: o.rcount,
+      delivery_fee: o.fee, min_order: o.min || 0, prep_time_min: o.prep || 25,
+      categories: o.cats, created_at: iso(-40)
     };
   }
+
+  const RESTAURANTS = [
+    r({
+      id: 'r-melyza', owner: 'u-melyza', name: 'Melyza Tacos',
+      desc: 'French tacos, burgers et sandwichs préparés minute. Le goût qui fait la différence.',
+      address: '20, Rue Boudelal Arezki', zone: 'z-centre',
+      lat: 36.713198, lng: 4.043767, verified: true,      // relevé sur son site officiel
+      phone: '0560566117', opens: '11:00', closes: '23:30',
+      rating: 4.8, rcount: 214, fee: 200, min: 400, prep: 20,
+      cats: ['cat-tacos', 'cat-burger', 'cat-sand']
+    }),
+    r({
+      id: 'r-ambassade', owner: 'u-ambassade', name: "L'Ambassade",
+      desc: 'Cuisine bistronomique et fait maison. La table de référence à Tizi Ouzou.',
+      address: '14, Rue Douar Mohammed', zone: 'z-centre',
+      lat: 36.7118, lng: 4.0455,                          // approximatif — à corriger
+      phone: '0555004173', opens: '11:30', closes: '23:00',
+      rating: 4.7, rcount: 168, fee: 250, min: 800, prep: 35,
+      cats: ['cat-trad', 'cat-autre']
+    }),
+    r({
+      id: 'r-sadoud', owner: 'u-sadoud', name: 'Maison Sadoud',
+      desc: 'Cuisine traditionnelle kabyle et pâtisseries maison.',
+      address: 'Lotissement El Bordj, Rue Abdenouri Saïd', zone: 'z-bordj',
+      lat: 36.7085, lng: 4.0500,                          // approximatif — à corriger
+      opens: '10:30', closes: '22:30',
+      rating: 4.6, rcount: 121, fee: 250, min: 600, prep: 30,
+      cats: ['cat-trad', 'cat-dess']
+    }),
+    r({
+      id: 'r-atelier', owner: 'u-atelier', name: "L'Atelier en Ville",
+      desc: 'Burgers, pizzas et desserts dans une ambiance atelier. Ouvert de 7h à minuit.',
+      address: 'Route vers Azib Ahmed, derrière la 2ᵉ porte Bastos', zone: 'z-nouvelle',
+      lat: 36.6981, lng: 4.0574,                          // quartier Bastos (OpenStreetMap)
+      opens: '07:00', closes: '23:59',
+      rating: 4.5, rcount: 203, fee: 200, min: 500, prep: 25,
+      cats: ['cat-burger', 'cat-pizza', 'cat-dess', 'cat-drink']
+    }),
+    r({
+      id: 'r-twelve', owner: 'u-twelve', name: 'The Twelve',
+      desc: 'Burgers signature, poulet croustillant et boissons maison.',
+      address: 'Nouvelle Ville, Tizi Ouzou', zone: 'z-nouvelle',
+      lat: 36.7050, lng: 4.0530,                          // approximatif — à corriger
+      opens: '11:30', closes: '00:30',
+      rating: 4.5, rcount: 96, fee: 200, min: 500, prep: 25,
+      cats: ['cat-burger', 'cat-poulet', 'cat-drink']
+    })
+  ];
+
+  /* ------------------------------------------------------------------ MENUS */
+  const MENU = [];
+  const OPTIONS = [];
 
   function m(rid, cat, name, desc, price, opts) {
     const id = 'mi-' + (MENU.length + 1);
     MENU.push({
       id: id, restaurant_id: rid, category_id: cat, name: name, description: desc,
-      price: price, image_url: null, is_available: true, sort_order: MENU.length, created_at: iso(-40)
+      price: price, image_url: null, is_available: true, sort_order: MENU.length, created_at: iso(-38)
     });
     (opts || []).forEach((o, i) => OPTIONS.push({
       id: id + '-o' + i, menu_item_id: id, name: o[0], extra_price: o[1], is_active: true
     }));
   }
 
-  /* --------------------------------------------------- commandes d'exemple */
+  /* --- Melyza Tacos : vrais plats et vrais prix (site officiel) --- */
+  m('r-melyza', 'cat-tacos',  'Le Tacos Melyza',   'Viande au choix, frites, fromage fondu et sauce maison, le tout gratiné.', 750,
+    [['Viande supplémentaire', 200], ['Cheddar', 80], ['Sauce algérienne', 0], ['Sauce blanche', 0]]);
+  m('r-melyza', 'cat-burger', 'Mozzarella Burger', '2 steaks, jambon de dinde, mozzarella fondante, oignons caramélisés et champignons.', 850,
+    [['Formule menu (frites + boisson)', 150], ['Steak supplémentaire', 200]]);
+  m('r-melyza', 'cat-sand',   'Avocat Sandwich',   'Pain frais, thon, avocat, tomate et salade croquante.', 700,
+    [['Formule menu (frites + boisson)', 200]]);
+  m('r-melyza', 'cat-autre',  'Frites maison',     'Portion généreuse, sauce au choix.', 250, [['Cheddar fondu', 80]]);
+  m('r-melyza', 'cat-drink',  'Boisson 33 cl',     'Canette fraîche au choix.', 100, []);
+
+  /* --- Les cartes ci-dessous sont des EXEMPLES à remplacer --- */
+  m('r-ambassade', 'cat-trad',  'Couscous royal',      'Semoule fine, agneau et légumes de saison.', 1400, []);
+  m('r-ambassade', 'cat-trad',  'Tajine du chef',      'Recette maison du jour.', 1200, []);
+  m('r-ambassade', 'cat-autre', 'Entrecôte grillée',   'Accompagnement au choix.', 1800, []);
+  m('r-ambassade', 'cat-autre', 'Salade de saison',    'Produits frais du marché.', 600, []);
+
+  m('r-sadoud', 'cat-trad', 'Couscous kabyle',      'Semoule, légumes et viande mijotée.', 1200, []);
+  m('r-sadoud', 'cat-trad', 'Chorba',               'Soupe traditionnelle.', 400, []);
+  m('r-sadoud', 'cat-trad', 'Tikourbabine',         'Spécialité kabyle aux boulettes de semoule.', 1000, []);
+  m('r-sadoud', 'cat-dess', 'Pâtisseries maison',   'Assortiment de 4 pièces.', 500, []);
+
+  m('r-atelier', 'cat-burger', 'Burger de l’Atelier', 'Steak maison, cheddar affiné, sauce signature.', 900,
+    [['Double steak', 250], ['Bacon de dinde', 120]]);
+  m('r-atelier', 'cat-pizza',  'Pizza margherita',    'Sauce tomate, mozzarella, basilic.', 800, [['Grande taille', 300]]);
+  m('r-atelier', 'cat-pizza',  'Pizza 4 fromages',    'Mozzarella, gouda, cheddar, chèvre.', 1100, [['Grande taille', 300]]);
+  m('r-atelier', 'cat-dess',   'Pancakes',            'Sirop d’érable ou chocolat.', 550, []);
+  m('r-atelier', 'cat-drink',  'Jus pressé',          'Orange ou citron, 40 cl.', 350, []);
+
+  m('r-twelve', 'cat-burger', 'The Twelve Burger', 'Double steak, cheddar, oignons croustillants.', 950,
+    [['Formule menu', 250], ['Bacon de dinde', 120]]);
+  m('r-twelve', 'cat-burger', 'Chicken Burger',    'Filet de poulet pané, sauce spicy.', 850, [['Formule menu', 250]]);
+  m('r-twelve', 'cat-poulet', 'Tenders (6 pièces)','Poulet croustillant, 2 sauces au choix.', 700, [['Sauce supplémentaire', 60]]);
+  m('r-twelve', 'cat-drink',  'Milkshake',         'Vanille, chocolat ou Oreo, 40 cl.', 450, []);
+
+  /* --------------------------------------------------------------- LIVREURS */
+  const DRIVERS = [
+    { id: 'u-driver', vehicle: 'moto', plate: '15-1234-118', zone_id: 'z-centre', status: 'available',
+      validation_status: 'approved', rating: 4.9, total_deliveries: 148, total_earnings: 23680,
+      last_lat: null, last_lng: null, last_position_at: null, created_at: iso(-20) },
+    { id: 'u-d2', vehicle: 'voiture', plate: '15-5678-116', zone_id: 'z-nouvelle', status: 'offline',
+      validation_status: 'pending', rating: 5.0, total_deliveries: 0, total_earnings: 0,
+      last_lat: null, last_lng: null, last_position_at: null, created_at: iso(-8) }
+  ];
+
+  /* --------------------------------------------------------------- ADRESSES */
+  const ADDRESSES = [
+    { id: 'a1', user_id: 'u-client', label: 'Domicile', zone_id: 'z-centre',
+      street: 'Cité 20 Août, Bât C, Appt 12', details: '2e étage, porte gauche',
+      lat: 36.7145, lng: 4.0490, phone: '0550112233', is_default: true, created_at: iso(-30) }
+  ];
+
+  /* -------------------------------------------------------------- COMMANDES */
   const ORDERS = [];
   const ORDER_ITEMS = [];
 
-  addOrder('o1', 'delivered', -3, 'r1', 'u-driver', [['mi-1', 2], ['mi-6', 2]]);
-  addOrder('o2', 'delivered', -1, 'r4', 'u-driver', [['mi-18', 1]]);
-  addOrder('o3', 'pending',   -0.02, 'r1', null,    [['mi-3', 1], ['mi-7', 1]]);
+  addOrder('o1', 'delivered', -3, 'r-melyza', 'u-driver', [['mi-1', 2], ['mi-5', 2]]);
+  addOrder('o2', 'delivered', -1, 'r-atelier', 'u-driver', [['mi-14', 1]]);
 
   function addOrder(id, status, daysAgo, rid, driver, lines) {
     const rest = RESTAURANTS.find(x => x.id === rid);
     let subtotal = 0;
     lines.forEach(l => {
       const it = MENU.find(x => x.id === l[0]);
+      if (!it) return;
       const lt = it.price * l[1];
       subtotal += lt;
       ORDER_ITEMS.push({
@@ -178,17 +224,15 @@
     const t = U.computeTotals(subtotal, rest.delivery_fee, null);
     ORDERS.push(Object.assign({
       id: id, code: U.orderCode(), client_id: 'u-client', restaurant_id: rid, driver_id: driver,
-      zone_id: 'zone-0', status: status,
+      zone_id: 'z-centre', status: status,
       address_street: 'Cité 20 Août, Bât C, Appt 12', address_details: '2e étage',
       address_lat: 36.7145, address_lng: 4.0490,
       client_phone: '0550112233', client_name: 'Amine Belkacem',
-      note: daysAgo < -2 ? 'Sonner deux fois svp' : '',
+      note: 'Sonner deux fois svp',
       payment_method: 'cash', reject_reason: null, cancel_reason: null,
-      client_confirmed: status === 'delivered',
-      created_at: iso(daysAgo),
-      accepted_at: status === 'pending' ? null : iso(daysAgo),
-      ready_at: null, assigned_at: null, delivering_at: null,
-      delivered_at: status === 'delivered' ? iso(daysAgo) : null
+      client_confirmed: true,
+      created_at: iso(daysAgo), accepted_at: iso(daysAgo), ready_at: null,
+      assigned_at: null, delivering_at: null, delivered_at: iso(daysAgo)
     }, t));
   }
 
