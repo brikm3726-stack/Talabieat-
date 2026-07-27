@@ -19,12 +19,23 @@ Les données sont enregistrées **dans ton navigateur** (localStorage).
 
 ### Comptes de test (mot de passe : `123456`)
 
-| Rôle | Email |
-|---|---|
-| Client | `client@talabi.dz` |
-| Restaurant | `resto@talabi.dz` |
-| Livreur | `livreur@talabi.dz` |
-| Administrateur | `admin@talabi.dz` |
+| Rôle | Email | Gère |
+|---|---|---|
+| Client | `client@talabi.dz` | — |
+| Restaurant | `resto@talabi.dz` | **Meliza Tacos** |
+| Restaurant | `pizza@talabi.dz` | Pizza Napoli |
+| Restaurant | `chawarma@talabi.dz` | Chawarma House |
+| Restaurant | `trad@talabi.dz` | Dar Djurdjura |
+| Restaurant | `burger@talabi.dz` | Big Burger TO |
+| Restaurant | `sweet@talabi.dz` | Sweet Corner |
+| Restaurant | `wiam@talabi.dz` | Snack El Wiam *(en attente de validation)* |
+| Livreur | `livreur@talabi.dz` | validé, Centre-ville |
+| Livreur | `livreur2@talabi.dz` | *en attente de validation* |
+| Administrateur | `admin@talabi.dz` | — |
+
+> ⚠️ **Chaque restaurant a son propre compte gérant.** Si le client commande chez
+> Pizza Napoli, c'est `pizza@talabi.dz` qui reçoit la commande — pas
+> `resto@talabi.dz`. Le bouton 🧪 te bascule toujours sur le bon compte.
 
 ### Tester le parcours complet : le bouton 🧪
 
@@ -313,6 +324,7 @@ avec les réglages par défaut) :
 | Je m'inscris mais rien n'apparaît dans `profiles` | Le fichier `02_security.sql` n'a pas été exécuté — c'est lui qui crée le profil automatiquement. |
 | « Action non autorisée pour votre compte » | La sécurité RLS fait son travail : le rôle du compte ne permet pas cette action. |
 | Le livreur ne voit aucune course | Trois conditions : compte **validé** par l'admin, statut **Disponible**, et **même quartier** que la commande. |
+| Le restaurant ne reçoit pas la commande | Tu es sur le mauvais compte gérant. Chaque restaurant a le sien : une commande chez Pizza Napoli arrive chez `pizza@talabi.dz`, pas chez `resto@talabi.dz`. Le bouton 🧪 indique le bon compte. |
 | La carte reste grise / ne s'affiche pas | Pas de connexion internet : les fonds de carte viennent d'OpenStreetMap. Un bouton de secours permet quand même d'enregistrer la position GPS. |
 | « Autorisez l'accès à votre position » | Le navigateur bloque le GPS. Clique sur le cadenas 🔒 à gauche de l'adresse → Autoriser la position. Sur Chrome, le GPS ne marche pas toujours en ouvrant le fichier par double-clic : passe par `npx serve` ou le site en ligne. |
 | Le bouton « Y aller » n'apparaît pas chez le livreur | Le restaurant n'a pas placé sa position sur la carte, ou le client a une vieille adresse sans GPS. |

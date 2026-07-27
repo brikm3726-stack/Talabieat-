@@ -17,9 +17,13 @@ Comptes de test — mot de passe `123456` :
 | Rôle | Email |
 |---|---|
 | 🍔 Client | `client@talabi.dz` |
-| 🏪 Restaurant | `resto@talabi.dz` |
+| 🏪 Restaurant | `resto@talabi.dz` *(gère Meliza Tacos)* |
 | 🛵 Livreur | `livreur@talabi.dz` |
 | ⚙️ Admin | `admin@talabi.dz` |
+
+Chaque restaurant a son propre compte gérant : `pizza@`, `chawarma@`, `trad@`,
+`burger@`, `sweet@`, `wiam@talabi.dz`. Une commande arrive uniquement chez le
+gérant du restaurant choisi.
 
 ### Tester le parcours complet
 

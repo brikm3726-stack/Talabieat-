@@ -109,9 +109,11 @@
      ====================================================================== */
   Router.add('/r/orders', async function (params, query, view) {
     let tab = 'new';
+    const rest = await API.safe(() => API.myRestaurant(), null);
+    if (!rest) { view.innerHTML = '<div class="wrap-sm page">' + gate(null) + '</div>'; return; }
 
     view.innerHTML = '<div class="wrap page">' +
-      Cmp.pageHead('Commandes', 'Acceptez, préparez et signalez les commandes prêtes') +
+      Cmp.pageHead('Commandes', 'Vous gérez « ' + rest.name + ' » — seules ses commandes apparaissent ici') +
       '<div class="tabs" style="margin-bottom:16px">' +
         '<button data-t="new" class="on">Nouvelles</button>' +
         '<button data-t="progress">En préparation</button>' +
@@ -134,7 +136,11 @@
 
       list.innerHTML = rows.length
         ? '<div class="stack">' + rows.map(o => orderCard(o, true)).join('') + '</div>'
-        : UI.empty('📭', 'Aucune commande', 'Rien dans cette catégorie pour le moment.');
+        : UI.empty('📭', 'Aucune commande',
+            all.length
+              ? 'Rien dans cette catégorie pour le moment.'
+              : 'Ce compte gère « ' + rest.name +' ». Une commande passée dans un autre ' +
+                'restaurant arrive chez son propre gérant, pas ici.');
 
       bindOrderActions(view, load);
     }

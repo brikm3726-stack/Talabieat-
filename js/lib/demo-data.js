@@ -36,6 +36,8 @@
     { id: 'u-r3',     email: 'chawarma@talabi.dz',full_name: 'Nadir Cherif',   phone: '0663556677', role: 'restaurant', zone_id: 'zone-2', is_blocked: false, created_at: iso(-25) },
     { id: 'u-r4',     email: 'trad@talabi.dz',    full_name: 'Fatima Zohra',   phone: '0664667788', role: 'restaurant', zone_id: 'zone-4', is_blocked: false, created_at: iso(-15) },
     { id: 'u-r5',     email: 'burger@talabi.dz',  full_name: 'Riad Benali',    phone: '0665778899', role: 'restaurant', zone_id: 'zone-0', is_blocked: false, created_at: iso(-10) },
+    { id: 'u-r6',     email: 'sweet@talabi.dz',   full_name: 'Lynda Ait Ali',  phone: '0666889900', role: 'restaurant', zone_id: 'zone-1', is_blocked: false, created_at: iso(-12) },
+    { id: 'u-r7',     email: 'wiam@talabi.dz',    full_name: 'Samir Ould Ali', phone: '0667990011', role: 'restaurant', zone_id: 'zone-3', is_blocked: false, created_at: iso(-5) },
     { id: 'u-d2',     email: 'livreur2@talabi.dz',full_name: 'Bilal Kaci',     phone: '0771889900', role: 'driver',     zone_id: 'zone-1', is_blocked: false, created_at: iso(-8) }
   ];
 
@@ -48,6 +50,8 @@
     'chawarma@talabi.dz': '123456',
     'trad@talabi.dz': '123456',
     'burger@talabi.dz': '123456',
+    'sweet@talabi.dz': '123456',
+    'wiam@talabi.dz': '123456',
     'livreur2@talabi.dz': '123456'
   };
 
@@ -58,11 +62,12 @@
     r('r3', 'u-r3',    'Chawarma House',     'Chawarma poulet & viande, assiettes et sandwichs.',          'zone-2', 'Cité des 600 Logements, M\'Douha',      '11:00', '00:30', 4.5, 302, 200, 350, 18, ['cat-sand','cat-poulet'], 36.7075, 4.0398),
     r('r4', 'u-r4',    'Dar Djurdjura',      'Cuisine kabyle et algérienne : couscous, chorba, tikourbabine.', 'zone-4', 'Route de Hasnaoua',                 '10:00', '22:00', 4.9, 121, 300, 800, 35, ['cat-trad','cat-dess'], 36.7042, 4.0632),
     r('r5', 'u-r5',    'Big Burger TO',      'Smash burgers, poulet croustillant et milkshakes.',          'zone-0', 'Place de l\'Olivier, Centre-ville',     '12:00', '01:00', 4.4, 189, 200, 500, 22, ['cat-burger','cat-poulet','cat-drink'], 36.7135, 4.0475),
-    r('r6', 'u-r2',    'Sweet Corner',       'Pâtisserie orientale, crêpes, gaufres et jus naturels.',     'zone-1', 'Avenue Abane Ramdane, Nouvelle Ville',  '09:00', '22:30', 4.7, 96,  150, 300, 15, ['cat-dess','cat-drink'], 36.7180, 4.0505)
+    r('r6', 'u-r6',    'Sweet Corner',       'Pâtisserie orientale, crêpes, gaufres et jus naturels.',     'zone-1', 'Avenue Abane Ramdane, Nouvelle Ville',  '09:00', '22:30', 4.7, 96,  150, 300, 15, ['cat-dess','cat-drink'], 36.7180, 4.0505)
   ];
   // un restaurant en attente de validation (pour tester l'espace admin)
+  // ⚠️ Un compte = un seul restaurant : l'application gère une fiche par gérant.
   RESTAURANTS.push(Object.assign(
-    r('r7', 'u-r5', 'Snack El Wiam', 'Sandwichs et grillades — nouveau sur Talabi.', 'zone-3', 'Route de Redjaouna', '11:00', '23:00', 4.5, 0, 200, 0, 20, ['cat-sand'], 36.7255, 4.0410),
+    r('r7', 'u-r7', 'Snack El Wiam', 'Sandwichs et grillades — nouveau sur Talabi.', 'zone-3', 'Route de Redjaouna', '11:00', '23:00', 4.5, 0, 200, 0, 20, ['cat-sand'], 36.7255, 4.0410),
     { status: 'pending' }
   ));
 

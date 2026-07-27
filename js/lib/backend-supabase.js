@@ -178,10 +178,14 @@
 
     async myRestaurant() {
       if (!currentUser) return null;
-      const r = unwrap(await sb.from('restaurants')
+      // limit(1) plutôt que maybeSingle() : si un gérant possédait deux fiches,
+      // maybeSingle() lèverait une erreur et bloquerait tout son espace.
+      const rows = unwrap(await sb.from('restaurants')
         .select('*, zone:zones(*), restaurant_categories(category_id)')
-        .eq('owner_id', currentUser.id).maybeSingle());
-      return r ? decorate(r) : null;
+        .eq('owner_id', currentUser.id)
+        .order('created_at', { ascending: true })
+        .limit(1));
+      return rows && rows.length ? decorate(rows[0]) : null;
     },
 
     async saveRestaurant(data) {
@@ -314,9 +318,9 @@
       if (f.scope === 'client') q = q.eq('client_id', currentUser.id);
       if (f.scope === 'driver') q = q.eq('driver_id', currentUser.id);
       if (f.scope === 'restaurant') {
-        const r = await SB.myRestaurant();
-        if (!r) return [];
-        q = q.eq('restaurant_id', r.id);
+        const mine = unwrap(await sb.from('restaurants').select('id').eq('owner_id', currentUser.id));
+        if (!mine.length) return [];
+        q = q.in('restaurant_id', mine.map(r => r.id));
       }
       if (f.scope === 'available') {
         const d = await SB.getDriver();

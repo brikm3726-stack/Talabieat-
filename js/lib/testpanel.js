@@ -136,6 +136,9 @@
                     (a.pending ? ' <span class="tag tag-warn">à valider</span>' : '') +
                     (a.is_blocked ? ' <span class="tag tag-danger">bloqué</span>' : '') +
                     '<div class="tiny">' + U.esc(a.email) + '</div>' +
+                    (a.role === 'restaurant'
+                      ? '<div class="tiny">🏪 ' + U.esc(a.restaurant_name || 'aucun restaurant créé') + '</div>'
+                      : '') +
                     (a.role === 'driver'
                       ? '<div class="tiny">' +
                         (a.driver_status === 'available' ? '🟢 disponible'

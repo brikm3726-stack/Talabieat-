@@ -8,8 +8,8 @@
 
   // ⚠️ Incrémenter la version dès que les données de démo changent : les
   // navigateurs qui ont déjà ouvert le site repartent alors des nouvelles données.
-  const KEY = 'talabi.db.v3';
-  const SESSION_KEY = 'talabi.session.v3';
+  const KEY = 'talabi.db.v4';
+  const SESSION_KEY = 'talabi.session.v4';
   let db = null;
   const listeners = [];
 
@@ -425,7 +425,11 @@
       let list = db.orders.slice();
 
       if (f.scope === 'client')      list = list.filter(o => u && o.client_id === u.id);
-      if (f.scope === 'restaurant')  { const r = db.restaurants.find(x => u && x.owner_id === u.id); list = r ? list.filter(o => o.restaurant_id === r.id) : []; }
+      if (f.scope === 'restaurant') {
+        // toutes les fiches du gérant, pour ne perdre aucune commande
+        const mine = u ? db.restaurants.filter(x => x.owner_id === u.id).map(x => x.id) : [];
+        list = mine.length ? list.filter(o => mine.indexOf(o.restaurant_id) >= 0) : [];
+      }
       if (f.scope === 'driver')      list = list.filter(o => u && o.driver_id === u.id);
       if (f.scope === 'available') {
         const d = u ? byId(db.drivers, u.id) : null;
@@ -762,6 +766,7 @@
           // infos livreur, utiles pour comprendre pourquoi une course n'apparaît pas
           driver_status: d ? d.status : null,
           driver_approved: d ? d.validation_status === 'approved' : null,
+          restaurant_name: r ? r.name : null,
           zone_id: d ? d.zone_id : (r ? r.zone_id : p.zone_id),
           zone_name: (byId(db.zones, d ? d.zone_id : (r ? r.zone_id : p.zone_id)) || {}).name || null
         };
