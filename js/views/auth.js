@@ -25,26 +25,35 @@
       : '<div class="ic">' + r.i + '</div>';
   }
 
-  /* Tout le contenu tient dans la colonne de gauche ; le livreur illustre la
-     droite et prend la hauteur du formulaire. Sur mobile il disparaît : il n'y
-     a pas la place, et la page doit rester lisible d'abord. */
-  /* Le bloc titre est SORTI des colonnes : posé au-dessus, il laisse le
-     formulaire et l'illustration démarrer exactement sur la même ligne.
-     Tout reste calé à gauche. */
+  /* Le nom de la marque passe en orange partout où il apparaît dans un titre,
+     comme sur la maquette (« Bienvenue sur Talabi »). */
+  function brandify(t) {
+    const nom = TALABI_CONFIG.APP_NAME;
+    const i = String(t).indexOf(nom);
+    if (i < 0) return U.esc(t);
+    return U.esc(t.slice(0, i)) + '<span class="accent">' + U.esc(nom) + '</span>' + U.esc(t.slice(i + nom.length));
+  }
+
+  /* Thème des pages de compte : fond blanc-orangé, formes organiques, titre et
+     formulaire à gauche, livreur à scooter en haut à droite.
+     Sous 900 px l'illustration disparaît : il n'y a plus la place. */
   function shell(title, subtitle, inner) {
     return '<div class="auth-page">' +
-      '<div class="auth-head">' +
-        // « multiply » : le logo est sur fond blanc, il se fond dans le crème
-        '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
-          'style="width:112px;margin:0 0 10px;display:block;mix-blend-mode:multiply">' +
-        '<div class="h1">' + U.esc(title) + '</div>' +
-        '<div class="sub" style="margin-top:6px">' + U.esc(subtitle) + '</div>' +
-      '</div>' +
-      '<div class="auth-wrap">' +
-        '<div class="auth-col">' + inner + '</div>' +
-        '<div class="auth-art" aria-hidden="true">' +
-          '<img src="assets/img/bg/signup-scooter.jpg" alt="">' +
+      '<span class="auth-blob a" aria-hidden="true"></span>' +
+      '<span class="auth-blob b" aria-hidden="true"></span>' +
+      '<span class="auth-blob c" aria-hidden="true"></span>' +
+      '<div class="auth-in">' +
+        '<div class="auth-head">' +
+          '<div class="auth-headtext">' +
+            // « multiply » : le logo est sur fond blanc, il se fond dans le fond
+            '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
+              'style="width:104px;margin:0 0 12px;display:block;mix-blend-mode:multiply">' +
+            '<div class="h1">' + brandify(title) + '</div>' +
+            '<div class="sub" style="margin-top:8px">' + U.esc(subtitle) + '</div>' +
+          '</div>' +
+          '<img class="auth-rider" src="assets/img/bg/auth-rider.png" alt="" aria-hidden="true">' +
         '</div>' +
+        '<div class="auth-col">' + inner + '</div>' +
       '</div>' +
     '</div>';
   }
@@ -61,7 +70,8 @@
   Router.add('/login', async function (params, query, view) {
     if (Store.isLogged) return Router.go(Router.homeFor(Store.role), true);
 
-    view.innerHTML = shell('Bon retour !', 'Connectez-vous pour continuer',
+    view.innerHTML = shell('Bienvenue sur ' + TALABI_CONFIG.APP_NAME,
+      'Commandez vos repas préférés en quelques minutes.',
       '<div class="card card-p stack">' +
         '<button class="btn btn-google btn-block" id="gbtn">' + GOOGLE_ICON + ' Continuer avec Google</button>' +
         '<div class="row" style="gap:12px"><div style="flex:1;height:1px;background:var(--line)"></div>' +

@@ -350,42 +350,61 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 }
 @media(min-width:1100px){ .hero::after{width:42%} .hero-in > *{max-width:700px} }
 
-/* ------------------------------------------------------ pages de connexion
-   Fond crème premium, formulaire à gauche, illustration à droite. */
+/* ------------------------------------------------------ pages de compte
+   Thème blanc-orangé : formes organiques en fond, titre et formulaire à
+   gauche, livreur à scooter en haut à droite. */
 .auth-page{
+  position:relative;overflow:hidden;
   min-height:calc(100vh - 60px);
-  background:
-    radial-gradient(620px 320px at 92% 6%,  rgba(255,138,90,.12), transparent 60%),
-    radial-gradient(520px 380px at 2% 92%, rgba(255,138,90,.09), transparent 58%),
-    linear-gradient(150deg, #FFFAF4 0%, var(--cream) 48%, var(--cream-2) 100%);
-  padding:22px 0 calc(var(--nav-h) + 28px);
+  background:linear-gradient(160deg, #FFFFFF 0%, #FFF8F4 44%, #FFEFE7 100%);
+  padding:26px 0 calc(var(--nav-h) + 34px);
 }
-/* même gabarit que .auth-wrap pour que le titre s'aligne sur le formulaire */
-.auth-head{width:100%;max-width:1080px;margin:0 auto 18px;padding:0 16px}
-.auth-wrap{
-  width:100%;max-width:1080px;margin:0 auto;padding:0 16px;
-  display:flex;gap:44px;align-items:center;justify-content:center;
+/* Taches orange de la maquette. Bords très flous : nettes, elles feraient
+   justement tache. */
+.auth-blob{position:absolute;border-radius:50%;pointer-events:none;z-index:0}
+.auth-blob.a{
+  width:330px;height:460px;left:-190px;top:32%;
+  background:linear-gradient(140deg,#FF8A5B,#FF6A3D);opacity:.5;filter:blur(38px);
 }
-.auth-col{width:100%;max-width:460px;flex:none}
-/* l'illustration est masquée tant qu'il n'y a pas la place de la poser
-   sans rétrécir le formulaire */
-.auth-art{display:none}
-@media(min-width:960px){
-  .auth-wrap{justify-content:flex-start}
-  /* Le formulaire d'inscription est long : centrée, l'illustration
-     descendrait hors écran. Elle se cale donc en haut, à hauteur du bloc
-     titre + choix du rôle.
-     Pas de position:sticky ici — sticky crée un contexte d'empilement qui
-     neutraliserait le fondu « multiply » et laisserait un carré blanc. */
-  .auth-wrap{align-items:flex-start}
-  .auth-art{display:block;flex:1;max-width:520px}
-  .auth-art img{
-    width:100%;height:auto;
-    /* le visuel est sur fond blanc : « multiply » le fait disparaître dans le
-       crème au lieu de laisser un rectangle blanc */
-    mix-blend-mode:multiply;
-  }
+.auth-blob.b{
+  width:430px;height:300px;right:-160px;top:-130px;
+  background:linear-gradient(200deg,#FFB169,#FF7A45);opacity:.42;filter:blur(44px);
 }
+.auth-blob.c{
+  width:520px;height:340px;left:-130px;bottom:-170px;
+  background:linear-gradient(30deg,#FFD9C4,#FFB79A);opacity:.55;filter:blur(46px);
+}
+
+/* Pas de z-index ici : il créerait un contexte d'empilement, et le fondu
+   « multiply » du logo et du livreur ne verrait plus le fond de la page —
+   on retrouverait un rectangle blanc. Sans z-index, le contenu passe quand
+   même au-dessus des taches, qui le précèdent dans le document. */
+.auth-in{position:relative;width:100%;max-width:900px;margin:0 auto;padding:0 16px}
+.auth-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:20px}
+.auth-headtext{flex:1;min-width:0}
+.auth-head .h1{font-size:29px;letter-spacing:-.03em}
+.auth-head .h1 .accent{color:var(--brand)}
+.auth-head .sub{font-size:15px;max-width:430px}
+/* le visuel est sur fond quasi blanc : « multiply » le fond dans la page au
+   lieu de laisser un rectangle */
+/* Le fondu des bords est cuit dans le PNG (canal alpha), pas fait en CSS :
+   un masque CSS crée un contexte d'empilement et un « multiply » suffisant
+   pour effacer le fond ne l'est pas pour les bords. Le PNG transparent se
+   pose proprement sur n'importe quel fond. */
+.auth-rider{display:none;width:340px;flex:none;margin-top:-4px}
+
+.auth-col{width:100%}
+/* la carte reprend le gabarit de la maquette : large, très arrondie,
+   ombre orangée diffuse */
+.auth-col > .card{border-radius:26px;border-color:#F7E8DF;box-shadow:0 24px 60px -28px rgba(226,101,53,.4)}
+.auth-col > .card.card-p{padding:24px}
+
+@media(min-width:900px){
+  .auth-rider{display:block}
+  .auth-head .h1{font-size:36px}
+  .auth-col > .card.card-p{padding:30px}
+}
+@media(min-width:1100px){ .auth-rider{width:400px} }
 
 /* ------------------------------------------------- décor de la page d'accueil
    Des plats en bordure, le centre laissé libre et lumineux pour les cartes.
