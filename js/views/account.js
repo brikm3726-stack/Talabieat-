@@ -13,7 +13,11 @@
       const addresses = p.role === 'client' ? await API.safe(() => API.addresses(), []) : [];
       const verrou = U.phoneLock(p);
 
-      view.innerHTML = '<div class="account-page"><div class="wrap-sm page">' +
+      view.innerHTML = '<div class="account-page">' +
+        '<span class="acc-dots a" aria-hidden="true"></span>' +
+        '<span class="acc-dots b" aria-hidden="true"></span>' +
+        '<span class="acc-leaf" aria-hidden="true">🌿</span>' +
+        '<div class="wrap-sm page">' +
 
         /* ---- en-tête profil ---- */
         '<div class="card card-p acc-head">' +
@@ -49,11 +53,13 @@
               '<div class="input-ic"><span>' + (verrou.bloque ? '🔒' : '📞') + '</span>' +
               '<input class="input" name="phone" inputmode="tel" placeholder="Entrez votre numéro" value="' +
                 U.esc(p.phone || '') + '"' + (verrou.bloque ? ' disabled' : '') + '></div>' +
+              // le compte à rebours est spécifique et important : il reste sous le
+              // champ, en plus de la note générique sous le bouton
               (verrou.bloque
                 ? '<div class="hint">Numéro enregistré il y a moins de 30 jours. Modifiable dans <b>' +
                   verrou.jours + ' jour' + (verrou.jours > 1 ? 's' : '') + '</b>. ' +
                   'Le téléphone de chaque adresse de livraison, lui, reste libre.</div>'
-                : '<div class="hint">Une fois modifié, il sera bloqué 30 jours.</div>') +
+                : '') +
             '</div>' +
             Cmp.zoneSelect('zone_id', p.zone_id, 'Ma zone') +
             '<div class="field acc-full"><label>Email</label>' +
@@ -61,6 +67,7 @@
               '<input class="input" value="' + U.esc(p.email || '') + '" disabled></div></div>' +
           '</div>' +
           '<button class="btn btn-primary btn-block btn-lg" type="submit">💾 Enregistrer les modifications</button>' +
+          '<div class="tiny center" style="margin-top:2px">Une fois modifié, il sera bloqué 30 jours.</div>' +
         '</form>' +
 
         /* ---- adresses (clients) ---- */

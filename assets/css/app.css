@@ -587,11 +587,31 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 /* ------------------------------------------------------------ mon compte */
 .account-page{
+  position:relative;overflow:hidden;
   background:
     radial-gradient(600px 340px at 98% 2%, rgba(255,138,90,.10), transparent 60%),
     radial-gradient(520px 320px at 0% 100%, rgba(255,138,90,.08), transparent 58%);
   min-height:calc(100vh - 60px);
 }
+/* pointillés en haut à gauche et en bas à droite, dégradé flou en bas à
+   gauche, brindille en bas à droite — repris de la maquette */
+.acc-dots{
+  position:absolute;width:120px;height:90px;z-index:0;pointer-events:none;
+  background-image:radial-gradient(rgba(255,109,71,.4) 1.6px, transparent 1.7px);
+  background-size:16px 16px;opacity:.6;
+}
+.acc-dots.a{left:14px;top:18px}
+.acc-dots.b{right:26px;bottom:120px}
+.acc-leaf{
+  position:absolute;right:18px;bottom:70px;font-size:34px;z-index:0;
+  opacity:.35;pointer-events:none;transform:rotate(18deg);
+}
+.account-page::before{
+  content:'';position:absolute;z-index:0;pointer-events:none;
+  width:260px;height:260px;left:-90px;bottom:60px;border-radius:50%;
+  background:linear-gradient(140deg,#FF8A5B,#FF6A3D);opacity:.16;filter:blur(38px);
+}
+.account-page > .wrap-sm{position:relative;z-index:1}
 .acc-head .acc-chev{align-self:center}
 .acc-chev{color:#C9C2B7;font-size:22px;font-weight:700;flex:none;line-height:1}
 
