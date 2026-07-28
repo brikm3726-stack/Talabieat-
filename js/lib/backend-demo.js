@@ -36,7 +36,10 @@
   }
   function commit(table) { save(); emit(table || '*'); }
 
-  const clone = o => JSON.parse(JSON.stringify(o));
+  // null/undefined toléré : un restaurateur qui vient de s'inscrire n'a pas
+  // encore de fiche, et JSON.parse("undefined") lèverait une exception qui
+  // bloquerait toute la lecture de son profil.
+  const clone = o => (o == null ? null : JSON.parse(JSON.stringify(o)));
   const byId = (arr, id) => arr.find(x => x.id === id) || null;
   const wait = (ms) => new Promise(r => setTimeout(r, ms == null ? 120 : ms));
 

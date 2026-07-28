@@ -22,6 +22,10 @@
 
     const zoneLabel = Store.zoneName() || 'toute la ville';
 
+    /* Un client connecté n'a rien à faire des appels à recruter des livreurs
+       ou des restaurants : on lui propose les trois actions qui le concernent. */
+    const isClient = Store.isLogged && Store.role === 'client';
+
     view.innerHTML =
       /* ---------------------------------------------------------- HÉRO */
       '<section class="hero"><div class="wrap hero-in">' +
@@ -32,9 +36,13 @@
           '<button class="btn btn-dark" id="goSearch">Rechercher</button>' +
         '</div>' +
         '<div class="hero-cta">' +
-          '<a class="btn btn-lg primary" href="#/restaurants">🍽️ Commander maintenant</a>' +
-          '<a class="btn btn-lg" href="#/signup?role=driver">🛵 Devenir livreur</a>' +
-          '<a class="btn btn-lg" href="#/signup?role=restaurant">🏪 Ajouter mon restaurant</a>' +
+          (isClient
+            ? '<a class="btn btn-lg primary" href="#/restaurants">🍽️ Choisis ton restaurant</a>' +
+              '<a class="btn btn-lg" href="' + (Store.cartCount ? '#/cart' : '#/restaurants') + '">🛒 Commander maintenant</a>' +
+              '<a class="btn btn-lg" href="#/orders">🛵 Le livreur t’attend</a>'
+            : '<a class="btn btn-lg primary" href="#/restaurants">🍽️ Commander maintenant</a>' +
+              '<a class="btn btn-lg" href="#/signup?role=driver">🛵 Devenir livreur</a>' +
+              '<a class="btn btn-lg" href="#/signup?role=restaurant">🏪 Ajouter mon restaurant</a>') +
         '</div>' +
         '<div class="hero-stats" id="heroStats"></div>' +
       '</div></section>' +
@@ -67,10 +75,12 @@
         '</div>' +
 
         /* -------------------------------------------------------- PARTENAIRES */
-        '<div class="grid grid-auto" style="margin-top:34px">' +
-          promo('🏪', 'Vous avez un restaurant ?', 'Rejoignez Talabi, recevez des commandes dès aujourd’hui et gérez votre menu en toute autonomie.', 'Ajouter mon restaurant', '#/signup?role=restaurant', 'assets/img/roles/restaurant.jpg') +
-          promo('🛵', 'Vous voulez livrer ?', 'Travaillez quand vous voulez dans votre quartier et gagnez sur chaque course.', 'Devenir livreur', '#/signup?role=driver', 'assets/img/roles/driver.jpg') +
-        '</div>' +
+        /* masqué pour un client connecté : il a déjà son compte */
+        (isClient ? '' :
+          '<div class="grid grid-auto" style="margin-top:34px">' +
+            promo('🏪', 'Vous avez un restaurant ?', 'Rejoignez Talabi, recevez des commandes dès aujourd’hui et gérez votre menu en toute autonomie.', 'Ajouter mon restaurant', '#/signup?role=restaurant', 'assets/img/roles/restaurant.jpg') +
+            promo('🛵', 'Vous voulez livrer ?', 'Travaillez quand vous voulez dans votre quartier et gagnez sur chaque course.', 'Devenir livreur', '#/signup?role=driver', 'assets/img/roles/driver.jpg') +
+          '</div>') +
       '</div></section>' +
 
       /* -------------------------------------------------------------- PIED */
@@ -82,8 +92,10 @@
             'Plateforme algérienne de livraison de repas. Paiement à la livraison.</div></div>' +
           '<div class="stack" style="gap:6px">' +
             '<a href="#/restaurants">Restaurants</a>' +
-            '<a href="#/signup?role=driver">Devenir livreur</a>' +
-            '<a href="#/signup?role=restaurant">Inscrire mon restaurant</a>' +
+            (isClient
+              ? '<a href="#/orders">Mes commandes</a><a href="#/account">Mon compte</a>'
+              : '<a href="#/signup?role=driver">Devenir livreur</a>' +
+                '<a href="#/signup?role=restaurant">Inscrire mon restaurant</a>') +
             '<a href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '">Support : ' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</a>' +
           '</div>' +
         '</div>' +

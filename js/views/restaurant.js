@@ -17,8 +17,9 @@
         '<a class="btn btn-primary btn-lg" style="margin-top:16px" href="#/r/profile">Commencer</a></div>';
     }
     if (rest.status === 'pending') {
-      return '<div class="banner banner-warn" style="margin-bottom:16px">⏳ Votre restaurant est en attente de validation par l’administrateur. ' +
-        'Vous pouvez déjà préparer votre menu — il sera visible dès la validation.</div>';
+      return '<div class="banner banner-warn" style="margin-bottom:16px">⏳ Votre restaurant est en attente de validation. ' +
+        'Nous vérifions que l’établissement existe réellement : <b>votre compte sera validé sous 24 h</b>. ' +
+        'Vous pouvez déjà préparer votre menu — il sera visible des clients dès la validation.</div>';
     }
     if (rest.status === 'rejected') {
       return '<div class="banner banner-danger" style="margin-bottom:16px">⛔ Inscription refusée' +

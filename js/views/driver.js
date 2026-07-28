@@ -12,7 +12,7 @@
     if (!d) return '';
     if (d.validation_status === 'pending')
       return '<div class="banner banner-warn" style="margin-bottom:16px">⏳ Votre compte livreur est en attente de validation. ' +
-             'Complétez votre profil — un administrateur le vérifiera rapidement.</div>';
+             'Complétez votre profil : <b>il sera vérifié sous 24 h</b>. Vous serez prévenu dès la validation.</div>';
     if (d.validation_status === 'rejected')
       return '<div class="banner banner-danger" style="margin-bottom:16px">⛔ Compte refusé' +
              (d.reject_reason ? ' : ' + U.esc(d.reject_reason) : '') + '. Contactez le support.</div>';
