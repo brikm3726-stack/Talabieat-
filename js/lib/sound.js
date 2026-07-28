@@ -4,11 +4,15 @@
    Deux sonneries, et une seule règle : elles s'arrêtent dès que la raison de
    sonner disparaît.
 
-   • Restaurant — nouvelle commande : la sonnerie passe 3 fois. Si le gérant
-     accepte (ou refuse) avant la fin, elle s'arrête immédiatement.
-   • Livreur — course disponible : la sonnerie tourne en boucle jusqu'à ce
-     qu'il accepte ou qu'il passe. Un plafond l'arrête de toute façon : une
-     sonnerie sans fin dans un téléphone posé sur une table est intenable.
+   • Restaurant — nouvelle commande : la sonnerie part dès l'arrivée de la
+     commande, sans rien attendre, et passe une seule fois. Accepter ou
+     refuser la coupe, si tant est qu'elle joue encore.
+   • Livreur — course disponible : la sonnerie part dès que la course se
+     libère et tourne jusqu'à ce qu'il accepte ou qu'il passe. Un plafond
+     l'arrête de toute façon : une sonnerie sans fin dans un téléphone posé
+     sur une table est intenable.
+   • Livreur — livraison validée : un bref accusé quand il confirme avoir
+     remis la commande.
 
    Les navigateurs interdisent de jouer un son avant que l'utilisateur ait
    interagi avec la page. On déverrouille donc au premier clic, et une alerte
@@ -19,10 +23,11 @@
 
   const FILES = {
     'new-order': 'assets/sounds/nouvelle-commande.wav',   // restaurant
-    'delivery':  'assets/sounds/course-disponible.m4a'    // livreur
+    'delivery':  'assets/sounds/course-disponible.m4a',   // livreur
+    'delivered': 'assets/sounds/livraison-validee.m4a'    // accusé de livraison
   };
 
-  const RESTO_FOIS   = 3;    // demandé : trois passages (~5 s au total)
+  const RESTO_FOIS   = 1;    // demandé : un seul passage
   // La sonnerie livreur dure 9 s : quatre passages font déjà plus de 35 s
   // d'appel. Au-delà, le livreur n'est manifestement pas devant son écran.
   const LIVREUR_MAX  = 4;

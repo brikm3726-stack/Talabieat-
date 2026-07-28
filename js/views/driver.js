@@ -393,6 +393,9 @@
         return;
       UI.busy(this, true);
       const r = await API.safe(() => API.updateOrderStatus(this.dataset.id, status), null);
+      // accusé sonore au moment où la course est réellement enregistrée comme
+      // livrée : jouer avant l'appel ferait sonner un échec
+      if (r && status === 'delivered' && w.Sound) Sound.play('delivered', 1);
       if (r) UI.ok(status === 'delivered' ? 'Livraison terminée 🎉' : 'Statut mis à jour');
       if (status === 'delivering') LiveTrack.pushOnce().catch(() => {});
       LiveTrack.sync();   // s'arrête tout seul une fois la course livrée
