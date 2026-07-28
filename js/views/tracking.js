@@ -12,14 +12,15 @@
   Router.add('/orders', async function (params, query, view) {
     let tab = 'active';
 
-    view.innerHTML = '<div class="wrap-sm page">' +
-      Cmp.pageHead('Mes commandes', 'Suivez vos commandes en cours et consultez votre historique') +
-      '<div class="tabs" style="margin-bottom:16px">' +
-        '<button data-t="active" class="on">En cours</button>' +
-        '<button data-t="done">Terminées</button>' +
-        '<button data-t="all">Toutes</button>' +
+    view.innerHTML = '<div class="orders-page"><div class="wrap-sm page">' +
+      '<div class="h1">Mes commandes</div>' +
+      '<p class="sub" style="margin-top:6px">Suivez vos commandes en cours et consultez votre historique</p>' +
+      '<div class="tabs pill" style="margin:18px 0 16px">' +
+        '<button data-t="active" class="on">⏱️ En cours</button>' +
+        '<button data-t="done">✓ Terminées</button>' +
+        '<button data-t="all">🧾 Toutes</button>' +
       '</div>' +
-      '<div id="list"><div class="skel" style="height:110px"></div></div></div>';
+      '<div id="list"><div class="skel" style="height:110px"></div></div></div></div>';
 
     const list = view.querySelector('#list');
 
@@ -30,10 +31,19 @@
       if (tab === 'done') rows = all.filter(o => ACTIVE.indexOf(o.status) < 0);
 
       if (!rows.length) {
-        list.innerHTML = UI.empty('📦',
-          tab === 'active' ? 'Aucune commande en cours' : 'Aucune commande',
-          tab === 'active' ? 'Vos commandes en cours apparaîtront ici en temps réel.' : 'Vous n’avez pas encore commandé.',
-          '<a class="btn btn-primary" href="#/restaurants">Commander maintenant</a>');
+        list.innerHTML =
+          '<div class="empty-scene compact">' +
+            '<img class="scene-art" src="assets/img/bg/commandes-vide.png" alt="" aria-hidden="true">' +
+            '<div class="h2 scene-title">' +
+              (tab === 'active' ? 'Aucune commande en cours' : 'Aucune commande') + '</div>' +
+            '<p class="scene-sub">' +
+              (tab === 'active'
+                ? 'Vos commandes en cours apparaîtront ici en temps réel.'
+                : 'Vous n’avez pas encore commandé.') + '</p>' +
+            '<div class="scene-cta">' +
+              '<a class="btn btn-primary btn-lg" href="#/restaurants">🛍️ Commander maintenant</a>' +
+            '</div>' +
+          '</div>';
         return;
       }
 

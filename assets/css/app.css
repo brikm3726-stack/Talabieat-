@@ -503,7 +503,50 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   padding-bottom:env(safe-area-inset-bottom);
 }
 @media(min-width:700px){ .sheet{border-radius:22px;animation:pop .2s ease} }
-.sheet-head{position:sticky;top:0;background:#fff;padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:3}
+.sheet-head{position:sticky;top:0;background:#fff;padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:3}
+.sheet-ic{
+  width:44px;height:44px;border-radius:14px;flex:none;
+  background:var(--brand-soft);display:grid;place-items:center;font-size:21px;
+}
+
+/* ------------------------------------------------ sélecteur de quartier */
+.zone-list{display:flex;flex-direction:column;gap:10px}
+.zone-row{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  padding:13px 14px;border-radius:16px;border:1.5px solid var(--line);
+  background:#fff;cursor:pointer;transition:.16s;font:inherit;color:inherit;
+}
+.zone-row:hover{border-color:#E3D5C6;transform:translateY(-1px)}
+.zone-row.on{border-color:var(--brand);background:var(--brand-soft)}
+.zone-row .radio{
+  width:20px;height:20px;border-radius:50%;flex:none;
+  border:2px solid #D8D2C8;position:relative;
+}
+.zone-row.on .radio{border-color:var(--brand)}
+.zone-row.on .radio::after{
+  content:'';position:absolute;inset:3px;border-radius:50%;background:var(--brand);
+}
+.zone-row .ic{
+  width:38px;height:38px;border-radius:12px;flex:none;
+  background:var(--brand-soft);display:grid;place-items:center;font-size:17px;
+}
+.zone-row.on .ic{background:#fff}
+.zone-row .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
+.zone-row b{font-size:15px;font-weight:750}
+.zone-row .mark{color:var(--brand);font-weight:800;font-size:17px;flex:none}
+.zone-row:not(.on) .mark{color:#C9C2B7}
+
+.zone-foot{
+  display:flex;align-items:center;gap:12px;margin-top:14px;
+  padding:14px;border-radius:16px;background:var(--brand-soft);
+}
+.zone-foot .art{font-size:30px;flex:none}
+.zone-foot .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
+.zone-foot b{font-size:14.5px}
+.zone-foot .chip-round{
+  width:42px;height:42px;border-radius:50%;flex:none;
+  background:#fff;display:grid;place-items:center;font-size:19px;
+}
 .sheet-body{padding:18px}
 .sheet-foot{position:sticky;bottom:0;background:#fff;padding:14px 18px;border-top:1px solid var(--line)}
 @keyframes fade{from{opacity:0}to{opacity:1}}
@@ -537,6 +580,106 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .tabs::-webkit-scrollbar{display:none}
 .tabs button{flex:1;min-width:max-content;padding:9px 14px;border:none;background:transparent;border-radius:11px;font-weight:650;font-size:13.5px;color:var(--muted);cursor:pointer;transition:.16s;white-space:nowrap}
 .tabs button.on{background:#fff;color:var(--ink);box-shadow:var(--sh-1)}
+/* variante « pilules » : onglets posés sur la page, sans bandeau gris */
+.tabs.pill{background:transparent;padding:0;gap:8px;border-bottom:1px solid var(--line);border-radius:0}
+.tabs.pill button{flex:0 0 auto;padding:10px 18px;border-radius:999px;margin-bottom:-1px}
+.tabs.pill button.on{background:#fff;color:var(--brand);border:1px solid var(--line);box-shadow:var(--sh-2)}
+
+/* ------------------------------------------------------------ mon compte */
+.account-page{
+  background:
+    radial-gradient(600px 340px at 98% 2%, rgba(255,138,90,.10), transparent 60%),
+    radial-gradient(520px 320px at 0% 100%, rgba(255,138,90,.08), transparent 58%);
+  min-height:calc(100vh - 60px);
+}
+.acc-head .acc-chev{align-self:center}
+.acc-chev{color:#C9C2B7;font-size:22px;font-weight:700;flex:none;line-height:1}
+
+/* pastille + titre, en tête de chaque bloc */
+.acc-title{display:flex;align-items:center;gap:11px}
+.acc-title .ic{
+  width:38px;height:38px;border-radius:12px;flex:none;
+  background:var(--brand-soft);display:grid;place-items:center;font-size:18px;
+}
+.acc-block{border-radius:22px}
+
+/* raccourcis : icône, titre, sous-titre, chevron */
+.acc-quick{display:flex;align-items:center;gap:12px;text-align:left}
+.acc-quick .ic{
+  width:44px;height:44px;border-radius:14px;flex:none;
+  background:var(--brand-soft);display:grid;place-items:center;font-size:21px;
+}
+.acc-quick .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
+.acc-quick b{font-size:14.5px}
+
+/* deux colonnes dès qu'il y a la place */
+.acc-grid{display:grid;gap:14px}
+@media(min-width:640px){
+  .acc-grid{grid-template-columns:1fr 1fr}
+  .acc-grid .acc-full,
+  .acc-grid > [data-imgfield]{grid-column:1 / -1}
+}
+
+/* champ avec pictogramme à gauche */
+.input-ic{position:relative;display:flex;align-items:center}
+.input-ic > span{
+  position:absolute;left:11px;width:30px;height:30px;border-radius:9px;
+  background:var(--brand-soft);display:grid;place-items:center;font-size:14px;
+  pointer-events:none;
+}
+.input-ic .input{padding-left:50px;width:100%}
+
+.acc-link{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  border:1px solid var(--line);border-radius:14px;background:#fff;transition:.16s;
+}
+.acc-link:hover{background:var(--bg)}
+.acc-link .ic{
+  width:34px;height:34px;border-radius:11px;flex:none;
+  background:var(--brand-soft);display:grid;place-items:center;font-size:16px;
+}
+.acc-link .grow{font-weight:650;font-size:14px}
+
+.acc-logout{background:var(--brand-soft);border-color:#F6DDD2}
+.acc-logout .btn{background:transparent;color:var(--brand);font-weight:750}
+.acc-logout .btn:hover{background:#fff}
+
+.tag-soft{background:var(--brand-soft);color:var(--brand)}
+
+/* ------------------------------------------------ écrans vides illustrés */
+.empty-scene{text-align:center;padding:26px 0 40px}
+.empty-scene.compact{padding:14px 0 26px}
+.empty-scene .scene-art{
+  width:100%;max-width:440px;height:auto;margin:0 auto 6px;display:block;
+  /* le visuel est sur fond quasi blanc : « multiply » le fond dans la page,
+     sinon on voit un rectangle plus clair que le crème alentour */
+  mix-blend-mode:multiply;
+}
+.empty-scene.compact .scene-art{max-width:330px}
+.empty-scene .scene-title{margin-top:4px}
+.empty-scene .scene-sub{
+  color:var(--muted);font-size:15px;margin:10px auto 0;max-width:430px;line-height:1.55;
+}
+.empty-scene .scene-cta{
+  display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:22px;
+}
+.empty-scene .scene-cta .btn{min-width:270px}
+.empty-scene .scene-cta .btn-ghost{border:1px solid var(--line)}
+
+/* le panier vide occupe toute la page, sur un fond doux */
+.empty-scene:not(.compact){
+  min-height:calc(100vh - 60px - var(--nav-h));
+  display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(620px 340px at 50% 26%, rgba(255,138,90,.10), transparent 62%),
+    linear-gradient(160deg,#FFFDFB 0%, var(--bg) 100%);
+}
+.orders-page{
+  background:
+    radial-gradient(560px 320px at 96% 4%, rgba(255,138,90,.10), transparent 60%),
+    radial-gradient(480px 300px at 2% 98%, rgba(255,138,90,.08), transparent 58%);
+  min-height:calc(100vh - 60px);
+}
 
 .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-lg);background:#fff}
 table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}

@@ -347,9 +347,16 @@
 
     function paint() {
       if (!Store.cartCount) {
-        view.innerHTML = '<div class="wrap page">' + Cmp.pageHead('Mon panier', '') +
-          UI.empty('🛒', 'Votre panier est vide', 'Parcourez les restaurants et ajoutez vos plats préférés.',
-            '<a class="btn btn-primary" href="#/restaurants">Voir les restaurants</a>') + '</div>';
+        view.innerHTML =
+          '<div class="empty-scene"><div class="wrap">' +
+            '<img class="scene-art" src="assets/img/bg/panier-vide.png" alt="" aria-hidden="true">' +
+            '<div class="h1 scene-title">Votre panier est vide</div>' +
+            '<p class="scene-sub">Ajoutez vos plats préférés parmi les meilleurs restaurants de votre ville.</p>' +
+            '<div class="scene-cta">' +
+              '<a class="btn btn-primary btn-lg" href="#/restaurants">Découvrir les restaurants →</a>' +
+              '<a class="btn btn-ghost btn-lg" href="#/">Retour à l’accueil 🏠</a>' +
+            '</div>' +
+          '</div></div>';
         Shell.renderNav();
         return;
       }

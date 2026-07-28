@@ -37,7 +37,10 @@
       ov.innerHTML =
         '<div class="sheet" role="dialog" aria-modal="true">' +
           (opts.title !== false ?
-            '<div class="sheet-head"><div class="h3">' + U.esc(opts.title || '') + '</div>' +
+            '<div class="sheet-head">' +
+              (opts.icon ? '<span class="sheet-ic">' + opts.icon + '</span>' : '') +
+              '<div class="grow"><div class="h3">' + U.esc(opts.title || '') + '</div>' +
+                (opts.subtitle ? '<div class="tiny">' + U.esc(opts.subtitle) + '</div>' : '') + '</div>' +
             '<button class="icon-btn" data-x>✕</button></div>' : '') +
           '<div class="sheet-body">' + (opts.body || '') + '</div>' +
           (opts.footer ? '<div class="sheet-foot">' + opts.footer + '</div>' : '') +

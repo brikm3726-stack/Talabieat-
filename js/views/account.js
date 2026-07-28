@@ -13,15 +13,17 @@
       const addresses = p.role === 'client' ? await API.safe(() => API.addresses(), []) : [];
       const verrou = U.phoneLock(p);
 
-      view.innerHTML = '<div class="wrap-sm page">' +
+      view.innerHTML = '<div class="account-page"><div class="wrap-sm page">' +
 
         /* ---- en-tête profil ---- */
-        '<div class="card card-p">' +
+        '<div class="card card-p acc-head">' +
           '<div class="row" style="gap:14px">' +
-            UI.avatar(p.full_name, p.avatar_url, 58) +
+            UI.avatar(p.full_name, p.avatar_url, 62) +
             '<div class="grow"><div class="h2">' + U.esc(p.full_name || '—') + '</div>' +
               '<div class="tiny">' + U.esc(p.email || '') + '</div>' +
-              '<span class="tag tag-info" style="margin-top:6px">' + U.esc(ROLE_LABEL[p.role] || p.role) + '</span></div>' +
+              '<span class="tag tag-soft" style="margin-top:7px">👤 ' +
+                U.esc(ROLE_LABEL[p.role] || p.role) + '</span></div>' +
+            '<span class="acc-chev">›</span>' +
           '</div>' +
         '</div>' +
 
@@ -32,35 +34,41 @@
           ? quickLinks([['#/d', '📊', 'Tableau de bord'], ['#/d/profile', '🛵', 'Mon profil livreur'], ['#/d/history', '📜', 'Historique']])
           : p.role === 'admin'
           ? quickLinks([['#/a', '📊', 'Tableau de bord'], ['#/a/settings', '⚙️', 'Réglages plateforme']])
-          : quickLinks([['#/orders', '📦', 'Mes commandes'], ['#/restaurants', '🍽️', 'Commander']])) +
+          : quickLinks([['#/orders', '📦', 'Mes commandes', 'Suivre mes commandes'],
+                        ['#/restaurants', '🍽️', 'Commander', 'Découvrir les restaurants']])) +
 
         /* ---- informations personnelles ---- */
-        '<form id="pf" class="card card-p stack" style="margin-top:16px">' +
-          '<div class="h3">Informations personnelles</div>' +
-          UI.imageField('avatar_url', p.avatar_url, 'Photo de profil') +
-          '<div class="field"><label>Nom complet</label>' +
-            '<input class="input" name="full_name" value="' + U.esc(p.full_name || '') + '" required></div>' +
-          '<div class="field"><label>Téléphone</label>' +
-            '<input class="input" name="phone" inputmode="tel" placeholder="0555 12 34 56" value="' +
-              U.esc(p.phone || '') + '"' + (verrou.bloque ? ' disabled style="background:var(--bg)"' : '') + '>' +
-            (verrou.bloque
-              ? '<div class="hint">🔒 Votre numéro a été enregistré il y a moins de 30 jours. ' +
-                'Il sera modifiable dans <b>' + verrou.jours + ' jour' + (verrou.jours > 1 ? 's' : '') + '</b>. ' +
-                'Le téléphone de chaque adresse de livraison, lui, reste libre.</div>'
-              : '<div class="hint">Une fois modifié, il sera bloqué 30 jours.</div>') +
+        '<form id="pf" class="card card-p stack acc-block" style="margin-top:16px">' +
+          bloc('👤', 'Informations personnelles') +
+          '<div class="acc-grid">' +
+            UI.imageField('avatar_url', p.avatar_url, 'Photo de profil') +
+            '<div class="field"><label>Nom complet</label>' +
+              '<div class="input-ic"><span>👤</span>' +
+              '<input class="input" name="full_name" value="' + U.esc(p.full_name || '') + '" required></div></div>' +
+            '<div class="field"><label>Téléphone</label>' +
+              '<div class="input-ic"><span>' + (verrou.bloque ? '🔒' : '📞') + '</span>' +
+              '<input class="input" name="phone" inputmode="tel" placeholder="Entrez votre numéro" value="' +
+                U.esc(p.phone || '') + '"' + (verrou.bloque ? ' disabled' : '') + '></div>' +
+              (verrou.bloque
+                ? '<div class="hint">Numéro enregistré il y a moins de 30 jours. Modifiable dans <b>' +
+                  verrou.jours + ' jour' + (verrou.jours > 1 ? 's' : '') + '</b>. ' +
+                  'Le téléphone de chaque adresse de livraison, lui, reste libre.</div>'
+                : '<div class="hint">Une fois modifié, il sera bloqué 30 jours.</div>') +
+            '</div>' +
+            Cmp.zoneSelect('zone_id', p.zone_id, 'Ma zone') +
+            '<div class="field acc-full"><label>Email</label>' +
+              '<div class="input-ic"><span>✉️</span>' +
+              '<input class="input" value="' + U.esc(p.email || '') + '" disabled></div></div>' +
           '</div>' +
-          Cmp.zoneSelect('zone_id', p.zone_id, 'Ma zone') +
-          '<div class="field"><label>Email</label>' +
-            '<input class="input" value="' + U.esc(p.email || '') + '" disabled style="background:var(--bg)"></div>' +
-          '<button class="btn btn-primary" type="submit">Enregistrer</button>' +
+          '<button class="btn btn-primary btn-block btn-lg" type="submit">💾 Enregistrer les modifications</button>' +
         '</form>' +
 
         /* ---- adresses (clients) ---- */
         (p.role === 'client'
-          ? '<div class="card card-p" style="margin-top:16px">' +
-            '<div class="row-between" style="margin-bottom:12px">' +
-              '<div class="h3">Adresses de livraison</div>' +
-              '<button class="btn btn-primary btn-sm" id="addAddr">📍 Ajouter une adresse</button></div>' +
+          ? '<div class="card card-p acc-block" style="margin-top:16px">' +
+            '<div class="row-between" style="margin-bottom:14px">' +
+              bloc('📍', 'Adresses de livraison') +
+              '<button class="btn btn-soft btn-sm" id="addAddr">+ Ajouter une adresse</button></div>' +
             (addresses.length
               ? '<div class="stack" style="gap:9px">' + addresses.map(a =>
                   '<div class="role-card">' +
@@ -82,16 +90,19 @@
           : '') +
 
         /* ---- infos plateforme ---- */
-        '<div class="card card-p" style="margin-top:16px">' +
-          '<div class="h3" style="margin-bottom:10px">Assistance</div>' +
-          '<a class="btn btn-ghost btn-block" href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '" style="justify-content:flex-start">' +
-            '📞 Support : ' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</a>' +
+        '<div class="card card-p acc-block" style="margin-top:16px">' +
+          bloc('🎧', 'Assistance') +
+          '<a class="acc-link" href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '">' +
+            '<span class="ic">📞</span>' +
+            '<span class="grow">Support : ' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</span>' +
+            '<span class="acc-chev">›</span></a>' +
           '<div class="tiny" style="margin-top:10px">Mode : <b>' +
             (API.mode === 'demo' ? 'Démonstration (données locales)' : 'Production (Supabase)') + '</b></div>' +
         '</div>' +
 
-        '<button class="btn btn-danger btn-block btn-lg" style="margin-top:16px" id="logout">Se déconnecter</button>' +
-      '</div>';
+        '<div class="card card-p acc-logout" style="margin-top:16px">' +
+          '<button class="btn btn-block" id="logout">↩ Se déconnecter</button></div>' +
+      '</div></div>';
 
       /* ------------------------------------------------------ actions */
       UI.bindImageFields(view);
@@ -148,11 +159,21 @@
   }, { auth: true });
 
   /* ------------------------------------------------------------ helpers */
+
+  /** Titre de bloc : pastille orange + intitulé */
+  function bloc(icone, titre) {
+    return '<div class="acc-title"><span class="ic">' + icone + '</span>' +
+           '<span class="h3">' + U.esc(titre) + '</span></div>';
+  }
+
+  /* [href, icône, titre, sous-titre] — le sous-titre est facultatif */
   function quickLinks(items) {
     return '<div class="grid grid-2" style="margin-top:14px">' +
-      items.map(i => '<a class="card card-p card-hover" href="' + i[0] + '" style="text-align:center">' +
-        '<div style="font-size:24px">' + i[1] + '</div>' +
-        '<div class="strong" style="font-size:13.5px;margin-top:6px">' + U.esc(i[2]) + '</div></a>').join('') +
+      items.map(i => '<a class="card card-p card-hover acc-quick" href="' + i[0] + '">' +
+        '<span class="ic">' + i[1] + '</span>' +
+        '<span class="grow"><b>' + U.esc(i[2]) + '</b>' +
+          (i[3] ? '<span class="tiny">' + U.esc(i[3]) + '</span>' : '') + '</span>' +
+        '<span class="acc-chev">›</span></a>').join('') +
     '</div>';
   }
 

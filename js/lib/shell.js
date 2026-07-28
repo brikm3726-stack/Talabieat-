@@ -126,17 +126,34 @@
 
     /* -------------------------------------------------------- sélecteur zone */
     zonePicker() {
-      const list = Store.zones.map(z =>
-        '<button class="btn btn-ghost btn-block" data-z="' + z.id + '" style="justify-content:space-between">' +
-          '<span>📍 ' + U.esc(z.name) + '</span>' +
-          (Store.zoneId === z.id ? '<span style="color:var(--brand)">✓</span>' : '') +
-        '</button>').join('');
+      /* Une ligne par quartier : bouton radio à gauche, pastille, nom, chevron.
+         Le choix courant se voit d'un coup d'œil, pas au détour d'une coche. */
+      function ligne(id, nom, sous, icone) {
+        const on = (Store.zoneId || '') === id;
+        return '<button class="zone-row' + (on ? ' on' : '') + '" data-z="' + U.esc(id) + '">' +
+          '<span class="radio"></span>' +
+          '<span class="ic">' + icone + '</span>' +
+          '<span class="grow"><b>' + U.esc(nom) + '</b>' +
+            (sous ? '<span class="tiny">' + U.esc(sous) + '</span>' : '') + '</span>' +
+          '<span class="mark">' + (on ? '✓' : '›') + '</span>' +
+        '</button>';
+      }
 
       UI.sheet({
         title: 'Mon quartier de livraison',
-        body: '<div class="stack" style="gap:8px">' +
-                '<button class="btn btn-ghost btn-block" data-z="" style="justify-content:flex-start">🌍 Toute la ville</button>' +
-                list + '</div>',
+        icon: '📍',
+        subtitle: 'Sélectionnez votre zone de livraison',
+        body:
+          '<div class="zone-list">' +
+            ligne('', 'Toute la ville', 'Livraison disponible partout', '🏙️') +
+            Store.zones.map(z => ligne(z.id, z.name, '', '📍')).join('') +
+          '</div>' +
+          '<div class="zone-foot">' +
+            '<span class="art">🛵</span>' +
+            '<span class="grow"><b>Livraison rapide et fiable</b>' +
+              '<span class="tiny">Vos plats préférés livrés chez vous en un rien de temps !</span></span>' +
+            '<span class="chip-round">⏱️</span>' +
+          '</div>',
         onMount(el, api) {
           el.querySelectorAll('[data-z]').forEach(b => b.onclick = () => {
             Store.setZone(b.dataset.z || null);
