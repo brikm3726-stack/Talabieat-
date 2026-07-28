@@ -22,12 +22,12 @@
         /* ---- en-tête profil ---- */
         '<div class="card card-p acc-head">' +
           '<div class="row" style="gap:14px">' +
-            UI.avatar(p.full_name, p.avatar_url, 62) +
+            UI.avatar(p.full_name, p.avatar_url, 72) +
             '<div class="grow"><div class="h2">' + U.esc(p.full_name || '—') + '</div>' +
               '<div class="tiny">' + U.esc(p.email || '') + '</div>' +
-              '<span class="tag tag-soft" style="margin-top:7px">👤 ' +
+              '<span class="tag tag-soft" style="margin-top:7px">' + UI.icon('user', 14) + ' ' +
                 U.esc(ROLE_LABEL[p.role] || p.role) + '</span></div>' +
-            '<span class="acc-chev">›</span>' +
+            '<span class="acc-chev">' + UI.icon('chevron', 20) + '</span>' +
           '</div>' +
         '</div>' +
 
@@ -38,19 +38,19 @@
           ? quickLinks([['#/d', '📊', 'Tableau de bord'], ['#/d/profile', '🛵', 'Mon profil livreur'], ['#/d/history', '📜', 'Historique']])
           : p.role === 'admin'
           ? quickLinks([['#/a', '📊', 'Tableau de bord'], ['#/a/settings', '⚙️', 'Réglages plateforme']])
-          : quickLinks([['#/orders', '📦', 'Mes commandes', 'Suivre mes commandes'],
-                        ['#/restaurants', '🍽️', 'Commander', 'Découvrir les restaurants']])) +
+          : quickLinks([['#/orders', 'package', 'Mes commandes', 'Suivre mes commandes'],
+                        ['#/restaurants', 'utensils', 'Commander', 'Découvrir les restaurants']])) +
 
         /* ---- informations personnelles ---- */
         '<form id="pf" class="card card-p stack acc-block" style="margin-top:16px">' +
-          bloc('👤', 'Informations personnelles') +
+          bloc('user', 'Informations personnelles') +
           '<div class="acc-grid">' +
             UI.imageField('avatar_url', p.avatar_url, 'Photo de profil') +
             '<div class="field"><label>Nom complet</label>' +
-              '<div class="input-ic"><span>👤</span>' +
+              '<div class="input-ic"><span>' + UI.icon('user', 17) + '</span>' +
               '<input class="input" name="full_name" value="' + U.esc(p.full_name || '') + '" required></div></div>' +
             '<div class="field"><label>Téléphone</label>' +
-              '<div class="input-ic"><span>' + (verrou.bloque ? '🔒' : '📞') + '</span>' +
+              '<div class="input-ic"><span>' + UI.icon(verrou.bloque ? 'lock' : 'phone', 17) + '</span>' +
               '<input class="input" name="phone" inputmode="tel" placeholder="Entrez votre numéro" value="' +
                 U.esc(p.phone || '') + '"' + (verrou.bloque ? ' disabled' : '') + '></div>' +
               // le compte à rebours est spécifique et important : il reste sous le
@@ -63,10 +63,11 @@
             '</div>' +
             Cmp.zoneSelect('zone_id', p.zone_id, 'Ma zone') +
             '<div class="field acc-full"><label>Email</label>' +
-              '<div class="input-ic"><span>✉️</span>' +
+              '<div class="input-ic"><span>' + UI.icon('mail', 17) + '</span>' +
               '<input class="input" value="' + U.esc(p.email || '') + '" disabled></div></div>' +
           '</div>' +
-          '<button class="btn btn-primary btn-block btn-lg" type="submit">💾 Enregistrer les modifications</button>' +
+          '<button class="btn btn-primary btn-block btn-lg" type="submit">' +
+            UI.icon('save', 18) + ' Enregistrer les modifications</button>' +
           '<div class="tiny center" style="margin-top:2px">Une fois modifié, il sera bloqué 30 jours.</div>' +
         '</form>' +
 
@@ -74,22 +75,25 @@
         (p.role === 'client'
           ? '<div class="card card-p acc-block" style="margin-top:16px">' +
             '<div class="row-between" style="margin-bottom:14px">' +
-              bloc('📍', 'Adresses de livraison') +
-              '<button class="btn btn-soft btn-sm" id="addAddr">+ Ajouter une adresse</button></div>' +
+              bloc('pin', 'Adresses de livraison') +
+              '<button class="btn btn-soft btn-sm" id="addAddr">' + UI.icon('plus', 16) +
+                ' Ajouter une adresse</button></div>' +
             (addresses.length
               ? '<div class="stack" style="gap:9px">' + addresses.map(a =>
-                  '<div class="role-card">' +
-                    '<div class="ic">📍</div>' +
+                  '<div class="role-card addr-row">' +
+                    '<div class="ic">' + UI.icon('pin', 20) + '</div>' +
                     '<div class="grow"><b>' + U.esc(a.label) +
-                      (a.is_default ? ' <span class="tag tag-ok">Par défaut</span>' : '') +
-                      (U.hasCoords(a) ? '' : ' <span class="tag tag-warn">sans GPS</span>') + '</b>' +
+                      (a.is_default ? ' <span class="tag tag-ok">' + UI.icon('check', 13) + ' Par défaut</span>' : '') +
+                      (U.hasCoords(a) ? '' : ' <span class="tag tag-warn">' + UI.icon('warn', 13) + ' sans GPS</span>') + '</b>' +
                       '<div class="tiny">' + U.esc(a.street) + (a.details ? ' — ' + U.esc(a.details) : '') + '</div>' +
                       '<div class="tiny">' + U.esc(zoneName(a.zone_id)) + ' • ' + U.esc(a.phone || '') +
-                        (U.hasCoords(a) ? ' • <a target="_blank" rel="noopener" style="color:var(--brand);font-weight:700" href="' +
-                          U.gmapsPin(a.lat, a.lng) + '">carte ↗</a>' : '') + '</div></div>' +
-                    '<div class="row" style="gap:6px">' +
-                      '<button class="btn btn-ghost btn-sm" data-ae="' + U.esc(a.id) + '">✏️</button>' +
-                      '<button class="btn btn-danger btn-sm" data-ad="' + U.esc(a.id) + '">🗑</button></div>' +
+                        (U.hasCoords(a) ? ' • <a class="addr-map" target="_blank" rel="noopener" href="' +
+                          U.gmapsPin(a.lat, a.lng) + '">carte ' + UI.icon('link', 12) + '</a>' : '') + '</div></div>' +
+                    '<div class="row" style="gap:8px">' +
+                      '<button class="icon-round" data-ae="' + U.esc(a.id) + '" title="Modifier">' +
+                        UI.icon('pencil', 17) + '</button>' +
+                      '<button class="icon-round danger" data-ad="' + U.esc(a.id) + '" title="Supprimer">' +
+                        UI.icon('trash', 17) + '</button></div>' +
                   '</div>').join('') + '</div>'
               : '<div class="tiny">Aucune adresse enregistrée. Ajoutez-en une depuis ' +
                 'votre position : c’est le point que le livreur ouvrira dans Google Maps.</div>') +
@@ -98,17 +102,19 @@
 
         /* ---- infos plateforme ---- */
         '<div class="card card-p acc-block" style="margin-top:16px">' +
-          bloc('🎧', 'Assistance') +
+          bloc('headset', 'Assistance') +
           '<a class="acc-link" href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '">' +
-            '<span class="ic">📞</span>' +
-            '<span class="grow">Support : ' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</span>' +
-            '<span class="acc-chev">›</span></a>' +
+            '<span class="ic">' + UI.icon('phone', 18) + '</span>' +
+            '<span class="grow"><b>Support</b>' +
+              '<span class="tiny">' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</span></span>' +
+            '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
           '<div class="tiny" style="margin-top:10px">Mode : <b>' +
             (API.mode === 'demo' ? 'Démonstration (données locales)' : 'Production (Supabase)') + '</b></div>' +
         '</div>' +
 
-        '<div class="card card-p acc-logout" style="margin-top:16px">' +
-          '<button class="btn btn-block" id="logout">↩ Se déconnecter</button></div>' +
+        '<div class="acc-logout" style="margin-top:16px">' +
+          '<button class="btn btn-block btn-lg" id="logout">' +
+            UI.icon('logout', 18) + ' Se déconnecter</button></div>' +
       '</div></div>';
 
       /* ------------------------------------------------------ actions */
@@ -169,15 +175,16 @@
 
   /** Titre de bloc : pastille orange + intitulé */
   function bloc(icone, titre) {
-    return '<div class="acc-title"><span class="ic">' + icone + '</span>' +
+    return '<div class="acc-title"><span class="ic">' + UI.icon(icone, 19) + '</span>' +
            '<span class="h3">' + U.esc(titre) + '</span></div>';
   }
 
-  /* [href, icône, titre, sous-titre] — le sous-titre est facultatif */
+  /* [href, icône, titre, sous-titre] — le sous-titre est facultatif.
+     L'icône est un nom du jeu UI.ICONS, ou un emoji pour les autres rôles. */
   function quickLinks(items) {
     return '<div class="grid grid-2" style="margin-top:14px">' +
       items.map(i => '<a class="card card-p card-hover acc-quick" href="' + i[0] + '">' +
-        '<span class="ic">' + i[1] + '</span>' +
+        '<span class="ic">' + (UI.ICONS[i[1]] ? UI.icon(i[1], 21) : i[1]) + '</span>' +
         '<span class="grow"><b>' + U.esc(i[2]) + '</b>' +
           (i[3] ? '<span class="tiny">' + U.esc(i[3]) + '</span>' : '') + '</span>' +
         '<span class="acc-chev">›</span></a>').join('') +

@@ -143,6 +143,43 @@
              U.esc(U.statusShort(status)) + '</span>';
     },
 
+    /* ------------------------------------------------------------ icônes
+       Jeu d'icônes au trait, dans l'esprit Lucide, écrites à la main en SVG.
+       Aucune librairie : le site n'a pas de dépendances et n'en aura pas.
+       Elles héritent de la couleur du texte (stroke:currentColor), donc une
+       seule définition sert partout. */
+    ICONS: {
+      user:     '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      phone:    '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+      mail:     '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>',
+      lock:     '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+      pin:      '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+      headset:  '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
+      package:  '<path d="m7.5 4.3 9 5.1"/><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+      // fourchette + couteau, dessinés larges : les tracés d'origine de Lucide
+      // deviennent illisibles en dessous de 24 px
+      utensils: '<path d="M4 3v6a3 3 0 0 0 6 0V3"/><path d="M7 12v9"/><path d="M17.5 3c-1.6 1.1-2.5 3-2.5 5.2s.9 4.1 2.5 5.2V21"/>',
+      save:     '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/>',
+      logout:   '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+      pencil:   '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+      trash:    '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+      chevron:  '<path d="m9 18 6-6-6-6"/>',
+      plus:     '<path d="M5 12h14"/><path d="M12 5v14"/>',
+      image:    '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+      check:    '<path d="M21.8 10A10 10 0 1 1 17 3.3"/><path d="m9 11 3 3L22 4"/>',
+      link:     '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+      warn:     '<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
+    },
+
+    icon(name, size) {
+      const d = UI.ICONS[name];
+      if (!d) return '';
+      const s = size || 20;
+      return '<svg class="ico" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" ' +
+        'fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" ' +
+        'stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+    },
+
     avatar(name, url, size) {
       const s = size || 42;
       const st = 'width:' + s + 'px;height:' + s + 'px;font-size:' + Math.round(s / 2.6) + 'px' +
@@ -164,7 +201,7 @@
           '<div data-preview style="width:' + (ratio === 'wide' ? '120' : '76') + 'px;height:76px;border-radius:14px;' +
             'border:1.5px dashed var(--line);background:#fff center/cover no-repeat;' + bg + ';' +
             'display:grid;place-items:center;font-size:22px;flex:none;cursor:pointer">' +
-            (current ? '' : '🖼️') + '</div>' +
+            (current ? '' : UI.icon('image', 24)) + '</div>' +
           '<div class="grow">' +
             '<button type="button" class="btn btn-ghost btn-sm" data-pick>Choisir une image</button>' +
             '<div class="tiny" style="margin-top:5px">JPG / PNG • 2 Mo max</div>' +
@@ -194,7 +231,7 @@
             prev.style.backgroundImage = 'url(' + url + ')';
             prev.innerHTML = '';
           } catch (e) {
-            prev.innerHTML = '🖼️';
+            prev.innerHTML = UI.icon('image', 24);
             UI.err("Échec de l'envoi", e.message);
           }
         };
