@@ -384,6 +384,46 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   }
 }
 
+/* ------------------------------------------------- décor de la page d'accueil
+   Des plats en bordure, le centre laissé libre et lumineux pour les cartes.
+   Purement décoratif : rien d'utile ne dépend de ces images. */
+.home-decor{position:relative;overflow:hidden}
+.home-decor > .wrap{position:relative;z-index:1}
+/* Pointillés en bas à gauche. Ils ont leur propre élément : posés en fond de
+   .home-decor, « no-repeat » n'aurait dessiné qu'un point, et « repeat »
+   aurait couvert toute la page. */
+.decor-dots{
+  position:absolute;left:10px;bottom:120px;width:112px;height:84px;z-index:0;
+  background-image:radial-gradient(rgba(255,109,71,.42) 1.6px, transparent 1.7px);
+  background-size:16px 16px;
+  opacity:.75;pointer-events:none;display:none;
+}
+/* Les masques partent d'un noyau opaque très petit : au-delà, l'image se
+   dissout. Un noyau large laisserait des bords francs bien visibles. */
+.home-decor::before,
+.home-decor::after{content:'';position:absolute;right:0;z-index:0;pointer-events:none;display:none;opacity:.88}
+/* salade, sauce et citronnade, juste sous le héro */
+.home-decor::before{
+  top:0;width:340px;height:158px;
+  background:url('../img/bg/decor-top.jpg') top right/cover no-repeat;
+  -webkit-mask-image:radial-gradient(125% 145% at 100% 0%, #000 16%, transparent 70%);
+  mask-image:radial-gradient(125% 145% at 100% 0%, #000 16%, transparent 70%);
+}
+/* tomate et pâtes, à mi-hauteur */
+.home-decor::after{
+  top:46%;width:220px;height:156px;
+  background:url('../img/bg/decor-side.jpg') center right/cover no-repeat;
+  -webkit-mask-image:radial-gradient(120% 140% at 100% 50%, #000 8%, transparent 64%);
+  mask-image:radial-gradient(120% 140% at 100% 50%, #000 8%, transparent 64%);
+}
+/* le décor n'apparaît que s'il reste de la marge autour du contenu :
+   sur un écran étroit il passerait sous les cartes */
+@media(min-width:1280px){ .home-decor::before, .home-decor::after, .decor-dots{display:block} }
+@media(min-width:1500px){
+  .home-decor::before{width:420px;height:190px}
+  .home-decor::after{width:290px;height:204px}
+}
+
 /* ---------------------------------------------------------------- steps / timeline */
 .timeline{display:flex;flex-direction:column;gap:0;position:relative}
 .tl-step{display:flex;gap:14px;position:relative;padding-bottom:22px}

@@ -39,7 +39,11 @@
         '<div class="hero-stats" id="heroStats"></div>' +
       '</div></section>' +
 
-      '<div class="wrap page">' +
+      /* le décor culinaire de bordure vit sur cette section, pas sur .wrap :
+         il doit filer jusqu'au bord de l'écran, pas s'arrêter à 1200 px */
+      '<section class="home-decor">' +
+        '<span class="decor-dots" aria-hidden="true"></span>' +
+        '<div class="wrap page">' +
 
         /* ------------------------------------------------- CATÉGORIES */
         '<div class="section-head"><div class="h2">Que voulez-vous manger ?</div></div>' +
@@ -67,7 +71,7 @@
           promo('🏪', 'Vous avez un restaurant ?', 'Rejoignez Talabi, recevez des commandes dès aujourd’hui et gérez votre menu en toute autonomie.', 'Ajouter mon restaurant', '#/signup?role=restaurant', 'assets/img/roles/restaurant.jpg') +
           promo('🛵', 'Vous voulez livrer ?', 'Travaillez quand vous voulez dans votre quartier et gagnez sur chaque course.', 'Devenir livreur', '#/signup?role=driver', 'assets/img/roles/driver.jpg') +
         '</div>' +
-      '</div>' +
+      '</div></section>' +
 
       /* -------------------------------------------------------------- PIED */
       '<footer class="footer"><div class="wrap">' +
