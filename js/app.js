@@ -45,15 +45,21 @@
           return;
         }
         if (what === 'orders') LiveTrack.sync();
+        // la sonnerie s'arrête dès que son motif disparaît (commande acceptée,
+        // refusée, ou course déjà prise par un autre livreur)
+        if (w.Sound) Sound.reviewOrders();
         // toute autre modification peut faire évoluer le compteur de notifications
         if (!Store.isLogged) return;
         await Store.refreshUnread();
         Shell.renderTop();
 
-        // annonce visuelle de la dernière notification reçue
+        // annonce visuelle — et sonore — de la dernière notification reçue
         const list = await API.safe(() => API.notifications(1), []);
         if (list.length && list[0].id !== lastNotifId) {
-          if (lastNotifId !== null && !list[0].is_read) UI.toast(list[0].title, 'ok', list[0].body);
+          if (lastNotifId !== null && !list[0].is_read) {
+            UI.toast(list[0].title, 'ok', list[0].body);
+            if (w.Sound) Sound.onNotification(list[0]);
+          }
           lastNotifId = list[0].id;
         }
       });

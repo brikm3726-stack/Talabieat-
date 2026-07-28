@@ -365,6 +365,7 @@
 
   function bindDelivery(view, reload) {
     view.querySelectorAll('[data-claim]').forEach(b => b.onclick = async function () {
+      if (w.Sound) Sound.stop('delivery');       // le livreur a répondu : la sonnerie n'a plus lieu d'être
       UI.busy(this, true, 'Attribution…');
       try {
         await API.claimOrder(this.dataset.claim);
@@ -378,6 +379,7 @@
     });
 
     view.querySelectorAll('[data-skip]').forEach(b => b.onclick = function () {
+      if (w.Sound) Sound.stop('delivery');       // « Passer » vaut réponse, au même titre qu'accepter
       skipped[this.dataset.skip] = true;
       const card = this.closest('.order-card');
       card.style.transition = '.2s'; card.style.opacity = '0';

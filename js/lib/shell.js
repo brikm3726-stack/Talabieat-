@@ -83,7 +83,15 @@
 
           '<div class="top-actions">' +
             (Store.isLogged
-              ? '<button class="icon-btn" id="notifBtn">🔔' +
+              // le son ne concerne que ceux qu'on appelle : restaurant et livreur
+              // w.Sound && … : la barre du haut ne doit pas tomber si le module
+              // audio n'a pas pu se charger
+              ? ((w.Sound && (Store.role === 'restaurant' || Store.role === 'driver'))
+                  ? '<button class="icon-btn" id="soundBtn" title="' +
+                      (Sound.muted ? 'Réactiver la sonnerie' : 'Couper la sonnerie') + '">' +
+                      (Sound.muted ? '🔕' : '🔔') + '</button>'
+                  : '') +
+                '<button class="icon-btn" id="notifBtn">🔔' +
                   (Store.unread ? '<span class="badge-dot">' + (Store.unread > 9 ? '9+' : Store.unread) + '</span>' : '') +
                 '</button>' +
                 '<a class="icon-btn" href="#/account" title="Mon compte" style="overflow:hidden;padding:0">' +
@@ -96,6 +104,13 @@
       if (zb) zb.onclick = Shell.zonePicker;
       const nb = document.getElementById('notifBtn');
       if (nb) nb.onclick = Shell.notifPanel;
+      const sb = document.getElementById('soundBtn');
+      if (sb) sb.onclick = () => {
+        Sound.muted = !Sound.muted;
+        UI.ok(Sound.muted ? 'Sonnerie coupée' : 'Sonnerie réactivée',
+              Sound.muted ? 'Vous ne serez plus averti par un son.' : '');
+        Shell.renderTop();
+      };
     },
 
     /* --------------------------------------------------------- bottom nav */

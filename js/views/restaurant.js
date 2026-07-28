@@ -199,6 +199,9 @@
   function bindOrderActions(view, reload) {
     view.querySelectorAll('[data-act]').forEach(b => b.onclick = async function () {
       const status = this.dataset.act, id = this.dataset.id;
+      // le gérant a vu la commande : on coupe la sonnerie tout de suite,
+      // sans attendre le rafraîchissement ni la fin des trois passages
+      if (w.Sound) Sound.stop('new-order');
       let extra = null;
       if (status === 'rejected') {
         const reason = await UI.prompt('Refuser la commande', 'Motif du refus (visible par le client)',
