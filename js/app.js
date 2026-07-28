@@ -40,14 +40,17 @@
         if (what === 'session') {
           await Store.refreshProfile();
           LiveTrack.sync();          // coupe le partage de position à la déconnexion
+          // nouveau compte : ce qui a sonné pour le précédent ne compte plus,
+          // et une commande déjà en attente doit se signaler tout de suite
+          if (w.Sound) { Sound.stopAll(); Sound.forget(); Sound.watchOrders(); }
           Shell.render();
           Router.render();
           return;
         }
         if (what === 'orders') LiveTrack.sync();
-        // la sonnerie s'arrête dès que son motif disparaît (commande acceptée,
-        // refusée, ou course déjà prise par un autre livreur)
-        if (w.Sound) Sound.reviewOrders();
+        // sonne dès qu'une commande attend une réponse, se tait dès qu'il n'y
+        // en a plus
+        if (w.Sound) Sound.watchOrders();
         // toute autre modification peut faire évoluer le compteur de notifications
         if (!Store.isLogged) return;
         await Store.refreshUnread();
@@ -56,10 +59,7 @@
         // annonce visuelle — et sonore — de la dernière notification reçue
         const list = await API.safe(() => API.notifications(1), []);
         if (list.length && list[0].id !== lastNotifId) {
-          if (lastNotifId !== null && !list[0].is_read) {
-            UI.toast(list[0].title, 'ok', list[0].body);
-            if (w.Sound) Sound.onNotification(list[0]);
-          }
+          if (lastNotifId !== null && !list[0].is_read) UI.toast(list[0].title, 'ok', list[0].body);
           lastNotifId = list[0].id;
         }
       });
@@ -70,6 +70,11 @@
 
       /* ---- 6. Navigation ---- */
       Router.start();
+
+      // Une commande peut déjà attendre au moment où l'on ouvre l'application.
+      // Le son ne partira qu'au premier clic (les navigateurs l'exigent), mais
+      // il partira : la demande est mise de côté, pas perdue.
+      if (w.Sound) Sound.watchOrders();
 
       // un livreur qui rouvre l'app en pleine course reprend le partage
       LiveTrack.sync();

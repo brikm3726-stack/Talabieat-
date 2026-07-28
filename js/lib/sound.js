@@ -109,36 +109,41 @@
       return !!(p && (p.left > 0 || (!p.audio.paused && !p.audio.ended)));
     },
 
-    /* ------------------------------------------------------------------
-       Une notification vient d'arriver : faut-il sonner ?
-       Le type vient du backend (mêmes valeurs qu'en base).
-       ------------------------------------------------------------------ */
-    onNotification(n) {
-      if (!n || !w.Store || !Store.isLogged) return;
-      if (n.type === 'new_order' && Store.role === 'restaurant')
-        Sound.play('new-order', RESTO_FOIS);
-      else if (n.type === 'delivery_available' && Store.role === 'driver')
-        Sound.play('delivery', LIVREUR_MAX);
+    /* ==================================================================
+       Le déclencheur, c'est l'ÉTAT des commandes, pas l'arrivée d'un
+       message. La différence compte : une commande peut être déjà là quand
+       le gérant ouvre son espace ou change de compte. Dans ce cas aucun
+       nouvel évènement ne survient, et se fier au message ne sonnerait
+       jamais. Ici, dès qu'une commande attend une réponse, ça sonne.
+
+       Et dès qu'il n'y a plus rien en attente, ça s'arrête tout seul :
+       commande acceptée, refusée, ou course prise par un autre livreur.
+       ================================================================== */
+    async watchOrders() {
+      if (!w.Store || !Store.isLogged) return Sound.stopAll();
+      if (Store.role === 'restaurant')
+        await scan('new-order', { scope: 'restaurant', status: ['pending'] }, RESTO_FOIS);
+      else if (Store.role === 'driver')
+        await scan('delivery', { scope: 'available' }, LIVREUR_MAX);
+      else
+        Sound.stopAll();
     },
 
-    /* ------------------------------------------------------------------
-       Les commandes ont bougé. On coupe la sonnerie si son motif a disparu
-       — commande acceptée, refusée, ou course prise par un autre livreur.
-       Rien n'est interrogé tant qu'aucun son ne joue.
-       ------------------------------------------------------------------ */
-    async reviewOrders() {
-      if (!w.Store || !Store.isLogged) return Sound.stopAll();
-
-      if (Sound.playing('new-order') && Store.role === 'restaurant') {
-        const l = await API.safe(() => API.orders({ scope: 'restaurant', status: ['pending'] }), []);
-        if (!l.length) Sound.stop('new-order');
-      }
-      if (Sound.playing('delivery') && Store.role === 'driver') {
-        const l = await API.safe(() => API.orders({ scope: 'available' }), []);
-        if (!l.length) Sound.stop('delivery');
-      }
-    }
+    /** Changement de compte : ce qui a déjà sonné pour l'autre ne compte plus. */
+    forget() { for (const k in annonces) delete annonces[k]; }
   };
+
+  /* Commandes déjà signalées : on sonne pour une commande, pas à chaque
+     rafraîchissement de la liste. */
+  const annonces = {};
+
+  async function scan(key, filtre, fois) {
+    const l = await API.safe(() => API.orders(filtre), []);
+    if (!l.length) { Sound.stop(key); return; }
+    const neuves = l.filter(o => !annonces[o.id]);
+    l.forEach(o => { annonces[o.id] = true; });
+    if (neuves.length) Sound.play(key, fois);
+  }
 
   w.Sound = Sound;
 })(window);
