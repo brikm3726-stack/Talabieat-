@@ -74,6 +74,8 @@ create table if not exists public.profiles (
   email       text,
   full_name   text,
   phone       text,
+  -- dernière modification du téléphone : il est figé 30 jours (voir 02_security.sql)
+  phone_changed_at timestamptz,
   avatar_url  text,
   role        user_role not null default 'client',
   zone_id     uuid references public.zones(id) on delete set null,

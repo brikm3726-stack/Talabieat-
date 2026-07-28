@@ -8,8 +8,8 @@
 
   // ⚠️ Incrémenter la version dès que les données de démo changent : les
   // navigateurs qui ont déjà ouvert le site repartent alors des nouvelles données.
-  const KEY = 'talabi.db.v9';
-  const SESSION_KEY = 'talabi.session.v9';
+  const KEY = 'talabi.db.v10';
+  const SESSION_KEY = 'talabi.session.v10';
   let db = null;
   const listeners = [];
 
@@ -225,6 +225,21 @@
 
     async updateProfile(patch) {
       const p = requireUser();
+
+      // Le téléphone est figé 30 jours. La règle est appliquée ici, pas
+      // seulement dans le formulaire : un champ désactivé se rouvre en deux
+      // clics dans un navigateur.
+      if (patch.phone !== undefined) {
+        const nouveau = U.normPhone(patch.phone);
+        if (nouveau !== p.phone) {
+          const v = U.phoneLock(p);
+          if (v.bloque)
+            throw new Error('Votre numéro ne sera modifiable que dans ' + v.jours + ' jour' +
+                            (v.jours > 1 ? 's' : '') + '.');
+          p.phone_changed_at = new Date().toISOString();
+        }
+      }
+
       ['full_name', 'phone', 'zone_id', 'avatar_url'].forEach(k => {
         if (patch[k] !== undefined) p[k] = k === 'phone' ? U.normPhone(patch[k]) : patch[k];
       });

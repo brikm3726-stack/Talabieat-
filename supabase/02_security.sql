@@ -307,6 +307,44 @@ create policy variants_write on public.menu_variants for all
   using (exists (select 1 from public.menu_items m where m.id = menu_item_id and (public.owns_restaurant(m.restaurant_id) or public.is_admin())))
   with check (exists (select 1 from public.menu_items m where m.id = menu_item_id and (public.owns_restaurant(m.restaurant_id) or public.is_admin())));
 
+-- ---- TÉLÉPHONE FIGÉ 30 JOURS
+-- Le contrôle vit ici et pas seulement dans le formulaire : un champ désactivé
+-- se rouvre en deux clics, et la clé publique permet d'appeler l'API en direct.
+create or replace function public.lock_phone_changes()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  depuis timestamptz;
+  restant int;
+begin
+  if new.phone is not distinct from old.phone then
+    return new;
+  end if;
+  -- un administrateur doit pouvoir corriger un numéro erroné
+  if public.is_admin() then
+    new.phone_changed_at := now();
+    return new;
+  end if;
+  depuis := coalesce(old.phone_changed_at, old.created_at);
+  if old.phone is not null and depuis is not null
+     and depuis > now() - interval '30 days' then
+    restant := ceil(extract(epoch from (depuis + interval '30 days' - now())) / 86400);
+    raise exception 'Votre numéro ne sera modifiable que dans % jour(s).', restant
+      using errcode = 'check_violation';
+  end if;
+  new.phone_changed_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_lock_phone on public.profiles;
+create trigger trg_lock_phone
+  before update of phone on public.profiles
+  for each row execute function public.lock_phone_changes();
+
 -- ---- DRIVERS
 drop policy if exists drivers_self on public.drivers;
 create policy drivers_self on public.drivers for select

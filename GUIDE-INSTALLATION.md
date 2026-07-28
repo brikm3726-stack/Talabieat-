@@ -125,7 +125,8 @@ Vérifie dans **Table Editor** que tu as bien les tables : `profiles`, `restaura
 > **Tu avais déjà installé la base avant ces évolutions ?**
 > Lance en plus, dans cet ordre : `supabase/04_geoloc.sql` (positions GPS),
 > `supabase/05_tracking.sql` (suivi du livreur), `supabase/06_categories.sql`
-> (catégories illustrées) et `supabase/07_formats.sql` (formats des plats).
+> (catégories illustrées), `supabase/07_formats.sql` (formats des plats) et
+> `supabase/08_phone_lock.sql` (téléphone figé 30 jours).
 > Ils ajoutent des colonnes et des tables **sans toucher à tes données**.
 > Sur une nouvelle installation, `01` + `02` contiennent déjà tout : seuls
 > `05_tracking.sql` et `03_seed.sql` restent nécessaires.

@@ -133,6 +133,21 @@
     async updateProfile(patch) {
       const body = {};
       ['full_name', 'phone', 'zone_id', 'avatar_url'].forEach(k => { if (patch[k] !== undefined) body[k] = k === 'phone' ? U.normPhone(patch[k]) : patch[k]; });
+
+      // Téléphone figé 30 jours. Le garde-fou définitif est le trigger SQL
+      // (08_phone_lock.sql) ; ce contrôle-ci sert à donner un message clair.
+      if (body.phone !== undefined) {
+        const actuel = unwrap(await sb.from('profiles')
+          .select('phone, phone_changed_at, created_at').eq('id', currentUser.id).single());
+        if (body.phone !== actuel.phone) {
+          const v = U.phoneLock(actuel);
+          if (v.bloque)
+            throw new Error('Votre numéro ne sera modifiable que dans ' + v.jours + ' jour' +
+                            (v.jours > 1 ? 's' : '') + '.');
+          body.phone_changed_at = new Date().toISOString();
+        }
+      }
+
       body.updated_at = new Date().toISOString();
       return unwrap(await sb.from('profiles').update(body).eq('id', currentUser.id).select().single());
     },

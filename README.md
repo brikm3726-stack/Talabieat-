@@ -99,7 +99,8 @@ platforme/
 │   ├── 04_geoloc.sql          mise à jour GPS (bases déjà installées)
 │   ├── 05_tracking.sql        suivi du livreur en direct
 │   ├── 06_categories.sql      pastilles illustrées, retrait de « Poulet »
-│   └── 07_formats.sql         formats des plats (Solo/Menu, Small/Méga…)
+│   ├── 07_formats.sql         formats des plats (Solo/Menu, Small/Méga…)
+│   └── 08_phone_lock.sql      téléphone figé 30 jours
 │
 └── js/
     ├── app.js                 démarrage
@@ -147,6 +148,9 @@ tel quel sur Vercel, Netlify ou GitHub Pages.
 - **La position d'un livreur n'est lisible que pendant sa course**, et seulement
   par le client concerné, son restaurant et l'administration (fonction SQL
   `driver_position`). Le partage s'arrête de lui-même à la livraison.
+- **Le téléphone est figé 30 jours** après sa saisie, contrôlé par un trigger
+  PostgreSQL et non par le formulaire : un champ désactivé se rouvre en deux
+  clics. Seul un administrateur peut corriger un numéro erroné.
 
 ---
 

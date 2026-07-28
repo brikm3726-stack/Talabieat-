@@ -446,11 +446,9 @@
   ];
 
   /* --------------------------------------------------------------- ADRESSES */
-  const ADDRESSES = [
-    { id: 'a1', user_id: 'u-client', label: 'Domicile', zone_id: 'z-centre',
-      street: 'Cité 20 Août, Bât C, Appt 12', details: '2e étage, porte gauche',
-      lat: 36.7145, lng: 4.0490, phone: '0550112233', is_default: true, created_at: iso(-30) }
-  ];
+  /* Aucune adresse pré-remplie : le client ajoute la sienne depuis sa position
+     réelle. Une adresse d'exemple donnerait un point GPS faux au livreur. */
+  const ADDRESSES = [];
 
   /* -------------------------------------------------------------- COMMANDES */
   const ORDERS = [];

@@ -11,6 +11,7 @@
 
     async function paint() {
       const addresses = p.role === 'client' ? await API.safe(() => API.addresses(), []) : [];
+      const verrou = U.phoneLock(p);
 
       view.innerHTML = '<div class="wrap-sm page">' +
 
@@ -36,10 +37,18 @@
         /* ---- informations personnelles ---- */
         '<form id="pf" class="card card-p stack" style="margin-top:16px">' +
           '<div class="h3">Informations personnelles</div>' +
+          UI.imageField('avatar_url', p.avatar_url, 'Photo de profil') +
           '<div class="field"><label>Nom complet</label>' +
             '<input class="input" name="full_name" value="' + U.esc(p.full_name || '') + '" required></div>' +
           '<div class="field"><label>Téléphone</label>' +
-            '<input class="input" name="phone" inputmode="tel" placeholder="0555 12 34 56" value="' + U.esc(p.phone || '') + '"></div>' +
+            '<input class="input" name="phone" inputmode="tel" placeholder="0555 12 34 56" value="' +
+              U.esc(p.phone || '') + '"' + (verrou.bloque ? ' disabled style="background:var(--bg)"' : '') + '>' +
+            (verrou.bloque
+              ? '<div class="hint">🔒 Votre numéro a été enregistré il y a moins de 30 jours. ' +
+                'Il sera modifiable dans <b>' + verrou.jours + ' jour' + (verrou.jours > 1 ? 's' : '') + '</b>. ' +
+                'Le téléphone de chaque adresse de livraison, lui, reste libre.</div>'
+              : '<div class="hint">Une fois modifié, il sera bloqué 30 jours.</div>') +
+          '</div>' +
           Cmp.zoneSelect('zone_id', p.zone_id, 'Ma zone') +
           '<div class="field"><label>Email</label>' +
             '<input class="input" value="' + U.esc(p.email || '') + '" disabled style="background:var(--bg)"></div>' +
@@ -50,8 +59,8 @@
         (p.role === 'client'
           ? '<div class="card card-p" style="margin-top:16px">' +
             '<div class="row-between" style="margin-bottom:12px">' +
-              '<div class="h3">Mes adresses</div>' +
-              '<button class="btn btn-soft btn-sm" id="addAddr">+ Ajouter</button></div>' +
+              '<div class="h3">Adresses de livraison</div>' +
+              '<button class="btn btn-primary btn-sm" id="addAddr">📍 Ajouter une adresse</button></div>' +
             (addresses.length
               ? '<div class="stack" style="gap:9px">' + addresses.map(a =>
                   '<div class="role-card">' +
@@ -67,7 +76,8 @@
                       '<button class="btn btn-ghost btn-sm" data-ae="' + U.esc(a.id) + '">✏️</button>' +
                       '<button class="btn btn-danger btn-sm" data-ad="' + U.esc(a.id) + '">🗑</button></div>' +
                   '</div>').join('') + '</div>'
-              : '<div class="tiny">Aucune adresse enregistrée.</div>') +
+              : '<div class="tiny">Aucune adresse enregistrée. Ajoutez-en une depuis ' +
+                'votre position : c’est le point que le livreur ouvrira dans Google Maps.</div>') +
           '</div>'
           : '') +
 
@@ -84,11 +94,15 @@
       '</div>';
 
       /* ------------------------------------------------------ actions */
+      UI.bindImageFields(view);
+
       view.querySelector('#pf').onsubmit = async function (e) {
         e.preventDefault();
         const btn = this.querySelector('[type=submit]');
         const d = UI.formData(this);
         if (!d.full_name || d.full_name.length < 3) return UI.err('Indiquez votre nom complet');
+        // le champ est désactivé quand il est verrouillé : il n'arrive pas dans
+        // le formulaire, on n'envoie donc rien qui serait refusé côté serveur
         if (d.phone && !U.isPhoneDZ(d.phone)) return UI.err('Numéro invalide');
         UI.busy(btn, true);
         try {
@@ -100,8 +114,15 @@
         } catch (err) { UI.busy(btn, false); UI.err(err.message); }
       };
 
+      /* Un seul geste : on demande la position, puis la carte s'ouvre déjà
+         centrée dessus. L'utilisateur n'a plus qu'à confirmer le point. */
       const aa = view.querySelector('#addAddr');
-      if (aa) aa.onclick = () => addressSheet(null, paint);
+      if (aa) aa.onclick = async function () {
+        UI.busy(this, true, 'Localisation…');
+        const pos = await askGeolocation();   // null si refusée : la carte s'ouvre sur la ville
+        UI.busy(this, false);
+        addressSheet(null, paint, pos);
+      };
 
       view.querySelectorAll('[data-ae]').forEach(b => b.onclick = () =>
         addressSheet(addresses.find(a => a.id === b.dataset.ae), paint));

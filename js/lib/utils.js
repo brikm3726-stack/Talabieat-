@@ -148,6 +148,19 @@
       return /^(?:\+213|00213|0)(5|6|7)\d{8}$/.test(c);
     },
 
+    /* Le numéro de téléphone est figé 30 jours après sa dernière saisie.
+       Le compte à rebours part de la dernière modification, ou à défaut de la
+       création du compte — c'est le numéro donné à l'inscription. */
+    PHONE_LOCK_DAYS: 30,
+    phoneLock(profile) {
+      if (!profile) return { bloque: false, jours: 0 };
+      const depuis = profile.phone_changed_at || profile.created_at;
+      if (!profile.phone || !depuis) return { bloque: false, jours: 0 };
+      const ecoules = (Date.now() - new Date(depuis).getTime()) / 86400000;
+      const reste = Math.ceil(U.PHONE_LOCK_DAYS - ecoules);
+      return reste > 0 ? { bloque: true, jours: reste } : { bloque: false, jours: 0 };
+    },
+
     normPhone(v) {
       const c = String(v || '').replace(/[\s.\-()]/g, '');
       if (c.startsWith('+213')) return '0' + c.slice(4);
