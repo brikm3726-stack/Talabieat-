@@ -256,7 +256,7 @@
       title: item.name,
       body:
         (item.image_url
-          ? '<div style="height:170px;border-radius:16px;background:#EDF0F5 center/cover no-repeat;background-image:url(' + U.escUrl(item.image_url) + ');margin-bottom:14px"></div>'
+          ? '<div style="height:170px;border-radius:16px;background:#F2EDE5 center/cover no-repeat;background-image:url(' + U.escUrl(item.image_url) + ');margin-bottom:14px"></div>'
           : '') +
         (item.description ? '<p class="sub" style="margin-bottom:14px">' + U.esc(item.description) + '</p>' : '') +
         (formats.length

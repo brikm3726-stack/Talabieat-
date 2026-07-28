@@ -13,8 +13,14 @@
   --ink-2:#3A404D;
   --muted:#7A8291;
   --line:#E9ECF2;
-  --bg:#F6F7FB;
+  /* fond de page chaud : il prolonge le crème du héro au lieu de virer au bleu */
+  --bg:#FAF8F4;
   --card:#FFFFFF;
+
+  /* Palette crème des grands fonds (héro, inscription) */
+  --cream:#F8F5EF;
+  --cream-2:#F1EADE;
+  --cream-line:#E7DFD2;
 
   --ok:#12B76A; --ok-soft:#E7F8F0;
   --warn:#F79009; --warn-soft:#FFF6E6;
@@ -216,7 +222,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 /* ---------------------------------------------------------- restaurant card */
 .resto-card{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-1);transition:.2s;cursor:pointer;position:relative}
 .resto-card:hover{transform:translateY(-3px);box-shadow:var(--sh-3)}
-.resto-cover{aspect-ratio:16/9;background:#EDF0F5 center/cover no-repeat;position:relative}
+.resto-cover{aspect-ratio:16/9;background:#F2EDE5 center/cover no-repeat;position:relative}
 .resto-cover .closed-ov{position:absolute;inset:0;background:rgba(10,12,18,.6);display:grid;place-items:center;color:#fff;font-weight:750;font-size:13px;letter-spacing:.02em}
 .resto-logo{
   position:absolute;left:14px;bottom:-22px;width:52px;height:52px;border-radius:15px;
@@ -255,7 +261,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 .dish{display:flex;gap:12px;padding:13px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);transition:.16s;cursor:pointer}
 .dish:hover{box-shadow:var(--sh-2);border-color:#DFE3EC}
-.dish-img{width:88px;height:88px;flex:none;border-radius:var(--r);background:#EDF0F5 center/cover no-repeat;display:grid;place-items:center;font-size:28px}
+.dish-img{width:88px;height:88px;flex:none;border-radius:var(--r);background:#F2EDE5 center/cover no-repeat;display:grid;place-items:center;font-size:28px}
 .dish-body{flex:1;min-width:0;display:flex;flex-direction:column}
 .dish-name{font-weight:700;font-size:15px}
 .dish-desc{color:var(--muted);font-size:13px;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -293,19 +299,90 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .cat-item.on span{color:var(--brand)}
 
 /* ---------------------------------------------------------------- hero */
-.hero{position:relative;overflow:hidden;background:var(--brand-grad);color:#fff;border-radius:0 0 32px 32px;padding:26px 0 34px}
-.hero::after{content:'';position:absolute;width:340px;height:340px;border-radius:50%;background:rgba(255,255,255,.12);top:-150px;right:-110px}
-.hero::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.08);bottom:-110px;left:-60px}
+/* Héro crème : le fond rouge plein est remplacé par une surface claire et la
+   photographie culinaire à droite. Le centre reste vide et lumineux. */
+.hero{
+  position:relative;overflow:hidden;color:var(--ink);
+  background:
+    radial-gradient(680px 340px at 88% 8%,  rgba(255,138,90,.13), transparent 62%),
+    radial-gradient(520px 420px at 4% 96%, rgba(255,138,90,.10), transparent 60%),
+    linear-gradient(150deg, #FFFDF9 0%, var(--cream) 46%, #F2ECE2 100%);
+  border-bottom:1px solid rgba(0,0,0,.05);
+  border-radius:0 0 32px 32px;padding:26px 0 34px;
+}
+/* photo de plats, en pleine hauteur à droite */
+.hero::after{
+  content:'';position:absolute;inset:0 0 0 auto;width:0;
+  background:url('../img/bg/hero-food.jpg') center right/cover no-repeat;
+  /* fondu vers la gauche : la photo se dissout dans le crème, jamais de bord net */
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 34%);
+  mask-image:linear-gradient(90deg, transparent, #000 34%);
+}
+/* pointillés discrets, comme sur la maquette */
+.hero::before{
+  content:'';position:absolute;width:120px;height:74px;top:44px;right:34%;
+  background-image:radial-gradient(rgba(255,109,71,.5) 1.6px, transparent 1.7px);
+  background-size:15px 15px;opacity:.55;display:none;
+}
 .hero-in{position:relative;z-index:2}
 .hero h1{font-size:30px;font-weight:850;letter-spacing:-.035em;line-height:1.12}
-.hero p{opacity:.94;margin-top:9px;font-size:15px;max-width:520px}
+.hero h1 .accent{color:var(--brand);display:block}
+.hero p{color:var(--muted);margin-top:9px;font-size:15px;max-width:520px}
 .hero-search{margin-top:20px;display:flex;gap:8px;background:#fff;border-radius:16px;padding:7px;box-shadow:var(--sh-3)}
 .hero-search input{flex:1;border:none;outline:none;padding:11px 13px;font-size:15px;background:transparent;min-width:0}
 .hero-cta{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.hero-cta .btn{background:#fff;color:var(--ink);box-shadow:var(--sh-2);border:1px solid rgba(0,0,0,.05)}
+.hero-cta .btn.primary{color:var(--brand)}
 .hero-stats{display:flex;gap:22px;margin-top:22px;flex-wrap:wrap}
-.hero-stats div b{display:block;font-size:21px;font-weight:850}
-.hero-stats div span{font-size:12px;opacity:.85}
-@media(min-width:800px){ .hero{padding:52px 0 60px} .hero h1{font-size:46px;max-width:640px} }
+.hero-stats div b{display:block;font-size:21px;font-weight:850;color:var(--brand)}
+.hero-stats div span{font-size:12px;color:var(--muted)}
+
+@media(min-width:800px){
+  .hero{padding:52px 0 60px}
+  .hero h1{font-size:46px}
+  /* la photo n'apparaît qu'à partir du moment où elle ne gêne pas le texte */
+  .hero::after{width:46%}
+  .hero::before{display:block}
+  /* le contenu occupe une colonne à gauche : on borne chaque bloc, sans
+     réduire .hero-in lui-même, qui est centré par .wrap */
+  .hero-in > *{max-width:660px}
+}
+@media(min-width:1100px){ .hero::after{width:42%} .hero-in > *{max-width:700px} }
+
+/* ------------------------------------------------------ pages de connexion
+   Fond crème premium, formulaire à gauche, illustration à droite. */
+.auth-page{
+  min-height:calc(100vh - 60px);
+  background:
+    radial-gradient(620px 320px at 92% 6%,  rgba(255,138,90,.12), transparent 60%),
+    radial-gradient(520px 380px at 2% 92%, rgba(255,138,90,.09), transparent 58%),
+    linear-gradient(150deg, #FFFDF9 0%, var(--cream) 48%, #F1EADE 100%);
+  padding:22px 0 calc(var(--nav-h) + 28px);
+}
+.auth-wrap{
+  width:100%;max-width:1080px;margin:0 auto;padding:0 16px;
+  display:flex;gap:44px;align-items:center;justify-content:center;
+}
+.auth-col{width:100%;max-width:460px;flex:none}
+/* l'illustration est masquée tant qu'il n'y a pas la place de la poser
+   sans rétrécir le formulaire */
+.auth-art{display:none}
+@media(min-width:960px){
+  .auth-wrap{justify-content:flex-start}
+  /* Le formulaire d'inscription est long : centrée, l'illustration
+     descendrait hors écran. Elle se cale donc en haut, à hauteur du bloc
+     titre + choix du rôle.
+     Pas de position:sticky ici — sticky crée un contexte d'empilement qui
+     neutraliserait le fondu « multiply » et laisserait un carré blanc. */
+  .auth-wrap{align-items:flex-start}
+  .auth-art{display:block;flex:1;max-width:520px;padding-top:8px}
+  .auth-art img{
+    width:100%;height:auto;
+    /* le visuel est sur fond blanc : « multiply » le fait disparaître dans le
+       crème au lieu de laisser un rectangle blanc */
+    mix-blend-mode:multiply;
+  }
+}
 
 /* ---------------------------------------------------------------- steps / timeline */
 .timeline{display:flex;flex-direction:column;gap:0;position:relative}
@@ -492,11 +569,11 @@ tr:hover td{background:#FCFDFF}
 }
 
 /* aperçu de position (lecture seule) */
-.map-preview{height:150px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:#EDF0F5}
+.map-preview{height:150px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:#F2EDE5}
 .leaflet-container{font:inherit}
 
 /* ------------------------------------------------ carte de suivi en direct */
-.live-map{height:240px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:#EDF0F5}
+.live-map{height:240px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:#F2EDE5}
 .lm-pin{
   width:38px;height:38px;border-radius:50%;background:#fff;
   display:grid;place-items:center;font-size:19px;

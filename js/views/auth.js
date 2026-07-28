@@ -25,14 +25,24 @@
       : '<div class="ic">' + r.i + '</div>';
   }
 
+  /* Tout le contenu tient dans la colonne de gauche ; le livreur illustre la
+     droite et prend la hauteur du formulaire. Sur mobile il disparaît : il n'y
+     a pas la place, et la page doit rester lisible d'abord. */
   function shell(title, subtitle, inner) {
-    return '<div class="wrap-sm page" style="max-width:460px">' +
-      '<div class="center" style="margin:8px 0 22px">' +
-        '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
-          'style="width:150px;border-radius:18px;margin:0 auto 14px;display:block">' +
-        '<div class="h1">' + U.esc(title) + '</div>' +
-        '<div class="sub" style="margin-top:6px">' + U.esc(subtitle) + '</div>' +
-      '</div>' + inner + '</div>';
+    return '<div class="auth-page"><div class="auth-wrap">' +
+      '<div class="auth-col">' +
+        '<div style="margin:2px 0 22px">' +
+          // « multiply » : le logo est sur fond blanc, il se fond dans le crème
+          '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
+            'style="width:132px;margin:0 0 14px;display:block;mix-blend-mode:multiply">' +
+          '<div class="h1">' + U.esc(title) + '</div>' +
+          '<div class="sub" style="margin-top:6px">' + U.esc(subtitle) + '</div>' +
+        '</div>' + inner +
+      '</div>' +
+      '<div class="auth-art" aria-hidden="true">' +
+        '<img src="assets/img/bg/signup-scooter.jpg" alt="">' +
+      '</div>' +
+    '</div></div>';
   }
 
   function afterLogin() {

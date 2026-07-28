@@ -4,6 +4,17 @@
 (function (w) {
   'use strict';
 
+  /* « Vos plats préférés, livrés chez vous » : la seconde moitié passe en
+     orange, comme sur la maquette. On coupe à la virgule ; sans virgule, le
+     titre reste d'un seul tenant. */
+  function tagline() {
+    const t = String(TALABI_CONFIG.APP_TAGLINE || '');
+    const i = t.indexOf(',');
+    if (i < 0) return U.esc(t);
+    return U.esc(t.slice(0, i + 1)) +
+      '<span class="accent">' + U.esc(t.slice(i + 1).trim()) + '</span>';
+  }
+
   Router.add('/', async function (params, query, view) {
 
     // les comptes pro sont redirigés vers leur espace
@@ -14,16 +25,16 @@
     view.innerHTML =
       /* ---------------------------------------------------------- HÉRO */
       '<section class="hero"><div class="wrap hero-in">' +
-        '<h1>' + U.esc(TALABI_CONFIG.APP_TAGLINE) + '</h1>' +
+        '<h1>' + tagline() + '</h1>' +
         '<p>Les meilleurs restaurants de Tizi Ouzou livrés chez vous en quelques minutes. Paiement à la livraison.</p>' +
         '<div class="hero-search">' +
           '<input id="q" placeholder="Rechercher un restaurant ou un plat…" autocomplete="off">' +
           '<button class="btn btn-dark" id="goSearch">Rechercher</button>' +
         '</div>' +
         '<div class="hero-cta">' +
-          '<a class="btn btn-lg" style="background:#fff;color:var(--brand)" href="#/restaurants">🍽️ Commander maintenant</a>' +
-          '<a class="btn btn-lg" style="background:rgba(255,255,255,.18);color:#fff;backdrop-filter:blur(4px)" href="#/signup?role=driver">🛵 Devenir livreur</a>' +
-          '<a class="btn btn-lg" style="background:rgba(255,255,255,.18);color:#fff;backdrop-filter:blur(4px)" href="#/signup?role=restaurant">🏪 Ajouter mon restaurant</a>' +
+          '<a class="btn btn-lg primary" href="#/restaurants">🍽️ Commander maintenant</a>' +
+          '<a class="btn btn-lg" href="#/signup?role=driver">🛵 Devenir livreur</a>' +
+          '<a class="btn btn-lg" href="#/signup?role=restaurant">🏪 Ajouter mon restaurant</a>' +
         '</div>' +
         '<div class="hero-stats" id="heroStats"></div>' +
       '</div></section>' +
