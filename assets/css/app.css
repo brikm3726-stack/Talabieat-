@@ -12,15 +12,16 @@
   --ink:#12141A;
   --ink-2:#3A404D;
   --muted:#7A8291;
-  --line:#E9ECF2;
-  /* fond de page chaud : il prolonge le crème du héro au lieu de virer au bleu */
-  --bg:#FAF8F4;
+  /* Teintes relevées directement sur la maquette : le fond n'est pas un blanc
+     cassé mais un crème chaud, franchement rosé. */
+  --line:#EBE3D9;
+  --bg:#F7EDE4;
   --card:#FFFFFF;
 
   /* Palette crème des grands fonds (héro, inscription) */
-  --cream:#F8F5EF;
-  --cream-2:#F1EADE;
-  --cream-line:#E7DFD2;
+  --cream:#F8F0E7;
+  --cream-2:#F0E2D4;
+  --cream-line:#E7DACB;
 
   --ok:#12B76A; --ok-soft:#E7F8F0;
   --warn:#F79009; --warn-soft:#FFF6E6;
@@ -306,7 +307,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   background:
     radial-gradient(680px 340px at 88% 8%,  rgba(255,138,90,.13), transparent 62%),
     radial-gradient(520px 420px at 4% 96%, rgba(255,138,90,.10), transparent 60%),
-    linear-gradient(150deg, #FFFDF9 0%, var(--cream) 46%, #F2ECE2 100%);
+    linear-gradient(150deg, #FFFAF4 0%, var(--cream) 46%, var(--cream-2) 100%);
   border-bottom:1px solid rgba(0,0,0,.05);
   border-radius:0 0 32px 32px;padding:26px 0 34px;
 }
@@ -356,9 +357,11 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   background:
     radial-gradient(620px 320px at 92% 6%,  rgba(255,138,90,.12), transparent 60%),
     radial-gradient(520px 380px at 2% 92%, rgba(255,138,90,.09), transparent 58%),
-    linear-gradient(150deg, #FFFDF9 0%, var(--cream) 48%, #F1EADE 100%);
+    linear-gradient(150deg, #FFFAF4 0%, var(--cream) 48%, var(--cream-2) 100%);
   padding:22px 0 calc(var(--nav-h) + 28px);
 }
+/* même gabarit que .auth-wrap pour que le titre s'aligne sur le formulaire */
+.auth-head{width:100%;max-width:1080px;margin:0 auto 18px;padding:0 16px}
 .auth-wrap{
   width:100%;max-width:1080px;margin:0 auto;padding:0 16px;
   display:flex;gap:44px;align-items:center;justify-content:center;
@@ -375,7 +378,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
      Pas de position:sticky ici — sticky crée un contexte d'empilement qui
      neutraliserait le fondu « multiply » et laisserait un carré blanc. */
   .auth-wrap{align-items:flex-start}
-  .auth-art{display:block;flex:1;max-width:520px;padding-top:8px}
+  .auth-art{display:block;flex:1;max-width:520px}
   .auth-art img{
     width:100%;height:auto;
     /* le visuel est sur fond blanc : « multiply » le fait disparaître dans le
@@ -387,7 +390,14 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 /* ------------------------------------------------- décor de la page d'accueil
    Des plats en bordure, le centre laissé libre et lumineux pour les cartes.
    Purement décoratif : rien d'utile ne dépend de ces images. */
-.home-decor{position:relative;overflow:hidden}
+.home-decor{
+  position:relative;overflow:hidden;
+  /* la maquette n'est pas d'un crème uniforme : elle s'éclaircit en haut à
+     gauche et se réchauffe vers le bas à droite */
+  background:
+    radial-gradient(900px 520px at 100% 100%, rgba(233,213,193,.55), transparent 62%),
+    radial-gradient(760px 420px at 0% 0%, rgba(255,255,255,.55), transparent 58%);
+}
 .home-decor > .wrap{position:relative;z-index:1}
 /* Pointillés en bas à gauche. Ils ont leur propre élément : posés en fond de
    .home-decor, « no-repeat » n'aurait dessiné qu'un point, et « repeat »
