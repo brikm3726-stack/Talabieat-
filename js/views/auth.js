@@ -45,9 +45,12 @@
       '<div class="auth-in">' +
         '<div class="auth-head">' +
           '<div class="auth-headtext">' +
-            // « multiply » : le logo est sur fond blanc, il se fond dans le fond
-            '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
-              'style="width:104px;margin:0 0 12px;display:block;mix-blend-mode:multiply">' +
+            '<div class="auth-brandrow">' +
+              // « multiply » : le logo est sur fond blanc, il se fond dans le fond
+              '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
+                'class="auth-logo">' +
+              boutonInstaller() +
+            '</div>' +
             '<div class="h1">' + brandify(title) + '</div>' +
             '<div class="sub" style="margin-top:8px">' + U.esc(subtitle) + '</div>' +
           '</div>' +
@@ -56,6 +59,39 @@
         '<div class="auth-col">' + inner + '</div>' +
       '</div>' +
     '</div>';
+  }
+
+  /* Bouton d'installation, posé à côté du logo.
+     Le libellé dit la vérité selon le téléphone : sur Android il installe
+     vraiment, sur iPhone il explique comment faire — Apple n'offre aucun
+     moyen d'installer une page web autrement qu'à la main. Une fois
+     l'application installée, le bouton n'a plus de raison d'être. */
+  function boutonInstaller() {
+    if (!w.Install || !Install.aProposer) return '';
+    const ios = Install.plateforme === 'ios';
+    return '<button class="btn-install" id="btnInstall" ' +
+      'title="' + (ios ? 'Ajouter Talabi à votre écran d’accueil'
+                       : 'Installer Talabi sur votre téléphone') + '">' +
+      UI.icon(ios ? 'plus' : 'upload', 17) +
+      '<span>' + (ios ? 'Ajouter à l’écran d’accueil' : 'Installer l’appli') + '</span>' +
+    '</button>';
+  }
+
+  /* Le bouton doit réapparaître si le navigateur annonce l'installation
+     APRÈS le premier affichage de la page — l'évènement arrive quand il veut. */
+  function brancherInstall(view) {
+    const b = view.querySelector('#btnInstall');
+    if (b) b.onclick = () => Install.demander();
+    if (!w.Install) return null;
+    return Install.onChange(() => {
+      const rangee = view.querySelector('.auth-brandrow');
+      if (!rangee) return;
+      const actuel = rangee.querySelector('#btnInstall');
+      if (actuel) actuel.remove();
+      rangee.insertAdjacentHTML('beforeend', boutonInstaller());
+      const n = rangee.querySelector('#btnInstall');
+      if (n) n.onclick = () => Install.demander();
+    });
   }
 
   function afterLogin() {
@@ -114,6 +150,7 @@
     };
 
     bindDemoLogins(view);
+    return brancherInstall(view);
   });
 
   /* ======================================================================
@@ -227,6 +264,8 @@
         UI.err(err.message);
       }
     };
+
+    return brancherInstall(view);
   });
 
   /* ----------------------------------------------------------------------
