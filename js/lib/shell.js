@@ -35,12 +35,14 @@
       { p: '/d/history',     i: 'history',  l: 'Historique' },
       { p: '/account',       i: 'user',     l: 'Compte' }
     ],
+    /* `c` : libellé court pour la barre du bas. Six rubriques sur 390 px font
+       65 px chacune ; « Utilisateurs » et « Restaurants » s'y touchaient. */
     admin: [
       { p: '/a',             i: 'chart',    l: 'Tableau' },
-      { p: '/a/restaurants', i: 'store',    l: 'Restaurants' },
+      { p: '/a/restaurants', i: 'store',    l: 'Restaurants',  c: 'Restos' },
       { p: '/a/drivers',     i: 'scooter',  l: 'Livreurs' },
       { p: '/a/orders',      i: 'receipt',  l: 'Commandes' },
-      { p: '/a/users',       i: 'users',    l: 'Utilisateurs' },
+      { p: '/a/users',       i: 'users',    l: 'Utilisateurs', c: 'Comptes' },
       // Réglages manquait ici : la page n'était atteignable que par la barre
       // d'onglets répétée dans chaque page, qui doublonnait ce menu
       { p: '/a/settings',    i: 'settings', l: 'Réglages' }
@@ -183,9 +185,10 @@
       nav.innerHTML = Shell.navItems().map(x => {
         let badge = '';
         if (x.badge === 'cart' && Store.cartCount) badge = '<span class="badge-dot">' + Store.cartCount + '</span>';
-        return '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '">' +
+        return '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '" ' +
+               'title="' + U.esc(x.l) + '">' +
                '<i style="position:relative">' + UI.icon(x.i, 22) + badge + '</i>' +
-               '<span>' + x.l + '</span></a>';
+               '<span>' + U.esc(x.c || x.l) + '</span></a>';
       }).join('');
     },
 

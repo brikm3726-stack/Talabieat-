@@ -301,19 +301,22 @@
       '<th>Code</th><th>Client</th><th>Restaurant</th><th>Livreur</th>' +
       '<th>Total</th><th>Commission</th><th>Statut</th><th>Date</th>' +
       '</tr></thead><tbody>' +
+      /* data-l : sur téléphone le tableau devient une liste de fiches, et
+         c'est cet attribut qui réaffiche l'intitulé devant chaque valeur.
+         La classe « tete » désigne la cellule qui sert de titre de fiche. */
       rows.map(o => '<tr>' +
-        '<td><span class="ocode">#' + U.esc(o.code) + '</span></td>' +
-        '<td class="ic-cell">' + UI.icon('user', 15) + ' ' +
+        '<td class="tete"><span class="ocode">#' + U.esc(o.code) + '</span></td>' +
+        '<td class="ic-cell" data-l="Client">' + UI.icon('user', 15) + ' ' +
           U.esc(o.client_name || (o.client && o.client.full_name) || '—') + '</td>' +
-        '<td class="ic-cell">' + UI.icon('store', 15) + ' ' +
+        '<td class="ic-cell" data-l="Restaurant">' + UI.icon('store', 15) + ' ' +
           U.esc(o.restaurant ? o.restaurant.name : '—') + '</td>' +
-        '<td class="ic-cell">' + (o.driver
+        '<td class="ic-cell" data-l="Livreur">' + (o.driver
           ? UI.icon('scooter', 15) + ' ' + U.esc(o.driver.full_name)
           : '<span class="vide">—</span>') + '</td>' +
-        '<td><b class="montant">' + U.money(o.total) + '</b></td>' +
-        '<td>' + U.money(o.commission) + '</td>' +
-        '<td>' + UI.tag(o.status) + '</td>' +
-        '<td class="ic-cell tiny">' + UI.icon('clock', 14) + ' ' + U.dt(o.created_at) + '</td>' +
+        '<td data-l="Total"><b class="montant">' + U.money(o.total) + '</b></td>' +
+        '<td data-l="Commission">' + U.money(o.commission) + '</td>' +
+        '<td data-l="Statut">' + UI.tag(o.status) + '</td>' +
+        '<td class="ic-cell tiny" data-l="Date">' + UI.icon('clock', 14) + ' ' + U.dt(o.created_at) + '</td>' +
       '</tr>').join('') + '</tbody></table></div>';
   }
 
@@ -359,18 +362,18 @@
         '<th>Utilisateur</th><th>Rôle</th><th>Téléphone</th><th>Zone</th><th>Statut</th><th>Inscrit</th><th>Actions</th>' +
         '</tr></thead><tbody>' +
         rows.map(u => '<tr>' +
-          '<td><div class="adm-user">' + UI.avatar(u.full_name, u.avatar_url, 38) +
+          '<td class="tete"><div class="adm-user">' + UI.avatar(u.full_name, u.avatar_url, 38) +
             '<div><b>' + U.esc(u.full_name || '—') + '</b>' +
             '<div class="tiny">' + U.esc(u.email || '') + '</div></div></div></td>' +
-          '<td><span class="adm-role ' + U.esc(u.role) + '">' + UI.icon(ROLE_ICON[u.role] || 'user', 14) +
+          '<td data-l="Rôle"><span class="adm-role ' + U.esc(u.role) + '">' + UI.icon(ROLE_ICON[u.role] || 'user', 14) +
             ' ' + U.esc(roleLabel(u.role)) + '</span></td>' +
-          '<td class="ic-cell">' + (u.phone ? UI.icon('phone', 15) + ' ' + U.esc(u.phone) : '<span class="vide">—</span>') + '</td>' +
-          '<td class="ic-cell">' + (u.zone ? UI.icon('pin', 15) + ' ' + U.esc(u.zone.name) : '<span class="vide">—</span>') + '</td>' +
-          '<td>' + (u.is_blocked
+          '<td class="ic-cell" data-l="Téléphone">' + (u.phone ? UI.icon('phone', 15) + ' ' + U.esc(u.phone) : '<span class="vide">—</span>') + '</td>' +
+          '<td class="ic-cell" data-l="Zone">' + (u.zone ? UI.icon('pin', 15) + ' ' + U.esc(u.zone.name) : '<span class="vide">—</span>') + '</td>' +
+          '<td data-l="Statut">' + (u.is_blocked
             ? '<span class="tag tag-danger">● Bloqué</span>'
             : '<span class="tag tag-ok">● Actif</span>') + '</td>' +
-          '<td class="ic-cell tiny">' + UI.icon('calendar', 14) + ' ' + U.dt(u.created_at) + '</td>' +
-          '<td><div class="row" style="gap:6px">' +
+          '<td class="ic-cell tiny" data-l="Inscrit">' + UI.icon('calendar', 14) + ' ' + U.dt(u.created_at) + '</td>' +
+          '<td class="actions"><div class="row" style="gap:6px">' +
             '<button class="btn btn-ghost btn-sm" data-edit="' + U.esc(u.id) + '">' +
               UI.icon('pencil', 14) + ' Modifier</button>' +
             (u.role !== 'admin'

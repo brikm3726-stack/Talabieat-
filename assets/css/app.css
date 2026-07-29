@@ -59,7 +59,11 @@ p{margin:0}
 /* --------------------------------------------------------------- layout */
 .wrap{width:100%;max-width:1200px;margin:0 auto;padding:0 16px}
 .wrap-sm{width:100%;max-width:720px;margin:0 auto;padding:0 16px}
-.page{padding:18px 0 calc(var(--nav-h) + 32px)}
+/* padding-top / padding-bottom séparés, et surtout PAS la forme raccourcie :
+   `padding:18px 0 …` écrasait le `padding:0 16px` de .wrap, avec lequel cette
+   classe est toujours combinée. Sur grand écran la largeur maximale de 1200 px
+   masquait le problème ; sur téléphone le contenu touchait les deux bords. */
+.page{padding-top:18px;padding-bottom:calc(var(--nav-h) + 32px)}
 .stack{display:flex;flex-direction:column;gap:14px}
 .row{display:flex;align-items:center;gap:10px}
 .row-between{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -1462,3 +1466,176 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 .adm-search{position:relative;margin-bottom:14px;color:#6F7684}
 .adm-search .ico{position:absolute;left:15px;top:50%;transform:translateY(-50%)}
 .adm-search .input{padding-left:44px}
+
+/* =============================================================== TÉLÉPHONE
+   Le site est construit mobile-first, mais « ça rentre » ne suffit pas : sur
+   un téléphone on vise avec le pouce, on lit au soleil, et on tient l'appareil
+   d'une main. Ce bloc corrige ce qui ne se voit qu'à la main :
+
+   • une cible tactile fait au moins 44 px — en dessous, on rate le bouton ;
+   • aucun texte utile en dessous de 12 px ;
+   • les tableaux deviennent des fiches : un tableau qui défile latéralement
+     cache la moitié de ses colonnes ;
+   • rien ne dépasse jamais la largeur de l'écran.
+   ========================================================================== */
+@media(max-width:700px){
+
+  /* ---- rien ne déborde, jamais ---- */
+  .wrap,.wrap-sm{max-width:100%}
+  /* les rangées pleine largeur défilent dans leur propre boîte */
+  .chips,.adm-filters,.tabs,.adm-table,.table-wrap{max-width:100%}
+
+  /* ---- cibles tactiles ---- */
+  .btn{min-height:46px;padding:12px 18px}
+  .btn-sm{min-height:44px;padding:10px 15px;font-size:13.5px}
+  .btn-lg{min-height:52px}
+  .icon-btn{width:44px;height:44px}
+  .add-btn{width:44px;height:44px;border-radius:14px;font-size:22px}
+  .qty button{min-width:40px;min-height:40px}
+  .chip,.chips .chip{padding:11px 16px}
+  .tabs button,.adm-filters button{min-height:44px}
+  .zone-pick{min-height:44px}
+
+  /* ---- lisibilité ---- */
+  .tiny{font-size:12.5px}
+  .bottomnav a{font-size:10px}
+  .adm-stat .k,.adm-table th{font-size:12px}
+  .drv-stat .s,.rs-stat .s,.adm-stat .s{font-size:12.5px}
+  .chip-n{font-size:12px}
+  .hint{font-size:12.5px}
+  /* pastilles et intitulés de vignettes : 11 px passe sur un écran de
+     bureau regardé de près, pas sur un téléphone tenu à bout de bras */
+  .tag{font-size:12px;padding:5px 11px}
+  .adm-stat .k,.drv-stat .k,.rs-stat .k{font-size:12px}
+  .stat .k,.drv-stat .s,.rs-stat .s,.adm-stat .s{font-size:12.5px}
+  .hero-note,.scene-sub,.drv-note{font-size:13px}
+  .adm-filters .n,.cat-item span,.drv-earn .k,.rs-bars .b i{font-size:12.5px}
+
+  /* ---- barre du bas : six rubriques tiennent mal en toutes lettres ---- */
+  .bottomnav a{padding:0 2px;gap:2px}
+  .bottomnav a span{
+    max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+
+  /* ---- titres : moins hauts, la place est comptée ---- */
+  .adm-head .h1{font-size:25px}
+  .adm-head .sub{font-size:13.5px}
+  .h1{font-size:26px}
+
+  /* ---- vignettes de chiffres : deux par ligne plutôt qu'une ---- */
+  /* min-width:0 : un enfant de grille refuse par défaut de descendre sous sa
+     largeur minimale de contenu, et pousse alors toute la page */
+  .adm-stat,.rs-stat,.drv-stat,.stat,.grid > *{min-width:0}
+  .adm-stats{grid-template-columns:1fr 1fr;gap:10px}
+  .adm-stat{padding:13px 14px}
+  .adm-stat .v{font-size:23px;margin-top:8px}
+  .adm-stat .k{letter-spacing:.04em}
+  .grid-stats{grid-template-columns:1fr 1fr}
+
+  /* ---- fiches admin : tout en colonne, actions pleine largeur ---- */
+  .adm-row{gap:12px}
+  .adm-logo{width:64px;height:64px}
+  .adm-acts{width:100%;margin-left:0}
+  .adm-acts .btn{flex:1 1 46%}
+  .adm-card{padding:15px}
+  .adm-name{font-size:16px}
+
+  /* ---- filtres : on garde le défilement, mais chaque bouton reste lisible ---- */
+  .adm-filters{padding:5px;gap:5px}
+  .adm-filters button{flex:0 0 auto;padding:11px 14px;font-size:13px}
+
+  /* =====================================================================
+     TABLEAUX → FICHES
+     Un tableau de huit colonnes sur 390 px n'est pas consultable : on en
+     voit trois, et les cinq autres sont derrière un défilement horizontal
+     que rien n'annonce. Chaque ligne devient donc une fiche, et l'intitulé
+     de colonne réapparaît devant chaque valeur (attribut data-l).
+     ===================================================================== */
+  .adm-table{border:none;background:transparent;overflow:visible}
+  /* min-width:560px est posé sur tous les <table> pour garder les colonnes
+     lisibles ; il empêchait ici la mise en fiches et repoussait toutes les
+     valeurs hors de l écran */
+  .adm-table table,.adm-table tbody,.adm-table tr,.adm-table td{
+    display:block;width:100%;min-width:0;
+  }
+  .adm-table thead{display:none}
+  .adm-table tr{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:14px 16px;margin-bottom:12px;
+  }
+  .adm-table td{
+    border:none;padding:7px 0;display:flex;align-items:center;gap:10px;
+    justify-content:space-between;text-align:right;
+  }
+  .adm-table td::before{
+    content:attr(data-l);flex:none;text-align:left;
+    font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:#7B828E;
+  }
+  /* la première cellule fait office de titre de fiche : pas d'intitulé */
+  .adm-table td.tete{
+    justify-content:flex-start;text-align:left;padding-bottom:12px;
+    border-bottom:1px solid var(--line);margin-bottom:6px;
+  }
+  .adm-table td.tete::before{content:none}
+  .adm-table td.actions{
+    display:flex;gap:8px;padding-top:12px;margin-top:6px;
+    border-top:1px solid var(--line);
+  }
+  .adm-table td.actions::before{content:none}
+  .adm-table td.actions .row{width:100%;gap:8px}
+  .adm-table td.actions .btn{flex:1}
+  .adm-table tbody tr:hover{background:var(--card)}
+  .adm-table .ic-cell{white-space:normal}
+  /* le pictogramme de tête flotterait entre l intitulé et la valeur ;
+     l intitulé dit déjà de quoi il s agit */
+  .adm-table td[data-l] > .ico:first-child{display:none}
+
+  /* ---- fiche de plat : la vignette laisse 160 px au texte sur un petit
+     écran, et la rangée prix + boutons n y tient pas d une seule ligne ---- */
+  .dish{gap:10px}
+  .dish-img{width:74px;height:74px}
+  .dish-body{min-width:0}
+  .dish .row-between{flex-wrap:wrap;gap:8px}
+
+  /* ---- espace restaurant ---- */
+  /* le bouton Ouvert/Fermé passe sous le titre : côte à côte, il écrase le
+     fil d ariane qui se casse alors sur deux lignes */
+  .rs-head{gap:10px}
+  .rs-head .h1{font-size:24px}
+  .rs-head-side{margin-left:0;width:100%}
+  .rs-crumb{font-size:13px}
+  .rs-tabs{gap:6px}
+  .rs-menubar{flex-direction:column;align-items:stretch;gap:10px}
+  .rs-menubar .btn{width:100%}
+
+  /* ---- espace livreur ---- */
+  .drv-head{gap:12px}
+  .drv-stats{grid-template-columns:1fr 1fr}
+
+  /* ---- compte client ---- */
+  .acc-grid{grid-template-columns:1fr}
+
+  /* ---- accueil : la recherche sur deux lignes, sinon le champ est réduit
+     à trois mots et le bouton mange la moitié de la largeur ---- */
+  .hero-search{flex-direction:column;gap:6px;padding:8px}
+  .hero-search input{padding:12px 10px}
+  .hero-search .btn{width:100%}
+  /* les trois raccourcis prennent toute la largeur : alignés, ils se lisent
+     comme une liste plutôt que comme un escalier ---- */
+  .hero-cta{flex-direction:column;align-items:stretch}
+  .hero-cta .btn{width:100%;justify-content:flex-start}
+
+  /* ---- comptes à rebours : le chrono reste bien visible ---- */
+  .cdown{padding:11px 14px}
+  .cdown .t{font-size:17px}
+}
+
+/* Très petits écrans (iPhone SE, 320–375 px) : on resserre encore. */
+@media(max-width:380px){
+  .adm-stats,.grid-stats,.drv-stats,.rs-stats{grid-template-columns:1fr}
+  .bottomnav a{font-size:9.5px}
+  .adm-acts .btn{flex:1 1 100%}
+  .h1{font-size:23px}
+  .adm-head .h1{font-size:22px}
+}
