@@ -32,6 +32,17 @@
 
   function prevenir() { abonnes.forEach(f => { try { f(); } catch (e) { console.error(e); } }); }
 
+  /** Attend que le navigateur annonce l'installation, au plus `ms`. */
+  function attendreInvite(ms) {
+    if (invite) return Promise.resolve(true);
+    return new Promise(resolve => {
+      let fini = false;
+      const stop = () => { if (fini) return; fini = true; off(); clearTimeout(t); resolve(!!invite); };
+      const off = Install.onChange(() => { if (invite) stop(); });
+      const t = setTimeout(stop, ms);
+    });
+  }
+
   const ua = navigator.userAgent || '';
   /* iPadOS 13+ se déclare comme un Mac : on le reconnaît au tactile. */
   const estIOS = /iPad|iPhone|iPod/.test(ua) ||
@@ -80,6 +91,13 @@
         UI.ok('Déjà installée', 'Talabi est sur votre écran d’accueil.');
         return 'installee';
       }
+
+      /* Le navigateur met une à quelques secondes à annoncer qu'il sait
+         installer. Quelqu'un qui touche le bouton tout de suite après
+         l'ouverture de la page tombait sur le mode d'emploi alors que
+         l'installation en un geste allait devenir possible. On laisse donc
+         sa chance au navigateur avant de se rabattre sur les explications. */
+      if (!invite && !estIOS) await attendreInvite(2500);
 
       if (invite) {
         const e = invite;

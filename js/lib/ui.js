@@ -53,8 +53,11 @@
         setTimeout(() => { ov.remove(); if (!root.children.length) document.body.style.overflow = ''; }, 160);
       };
       ov.addEventListener('click', e => { if (e.target === ov) close(); });
-      const x = ov.querySelector('[data-x]');
-      if (x) x.addEventListener('click', close);
+      // querySelectorAll et non querySelector : une modale a souvent DEUX
+      // boutons de fermeture — la croix de l'en-tête et un bouton de pied de
+      // page (« J'ai compris »). Avec querySelector, seule la croix marchait
+      // et le bouton du bas ne faisait rien.
+      ov.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', close));
 
       const api = { close, el: ov };
       if (opts.onMount) opts.onMount(ov, api);

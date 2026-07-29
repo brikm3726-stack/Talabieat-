@@ -7,6 +7,9 @@
   const routes = [];
   let current = null;
   let cleanup = null;
+  /* Numéro d'ordre de l'affichage en cours : sert à reconnaître une vue
+     devenue périmée pendant son propre chargement. */
+  let sequence = 0;
 
   function compile(pattern) {
     const keys = [];
@@ -89,20 +92,43 @@
       if (typeof cleanup === 'function') { try { cleanup(); } catch (e) {} cleanup = null; }
 
       current = { path: path, params: match.params, query: query, pattern: match.route.pattern };
-      const view = document.getElementById('view');
-      view.innerHTML = '';
-      view.className = 'fade-in';
+
+      /* Chaque affichage reçoit SON PROPRE conteneur, jeté au suivant.
+         Une vue charge ses données de façon asynchrone puis écrit dans la page.
+         Si l'on change de page pendant ce chargement, l'ancienne vue reprend la
+         main après coup : avec un conteneur unique, elle écrasait la nouvelle
+         page — ou, quand l'élément visé venait de disparaître, faisait planter
+         tout l'affichage sur « Une erreur est survenue ».
+         Avec un conteneur par affichage, elle écrit dans un élément détaché du
+         document : sans effet, et sans casse. */
+      const hote = document.getElementById('view');
+      hote.innerHTML = '';
+      const view = document.createElement('div');
+      view.className = 'view-in fade-in';
+      hote.appendChild(view);
+      const monTour = ++sequence;
+      const encoreAffiche = () => monTour === sequence;
 
       try {
         const res = await match.route.handler(match.params, query, view);
-        if (typeof res === 'function') cleanup = res;   // la vue peut renvoyer un "destructeur"
+        if (typeof res === 'function') {
+          // un affichage périmé ne doit pas laisser derrière lui un nettoyage
+          // qui s'appliquerait à la page suivante
+          if (encoreAffiche()) cleanup = res;
+          else { try { res(); } catch (e) {} }
+        }
       } catch (e) {
         console.error(e);
-        view.innerHTML = '<div class="wrap page">' +
-          UI.empty('⚠️', 'Une erreur est survenue', e.message || '',
-            '<button class="btn btn-ghost" onclick="location.reload()">Recharger</button>') + '</div>';
+        // une erreur survenue dans une vue déjà remplacée ne concerne plus
+        // personne : l'afficher effacerait la page que l'utilisateur regarde
+        if (encoreAffiche()) {
+          view.innerHTML = '<div class="wrap page">' +
+            UI.empty(UI.icon('warn', 40), 'Une erreur est survenue', e.message || '',
+              '<button class="btn btn-ghost" onclick="location.reload()">Recharger</button>') + '</div>';
+        }
       }
 
+      if (!encoreAffiche()) return;   // une navigation plus récente a pris la main
       Shell.render();
       UI.scrollTop();
     },

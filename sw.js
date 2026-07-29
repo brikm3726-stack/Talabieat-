@@ -17,7 +17,7 @@
 
 /* Changer ce numéro à chaque mise en ligne : c'est lui qui déclenche le
    remplacement de l'ancien cache par le nouveau. */
-const VERSION = 'talabi-v1';
+const VERSION = 'talabi-v2';
 const COQUILLE = VERSION + '-coquille';
 const RESTE    = VERSION + '-reste';
 
@@ -110,19 +110,40 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  /* Le reste : le cache d'abord (l'affichage est instantané), et on rafraîchit
-     en arrière-plan pour la prochaine ouverture. */
+  const garder = (rep, ou) => {
+    if (rep && rep.status === 200 && (rep.type === 'basic' || rep.type === 'cors')) {
+      const copie = rep.clone();
+      caches.open(ou).then(c => c.put(req, copie)).catch(() => {});
+    }
+    return rep;
+  };
+  const boite = url.origin === location.origin ? COQUILLE : RESTE;
+
+  /* Le code de l'application : le RÉSEAU D'ABORD, le cache en secours.
+     Avec le cache d'abord, une correction mise en ligne n'atteignait
+     l'utilisateur qu'à la visite suivante — voire jamais, puisque le fichier
+     servi était toujours l'ancien. Le cache reste là pour le hors-ligne. */
+  const estCode = url.origin === location.origin &&
+                  /\.(js|css|html|webmanifest)$/.test(url.pathname);
+
+  if (estCode) {
+    e.respondWith((async () => {
+      try {
+        const rep = await fetch(req);
+        return garder(rep, boite);
+      } catch (err) {
+        return (await caches.match(req)) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  /* Images, sons, cartes, librairies externes : le cache d'abord (l'affichage
+     est instantané), et on rafraîchit en arrière-plan. Ces fichiers-là ne
+     changent pratiquement jamais. */
   e.respondWith((async () => {
     const vu = await caches.match(req);
-    const reseau = fetch(req).then(rep => {
-      if (rep && rep.status === 200 && (rep.type === 'basic' || rep.type === 'cors')) {
-        const copie = rep.clone();
-        caches.open(url.origin === location.origin ? COQUILLE : RESTE)
-          .then(c => c.put(req, copie)).catch(() => {});
-      }
-      return rep;
-    }).catch(() => null);
-
+    const reseau = fetch(req).then(rep => garder(rep, boite)).catch(() => null);
     return vu || (await reseau) || Response.error();
   })());
 });
