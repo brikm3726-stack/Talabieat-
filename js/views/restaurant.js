@@ -315,6 +315,13 @@
       }
       UI.busy(this, true);
       const r = await API.safe(() => API.updateOrderStatus(id, status, extra), null);
+      // accusé sonore une fois la décision enregistrée, et seulement pour la
+      // réponse à une nouvelle commande : les étapes suivantes (en préparation,
+      // prête) sont de la routine, les faire sonner deviendrait pénible
+      if (r && w.Sound) {
+        if (status === 'accepted') Sound.play('accepted', 1);
+        else if (status === 'rejected') Sound.play('refused', 1);
+      }
       if (r) UI.ok(U.statusLabel(status));
       reload();
     });

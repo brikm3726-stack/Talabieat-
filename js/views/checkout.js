@@ -160,6 +160,8 @@
         });
         Store.clearCart();
         Shell.renderNav();
+        // la commande est réellement enregistrée : on peut l'annoncer
+        if (w.Sound) Sound.play('ordered', 1);
         UI.ok('Commande envoyée !', 'Numéro #' + order.code);
         Router.go('/order/' + order.id, true);
       } catch (e) {

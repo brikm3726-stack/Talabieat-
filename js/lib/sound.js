@@ -11,8 +11,12 @@
      libère et tourne jusqu'à ce qu'il accepte ou qu'il passe. Un plafond
      l'arrête de toute façon : une sonnerie sans fin dans un téléphone posé
      sur une table est intenable.
-   • Livreur — livraison validée : un bref accusé quand il confirme avoir
-     remis la commande.
+   S'y ajoutent cinq accusés, qui ne sonnent qu'une fois et ne s'arrêtent
+   jamais tout seuls : commande envoyée (client), commande acceptée et
+   commande refusée (restaurant), course acceptée et livraison validée
+   (livreur). Ils confirment un geste que l'on vient de faire — donc on les
+   joue au retour du serveur, jamais avant : sonner puis afficher une erreur
+   serait pire que de ne rien sonner.
 
    Les navigateurs interdisent de jouer un son avant que l'utilisateur ait
    interagi avec la page. On déverrouille donc au premier clic, et une alerte
@@ -22,10 +26,22 @@
   'use strict';
 
   const FILES = {
+    /* --- appels : ça sonne pour réclamer une réponse --- */
     'new-order': 'assets/sounds/nouvelle-commande.wav',   // restaurant
     'delivery':  'assets/sounds/course-disponible.m4a',   // livreur
-    'delivered': 'assets/sounds/livraison-validee.m4a'    // accusé de livraison
+
+    /* --- accusés : ça sonne une fois, pour confirmer un geste --- */
+    'ordered':   'assets/sounds/commande-passee.wav',     // client : commande envoyée
+    'accepted':  'assets/sounds/commande-acceptee.wav',   // restaurant : acceptée
+    'refused':   'assets/sounds/commande-refusee.wav',    // restaurant : refusée
+    'claimed':   'assets/sounds/course-acceptee.wav',     // livreur : course prise
+    'delivered': 'assets/sounds/livraison-validee.m4a'    // livreur : course livrée
   };
+
+  /* Les appels seuls s'interrompent. Un accusé dure une seconde et confirme
+     un geste : le couper à mi-chemin parce qu'une liste s'est rafraîchie
+     n'aurait aucun sens. */
+  const ALERTES = ['new-order', 'delivery'];
 
   const RESTO_FOIS   = 1;    // demandé : un seul passage
   // La sonnerie livreur dure 9 s : quatre passages font déjà plus de 35 s
@@ -104,6 +120,9 @@
 
     stopAll() { Object.keys(players).forEach(Sound.stop); },
 
+    /** Coupe les sonneries d'appel, laisse les accusés finir leur phrase. */
+    stopAlerts() { ALERTES.forEach(Sound.stop); },
+
     playing(key) {
       const p = players[key];
       return !!(p && (p.left > 0 || (!p.audio.paused && !p.audio.ended)));
@@ -120,13 +139,14 @@
        commande acceptée, refusée, ou course prise par un autre livreur.
        ================================================================== */
     async watchOrders() {
-      if (!w.Store || !Store.isLogged) return Sound.stopAll();
+      if (!w.Store || !Store.isLogged) return Sound.stopAlerts();
       if (Store.role === 'restaurant')
         await scan('new-order', { scope: 'restaurant', status: ['pending'] }, RESTO_FOIS);
       else if (Store.role === 'driver')
         await scan('delivery', { scope: 'available' }, LIVREUR_MAX);
       else
-        Sound.stopAll();
+        Sound.stopAlerts();   // et non stopAll : le client vient peut-être de
+                              // valider sa commande, l'accusé doit s'entendre
     },
 
     /** Changement de compte : ce qui a déjà sonné pour l'autre ne compte plus. */

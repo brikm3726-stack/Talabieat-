@@ -459,6 +459,9 @@
       UI.busy(this, true, 'Attribution…');
       try {
         await API.claimOrder(this.dataset.claim);
+        // la course lui est bien attribuée — deux livreurs peuvent viser la
+        // même, et celui qui perd ne doit surtout pas entendre l'accusé
+        if (w.Sound) Sound.play('claimed', 1);
         // on partage la position tout de suite : le client voit le livreur
         // dès la prise en charge, sans attendre le premier cycle automatique
         LiveTrack.pushOnce().catch(() => {});
