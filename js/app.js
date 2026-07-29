@@ -17,6 +17,13 @@
 
   async function boot() {
     try {
+      /* ---- 0. Sans base de données, il n'y a pas d'application ---- */
+      if (!w.TALABI_CONFIGURED) {
+        return fail('Base de données non configurée',
+          'Renseignez SUPABASE_URL et SUPABASE_ANON_KEY dans le fichier config.js ' +
+          '(Supabase → Project Settings → API), puis rechargez la page.');
+      }
+
       /* ---- 1. Le lien de récupération Supabase arrive dans le hash ---- */
       if (/type=recovery/.test(location.hash)) location.hash = '#/reset';
 
@@ -86,12 +93,6 @@
       splash.style.transition = 'opacity .35s ease';
       splash.style.opacity = '0';
       setTimeout(() => splash.remove(), 380);
-
-      if (API.mode === 'demo') {
-        TestPanel.mount();
-        setTimeout(() => UI.toast('Mode démonstration actif', null,
-          'Utilisez le bouton 🧪 en bas à droite pour changer de compte et tester tout le parcours.'), 900);
-      }
 
     } catch (e) {
       console.error(e);

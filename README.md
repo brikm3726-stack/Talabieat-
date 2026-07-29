@@ -7,48 +7,23 @@ Mobile-first, données réelles, sécurité par rôle.
 
 ---
 
-## Démarrer en 10 secondes
+## Une seule façon de fonctionner : en ligne
 
-Double-clique sur **`index.html`**. Le site s'ouvre en mode démonstration avec
-des restaurants, des menus et des commandes d'exemple.
+Talabi tourne sur une **vraie base de données partagée** (Supabase). Il n'y a pas
+de mode démonstration : les comptes, les restaurants et les commandes sont réels
+et visibles par tous les appareils connectés.
 
-Comptes de test — mot de passe `123456` :
+Trois choses à faire une seule fois :
 
-| Rôle | Email |
-|---|---|
-| 🍔 Client | `client@talabi.dz` |
-| 🏪 Restaurant | `resto@talabi.dz` *(gère Melyza Tacos)* |
-| 🛵 Livreur | `livreur@talabi.dz` |
-| ⚙️ Admin | `admin@talabi.dz` |
+1. Créer un projet Supabase et y exécuter **`supabase/00_installation.sql`**
+2. Coller les deux clés du projet dans **`config.js`**
+3. Créer son compte sur le site, puis exécuter **`supabase/admin.sql`** pour
+   devenir administrateur
 
-**Restaurants de démonstration** — cinq établissements réels de Tizi Ouzou,
-chacun avec son propre compte gérant :
+Tout est détaillé pas à pas ici 👉 **[GUIDE-INSTALLATION.md](GUIDE-INSTALLATION.md)**
 
-| Restaurant | Quartier | Compte |
-|---|---|---|
-| Melyza Tacos | Centre-ville | `resto@talabi.dz` |
-| L'Ambassade | Centre-ville | `ambassade@talabi.dz` |
-| Maison Sadoudi | El Bordj | `sadoudi@talabi.dz` |
-| L'Atelier en Ville | Nouvelle Ville | `atelier@talabi.dz` |
-| The Twelve | Nouvelle Ville | `twelve@talabi.dz` |
-
-Une commande arrive uniquement chez le gérant du restaurant choisi.
-
-**Melyza Tacos** a sa carte complète (150 plats : pizzas, tacos, burgers,
-sandwichs, chicken box, bowls, salades, desserts, boissons), reprise de ses
-affiches officielles. Les quatre autres n'ont encore que des exemples de départ.
-
-### Tester le parcours complet
-
-Le bouton **🧪 TEST** en bas à droite change de compte en un clic et t'indique
-qui doit agir maintenant. Tu peux ainsi passer une commande en client, l'accepter
-en restaurant et la livrer en livreur **dans le même onglet**.
-
-> N'utilise pas de fenêtre privée en mode démo : elle a sa propre mémoire isolée
-> et ne verrait pas tes commandes.
-
-Pour passer en production (vraie base de données partagée + connexion Google) :
-👉 **[GUIDE-INSTALLATION.md](GUIDE-INSTALLATION.md)**
+> Sans les deux clés dans `config.js`, l'application affiche « Base de données
+> non configurée » et s'arrête : c'est voulu, il n'y a pas de repli local.
 
 ---
 
@@ -93,14 +68,17 @@ platforme/
 │   └── img/                   logo Talabi + logos & couvertures des restaurants
 │
 ├── supabase/                  base de données PostgreSQL
+│   ├── 00_installation.sql    ⭐ TOUT EN UN : à exécuter en premier
+│   ├── admin.sql              se donner le rôle admin + requêtes de suivi
 │   ├── 01_schema.sql          12 tables + relations
 │   ├── 02_security.sql        RLS par rôle, triggers, notifications
 │   ├── 03_seed.sql            quartiers de Tizi Ouzou ville, catégories, stockage
-│   ├── 04_geoloc.sql          mise à jour GPS (bases déjà installées)
+│   ├── 04_geoloc.sql          positions GPS
 │   ├── 05_tracking.sql        suivi du livreur en direct
 │   ├── 06_categories.sql      pastilles illustrées, retrait de « Poulet »
 │   ├── 07_formats.sql         formats des plats (Solo/Menu, Small/Méga…)
-│   └── 08_phone_lock.sql      téléphone figé 30 jours
+│   ├── 08_phone_lock.sql      téléphone figé 30 jours
+│   └── 09_delais.sql          minuteurs resto/livreur, attribution automatique
 │
 └── js/
     ├── app.js                 démarrage
@@ -110,23 +88,21 @@ platforme/
     │   ├── components.js      cartes restaurant, plats, timeline
     │   ├── mappicker.js       choix de position sur carte + GPS + Google Maps
     │   ├── livetrack.js       partage de la position du livreur pendant la course
-    │   ├── testpanel.js       bouton 🧪 : changer de rôle (mode démo seulement)
+    │   ├── sound.js           alertes sonores (nouvelle commande, course…)
+    │   ├── install.js         installation sur téléphone (PWA)
     │   ├── router.js          navigation + gardes par rôle
     │   ├── shell.js           barre du haut, navigation, notifications
     │   ├── store.js           état global (profil, zone, panier)
     │   ├── api.js             point d'entrée unique
-    │   ├── backend-supabase.js  ← production
-    │   ├── backend-demo.js      ← mode démo (localStorage)
-    │   └── demo-data.js         données d'exemple
+    │   └── backend-supabase.js  seul backend : base de données en ligne
     └── views/
         ├── landing.js  auth.js  client.js  checkout.js  tracking.js
         └── restaurant.js  driver.js  admin.js  account.js
 ```
 
-**Le point clé :** `backend-supabase.js` et `backend-demo.js` exposent exactement
-les mêmes méthodes. Le reste de l'application ne sait pas lequel tourne — c'est
-ce qui permet de basculer de la démo à la production en remplissant deux lignes
-de `config.js`.
+**Le point clé :** toutes les vues passent par `API`, qui est branché sur
+`backend-supabase.js`. Aucune donnée ne vit dans le navigateur : ce que voit le
+client, le restaurant et le livreur vient de la même base, en temps réel.
 
 Aucune dépendance à installer, aucune étape de compilation. Le site se déploie
 tel quel sur Vercel, Netlify ou GitHub Pages.

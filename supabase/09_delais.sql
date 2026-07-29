@@ -256,10 +256,11 @@ create policy orders_read on public.orders for select
     or driver_id = auth.uid()
     or public.owns_restaurant(restaurant_id)
     or public.is_admin()
-    or (status = 'ready' and driver_id is null and exists (
-          select 1 from public.drivers d
-          where d.id = auth.uid() and d.validation_status = 'approved'
-            and (d.zone_id = orders.zone_id or d.zone_id is null))
+    -- is_approved_driver_in_zone est en security definer : sans elle, cette
+    -- policy interrogerait « drivers », dont la policy interroge « orders »,
+    -- et PostgreSQL rejetterait toute lecture pour récursion infinie.
+    or (status = 'ready' and driver_id is null
+        and public.is_approved_driver_in_zone(zone_id)
         and (offer_driver_id = auth.uid()
              or (offer_driver_id is null and not (auth.uid() = any(declined_by)))))
   );

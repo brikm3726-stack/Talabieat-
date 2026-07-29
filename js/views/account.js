@@ -108,8 +108,7 @@
             '<span class="grow"><b>Support</b>' +
               '<span class="tiny">' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</span></span>' +
             '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
-          '<div class="tiny" style="margin-top:10px">Mode : <b>' +
-            (API.mode === 'demo' ? 'Démonstration (données locales)' : 'Production (Supabase)') + '</b></div>' +
+          '<div class="tiny" style="margin-top:10px">Mode : <b>En ligne</b></div>' +
         '</div>' +
 
         '<div class="acc-logout" style="margin-top:16px">' +

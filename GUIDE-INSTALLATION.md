@@ -1,87 +1,21 @@
 # Guide d'installation — Talabi
 
-Ce guide te fait passer du **mode démo** (qui marche déjà) à une **vraie plateforme en production**
-avec base de données, comptes Google et données partagées entre tous les utilisateurs.
+Talabi fonctionne **uniquement en ligne**, sur une vraie base de données partagée.
+Il n'y a pas de mode démonstration : tant que `config.js` n'est pas rempli,
+l'application affiche « Base de données non configurée » et s'arrête.
 
-Compte environ **30 minutes**. Aucune ligne de code à écrire.
+Ce guide t'emmène de zéro à une plateforme en service. Compte environ
+**30 minutes**. Aucune ligne de code à écrire.
 
----
+**Le chemin le plus court :**
 
-## Étape 0 — Tester tout de suite (mode démo)
-
-Rien à installer.
-
-1. Ouvre le dossier `platforme`
-2. Double-clique sur **`index.html`**
-
-Le site s'ouvre avec des restaurants, des menus et des commandes d'exemple.
-Les données sont enregistrées **dans ton navigateur** (localStorage).
-
-### Comptes de test (mot de passe : `123456`)
-
-| Rôle | Email | Gère |
+| Étape | Ce que tu fais | Durée |
 |---|---|---|
-| Client | `client@talabi.dz` | — |
-| Restaurant | `resto@talabi.dz` | **Melyza Tacos** — Centre-ville |
-| Restaurant | `ambassade@talabi.dz` | L'Ambassade — Centre-ville |
-| Restaurant | `sadoudi@talabi.dz` | Maison Sadoudi — El Bordj |
-| Restaurant | `atelier@talabi.dz` | L'Atelier en Ville — Nouvelle Ville |
-| Restaurant | `twelve@talabi.dz` | The Twelve — Nouvelle Ville |
-| Livreur | `livreur@talabi.dz` | validé, Centre-ville |
-| Livreur | `livreur2@talabi.dz` | *en attente de validation* |
-| Administrateur | `admin@talabi.dz` | — |
-
-> ⚠️ **Chaque restaurant a son propre compte gérant.** Si le client commande chez
-> L'Ambassade, c'est `ambassade@talabi.dz` qui reçoit la commande — pas
-> `resto@talabi.dz`. Le bouton 🧪 te bascule toujours sur le bon compte.
-
-### Corriger la position d'un restaurant
-
-Seule la position de **Melyza Tacos** est certifiée (36.713198, 4.043767, reprise
-de son site officiel). Les quatre autres sont des approximations calculées à
-partir de leur adresse : l'espace admin les signale en orange
-(*position approximative — à vérifier*).
-
-Pour corriger, compte par compte, en 30 secondes :
-
-1. Connecte-toi en **admin** → *Restaurants*
-2. Clique **📍 Position** sur le restaurant concerné
-3. Dans Google Maps, appuie longuement sur le lieu et **copie les coordonnées**
-4. Colle-les dans le champ de recherche de la carte (ex. `36.7132, 4.0438`) —
-   un lien Google Maps complet fonctionne aussi
-5. Ajuste si besoin en déplaçant la carte, puis **Confirmer**
-
-### Tester le parcours complet : le bouton 🧪
-
-En bas à droite de l'écran, un bouton **🧪 TEST** ouvre un panneau qui permet de
-**changer de compte en un clic**, sans mot de passe. C'est la bonne façon de
-dérouler un scénario entier :
-
-1. Connecte-toi en **client**, passe une commande
-2. Ouvre 🧪 → il t'indique *« Le restaurant doit accepter la commande »* et te
-   propose de basculer sur le bon compte restaurant
-3. Accepte, prépare, signale « prête »
-4. Ouvre 🧪 → il bascule sur un compte livreur, **le valide, le met en
-   disponible et le rattache au bon quartier** automatiquement
-5. Accepte la course, livre
-6. Ouvre 🧪 → retour au client pour confirmer la réception
-
-> ⚠️ **N'utilise pas de fenêtre de navigation privée pour tester.** En mode démo,
-> les données vivent dans la mémoire du navigateur, et une fenêtre privée possède
-> sa propre mémoire isolée : le livreur n'y verrait jamais la commande du client.
-> Reste dans le même onglet et utilise le bouton 🧪.
-
-**Trois conditions pour qu'un livreur voie une course** — c'est la cause n°1 de
-« je ne vois rien » :
-
-- son compte est **validé** par un administrateur ;
-- son statut est **Disponible** ;
-- son **quartier** est le même que celui de la commande.
-
-Le bouton 🧪 règle ces trois points d'un coup.
-
-**Limites du mode démo :** pas de connexion Google, pas d'email de réinitialisation,
-et chaque appareil a ses propres données. C'est normal — la suite règle tout ça.
+| 1 | Créer le projet Supabase et exécuter `supabase/00_installation.sql` | 10 min |
+| 2 | Coller les 2 clés dans `config.js` | 2 min |
+| 3 | *(optionnel)* Activer la connexion Google | 10 min |
+| 4 | Créer ton compte, puis exécuter `supabase/admin.sql` | 3 min |
+| 5 | Mettre le site en ligne | 5 min |
 
 ---
 
@@ -96,40 +30,37 @@ Supabase est gratuit jusqu'à un volume déjà confortable pour démarrer.
    - **Region** : choisis **Frankfurt (eu-central-1)** — c'est la plus rapide depuis l'Algérie
 3. Clique **Create new project** et attends ~2 minutes
 
-### Créer les tables
+### Créer les tables — un seul fichier
 
 1. Dans le menu de gauche : **SQL Editor** → **New query**
-2. Ouvre le fichier `supabase/01_schema.sql`, copie **tout** le contenu, colle-le, clique **Run**
-3. Nouvelle requête → même chose avec `supabase/02_security.sql` → **Run**
-4. Nouvelle requête → même chose avec `supabase/03_seed.sql` → **Run**
-5. Nouvelle requête → même chose avec `supabase/05_tracking.sql` → **Run**
-   *(permet au client de suivre son livreur en direct)*
-6. Nouvelle requête → même chose avec `supabase/06_categories.sql` → **Run**
-   *(pastilles illustrées des catégories)*
+2. Ouvre le fichier **`supabase/00_installation.sql`** avec le Bloc-notes,
+   sélectionne **tout** (Ctrl+A), copie (Ctrl+C), colle dans la fenêtre Supabase
+3. Clique **Run** (ou Ctrl+Entrée)
 
-Tu dois voir `Success. No rows returned` à chaque fois.
+Tu dois voir `Success. No rows returned`. C'est tout : ce fichier contient les
+neuf scripts (`01` à `09`) déjà mis dans le bon ordre.
 
 Vérifie dans **Table Editor** que tu as bien les tables : `profiles`, `restaurants`,
-`menu_items`, `menu_variants`, `orders`, `order_items`, `drivers`, `zones`,
-`categories`, `addresses`, `notifications`, `platform_settings`.
+`menu_items`, `menu_variants`, `menu_options`, `orders`, `order_items`, `drivers`,
+`zones`, `categories`, `addresses`, `notifications`, `platform_settings`.
 
-**Ce que font ces fichiers :**
+**Ce que fait chaque partie :**
 
-| Fichier | Rôle |
+| Partie | Rôle |
 |---|---|
-| `01_schema.sql` | Crée les tables et leurs relations |
-| `02_security.sql` | Sécurité par ligne (RLS) : chaque rôle ne voit que ce qui le concerne, notifications automatiques, attribution des courses sans conflit |
-| `03_seed.sql` | Les 14 quartiers de la ville de Tizi Ouzou, les catégories, le stockage des images |
-| `05_tracking.sql` | Position du livreur + fonction `driver_position` qui n'ouvre le suivi qu'au client concerné, et seulement pendant la livraison |
+| `01_schema` | Les tables et leurs relations |
+| `02_security` | Sécurité par ligne (RLS) : chaque rôle ne voit que ce qui le concerne, notifications automatiques, attribution des courses sans conflit |
+| `03_seed` | Les 14 quartiers de la ville de Tizi Ouzou, les catégories, le stockage des images |
+| `04_geoloc` | Positions GPS des restaurants et des adresses |
+| `05_tracking` | Position du livreur + fonction `driver_position` qui n'ouvre le suivi qu'au client concerné, et seulement pendant la livraison |
+| `06_categories` | Pastilles illustrées des catégories |
+| `07_formats` | Formats des plats (Solo/Menu, Small/Méga…) |
+| `08_phone_lock` | Téléphone figé 30 jours, contrôlé en base |
+| `09_delais` | Les minuteurs : 5 min au restaurant pour répondre, 30 s au livreur, puis passage automatique au livreur suivant |
 
-> **Tu avais déjà installé la base avant ces évolutions ?**
-> Lance en plus, dans cet ordre : `supabase/04_geoloc.sql` (positions GPS),
-> `supabase/05_tracking.sql` (suivi du livreur), `supabase/06_categories.sql`
-> (catégories illustrées), `supabase/07_formats.sql` (formats des plats) et
-> `supabase/08_phone_lock.sql` (téléphone figé 30 jours).
-> Ils ajoutent des colonnes et des tables **sans toucher à tes données**.
-> Sur une nouvelle installation, `01` + `02` contiennent déjà tout : seuls
-> `05_tracking.sql` et `03_seed.sql` restent nécessaires.
+> **Tu avais déjà installé la base avant ces évolutions ?** Exécute quand même
+> `00_installation.sql` : il est **rejouable sans risque**, il ne supprime aucune
+> donnée et n'ajoute que ce qui manque.
 
 ---
 
@@ -150,11 +81,12 @@ SUPABASE_URL:      'https://abcdefghijkl.supabase.co',
 SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6...',
 ```
 
-Enregistre. Le site quitte automatiquement le mode démo.
+Enregistre. L'application démarre maintenant sur ta base de données.
 
-> À partir de maintenant, ouvrir `index.html` par double-clic ne suffit plus :
-> il faut un serveur web. Voir l'étape 5. Pour tester en local tout de suite :
-> ouvre un terminal dans le dossier `platforme` et lance `npx serve` puis va sur
+> ⚠️ **Ouvrir `index.html` par double-clic ne suffit plus** : il faut un serveur
+> web (le GPS et l'installation sur téléphone l'exigent). Le plus simple est de
+> passer directement par le site en ligne — étape 5. Pour tester en local :
+> ouvre un terminal dans le dossier `platforme`, lance `npx serve`, puis va sur
 > l'adresse affichée (`http://localhost:3000`).
 
 ---
@@ -224,19 +156,44 @@ Tu peux y mettre ton propre texte et le logo de la plateforme.
 
 ### 4.3 Te créer un compte administrateur
 
-Personne ne peut devenir admin depuis le site — c'est volontaire.
+Personne ne peut devenir admin depuis le site — c'est bloqué dans la base, pas
+seulement dans le formulaire. C'est volontaire : sinon n'importe quel visiteur
+s'inscrirait comme administrateur de la plateforme.
 
-1. Inscris-toi normalement sur ton site (n'importe quel rôle)
-2. Supabase → **SQL Editor** → nouvelle requête :
+1. Inscris-toi normalement sur ton site (n'importe quel rôle, ou avec Google)
+2. Ouvre **`supabase/admin.sql`**, remplace l'email par le tien
+3. Supabase → **SQL Editor** → nouvelle requête → colle le fichier → **Run**
+4. La requête de vérification doit afficher ta ligne avec `role = admin`
+5. Déconnecte-toi puis reconnecte-toi sur le site
 
-```sql
-update public.profiles set role = 'admin' where email = 'ton-email@gmail.com';
-```
+Tu as maintenant accès au tableau de bord administrateur : tu valides les
+restaurants et les livreurs qui s'inscrivent, tu vois toutes les commandes, le
+chiffre d'affaires, et tu peux bloquer un compte.
 
-3. **Run**, puis déconnecte-toi / reconnecte-toi sur le site
+Le fichier `admin.sql` contient aussi, en commentaires, des **requêtes de
+surveillance** prêtes à l'emploi : derniers comptes créés, restaurants en attente,
+livreurs et leur disponibilité, 50 dernières commandes, chiffres du jour.
+Décommente celle qui t'intéresse et clique **Run**.
 
-Tu as maintenant accès au tableau de bord administrateur, où tu valides les
-restaurants et les livreurs qui s'inscrivent.
+### 4.4 Dérouler un vrai parcours à plusieurs comptes
+
+Il n'y a plus de bouton de bascule de compte : les données sont réelles et
+partagées. Pour tester le parcours complet, utilise **plusieurs navigateurs ou
+plusieurs téléphones en même temps** (par exemple Chrome pour le client, Firefox
+pour le restaurant, ton téléphone pour le livreur) — la fenêtre de navigation
+privée fonctionne aussi, puisque tout passe par la base de données.
+
+1. **Client** : inscris-toi, place ton adresse sur la carte, commande
+2. **Restaurant** : inscris-toi en « restaurant », crée ta fiche et ton menu.
+   ⚠️ un administrateur doit **valider** le restaurant pour qu'il soit visible
+3. **Livreur** : inscris-toi en « livreur », puis fais-toi **valider** par l'admin
+
+**Trois conditions pour qu'un livreur voie une course** — c'est la cause n°1 de
+« je ne vois rien » :
+
+- son compte est **validé** par un administrateur ;
+- son statut est **Disponible** ;
+- son **quartier** est le même que celui de la commande.
 
 ---
 
@@ -340,14 +297,16 @@ avec les réglages par défaut) :
 
 | Symptôme | Cause et solution |
 |---|---|
-| « Mode démonstration actif » alors que j'ai rempli `config.js` | Une des deux valeurs est vide ou mal collée. Vide le cache (Ctrl+Maj+R). |
+| « Base de données non configurée » | `SUPABASE_URL` ou `SUPABASE_ANON_KEY` est vide ou mal collée dans `config.js` (étape 2). Recharge en vidant le cache (Ctrl+Maj+R). |
 | Le bouton Google ouvre une page d'erreur `redirect_uri_mismatch` | L'adresse `https://…supabase.co/auth/v1/callback` n'est pas dans *Authorized redirect URIs* chez Google (étape 3.1). |
 | Après Google, je reviens sur le site mais pas connecté | Ton adresse n'est pas dans *Redirect URLs* de Supabase (étape 3.3). |
 | « Confirme d'abord ton email » | Va voir tes emails, ou désactive *Confirm email* (étape 4.1). |
-| Je m'inscris mais rien n'apparaît dans `profiles` | Le fichier `02_security.sql` n'a pas été exécuté — c'est lui qui crée le profil automatiquement. |
+| Je m'inscris mais rien n'apparaît dans `profiles` | Le script `00_installation.sql` n'est pas passé en entier (c'est la partie `02_security` qui crée le profil automatiquement). Relance-le. |
+| Une commande reste bloquée en « en attente » | Normal après 5 minutes : elle est refusée d'office. Ce sont les minuteurs de `09_delais`. Les délais se règlent dans *Admin → Réglages*. |
 | « Action non autorisée pour votre compte » | La sécurité RLS fait son travail : le rôle du compte ne permet pas cette action. |
 | Le livreur ne voit aucune course | Trois conditions : compte **validé** par l'admin, statut **Disponible**, et **même quartier** que la commande. |
-| Le restaurant ne reçoit pas la commande | Tu es sur le mauvais compte gérant. Chaque restaurant a le sien : une commande chez Pizza Napoli arrive chez `pizza@talabi.dz`, pas chez `resto@talabi.dz`. Le bouton 🧪 indique le bon compte. |
+| Le restaurant ne reçoit pas la commande | Tu es connecté avec le mauvais compte gérant : chaque restaurant a le sien, et la commande n'arrive que chez le gérant du restaurant choisi par le client. |
+| Les images ne s'affichent pas après l'envoi | Le bucket `media` manque — relance `00_installation.sql`. |
 | La carte reste grise / ne s'affiche pas | Pas de connexion internet : les fonds de carte viennent d'OpenStreetMap. Un bouton de secours permet quand même d'enregistrer la position GPS. |
 | « Autorisez l'accès à votre position » | Le navigateur bloque le GPS. Clique sur le cadenas 🔒 à gauche de l'adresse → Autoriser la position. Sur Chrome, le GPS ne marche pas toujours en ouvrant le fichier par double-clic : passe par `npx serve` ou le site en ligne. |
 | Le bouton « Y aller » n'apparaît pas chez le livreur | Le restaurant n'a pas placé sa position sur la carte, ou le client a une vieille adresse sans GPS. |

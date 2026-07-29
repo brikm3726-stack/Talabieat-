@@ -1,6 +1,6 @@
 /* ==========================================================================
    Backend SUPABASE — Postgres + Auth + Google OAuth + Realtime + Storage
-   Expose exactement les mêmes méthodes que BackendDemo.
+   Seul backend de l'application : toutes les données vivent en ligne.
    ========================================================================== */
 (function (w) {
   'use strict';
@@ -31,7 +31,6 @@
   }
 
   const SB = {
-    isDemo: false,
 
     /* ------------------------------------------------------------- INIT */
     async init() {
@@ -623,9 +622,7 @@
       const up = await sb.storage.from('media').upload(path, file, { cacheControl: '3600', upsert: false });
       if (up.error) throw new Error(translate(up.error.message));
       return sb.storage.from('media').getPublicUrl(path).data.publicUrl;
-    },
-
-    resetDemo() { UI.err('Indisponible', 'Cette action existe seulement en mode démo.'); }
+    }
   };
 
   /* ------------------------------------------------------------- helpers */

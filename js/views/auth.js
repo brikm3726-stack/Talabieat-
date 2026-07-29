@@ -122,8 +122,7 @@
         '</form>' +
         '<div class="center tiny">Pas encore de compte ? ' +
           '<a href="#/signup" style="color:var(--brand);font-weight:700">Créer un compte</a></div>' +
-      '</div>' +
-      (API.mode === 'demo' ? demoBox() : ''));
+      '</div>');
 
     view.querySelector('#gbtn').onclick = async function () {
       UI.busy(this, true, 'Redirection…');
@@ -149,7 +148,6 @@
       }
     };
 
-    bindDemoLogins(view);
     return brancherInstall(view);
   });
 
@@ -394,7 +392,6 @@
       const d = UI.formData(this);
       if ((d.password || '').length < 6) return UI.err('Mot de passe trop court');
       if (d.password !== d.confirm) return UI.err('Les deux mots de passe ne correspondent pas');
-      if (!API.updatePassword) return UI.err('Indisponible en mode démo');
       UI.busy(btn, true);
       try {
         await API.updatePassword(d.password);
@@ -404,36 +401,4 @@
     };
   });
 
-  /* ======================================================================
-     Aide au test — comptes de démonstration
-     ====================================================================== */
-  function demoBox() {
-    return '<div class="card card-p" style="margin-top:14px;background:#FFFBF0;border-color:#FCE7B2">' +
-      '<div class="row" style="gap:8px;margin-bottom:10px"><span>🧪</span>' +
-      '<b style="font-size:14px">Mode démo — comptes de test</b></div>' +
-      '<div class="grid grid-2" style="gap:8px">' +
-        demoBtn('client@talabi.dz', '🍔 Client') +
-        demoBtn('resto@talabi.dz', '🏪 Restaurant') +
-        demoBtn('livreur@talabi.dz', '🛵 Livreur') +
-        demoBtn('admin@talabi.dz', '⚙️ Admin') +
-      '</div>' +
-      '<div class="tiny" style="margin-top:10px">Mot de passe commun : <b>123456</b>. ' +
-      'Les données sont stockées dans ce navigateur uniquement.</div></div>';
-  }
-
-  function demoBtn(email, label) {
-    return '<button class="btn btn-ghost btn-sm" data-demo="' + email + '">' + label + '</button>';
-  }
-
-  function bindDemoLogins(view) {
-    view.querySelectorAll('[data-demo]').forEach(b => b.onclick = async function () {
-      UI.busy(this, true);
-      try {
-        await API.signIn(this.dataset.demo, '123456');
-        await Store.refreshProfile();
-        UI.ok('Connecté en tant que ' + Store.profile.full_name);
-        Router.go(Router.homeFor(Store.role), true);
-      } catch (e) { UI.busy(this, false); UI.err(e.message); }
-    });
-  }
 })(window);

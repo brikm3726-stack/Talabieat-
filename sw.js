@@ -17,7 +17,7 @@
 
 /* Changer ce numéro à chaque mise en ligne : c'est lui qui déclenche le
    remplacement de l'ancien cache par le nouveau. */
-const VERSION = 'talabi-v2';
+const VERSION = 'talabi-v3';
 const COQUILLE = VERSION + '-coquille';
 const RESTE    = VERSION + '-reste';
 
@@ -34,8 +34,6 @@ const A_PRECHARGER = [
   './assets/img/icons/icon-512.png',
   './js/lib/utils.js',
   './js/lib/ui.js',
-  './js/lib/demo-data.js',
-  './js/lib/backend-demo.js',
   './js/lib/backend-supabase.js',
   './js/lib/api.js',
   './js/lib/store.js',
@@ -46,7 +44,6 @@ const A_PRECHARGER = [
   './js/lib/livetrack.js',
   './js/lib/sound.js',
   './js/lib/install.js',
-  './js/lib/testpanel.js',
   './js/views/landing.js',
   './js/views/auth.js',
   './js/views/client.js',

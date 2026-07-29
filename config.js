@@ -1,17 +1,19 @@
 /* ==========================================================================
    TALABI — Configuration
    --------------------------------------------------------------------------
-   MODE DÉMO  : laisse SUPABASE_URL vide. Les données sont stockées dans le
-                navigateur (localStorage). Idéal pour tester tout de suite.
-   MODE RÉEL  : colle ton URL et ta clé "anon public" depuis
-                Supabase > Project Settings > API
+   Le site fonctionne uniquement en ligne, sur une vraie base de données.
+   Colle ci-dessous l'URL du projet et la clé "anon public" trouvées dans
+   Supabase > Project Settings > API.
+
+   Sans ces deux valeurs, l'application refuse de démarrer et affiche un
+   message d'explication : il n'y a plus de mode démo de secours.
    ========================================================================== */
 
 window.TALABI_CONFIG = {
 
-  // ---- Supabase ---------------------------------------------------------
-  SUPABASE_URL:      '',   // ex: 'https://abcdefgh.supabase.co'
-  SUPABASE_ANON_KEY: '',   // ex: 'eyJhbGciOiJIUzI1NiIsInR5cCI6...'
+  // ---- Supabase (obligatoire) -------------------------------------------
+  SUPABASE_URL:      'https://nxwgrpiubgrlvaszclmz.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54d2dycGl1YmdybHZhc3pjbG16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTkyNTAsImV4cCI6MjEwMDkzNTI1MH0.wKsQIAiB_sJcttPQQbTDfWsVAdbRA_PqokF0TNBeF-c',
 
   // ---- Identité ---------------------------------------------------------
   APP_NAME: 'Talabi',
@@ -30,4 +32,6 @@ window.TALABI_CONFIG = {
   DEFAULT_WILAYA: 'Tizi Ouzou'
 };
 
-window.IS_DEMO = !window.TALABI_CONFIG.SUPABASE_URL || !window.TALABI_CONFIG.SUPABASE_ANON_KEY;
+/* Vrai quand les deux clés sont renseignées. Le démarrage s'arrête sinon. */
+window.TALABI_CONFIGURED = !!(window.TALABI_CONFIG.SUPABASE_URL &&
+                              window.TALABI_CONFIG.SUPABASE_ANON_KEY);

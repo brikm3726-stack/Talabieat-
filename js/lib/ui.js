@@ -239,7 +239,7 @@
 
     /* -------------------------------------------------- upload d'image */
     /**
-     * Champ d'image : upload vers Supabase Storage, ou base64 en mode démo.
+     * Champ d'image : upload vers Supabase Storage.
      * Rendu : UI.imageField('logo', currentUrl, 'Logo du restaurant')
      * Lecture : le champ caché [name] contient l'URL finale.
      */

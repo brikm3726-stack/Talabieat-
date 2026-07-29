@@ -1,15 +1,11 @@
 /* ==========================================================================
-   API — point d'entrée unique vers le backend actif (Supabase ou démo)
+   API — point d'entrée unique vers le backend (Supabase)
    ========================================================================== */
 (function (w) {
   'use strict';
 
-  const backend = w.IS_DEMO ? w.BackendDemo : w.BackendSupabase;
-
-  // On expose directement le backend choisi : les deux implémentent le même
-  // contrat, donc le reste de l'application ne sait pas lequel est utilisé.
-  w.API = backend;
-  w.API.mode = w.IS_DEMO ? 'demo' : 'supabase';
+  w.API = w.BackendSupabase;
+  w.API.mode = 'supabase';
 
   /** Enveloppe pratique : exécute et affiche l'erreur en toast. */
   w.API.safe = async function (fn, fallback) {

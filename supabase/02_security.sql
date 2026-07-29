@@ -21,6 +21,36 @@ returns boolean language sql stable security definer set search_path = public as
   select exists (select 1 from public.restaurants where id = rid and owner_id = auth.uid());
 $$;
 
+-- Deux fonctions qui existent pour une seule raison : casser une récursion.
+--
+-- La lecture de « orders » doit regarder dans « drivers » (ce livreur est-il
+-- validé, dans la bonne zone ?) et la lecture de « drivers » doit regarder dans
+-- « orders » (ce client a-t-il le droit de voir ce livreur ?). Écrites en clair
+-- dans les policies, ces deux questions s'appellent l'une l'autre sans fin et
+-- PostgreSQL refuse tout : « infinite recursion detected in policy ».
+--
+-- En security definer, la lecture se fait au nom du propriétaire des tables :
+-- la RLS ne se redéclenche pas à l'intérieur, la boucle est coupée. Chaque
+-- fonction reste étroitement limitée à sa question, et à auth.uid().
+create or replace function public.is_approved_driver_in_zone(p_zone uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.drivers d
+     where d.id = auth.uid()
+       and d.validation_status = 'approved'
+       and (d.zone_id = p_zone or d.zone_id is null)
+  );
+$$;
+
+create or replace function public.shares_order_with_driver(p_driver uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.orders o
+     where o.driver_id = p_driver
+       and (o.client_id = auth.uid() or public.owns_restaurant(o.restaurant_id))
+  );
+$$;
+
 create or replace function public.is_approved_driver()
 returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.drivers where id = auth.uid() and validation_status = 'approved');
@@ -349,8 +379,7 @@ create trigger trg_lock_phone
 drop policy if exists drivers_self on public.drivers;
 create policy drivers_self on public.drivers for select
   using (id = auth.uid() or public.is_admin()
-     or exists (select 1 from public.orders o where o.driver_id = drivers.id
-                and (o.client_id = auth.uid() or public.owns_restaurant(o.restaurant_id))));
+     or public.shares_order_with_driver(drivers.id));
 
 drop policy if exists drivers_self_update on public.drivers;
 create policy drivers_self_update on public.drivers for update
@@ -379,10 +408,8 @@ create policy orders_read on public.orders for select
     or public.owns_restaurant(restaurant_id)
     or public.is_admin()
     -- les livreurs validés & disponibles voient les courses libres de leur zone
-    or (status = 'ready' and driver_id is null and exists (
-          select 1 from public.drivers d
-          where d.id = auth.uid() and d.validation_status = 'approved'
-            and (d.zone_id = orders.zone_id or d.zone_id is null)))
+    or (status = 'ready' and driver_id is null
+        and public.is_approved_driver_in_zone(zone_id))
   );
 
 drop policy if exists orders_client_insert on public.orders;

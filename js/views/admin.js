@@ -499,15 +499,7 @@
                   'border-radius:50%;object-fit:cover">'
                 : '<span>' + (c.icon || '🍽️') + '</span>') +
               U.esc(c.name_fr) + ' <b style="opacity:.4">✕</b></span>').join('') +
-          '</div></div>' +
-
-        (API.mode === 'demo'
-          ? '<div class="card card-p" style="margin-top:16px;border-color:var(--warn)">' +
-            '<div class="h3">' + UI.icon('settings', 18) + ' Mode démo</div>' +
-            '<p class="sub" style="margin:8px 0 12px">Les données sont stockées dans ce navigateur. ' +
-            'Configurez Supabase dans <b>config.js</b> pour passer en production.</p>' +
-            '<button class="btn btn-danger btn-sm" id="reset">Réinitialiser les données de démo</button></div>'
-          : ''));
+          '</div></div>');
 
       view.querySelector('#sf').onsubmit = async function (e) {
         e.preventDefault();
@@ -561,14 +553,6 @@
         Store.categories = await API.categories();
         UI.ok('Catégorie supprimée'); paint();
       });
-
-      const rst = view.querySelector('#reset');
-      if (rst) rst.onclick = async () => {
-        if (!(await UI.confirm('Réinitialiser la démo ?', 'Toutes les données locales seront effacées.', 'Réinitialiser', true))) return;
-        API.resetDemo();
-        location.hash = '#/';
-        location.reload();
-      };
     }
 
     paint();
