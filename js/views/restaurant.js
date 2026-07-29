@@ -275,6 +275,12 @@
         '<span class="tiny">' + U.ago(o.created_at) + '</span>' +
       '</div>' +
 
+      // délai de réponse : le client attend, et passé le compte à rebours la
+      // commande est refusée automatiquement
+      (o.status === 'pending' && o.respond_deadline
+        ? Cmp.countdown(o.respond_deadline, 'Répondez avant', 60)
+        : '') +
+
       '<div style="margin-top:10px">' + Cmp.orderLines(o) + '</div>' +
       '<div class="divider"></div>' +
       '<div class="oline"><span class="l">Total</span><b class="price">' + U.money(o.total) + '</b></div>' +

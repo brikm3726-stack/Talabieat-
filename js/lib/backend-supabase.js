@@ -411,6 +411,25 @@
       return unwrap(await sb.from('orders').update({ client_confirmed: true }).eq('id', id).select(ORDER_SELECT).single());
     },
 
+    /**
+     * Battement d'horloge. Côté serveur c'est pg_cron qui applique les délais
+     * (voir supabase/09_delais.sql) — la base ne dépend donc d'aucun navigateur
+     * ouvert. Cet appel ne sert qu'à ne pas attendre le prochain passage du
+     * cron quand un compte à rebours vient de tomber à zéro sous les yeux de
+     * quelqu'un. Une erreur ici n'est pas grave : le cron repassera.
+     */
+    async tick() {
+      const res = await sb.rpc('expire_orders');
+      if (res.error) { console.warn('expire_orders', res.error.message); return false; }
+      return !!res.data;
+    },
+
+    async declineOrder(id) {
+      const res = await sb.rpc('decline_order', { p_order: id });
+      if (res.error) throw new Error(translate(res.error.message));
+      return await SB.order(id);
+    },
+
     /* ------------------------------------------------------------ LIVREUR */
     async getDriver() {
       if (!currentUser) return null;
@@ -591,7 +610,9 @@
     async saveSettings(patch) {
       cache.settings = null;
       const body = { updated_at: new Date().toISOString() };
-      ['commission_rate', 'driver_share', 'default_delivery_fee'].forEach(k => { if (patch[k] !== undefined) body[k] = +patch[k]; });
+      ['commission_rate', 'driver_share', 'default_delivery_fee',
+       'resto_timeout_s', 'driver_timeout_s', 'redispatch_after_s']
+        .forEach(k => { if (patch[k] !== undefined) body[k] = +patch[k]; });
       return unwrap(await sb.from('platform_settings').update(body).eq('id', 1).select().single());
     },
 

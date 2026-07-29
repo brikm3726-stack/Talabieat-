@@ -79,6 +79,8 @@
       // un livreur qui rouvre l'app en pleine course reprend le partage
       LiveTrack.sync();
 
+      horlogeDesDelais();
+
       /* ---- 7. Fin du splash ---- */
       const splash = document.getElementById('splash');
       splash.style.transition = 'opacity .35s ease';
@@ -95,6 +97,43 @@
       console.error(e);
       fail('Impossible de démarrer l’application', e.message);
     }
+  }
+
+  /* ====================================================================
+     HORLOGE DES DÉLAIS
+     --------------------------------------------------------------------
+     Une seule horloge pour tout le site, qui ne fait que deux choses :
+     rafraîchir le texte des comptes à rebours affichés, et demander au
+     backend d'appliquer les délais échus.
+
+     Elle ne bat que si un compte à rebours est à l'écran. Un site ouvert sur
+     la carte d'un restaurant n'a aucune raison de réveiller le processeur du
+     téléphone chaque seconde — et rien n'expire tant que personne n'attend.
+     ==================================================================== */
+  function horlogeDesDelais() {
+    let dernierTick = 0;
+
+    setInterval(async () => {
+      const chronos = document.querySelectorAll('.cdown[data-until]');
+      if (!chronos.length) return;
+
+      let echu = false;
+      chronos.forEach(el => {
+        const reste = U.secondsLeft(el.dataset.until);
+        const t = el.querySelector('.t');
+        if (t) t.textContent = U.mmss(reste);
+        el.classList.toggle('urgent', reste <= (+el.dataset.alert || 60));
+        if (reste <= 0) { el.classList.add('fini'); echu = true; }
+      });
+
+      // Un compte à rebours vient de tomber : on applique le délai tout de
+      // suite. Sinon on laisse passer 10 s — inutile de marteler le backend
+      // pendant qu'il reste 4 minutes au chronomètre.
+      const maintenant = Date.now();
+      if (!echu && maintenant - dernierTick < 10000) return;
+      dernierTick = maintenant;
+      if (API.tick) await API.safe(() => API.tick(), false);
+    }, 1000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

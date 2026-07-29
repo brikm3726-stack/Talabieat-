@@ -487,6 +487,9 @@
       note: 'Sonner deux fois svp',
       payment_method: 'cash', reject_reason: null, cancel_reason: null,
       client_confirmed: true,
+      // délais : ces commandes sont livrées depuis longtemps, plus rien ne court
+      respond_deadline: null, offer_driver_id: null, offer_deadline: null,
+      declined_by: [], search_since: null,
       created_at: iso(daysAgo), accepted_at: iso(daysAgo), ready_at: null,
       assigned_at: null, delivering_at: null, delivered_at: iso(daysAgo)
     }, t));
@@ -499,7 +502,17 @@
     notifications: [],
     settings: {
       commission_rate: 0.10, driver_share: 0.80,
-      default_delivery_fee: 200, currency: 'DZD'
+      default_delivery_fee: 200, currency: 'DZD',
+      /* Délais de réponse. Le restaurant a 5 minutes pour accepter, sinon la
+         commande est refusée d'office — le client n'attend pas dans le vide.
+         Le livreur, lui, n'a que 30 secondes : la commande est déjà prête et
+         refroidit, et la course part aussitôt au livreur suivant. */
+      resto_timeout_s: 300,
+      driver_timeout_s: 30,
+      /* Quand tous les livreurs en ligne ont laissé passer leur tour, la
+         course reste visible par tous et on relance un tour complet après ce
+         délai plutôt que de l'abandonner. */
+      redispatch_after_s: 60
     }
   };
 })(window);

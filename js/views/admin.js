@@ -361,6 +361,23 @@
           '<div class="field"><label>Frais de livraison par défaut (DA)</label>' +
             '<input class="input" name="default_delivery_fee" type="number" min="0" step="50" value="' +
             (s.default_delivery_fee != null ? s.default_delivery_fee : 200) + '"></div>' +
+          '<div class="divider"></div>' +
+          '<div class="h3">' + UI.icon('clock', 18) + ' Délais de réponse</div>' +
+          '<div class="field"><label>Réponse du restaurant (minutes)</label>' +
+            '<input class="input" name="resto_timeout_min" type="number" min="1" max="60" step="1" value="' +
+            Math.round((s.resto_timeout_s != null ? s.resto_timeout_s : 300) / 60) + '">' +
+            '<div class="hint">Passé ce délai, la commande est refusée automatiquement et le client ' +
+            'est prévenu. Il vaut mieux un refus franc qu’une attente sans fin.</div></div>' +
+          '<div class="field"><label>Réponse du livreur (secondes)</label>' +
+            '<input class="input" name="driver_timeout_s" type="number" min="10" max="300" step="5" value="' +
+            (s.driver_timeout_s != null ? s.driver_timeout_s : 30) + '">' +
+            '<div class="hint">La course est proposée à un livreur à la fois. Sans réponse, elle passe ' +
+            'au suivant — le plus proche du restaurant parmi ceux qui sont en ligne.</div></div>' +
+          '<div class="field"><label>Nouvelle tentative si personne ne répond (secondes)</label>' +
+            '<input class="input" name="redispatch_after_s" type="number" min="15" max="600" step="15" value="' +
+            (s.redispatch_after_s != null ? s.redispatch_after_s : 60) + '">' +
+            '<div class="hint">Quand tous les livreurs ont laissé passer leur tour, un tour complet ' +
+            'est relancé après ce délai. Une course n’est jamais abandonnée.</div></div>' +
           '<button class="btn btn-primary" type="submit">Enregistrer</button>' +
         '</form>' +
 
@@ -406,7 +423,11 @@
         const r = await API.safe(() => API.saveSettings({
           commission_rate: (+d.commission_rate || 0) / 100,
           driver_share: (+d.driver_share || 0) / 100,
-          default_delivery_fee: +d.default_delivery_fee || 0
+          default_delivery_fee: +d.default_delivery_fee || 0,
+          // saisi en minutes, stocké en secondes comme les deux autres délais
+          resto_timeout_s: Math.max(60, (+d.resto_timeout_min || 5) * 60),
+          driver_timeout_s: Math.max(10, +d.driver_timeout_s || 30),
+          redispatch_after_s: Math.max(15, +d.redispatch_after_s || 60)
         }), null);
         UI.busy(btn, false);
         if (r) { Store.settings = r; UI.ok('Réglages enregistrés'); }

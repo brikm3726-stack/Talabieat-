@@ -181,6 +181,26 @@
         '</select></div>';
     },
 
+    /**
+     * Compte à rebours vivant.
+     * Le HTML ne porte que l'échéance ; c'est l'horloge de app.js qui met le
+     * texte à jour chaque seconde. Réafficher toute la page à chaque seconde
+     * ferait sauter le défilement et perdrait le focus des champs.
+     *
+     * @param deadline échéance ISO
+     * @param label    texte devant le chrono
+     * @param alerte   secondes en dessous desquelles il passe en rouge
+     */
+    countdown(deadline, label, alerte) {
+      const reste = U.secondsLeft(deadline);
+      return '<div class="cdown' + (reste <= (alerte || 60) ? ' urgent' : '') + '" ' +
+             'data-until="' + U.esc(deadline || '') + '" data-alert="' + (alerte || 60) + '">' +
+        UI.icon('clock', 16) +
+        '<span class="l">' + U.esc(label || '') + '</span>' +
+        '<b class="t">' + U.mmss(reste) + '</b>' +
+      '</div>';
+    },
+
     /** Titre de section de page interne */
     pageHead(title, subtitle, actionHtml) {
       return '<div class="row-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">' +

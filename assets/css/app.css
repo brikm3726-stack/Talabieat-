@@ -804,6 +804,31 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 .tag-soft{background:var(--brand-soft);color:var(--brand);display:inline-flex;align-items:center;gap:5px}
 
+/* -------------------------------------------------------- compte à rebours */
+.cdown{
+  display:flex;align-items:center;gap:8px;margin-top:11px;
+  padding:9px 13px;border-radius:13px;
+  background:var(--brand-soft);color:var(--brand);
+  font-size:13px;font-weight:650;
+  transition:background .3s ease,color .3s ease;
+}
+.cdown .l{opacity:.85}
+.cdown .t{margin-left:auto;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+/* tabular-nums : sans cela le « 1 » est plus étroit que les autres chiffres et
+   le chrono se dandine à chaque seconde */
+.cdown.urgent{background:#FDECEC;color:var(--danger)}
+.cdown.urgent .t{animation:battement 1s ease-in-out infinite}
+.cdown.fini{background:var(--bg);color:var(--muted)}
+.cdown.fini .t{animation:none}
+.cdown.libre{background:var(--bg);color:var(--muted);font-weight:600}
+@keyframes battement{50%{transform:scale(1.09)}}
+/* dans un bandeau déjà coloré (suivi client), le chrono se pose en transparence */
+.card[style*="brand-grad"] .cdown{background:rgba(255,255,255,.18);color:#fff}
+.card[style*="brand-grad"] .cdown.urgent{background:rgba(255,255,255,.3);color:#fff}
+
+/* la course qui vous est nommément proposée se distingue des autres */
+.order-card.offerte{border-color:var(--brand);box-shadow:0 10px 26px -14px rgba(255,77,45,.6)}
+
 /* ============================================================ ESPACE RESTAURANT
    Barre latérale sombre + pages sur fond crème, d'après les maquettes. */
 .sidenav{display:none}

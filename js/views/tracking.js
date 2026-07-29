@@ -102,6 +102,11 @@
           '<div style="font-size:32px">' + U.statusIcon(o.status) + '</div>' +
           '<div class="h2" style="margin-top:8px">' + U.esc(U.statusLabel(o.status)) + '</div>' +
           '<div style="opacity:.9;font-size:13.5px;margin-top:5px">' + U.esc(eta) + '</div>' +
+          // le client voit le temps qu'il reste au restaurant : il sait qu'il
+          // n'attendra pas indéfiniment, et pourquoi
+          (o.status === 'pending' && o.respond_deadline
+            ? Cmp.countdown(o.respond_deadline, 'Réponse du restaurant sous', 60)
+            : '') +
         '</div>' +
 
         /* ---- livreur + suivi en direct ---- */

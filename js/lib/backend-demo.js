@@ -8,8 +8,8 @@
 
   // ⚠️ Incrémenter la version dès que les données de démo changent : les
   // navigateurs qui ont déjà ouvert le site repartent alors des nouvelles données.
-  const KEY = 'talabi.db.v10';
-  const SESSION_KEY = 'talabi.session.v10';
+  const KEY = 'talabi.db.v11';
+  const SESSION_KEY = 'talabi.session.v11';
   let db = null;
   const listeners = [];
 
@@ -78,6 +78,135 @@
     if (db.notifications.length > 300) db.notifications.length = 300;
   }
 
+  /* ====================================================================
+     DÉLAIS DE RÉPONSE ET ATTRIBUTION AUTOMATIQUE
+     --------------------------------------------------------------------
+     Deux minuteurs, et une différence de nature entre les deux :
+
+     • Le restaurant a 5 minutes pour accepter ou refuser. Passé ce délai la
+       commande est refusée d'office : le client doit savoir à quoi s'en
+       tenir, une commande qui reste « en attente » une heure est pire qu'un
+       refus franc.
+     • Le livreur n'a que 30 secondes, et le refus ne concerne que lui : la
+       course repart aussitôt au livreur suivant, en ligne et le plus proche
+       du restaurant. La commande n'est jamais perdue — quand tout le monde
+       a laissé passer son tour, elle reste visible par tous et un nouveau
+       tour complet est relancé.
+
+     Ici tout est local, donc le balayage tourne à chaque lecture et à chaque
+     battement de l'horloge de l'application. Sur Supabase, c'est pg_cron qui
+     s'en charge côté serveur (voir supabase/09_delais.sql) : sans cela rien
+     n'expirerait tant que personne n'a le site ouvert.
+     ==================================================================== */
+  const msNow = () => Date.now();
+  const isoAt = (ms) => new Date(ms).toISOString();
+  const reglage = (k, def) => {
+    const v = db.settings ? db.settings[k] : null;
+    return typeof v === 'number' ? v : def;
+  };
+
+  /** Livreurs joignables pour cette commande, du plus proche au plus loin. */
+  function candidats(o) {
+    const refuses = o.declined_by || [];
+    return db.drivers
+      .filter(d => d.validation_status === 'approved' &&
+                   d.status === 'available' &&          // en ligne et pas déjà en course
+                   refuses.indexOf(d.id) < 0 &&
+                   (!d.zone_id || !o.zone_id || d.zone_id === o.zone_id))
+      .map(d => {
+        const rest = byId(db.restaurants, o.restaurant_id);
+        // distance au restaurant : c'est là que le livreur doit se rendre en
+        // premier. Sans position connue, il passe après ceux qu'on situe.
+        const km = (d.last_lat != null && rest && rest.lat != null)
+          ? U.haversine(d.last_lat, d.last_lng, rest.lat, rest.lng) : 9999;
+        return { d: d, km: km };
+      })
+      .sort((a, b) => a.km - b.km)
+      .map(x => x.d);
+  }
+
+  /** Propose la course au meilleur livreur restant. Renvoie true si proposée. */
+  function proposer(o) {
+    const suivant = candidats(o)[0];
+    if (!suivant) {
+      // plus personne : la course reste ouverte à tous, et on note depuis
+      // quand elle cherche pour pouvoir relancer un tour
+      o.offer_driver_id = null;
+      o.offer_deadline = null;
+      if (!o.search_since) o.search_since = isoAt(msNow());
+      return false;
+    }
+    o.offer_driver_id = suivant.id;
+    o.offer_deadline = isoAt(msNow() + reglage('driver_timeout_s', 30) * 1000);
+    o.search_since = o.search_since || isoAt(msNow());
+    const rest = byId(db.restaurants, o.restaurant_id);
+    notify(suivant.id, 'Course à prendre — 30 s',
+      (rest ? rest.name : 'Un restaurant') + ' — commande #' + o.code + '. Répondez vite !',
+      'delivery_available', o.id);
+    return true;
+  }
+
+  /** Le livreur `driverId` ne prend pas cette course : au suivant. */
+  function refuserPuisSuivant(o, driverId, motif) {
+    o.declined_by = (o.declined_by || []).concat(driverId ? [driverId] : []);
+    if (motif === 'timeout' && driverId)
+      notify(driverId, 'Course expirée',
+        'Les 30 secondes sont passées, la commande #' + o.code + ' a été proposée à un autre livreur.',
+        'delivery_available', o.id);
+    proposer(o);
+  }
+
+  /**
+   * Applique tous les délais échus. Renvoie true si quelque chose a changé.
+   * Sans effet de bord visible quand rien n'a expiré : c'est appelé souvent.
+   */
+  function balayer() {
+    if (!db || !db.orders) return false;
+    const t = msNow();
+    let change = false;
+
+    db.orders.forEach(o => {
+      /* --- 1. le restaurant n'a pas répondu dans les 5 minutes --- */
+      if (o.status === 'pending' && o.respond_deadline && new Date(o.respond_deadline).getTime() <= t) {
+        const duree = U.dureeTexte(reglage('resto_timeout_s', 300));
+        o.status = 'rejected';
+        o.reject_reason = 'Sans réponse du restaurant après ' + duree + ', ' +
+                          'la commande a été annulée automatiquement.';
+        o.respond_deadline = null;
+        stamp(o, 'rejected');
+        orderNotifications(o, 'pending');
+        const rest = byId(db.restaurants, o.restaurant_id);
+        if (rest) notify(rest.owner_id, 'Commande expirée #' + o.code,
+          'Faute de réponse en ' + duree + ', la commande a été refusée automatiquement.',
+          'rejected', o.id);
+        change = true;
+        return;
+      }
+
+      /* --- 2. le livreur n'a pas répondu dans les 30 secondes --- */
+      if (o.status === 'ready' && !o.driver_id) {
+        if (o.offer_driver_id && o.offer_deadline && new Date(o.offer_deadline).getTime() <= t) {
+          refuserPuisSuivant(o, o.offer_driver_id, 'timeout');
+          change = true;
+        } else if (!o.offer_driver_id) {
+          // personne n'a la main : soit la course vient d'être prête, soit
+          // tout le monde a passé son tour et l'heure de la relance est venue
+          const depuis = o.search_since ? new Date(o.search_since).getTime() : 0;
+          const relance = reglage('redispatch_after_s', 60) * 1000;
+          if (!depuis) { if (proposer(o)) change = true; }
+          else if (t - depuis >= relance) {
+            o.declined_by = [];          // nouveau tour, tout le monde revient
+            o.search_since = isoAt(t);
+            if (proposer(o)) change = true;
+          }
+        }
+      }
+    });
+
+    if (change) save();
+    return change;
+  }
+
   /** Reproduit le trigger SQL on_order_change */
   function orderNotifications(order, prevStatus) {
     const rest = byId(db.restaurants, order.restaurant_id);
@@ -98,10 +227,10 @@
         notify(order.client_id, 'Préparation en cours', 'Votre commande #' + order.code + ' est en préparation.', 'preparing', order.id);
         break;
       case 'ready':
+        // seul le client est prévenu ici : la course est proposée à un livreur
+        // précis, qui reçoit sa propre alerte dans proposer(). Prévenir tout le
+        // monde reviendrait à annoncer une course déjà prise à cinq personnes.
         notify(order.client_id, 'Commande prête', "Votre commande est prête, recherche d'un livreur…", 'ready', order.id);
-        db.drivers.filter(d => d.validation_status === 'approved' && d.status === 'available' &&
-                               (!d.zone_id || d.zone_id === order.zone_id))
-          .forEach(d => notify(d.id, 'Nouvelle livraison disponible', rname + ' — commande #' + order.code, 'delivery_available', order.id));
         break;
       case 'driver_assigned':
         notify(order.client_id, 'Livreur trouvé', 'Un livreur prend en charge votre commande #' + order.code, 'driver_assigned', order.id);
@@ -465,6 +594,9 @@
         client_phone: U.normPhone(payload.client_phone), client_name: u.full_name,
         note: payload.note || '', payment_method: 'cash',
         reject_reason: null, cancel_reason: null, client_confirmed: false,
+        // le chronomètre du restaurant démarre à la seconde où la commande part
+        respond_deadline: isoAt(msNow() + reglage('resto_timeout_s', 300) * 1000),
+        offer_driver_id: null, offer_deadline: null, declined_by: [], search_since: null,
         created_at: new Date().toISOString(),
         accepted_at: null, ready_at: null, assigned_at: null, delivering_at: null, delivered_at: null
       }, totals);
@@ -479,6 +611,9 @@
     async orders(filter) {
       const f = filter || {};
       const u = me();
+      // les délais échus s'appliquent avant la lecture : personne ne doit voir
+      // une commande « en attente » dont le temps est écoulé
+      if (balayer()) emit('orders');
       let list = db.orders.slice();
 
       if (f.scope === 'client')      list = list.filter(o => u && o.client_id === u.id);
@@ -491,7 +626,13 @@
       if (f.scope === 'available') {
         const d = u ? byId(db.drivers, u.id) : null;
         if (!d || d.validation_status !== 'approved') return [];
-        list = list.filter(o => o.status === 'ready' && !o.driver_id && (!d.zone_id || d.zone_id === o.zone_id));
+        list = list.filter(o =>
+          o.status === 'ready' && !o.driver_id &&
+          (!d.zone_id || !o.zone_id || d.zone_id === o.zone_id) &&
+          // proposée nommément à ce livreur (il a 30 s), ou bien plus personne
+          // ne l'a en main et elle est alors ouverte à tous
+          (o.offer_driver_id === u.id ||
+            (!o.offer_driver_id && (o.declined_by || []).indexOf(u.id) < 0)));
       }
       if (f.status) list = list.filter(o => f.status.indexOf(o.status) >= 0);
       if (f.restaurant_id) list = list.filter(o => o.restaurant_id === f.restaurant_id);
@@ -502,8 +643,32 @@
     },
 
     async order(id) {
+      if (balayer()) emit('orders');
       const o = byId(db.orders, id);
       return o ? expandOrder(o) : null;
+    },
+
+    /**
+     * Battement d'horloge : applique les délais échus sans rien lire d'autre.
+     * L'application l'appelle chaque seconde pendant qu'un compte à rebours est
+     * affiché. Sur Supabase, c'est pg_cron qui fait ce travail côté serveur.
+     */
+    async tick() {
+      if (balayer()) { emit('orders'); return true; }
+      return false;
+    },
+
+    /**
+     * Le livreur passe son tour. Ce n'est pas un refus de la commande : elle
+     * part au livreur suivant, immédiatement, sans attendre les 30 secondes.
+     */
+    async declineOrder(id) {
+      const u = requireUser();
+      const o = byId(db.orders, id);
+      if (!o || o.status !== 'ready' || o.driver_id) return null;
+      refuserPuisSuivant(o, u.id, 'passe');
+      commit('orders');
+      return expandOrder(o);
     },
 
     async updateOrderStatus(id, status, extra) {
@@ -538,6 +703,13 @@
       if (extra && extra.cancel_reason) o.cancel_reason = extra.cancel_reason;
       stamp(o, status);
 
+      // le restaurant a répondu : son chronomètre n'a plus lieu d'être
+      if (prev === 'pending') o.respond_deadline = null;
+      // commande prête : la recherche d'un livreur démarre tout de suite
+      if (status === 'ready' && !o.driver_id) { o.declined_by = []; o.search_since = null; proposer(o); }
+      // plus rien à proposer une fois la course prise, refusée ou annulée
+      if (status !== 'ready') { o.offer_driver_id = null; o.offer_deadline = null; }
+
       if (status === 'delivered' && o.driver_id) {
         const d = byId(db.drivers, o.driver_id);
         if (d) { d.total_deliveries++; d.total_earnings += o.driver_earning; d.status = 'available'; }
@@ -559,8 +731,13 @@
       const o = byId(db.orders, id);
       if (!o || o.status !== 'ready' || o.driver_id)
         throw new Error("Cette commande vient d'être prise par un autre livreur.");
+      // proposée à quelqu'un d'autre : on ne double pas le livreur en cours
+      if (o.offer_driver_id && o.offer_driver_id !== u.id &&
+          U.secondsLeft(o.offer_deadline) > 0)
+        throw new Error('Cette course est proposée à un autre livreur pour quelques secondes encore.');
       o.driver_id = u.id;
       o.status = 'driver_assigned';
+      o.offer_driver_id = null; o.offer_deadline = null; o.search_since = null;
       stamp(o, 'driver_assigned');
       d.status = 'busy';
       orderNotifications(o, 'ready');
@@ -813,7 +990,8 @@
 
     async saveSettings(patch) {
       requireAdmin();
-      ['commission_rate', 'driver_share', 'default_delivery_fee'].forEach(k => {
+      ['commission_rate', 'driver_share', 'default_delivery_fee',
+       'resto_timeout_s', 'driver_timeout_s', 'redispatch_after_s'].forEach(k => {
         if (patch[k] !== undefined) db.settings[k] = +patch[k];
       });
       commit('settings');
@@ -885,6 +1063,21 @@
       d.validation_status = 'approved';
       if (zoneId) d.zone_id = zoneId;
       if (d.status === 'offline') d.status = 'available';
+
+      /* Les courses déjà prêtes lui sont proposées tout de suite.
+         Sans cela, ce bouton mentirait : la course en attente est réservée
+         30 secondes au livreur de démonstration, et celui qu'on vient de
+         préparer ne verrait rien. C'est un raccourci de test assumé — en
+         vrai, on n'arrache pas une course à celui qui l'a en main. */
+      db.orders.forEach(o => {
+        if (o.status !== 'ready' || o.driver_id) return;
+        if (o.zone_id && d.zone_id && o.zone_id !== d.zone_id) return;
+        o.declined_by = [];
+        o.offer_driver_id = d.id;
+        o.offer_deadline = isoAt(msNow() + reglage('driver_timeout_s', 30) * 1000);
+        o.search_since = isoAt(msNow());
+      });
+
       commit('drivers');
       return clone(d);
     },

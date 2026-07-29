@@ -407,11 +407,19 @@
       ? '<a class="btn btn-dark btn-sm" href="' + U.gmapsRoute(o.address_lat, o.address_lng) +
         '" target="_blank" rel="noopener">🗺️ Y aller</a>' : '';
 
-    return '<div class="order-card">' +
+    // course proposée à ce livreur : il a 30 s, ensuite elle part au suivant
+    const proposee = !isMine && o.offer_deadline && U.secondsLeft(o.offer_deadline) > 0;
+
+    return '<div class="order-card' + (proposee ? ' offerte' : '') + '">' +
       '<div class="row-between">' +
         '<div class="row" style="gap:9px"><span class="ocode">#' + U.esc(o.code) + '</span>' + UI.tag(o.status) + '</div>' +
         '<span class="tiny">' + U.ago(o.created_at) + '</span>' +
       '</div>' +
+
+      (proposee
+        ? Cmp.countdown(o.offer_deadline, 'Elle est pour vous —', 10)
+        : (!isMine ? '<div class="cdown libre">' + UI.icon('users', 16) +
+            '<span class="l">Ouverte à tous les livreurs</span></div>' : '')) +
 
       '<div class="divider"></div>' +
 
@@ -451,8 +459,6 @@
     '</div>';
   }
 
-  const skipped = {};
-
   function bindDelivery(view, reload) {
     view.querySelectorAll('[data-claim]').forEach(b => b.onclick = async function () {
       if (w.Sound) Sound.stop('delivery');       // le livreur a répondu : la sonnerie n'a plus lieu d'être
@@ -471,12 +477,14 @@
       } catch (e) { UI.busy(this, false); UI.err(e.message); reload(); }
     });
 
-    view.querySelectorAll('[data-skip]').forEach(b => b.onclick = function () {
+    view.querySelectorAll('[data-skip]').forEach(b => b.onclick = async function () {
       if (w.Sound) Sound.stop('delivery');       // « Passer » vaut réponse, au même titre qu'accepter
-      skipped[this.dataset.skip] = true;
       const card = this.closest('.order-card');
       card.style.transition = '.2s'; card.style.opacity = '0';
       setTimeout(() => card.remove(), 200);
+      // passer n'est plus un simple masquage local : la course part au livreur
+      // suivant tout de suite, sans attendre la fin des 30 secondes
+      await API.safe(() => API.declineOrder(this.dataset.skip), null);
     });
 
     view.querySelectorAll('[data-dact]').forEach(b => b.onclick = async function () {

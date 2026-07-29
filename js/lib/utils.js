@@ -98,6 +98,36 @@
       return function () { clearTimeout(t); const a = arguments, c = this; t = setTimeout(() => fn.apply(c, a), ms || 300); };
     },
 
+    /* ------------------------------------------------- comptes à rebours */
+
+    /** Secondes restantes avant une échéance ISO. Jamais négatif. */
+    secondsLeft(deadline) {
+      if (!deadline) return 0;
+      const s = Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000);
+      return s > 0 ? s : 0;
+    },
+
+    /** 245 → « 4:05 ». Toujours deux chiffres pour les secondes, sinon
+        l'affichage saute d'une largeur à l'autre à chaque seconde. */
+    mmss(sec) {
+      const s = Math.max(0, Math.round(sec));
+      return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    },
+
+    /**
+     * Durée en toutes lettres, pour un message lu par un humain.
+     * Arrondir en minutes ne marche pas : un délai de 30 s donnerait
+     * « 1 minute », et un délai de 20 s « 0 minute ».
+     */
+    dureeTexte(sec) {
+      const s = Math.max(0, Math.round(sec));
+      if (s < 60) return s + ' seconde' + (s > 1 ? 's' : '');
+      const m = Math.round(s / 60);
+      if (s % 60 === 0 || s > 120) return m + ' minute' + (m > 1 ? 's' : '');
+      // entre 1 et 2 minutes, la minute ronde serait trompeuse
+      return Math.floor(s / 60) + ' min ' + (s % 60) + ' s';
+    },
+
     /* ------------------------------------------------- géolocalisation */
 
     /** Distance réelle à vol d'oiseau entre 2 points GPS, en km. */
