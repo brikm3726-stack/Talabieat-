@@ -218,7 +218,10 @@
     statusTag(s)   { return (U.STATUS[s] || { tag: 'tag-muted' }).tag; },
     statusIcon(s)  { return (U.STATUS[s] || { icon: '•' }).icon; },
 
-    VEHICLES: { moto: '🏍️ Moto', voiture: '🚗 Voiture', velo: '🚲 Vélo', autre: '📦 Autre' },
+    /* Libellés seuls : les vues qui veulent un pictogramme en posent un
+       elles-mêmes. Un emoji collé au texte se retrouvait doublé partout où
+       une icône au trait précédait déjà le libellé. */
+    VEHICLES: { moto: 'Moto', voiture: 'Voiture', velo: 'Vélo', autre: 'Autre' },
 
     /** Calcule les montants d'une commande */
     computeTotals(subtotal, deliveryFee, settings) {

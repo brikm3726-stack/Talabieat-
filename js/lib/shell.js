@@ -40,7 +40,10 @@
       { p: '/a/restaurants', i: 'store',    l: 'Restaurants' },
       { p: '/a/drivers',     i: 'scooter',  l: 'Livreurs' },
       { p: '/a/orders',      i: 'receipt',  l: 'Commandes' },
-      { p: '/a/users',       i: 'users',    l: 'Utilisateurs' }
+      { p: '/a/users',       i: 'users',    l: 'Utilisateurs' },
+      // Réglages manquait ici : la page n'était atteignable que par la barre
+      // d'onglets répétée dans chaque page, qui doublonnait ce menu
+      { p: '/a/settings',    i: 'settings', l: 'Réglages' }
     ]
   };
 
@@ -119,6 +122,9 @@
       const bar = document.getElementById('topbar');
       const items = Shell.navItems();
       const showZone = !Store.isLogged || Store.role === 'client';
+      // la console d'administration est sombre, jusqu'à la barre du haut
+      const admin = Store.isLogged && Store.role === 'admin';
+      document.body.classList.toggle('role-admin', admin);
 
       bar.innerHTML =
         '<div class="wrap topbar-in">' +
@@ -133,7 +139,10 @@
 
           '<nav class="deskmenu">' +
             items.filter(x => x.p !== '/account' && x.p !== '/login')
-                 .map(x => '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '">' + x.l + '</a>').join('') +
+                 .map(x => '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '">' +
+                   // l'admin gère six rubriques : sans pictogramme, le menu
+                   // devient une rangée de mots difficile à balayer
+                   (admin ? UI.icon(x.i, 17) + ' ' : '') + x.l + '</a>').join('') +
           '</nav>' +
 
           '<div class="top-actions">' +

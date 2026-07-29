@@ -8,6 +8,9 @@
 
   const STATUS_LABEL = { offline: 'Indisponible', available: 'Disponible', busy: 'En livraison' };
 
+  /* U.VEHICLES ne porte que le libellé : le pictogramme est choisi ici. */
+  const VEHICLE_ICON = { moto: 'scooter', voiture: 'package', velo: 'bike', autre: 'package' };
+
   /** En-tête de page : pastille orange, titre, sous-titre. */
   function drvHead(icone, titre, sous) {
     return '<div class="drv-title">' +
@@ -68,7 +71,7 @@
             '<div class="h1">Bonjour ' + U.esc((Store.profile.full_name || '').split(' ')[0]) + ' 👋</div>' +
             '<div class="sub drv-meta">' + UI.pin(15) + ' ' +
               U.esc((d && d.zone && d.zone.name) || 'Zone non définie') +
-              '<span class="dot">•</span>🛵 ' + U.esc(U.VEHICLES[(d && d.vehicle) || 'moto']) + '</div>' +
+              '<span class="dot">•</span>' + UI.icon(VEHICLE_ICON[(d && d.vehicle) || 'moto'], 15) + ' ' + U.esc(U.VEHICLES[(d && d.vehicle) || 'moto']) + '</div>' +
           '</div>' +
         '</div>' +
 
@@ -336,8 +339,8 @@
           '<div class="stack" style="gap:8px" id="veh">' +
             Object.keys(U.VEHICLES).map(k =>
               '<div class="role-card ' + ((d.vehicle || 'moto') === k ? 'on' : '') + '" data-v="' + k + '">' +
-                '<div class="ic">' + U.VEHICLES[k].split(' ')[0] + '</div>' +
-                '<div class="grow"><b>' + U.esc(U.VEHICLES[k].split(' ').slice(1).join(' ')) + '</b></div>' +
+                '<div class="ic">' + UI.icon(VEHICLE_ICON[k] || 'package', 22) + '</div>' +
+                '<div class="grow"><b>' + U.esc(U.VEHICLES[k]) + '</b></div>' +
                 '<div data-check style="color:var(--brand);font-weight:800">' +
                   ((d.vehicle || 'moto') === k ? '✓' : '') + '</div></div>').join('') +
           '</div></div>' +

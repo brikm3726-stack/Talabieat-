@@ -1267,3 +1267,198 @@ tr:hover td{background:#FCFDFF}
 .footer{background:var(--ink);color:#fff;padding:34px 0;margin-top:40px}
 .footer a{opacity:.75;font-size:13.5px}
 .footer a:hover{opacity:1}
+
+/* ============================================================== ESPACE ADMIN
+   Console sombre, d'après les maquettes. Le reste du site garde sa teinte
+   claire : seule la classe posée sur <body> par Shell fait basculer la barre
+   du haut et la barre du bas, qui vivent en dehors de #view. */
+body.role-admin{background:#0A0B0D}
+
+body.role-admin .topbar{
+  background:rgba(12,13,16,.94);border-bottom:1px solid #1E2025;
+}
+body.role-admin .topbar .brand{color:#fff}
+body.role-admin .deskmenu a{
+  display:inline-flex;align-items:center;gap:7px;
+  color:#9BA1AC;border-radius:12px;padding:9px 14px;
+}
+body.role-admin .deskmenu a:hover{background:#1A1C21;color:#fff}
+body.role-admin .deskmenu a.on{
+  background:linear-gradient(135deg,rgba(255,122,45,.22),rgba(255,77,45,.14));
+  color:#FF8A3D;box-shadow:inset 0 0 0 1px rgba(255,122,45,.35);
+}
+body.role-admin .icon-btn{background:#16181D;border-color:#252830;color:#C9CED8}
+body.role-admin .icon-btn:hover{background:#1F222A}
+body.role-admin .bottomnav{background:rgba(12,13,16,.96);border-top-color:#1E2025}
+body.role-admin .bottomnav a{color:#8C93A0}
+body.role-admin .bottomnav a.on{color:#FF8A3D}
+
+.admin-page{
+  /* palette redéfinie ici : les règles existantes (cartes, champs, boutons,
+     étiquettes) suivent sans qu'aucune d'elles ait besoin d'être touchée */
+  --ink:#F2F4F8;
+  --ink-2:#C2C8D2;
+  --muted:#8C93A0;
+  --line:#242730;
+  --card:#141619;
+  --bg:#0A0B0D;
+  --brand:#FF7A2D;
+  --brand-soft:rgba(255,122,45,.14);
+  --brand-grad:linear-gradient(135deg,#FF8A3D 0%,#F2601F 100%);
+  --ok-soft:rgba(18,183,106,.14);
+  --warn-soft:rgba(247,144,9,.15);
+  --info-soft:rgba(59,130,246,.15);
+  --danger-soft:rgba(240,68,56,.14);
+  --sh-1:none;
+  --sh-2:0 10px 26px -18px rgba(0,0,0,.9);
+
+  min-height:calc(100vh - 60px);background:var(--bg);color:var(--ink);
+}
+.admin-page .card{background:var(--card);border-color:var(--line)}
+.admin-page .input,.admin-page select.input,.admin-page textarea.input{
+  background:#101216;border-color:#282C35;color:#EDEFF3;
+}
+.admin-page .input::placeholder{color:#6B7280}
+.admin-page label{color:#B7BDC8}
+.admin-page .hint{color:#7B828E}
+.admin-page .tag-ok{color:#4ADE80}
+.admin-page .tag-warn{color:#FBBF24}
+.admin-page .tag-info{color:#7DAAFF}
+.admin-page .tag-danger{color:#FF7A6E}
+.admin-page .btn-ghost{background:#171A1F;border-color:#2A2E38;color:#DDE1E8}
+.admin-page .btn-ghost:hover{background:#20242B}
+.admin-page .btn-danger{background:transparent;border:1px solid rgba(240,68,56,.5);color:#FF7A6E}
+.admin-page .btn-danger:hover{background:rgba(240,68,56,.12)}
+.admin-page .btn-ok{background:transparent;border:1px solid rgba(18,183,106,.5);color:#4ADE80}
+.admin-page .btn-ok:hover{background:rgba(18,183,106,.12)}
+.admin-page .btn-soft{background:var(--brand-soft);color:#FF8A3D}
+.admin-page .chip{background:#171A1F;border:1px solid #2A2E38;color:#DDE1E8}
+.admin-page .link{color:#FF8A3D}
+.admin-page .divider{background:var(--line)}
+.admin-page .empty{color:#6F7684}
+.admin-page .empty b{color:#E6E9EF}
+.admin-page .skel{background:linear-gradient(90deg,#15171B 25%,#1D2026 50%,#15171B 75%);background-size:200% 100%}
+
+.adm-head{margin-bottom:20px}
+.adm-head .h1{font-size:31px;font-weight:800;color:#fff}
+.adm-head .sub{color:#8C93A0;font-size:14px;margin-top:5px}
+
+/* ---- vignettes de chiffres ---- */
+.adm-stats{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+.adm-stat{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 18px;
+  transition:border-color .25s ease,transform .25s ease;
+}
+.adm-stat:hover{transform:translateY(-2px);border-color:#33373F}
+/* la vignette « chaude » réclame une action : elle se voit de loin */
+.adm-stat.hot{border-color:rgba(255,122,45,.55);box-shadow:0 0 0 1px rgba(255,122,45,.12) inset}
+.adm-stat .k{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8C93A0}
+.adm-stat .ic{line-height:0;color:#8C93A0}
+.adm-stat .ic.orange{color:#FF8A3D}
+.adm-stat .ic.vert{color:#4ADE80}
+.adm-stat .ic.or{color:#FBBF24}
+.adm-stat .ic.bleu{color:#7DAAFF}
+.adm-stat .v{font-size:31px;font-weight:800;color:#fff;margin-top:11px;letter-spacing:-.02em}
+.adm-stat .s{font-size:12.5px;color:#767D8A;margin-top:4px}
+
+.adm-alert{
+  display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-top:18px;
+  background:rgba(247,144,9,.09);border:1px solid rgba(247,144,9,.3);
+  border-radius:16px;padding:15px 18px;
+}
+.adm-alert .ic{color:#FBBF24;line-height:0}
+.adm-alert b{color:#fff}
+.adm-alert .tiny{color:#9BA1AC}
+
+.adm-section{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 13px}
+.adm-section .h2{font-size:21px;font-weight:800;color:#fff}
+
+/* ---- barre de filtres ---- */
+.adm-filters{
+  display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;
+  background:#111317;border:1px solid var(--line);border-radius:15px;padding:6px;
+}
+.adm-filters::-webkit-scrollbar{display:none}
+.adm-filters button{
+  flex:1;min-width:max-content;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 16px;border:none;background:transparent;border-radius:11px;
+  font-weight:650;font-size:13.5px;color:#8C93A0;cursor:pointer;transition:.18s;
+}
+.adm-filters button:hover{color:#DDE1E8;background:#181B20}
+.adm-filters button.on{background:var(--brand-grad);color:#fff}
+.adm-filters .n{
+  background:rgba(255,255,255,.12);border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;
+}
+.adm-filters button.on .n{background:rgba(255,255,255,.24)}
+
+/* ---- fiches ---- */
+.adm-card{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;
+  transition:border-color .25s ease;
+}
+.adm-card:hover{border-color:#33373F}
+/* liseré de statut sur les livreurs, comme dans la maquette */
+.adm-card.drv{border-left:3px solid #2A2E38}
+.adm-card.drv.approved{border-left-color:#FF7A2D}
+.adm-card.drv.pending{border-left-color:#FBBF24}
+.adm-card.drv.rejected{border-left-color:#F04438}
+.adm-row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.adm-name{font-size:17px;font-weight:750;color:#fff}
+.adm-verif{color:#FF8A3D;line-height:0}
+.adm-line{
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  font-size:13px;color:#98A0AC;margin-top:7px;
+}
+.adm-line .sep{color:#3A3F49;margin:0 4px}
+.adm-line .warn{color:#FBBF24;font-weight:650;display:inline-flex;align-items:center;gap:6px}
+.adm-line .danger{color:#FF7A6E;font-weight:650}
+.adm-line.danger{color:#FF7A6E}
+.adm-line .lien{color:#FF8A3D;font-weight:650}
+.adm-logo{
+  width:88px;height:88px;border-radius:14px;flex:none;overflow:hidden;
+  background:#0E1013;border:1px solid #24272F;display:grid;place-items:center;
+  color:#6F7684;font-weight:800;font-size:20px;
+}
+.adm-logo img{width:100%;height:100%;object-fit:cover}
+.adm-acts{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-left:auto}
+@media(max-width:700px){ .adm-acts{margin-left:0;width:100%} }
+
+/* ---- tableaux ---- */
+.adm-table{
+  overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:var(--card);
+}
+.adm-table table{width:100%;border-collapse:collapse;font-size:13.5px}
+.adm-table th{
+  text-align:left;padding:14px 16px;background:#101216;color:#8C93A0;
+  font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.adm-table td{padding:14px 16px;border-bottom:1px solid #1C1F25;color:#C6CCD6;vertical-align:middle}
+.adm-table tbody tr:last-child td{border-bottom:none}
+.adm-table tbody tr{transition:background .18s ease}
+.adm-table tbody tr:hover{background:#16191E}
+.adm-table .ic-cell{white-space:nowrap}
+.adm-table .ic-cell .ico{color:#6F7684;margin-right:2px}
+.adm-table .vide{color:#4E545E}
+.adm-table .montant{color:#FF8A3D;font-weight:750}
+.adm-table .ocode{
+  background:rgba(255,122,45,.14);color:#FF8A3D;border:none;
+  padding:5px 10px;border-radius:8px;font-weight:750;font-size:12.5px;
+}
+.adm-user{display:flex;align-items:center;gap:11px}
+.adm-user b{color:#fff;font-size:14px}
+.adm-user .tiny{color:#767D8A}
+
+/* pastille de rôle : une couleur par rôle, plus rapide à lire qu'un mot seul */
+.adm-role{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;
+  font-size:12px;font-weight:700;border:1px solid transparent;
+}
+.adm-role.client{background:rgba(59,130,246,.13);color:#7DAAFF;border-color:rgba(59,130,246,.28)}
+.adm-role.admin{background:rgba(167,139,250,.13);color:#B9A2FF;border-color:rgba(167,139,250,.3)}
+.adm-role.driver{background:rgba(18,183,106,.13);color:#4ADE80;border-color:rgba(18,183,106,.3)}
+.adm-role.restaurant{background:rgba(255,122,45,.13);color:#FF9457;border-color:rgba(255,122,45,.3)}
+
+.adm-search{position:relative;margin-bottom:14px;color:#6F7684}
+.adm-search .ico{position:absolute;left:15px;top:50%;transform:translateY(-50%)}
+.adm-search .input{padding-left:44px}

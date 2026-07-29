@@ -6,114 +6,170 @@
 
   const GUARD = { auth: true, roles: ['admin'] };
 
-  function adminTabs(active) {
-    const t = [
-      ['/a', 'chart', 'Tableau'], ['/a/restaurants', 'store', 'Restaurants'], ['/a/drivers', 'scooter', 'Livreurs'],
-      ['/a/orders', 'receipt', 'Commandes'], ['/a/users', 'users', 'Utilisateurs'], ['/a/settings', 'settings', 'Réglages']
-    ];
-    return '<div class="tabs" style="margin-bottom:18px">' +
-      t.map(x => '<button onclick="Router.go(\'' + x[0] + '\')" class="' + (x[0] === active ? 'on' : '') + '">' +
-        UI.icon(x[1], 17) + ' ' + x[2] + '</button>').join('') + '</div>';
+  /* La barre d'onglets qui se trouvait ici répétait, dans chaque page, le menu
+     déjà présent en haut de l'écran. Deux navigations identiques l'une sous
+     l'autre, dont l'une renvoyait toujours au tableau de bord. Le menu du haut
+     reste seul, complété de « Réglages » qui n'y figurait pas. */
+
+  /** Ouverture de page : titre, sous-titre, et pictogramme de la rubrique. */
+  function head(titre, sous) {
+    return '<div class="adm-head"><div class="h1">' + U.esc(titre) + '</div>' +
+      '<div class="sub">' + U.esc(sous) + '</div></div>';
+  }
+
+  /**
+   * Filtres d'une liste : pictogramme, libellé et NOMBRE RÉEL d'éléments.
+   * Le compte est calculé sur la liste complète, pas inventé : il indique
+   * combien de fiches attendent réellement une décision.
+   */
+  function filterBar(attr, choix, actif) {
+    return '<div class="adm-filters">' +
+      choix.map(c => '<button data-' + attr + '="' + U.esc(c.v) + '"' +
+        (c.v === actif ? ' class="on"' : '') + '>' +
+        UI.icon(c.i, 17) + '<span>' + U.esc(c.l) + '</span>' +
+        '<b class="n">' + c.n + '</b></button>').join('') +
+    '</div>';
+  }
+
+  /** Enveloppe sombre commune aux six pages. */
+  function page(contenu) {
+    return '<div class="admin-page"><div class="wrap page">' + contenu + '</div></div>';
   }
 
   /* ======================================================================
      TABLEAU DE BORD
      ====================================================================== */
   Router.add('/a', async function (params, query, view) {
-    view.innerHTML = '<div class="wrap page">' + adminTabs('/a') + '<div class="skel" style="height:220px"></div></div>';
+    view.innerHTML = page('<div class="skel" style="height:220px"></div>');
 
     const s = await API.safe(() => API.adminStats(), null);
     const recent = await API.safe(() => API.adminOrders({ limit: 8 }), []);
     if (!s) return;
 
-    view.innerHTML = '<div class="wrap page">' +
-      adminTabs('/a') +
-      Cmp.pageHead('Vue d’ensemble', 'Activité de la plateforme ' + TALABI_CONFIG.APP_NAME) +
+    /* Vignette : intitulé, chiffre, légende. `chaud` met la vignette en avant
+       quand elle appelle une action — des commandes qui attendent. */
+    function tuile(label, valeur, note, icone, ton, chaud) {
+      return '<div class="adm-stat' + (chaud ? ' hot' : '') + '">' +
+        '<div class="row-between"><span class="k">' + U.esc(label) + '</span>' +
+        '<span class="ic ' + (ton || '') + '">' + UI.icon(icone, 19) + '</span></div>' +
+        '<div class="v">' + valeur + '</div>' +
+        '<div class="s">' + U.esc(note) + '</div></div>';
+    }
 
-      '<div class="grid grid-stats">' +
-        UI.stat('Utilisateurs', U.num(s.users), '👥') +
-        UI.stat('Restaurants actifs', U.num(s.restaurants), '🏪') +
-        UI.stat('Livreurs validés', U.num(s.drivers), '🛵') +
-        UI.stat('Commandes totales', U.num(s.orders), '🧾') +
+    view.innerHTML = page(
+      head('Vue d’ensemble', 'Activité de la plateforme ' + TALABI_CONFIG.APP_NAME) +
+
+      '<div class="adm-stats">' +
+        tuile('Commandes en cours', U.num(s.active_orders), 'À traiter', 'flame', 'orange',
+              s.active_orders > 0) +
+        tuile('Livrées', U.num(s.delivered), 'Commandes réussies', 'check', 'vert') +
+        tuile('Volume d’affaires', U.money(s.gmv), 'Total des commandes', 'wallet', 'orange') +
+        tuile('Revenus plateforme', U.money(s.revenue), 'Total des commissions', 'tag', 'or') +
       '</div>' +
 
-      '<div class="grid grid-stats" style="margin-top:14px">' +
-        UI.stat('Commandes en cours', U.num(s.active_orders), '🔥') +
-        UI.stat('Livrées', U.num(s.delivered), '✅') +
-        UI.stat('Volume d’affaires', U.money(s.gmv), '💳') +
-        UI.stat('Revenus plateforme', U.money(s.revenue), '💰') +
+      '<div class="adm-stats" style="margin-top:14px">' +
+        tuile('Utilisateurs', U.num(s.users), 'Comptes inscrits', 'users', 'bleu') +
+        tuile('Restaurants actifs', U.num(s.restaurants), 'Fiches validées', 'store', 'orange') +
+        tuile('Livreurs validés', U.num(s.drivers), 'Comptes approuvés', 'scooter', 'vert') +
+        tuile('Commandes totales', U.num(s.orders), 'Depuis l’ouverture', 'receipt', 'or') +
       '</div>' +
 
       ((s.pending_restaurants || s.pending_drivers)
-        ? '<div class="card card-p" style="margin-top:18px;border-color:var(--warn)">' +
-          '<div class="h3" style="margin-bottom:10px">⏳ En attente de validation</div>' +
-          '<div class="row" style="gap:10px;flex-wrap:wrap">' +
+        ? '<div class="adm-alert">' +
+          '<span class="ic">' + UI.icon('clock', 20) + '</span>' +
+          '<div class="grow"><b>En attente de validation</b>' +
+            '<div class="tiny">Des inscriptions attendent votre décision.</div></div>' +
             (s.pending_restaurants ? '<a class="btn btn-primary btn-sm" href="#/a/restaurants">' +
               s.pending_restaurants + ' restaurant(s)</a>' : '') +
             (s.pending_drivers ? '<a class="btn btn-primary btn-sm" href="#/a/drivers">' +
               s.pending_drivers + ' livreur(s)</a>' : '') +
-          '</div></div>'
+          '</div>'
         : '') +
 
-      '<div class="section-head"><div class="h2">Dernières commandes</div>' +
+      '<div class="adm-section"><div class="h2">Dernières commandes</div>' +
         '<a class="link" href="#/a/orders">Tout voir →</a></div>' +
-      ordersTable(recent) +
-    '</div>';
+      ordersTable(recent));
   }, GUARD);
 
   /* ======================================================================
      RESTAURANTS
      ====================================================================== */
   Router.add('/a/restaurants', async function (params, query, view) {
-    let filter = '';
+    let filter = '', tous = [];
 
-    view.innerHTML = '<div class="wrap page">' + adminTabs('/a/restaurants') +
-      Cmp.pageHead('Restaurants', 'Validez les inscriptions et gérez les fiches') +
-      '<div class="tabs" style="margin-bottom:16px">' +
-        '<button data-f="" class="on">Tous</button>' +
-        '<button data-f="pending">En attente</button>' +
-        '<button data-f="approved">Validés</button>' +
-        '<button data-f="rejected">Refusés</button>' +
-      '</div><div id="list"><div class="skel" style="height:120px"></div></div></div>';
+    view.innerHTML = page(
+      head('Restaurants', 'Validez les inscriptions et gérez les fiches') +
+      '<div id="filtres"></div>' +
+      '<div id="list"><div class="skel" style="height:120px"></div></div>');
 
     const list = view.querySelector('#list');
+    const filtres = view.querySelector('#filtres');
+
+    function peindreFiltres() {
+      const n = st => tous.filter(x => x.status === st).length;
+      filtres.innerHTML = filterBar('f', [
+        { v: '',         i: 'grid',  l: 'Tous',      n: tous.length },
+        { v: 'pending',  i: 'clock', l: 'En attente', n: n('pending') },
+        { v: 'approved', i: 'check', l: 'Validés',    n: n('approved') },
+        { v: 'rejected', i: 'warn',  l: 'Refusés',    n: n('rejected') }
+      ], filter);
+      filtres.querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
+        filter = b.dataset.f; peindreFiltres(); peindre();
+      });
+    }
 
     async function load() {
-      const rows = await API.safe(() => API.adminRestaurants(filter || null), []);
-      if (!rows.length) { list.innerHTML = UI.empty('🏪', 'Aucun restaurant', ''); return; }
+      tous = await API.safe(() => API.adminRestaurants(null), []);
+      peindreFiltres();
+      peindre();
+    }
+
+    function peindre() {
+      const rows = filter ? tous.filter(x => x.status === filter) : tous;
+      if (!rows.length) { list.innerHTML = UI.empty(UI.icon('store', 40), 'Aucun restaurant', ''); return; }
 
       list.innerHTML = '<div class="stack">' + rows.map(r =>
-        '<div class="card card-p">' +
-          '<div class="row-between" style="align-items:flex-start;gap:12px">' +
-            '<div class="grow"><div class="row" style="gap:9px">' +
-              '<b style="font-size:15.5px">' + U.esc(r.name) + '</b>' +
+        '<div class="adm-card">' +
+          '<div class="adm-row">' +
+            '<div class="adm-logo">' + (r.logo_url
+              ? '<img src="' + U.escUrl(r.logo_url) + '" alt="">'
+              : '<span>' + U.esc(U.initials(r.name)) + '</span>') + '</div>' +
+            '<div class="grow"><div class="row" style="gap:9px;flex-wrap:wrap">' +
+              '<b class="adm-name">' + U.esc(r.name) + '</b>' +
+              (r.status === 'approved' ? '<span class="adm-verif" title="Fiche validée">' + UI.icon('check', 16) + '</span>' : '') +
               '<span class="tag ' + (r.status === 'approved' ? 'tag-ok' : r.status === 'rejected' ? 'tag-danger' : 'tag-warn') + '">' +
                 (r.status === 'approved' ? 'Validé' : r.status === 'rejected' ? 'Refusé' : 'En attente') + '</span>' +
               (r.open_now ? '<span class="tag tag-info">Ouvert</span>' : '') +
             '</div>' +
-            '<div class="tiny" style="margin-top:6px">' + UI.pin() + ' ' + U.esc(r.address || '—') +
+            '<div class="adm-line">' + UI.icon('pin', 14) + ' ' + U.esc(r.address || '—') +
               (r.zone ? ' — ' + U.esc(r.zone.name) : '') + '</div>' +
-            '<div class="tiny">📞 ' + U.esc(r.phone || '—') + ' • 🛵 ' + U.money(r.delivery_fee) + '</div>' +
-            '<div class="tiny">' + (U.hasCoords(r)
+            '<div class="adm-line">' + UI.icon('phone', 14) + ' ' + U.esc(r.phone || '—') +
+              ' <span class="sep">•</span> ' + UI.icon('scooter', 14) + ' ' + U.money(r.delivery_fee) + '</div>' +
+            '<div class="adm-line">' + (U.hasCoords(r)
               ? (r.gps_verified === false
-                  ? '<span style="color:var(--warn);font-weight:700">' + UI.icon('pin', 13) + ' position approximative — à vérifier</span>'
-                  : UI.pin(13) + ' <a target="_blank" rel="noopener" style="color:var(--brand);font-weight:650" href="' +
+                  ? '<span class="warn">' + UI.icon('warn', 14) + ' position approximative — à vérifier</span>'
+                  : UI.icon('link', 14) + ' <a target="_blank" rel="noopener" class="lien" href="' +
                     U.gmapsPin(r.lat, r.lng) + '">voir sur Google Maps ↗</a>')
-              : '<span style="color:var(--danger);font-weight:700">' + UI.icon('pin', 13) + ' aucune position GPS</span>') + '</div>' +
-            '<div class="tiny">👤 ' + U.esc(r.owner ? (r.owner.full_name + ' — ' + r.owner.email) : '—') + '</div>' +
-            (r.reject_reason ? '<div class="tiny" style="color:var(--danger)">Motif : ' + U.esc(r.reject_reason) + '</div>' : '') +
+              : '<span class="danger">' + UI.icon('warn', 14) + ' aucune position GPS</span>') + '</div>' +
+            '<div class="adm-line">' + UI.icon('user', 14) + ' ' +
+              U.esc(r.owner ? (r.owner.full_name + ' — ' + r.owner.email) : '—') + '</div>' +
+            (r.reject_reason ? '<div class="adm-line danger">Motif : ' + U.esc(r.reject_reason) + '</div>' : '') +
             '</div>' +
-          '</div>' +
-          '<div class="row" style="gap:9px;margin-top:13px;flex-wrap:wrap">' +
-            (r.status !== 'approved' ? '<button class="btn btn-ok btn-sm" data-ok="' + U.esc(r.id) + '">✅ Valider</button>' : '') +
-            (r.status !== 'rejected' ? '<button class="btn btn-danger btn-sm" data-no="' + U.esc(r.id) + '">⛔ Refuser</button>' : '') +
-            '<button class="btn btn-ghost btn-sm" data-pos="' + U.esc(r.id) + '">' + UI.pin(15) + ' Position</button>' +
-            '<a class="btn btn-ghost btn-sm" href="#/resto/' + U.esc(r.id) + '">Voir la fiche</a>' +
+            '<div class="adm-acts">' +
+              (r.status !== 'approved' ? '<button class="btn btn-ok btn-sm" data-ok="' + U.esc(r.id) + '">' +
+                UI.icon('check', 15) + ' Valider</button>' : '') +
+              (r.status !== 'rejected' ? '<button class="btn btn-danger btn-sm" data-no="' + U.esc(r.id) + '">' +
+                UI.icon('warn', 15) + ' Refuser</button>' : '') +
+              '<button class="btn btn-ghost btn-sm" data-pos="' + U.esc(r.id) + '">' +
+                UI.icon('pin', 15) + ' Position</button>' +
+              '<a class="btn btn-primary btn-sm" href="#/resto/' + U.esc(r.id) + '">' +
+                UI.icon('eye', 15) + ' Voir la fiche</a>' +
+            '</div>' +
           '</div>' +
         '</div>').join('') + '</div>';
 
       list.querySelectorAll('[data-pos]').forEach(b => b.onclick = function () {
-        const r = rows.find(x => x.id === this.dataset.pos);
+        const r = tous.find(x => x.id === this.dataset.pos);
         MapPicker.open({
           title: 'Position de ' + r.name,
           lat: r.lat, lng: r.lng,
@@ -138,11 +194,6 @@
       });
     }
 
-    view.querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
-      filter = b.dataset.f;
-      view.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b));
-      load();
-    });
     await load();
   }, GUARD);
 
@@ -150,44 +201,68 @@
      LIVREURS
      ====================================================================== */
   Router.add('/a/drivers', async function (params, query, view) {
-    let filter = '';
+    let filter = '', tous = [];
 
-    view.innerHTML = '<div class="wrap page">' + adminTabs('/a/drivers') +
-      Cmp.pageHead('Livreurs', 'Validez les comptes et suivez l’activité') +
-      '<div class="tabs" style="margin-bottom:16px">' +
-        '<button data-f="" class="on">Tous</button>' +
-        '<button data-f="pending">En attente</button>' +
-        '<button data-f="approved">Validés</button>' +
-        '<button data-f="rejected">Refusés</button>' +
-      '</div><div id="list"><div class="skel" style="height:120px"></div></div></div>';
+    view.innerHTML = page(
+      head('Livreurs', 'Validez les comptes et suivez l’activité') +
+      '<div id="filtres"></div>' +
+      '<div id="list"><div class="skel" style="height:120px"></div></div>');
 
     const list = view.querySelector('#list');
+    const filtres = view.querySelector('#filtres');
+
+    function peindreFiltres() {
+      const n = st => tous.filter(x => x.validation_status === st).length;
+      filtres.innerHTML = filterBar('f', [
+        { v: '',         i: 'grid',  l: 'Tous',       n: tous.length },
+        { v: 'pending',  i: 'clock', l: 'En attente', n: n('pending') },
+        { v: 'approved', i: 'check', l: 'Validés',    n: n('approved') },
+        { v: 'rejected', i: 'warn',  l: 'Refusés',    n: n('rejected') }
+      ], filter);
+      filtres.querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
+        filter = b.dataset.f; peindreFiltres(); peindre();
+      });
+    }
 
     async function load() {
-      const rows = await API.safe(() => API.adminDrivers(filter || null), []);
-      if (!rows.length) { list.innerHTML = UI.empty('🛵', 'Aucun livreur', ''); return; }
+      tous = await API.safe(() => API.adminDrivers(null), []);
+      peindreFiltres();
+      peindre();
+    }
+
+    function peindre() {
+      const rows = filter ? tous.filter(x => x.validation_status === filter) : tous;
+      if (!rows.length) { list.innerHTML = UI.empty(UI.icon('scooter', 40), 'Aucun livreur', ''); return; }
 
       list.innerHTML = '<div class="stack">' + rows.map(d => {
         const p = d.profile || {};
-        return '<div class="card card-p">' +
-          '<div class="row" style="gap:12px;align-items:flex-start">' +
-            UI.avatar(p.full_name, p.avatar_url, 44) +
+        const etat = d.validation_status;
+        return '<div class="adm-card drv ' + etat + '">' +
+          '<div class="adm-row">' +
+            UI.avatar(p.full_name, p.avatar_url, 62) +
             '<div class="grow">' +
-              '<div class="row" style="gap:9px"><b style="font-size:15px">' + U.esc(p.full_name || '—') + '</b>' +
-                '<span class="tag ' + (d.validation_status === 'approved' ? 'tag-ok' :
-                  d.validation_status === 'rejected' ? 'tag-danger' : 'tag-warn') + '">' +
-                  (d.validation_status === 'approved' ? 'Validé' : d.validation_status === 'rejected' ? 'Refusé' : 'En attente') + '</span>' +
+              '<div class="row" style="gap:10px;flex-wrap:wrap">' +
+                '<b class="adm-name">' + U.esc(p.full_name || '—') + '</b>' +
+                '<span class="tag ' + (etat === 'approved' ? 'tag-ok' : etat === 'rejected' ? 'tag-danger' : 'tag-warn') + '">' +
+                  (etat === 'approved' ? 'Validé' : etat === 'rejected' ? 'Refusé' : 'En attente') + '</span>' +
               '</div>' +
-              '<div class="tiny" style="margin-top:5px">📧 ' + U.esc(p.email || '') + ' • 📞 ' + U.esc(p.phone || '—') + '</div>' +
-              '<div class="tiny">' + U.esc(U.VEHICLES[d.vehicle] || d.vehicle) +
-                (d.plate ? ' • ' + U.esc(d.plate) : '') + ' • ' + UI.pin(13) + ' ' + U.esc(d.zone ? d.zone.name : '—') + '</div>' +
-              '<div class="tiny">📦 ' + (d.total_deliveries || 0) + ' livraisons • 💰 ' + U.money(d.total_earnings || 0) + '</div>' +
+              '<div class="adm-line">' + UI.icon('mail', 14) + ' ' + U.esc(p.email || '—') +
+                '<span class="sep">|</span>' + UI.icon('phone', 14) + ' ' + U.esc(p.phone || '—') + '</div>' +
+              '<div class="adm-line">' + UI.icon('scooter', 14) + ' ' + U.esc(U.VEHICLES[d.vehicle] || d.vehicle) +
+                (d.plate ? ' • ' + U.esc(d.plate) : '') +
+                '<span class="sep">|</span>' + UI.icon('pin', 14) + ' ' + U.esc(d.zone ? d.zone.name : '—') + '</div>' +
+              '<div class="adm-line">' + UI.icon('package', 14) + ' ' + (d.total_deliveries || 0) + ' livraisons' +
+                '<span class="sep">|</span>' + UI.icon('wallet', 14) + ' ' + U.money(d.total_earnings || 0) + '</div>' +
+              (d.reject_reason ? '<div class="adm-line danger">Motif : ' + U.esc(d.reject_reason) + '</div>' : '') +
             '</div>' +
-            (d.id_card_url ? '<a class="btn btn-ghost btn-sm" href="' + U.escUrl(d.id_card_url) + '" target="_blank" rel="noopener">Pièce ID</a>' : '') +
-          '</div>' +
-          '<div class="row" style="gap:9px;margin-top:13px;flex-wrap:wrap">' +
-            (d.validation_status !== 'approved' ? '<button class="btn btn-ok btn-sm" data-ok="' + U.esc(d.id) + '">✅ Valider</button>' : '') +
-            (d.validation_status !== 'rejected' ? '<button class="btn btn-danger btn-sm" data-no="' + U.esc(d.id) + '">⛔ Refuser</button>' : '') +
+            '<div class="adm-acts">' +
+              (d.id_card_url ? '<a class="btn btn-ghost btn-sm" href="' + U.escUrl(d.id_card_url) +
+                '" target="_blank" rel="noopener">' + UI.icon('image', 15) + ' Pièce ID</a>' : '') +
+              (etat !== 'approved' ? '<button class="btn btn-ok btn-sm" data-ok="' + U.esc(d.id) + '">' +
+                UI.icon('check', 15) + ' Valider</button>' : '') +
+              (etat !== 'rejected' ? '<button class="btn btn-danger btn-sm" data-no="' + U.esc(d.id) + '">' +
+                UI.icon('warn', 15) + ' Refuser</button>' : '') +
+            '</div>' +
           '</div></div>';
       }).join('') + '</div>';
 
@@ -204,11 +279,6 @@
       });
     }
 
-    view.querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
-      filter = b.dataset.f;
-      view.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b));
-      load();
-    });
     await load();
   }, GUARD);
 
@@ -216,30 +286,34 @@
      COMMANDES
      ====================================================================== */
   Router.add('/a/orders', async function (params, query, view) {
-    view.innerHTML = '<div class="wrap page">' + adminTabs('/a/orders') +
-      Cmp.pageHead('Toutes les commandes', 'Suivi global de la plateforme') +
-      '<div id="list"><div class="skel" style="height:200px"></div></div></div>';
+    view.innerHTML = page(
+      head('Toutes les commandes', 'Suivi global de la plateforme') +
+      '<div id="list"><div class="skel" style="height:200px"></div></div>');
 
     const rows = await API.safe(() => API.adminOrders({ limit: 200 }), []);
     view.querySelector('#list').innerHTML = rows.length
       ? ordersTable(rows)
-      : UI.empty('🧾', 'Aucune commande', '');
+      : UI.empty(UI.icon('receipt', 40), 'Aucune commande', '');
   }, GUARD);
 
   function ordersTable(rows) {
-    return '<div class="table-wrap"><table><thead><tr>' +
+    return '<div class="adm-table"><table><thead><tr>' +
       '<th>Code</th><th>Client</th><th>Restaurant</th><th>Livreur</th>' +
       '<th>Total</th><th>Commission</th><th>Statut</th><th>Date</th>' +
       '</tr></thead><tbody>' +
       rows.map(o => '<tr>' +
         '<td><span class="ocode">#' + U.esc(o.code) + '</span></td>' +
-        '<td>' + U.esc(o.client_name || (o.client && o.client.full_name) || '—') + '</td>' +
-        '<td>' + U.esc(o.restaurant ? o.restaurant.name : '—') + '</td>' +
-        '<td>' + U.esc(o.driver ? o.driver.full_name : '—') + '</td>' +
-        '<td><b>' + U.money(o.total) + '</b></td>' +
+        '<td class="ic-cell">' + UI.icon('user', 15) + ' ' +
+          U.esc(o.client_name || (o.client && o.client.full_name) || '—') + '</td>' +
+        '<td class="ic-cell">' + UI.icon('store', 15) + ' ' +
+          U.esc(o.restaurant ? o.restaurant.name : '—') + '</td>' +
+        '<td class="ic-cell">' + (o.driver
+          ? UI.icon('scooter', 15) + ' ' + U.esc(o.driver.full_name)
+          : '<span class="vide">—</span>') + '</td>' +
+        '<td><b class="montant">' + U.money(o.total) + '</b></td>' +
         '<td>' + U.money(o.commission) + '</td>' +
         '<td>' + UI.tag(o.status) + '</td>' +
-        '<td class="tiny">' + U.dt(o.created_at) + '</td>' +
+        '<td class="ic-cell tiny">' + UI.icon('clock', 14) + ' ' + U.dt(o.created_at) + '</td>' +
       '</tr>').join('') + '</tbody></table></div>';
   }
 
@@ -247,41 +321,62 @@
      UTILISATEURS
      ====================================================================== */
   Router.add('/a/users', async function (params, query, view) {
-    let role = '', term = '';
+    let role = '', term = '', tous = [];
 
-    view.innerHTML = '<div class="wrap page">' + adminTabs('/a/users') +
-      Cmp.pageHead('Utilisateurs', 'Rôles, blocage et modification des comptes') +
-      '<div class="search" style="margin-bottom:12px">' +
+    view.innerHTML = page(
+      head('Utilisateurs', 'Gérez les comptes des utilisateurs de la plateforme') +
+      '<div class="adm-search">' + UI.icon('search', 18) +
         '<input class="input" id="q" placeholder="Nom ou email…"></div>' +
-      '<div class="tabs" style="margin-bottom:16px">' +
-        '<button data-r="" class="on">Tous</button>' +
-        '<button data-r="client">Clients</button>' +
-        '<button data-r="restaurant">Restaurants</button>' +
-        '<button data-r="driver">Livreurs</button>' +
-        '<button data-r="admin">Admins</button>' +
-      '</div><div id="list"><div class="skel" style="height:200px"></div></div></div>';
+      '<div id="filtres"></div>' +
+      '<div id="list"><div class="skel" style="height:200px"></div></div>');
 
     const list = view.querySelector('#list');
+    const filtres = view.querySelector('#filtres');
+
+    function peindreFiltres() {
+      const n = r => tous.filter(x => x.role === r).length;
+      filtres.innerHTML = filterBar('r', [
+        { v: '',           i: 'users',    l: 'Tous',        n: tous.length },
+        { v: 'client',     i: 'user',     l: 'Clients',     n: n('client') },
+        { v: 'restaurant', i: 'store',    l: 'Restaurants', n: n('restaurant') },
+        { v: 'driver',     i: 'scooter',  l: 'Livreurs',    n: n('driver') },
+        { v: 'admin',      i: 'settings', l: 'Admins',      n: n('admin') }
+      ], role);
+      filtres.querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
+        role = b.dataset.r; peindreFiltres(); load();
+      });
+    }
 
     async function load() {
-      const rows = await API.safe(() => API.adminUsers({ role: role || null, q: term || null }), []);
-      if (!rows.length) { list.innerHTML = UI.empty('👥', 'Aucun utilisateur', ''); return; }
+      /* la recherche est faite par le backend ; les compteurs, eux, portent
+         sur tout le résultat de la recherche, tous rôles confondus */
+      tous = await API.safe(() => API.adminUsers({ q: term || null }), []);
+      peindreFiltres();
+      const rows = role ? tous.filter(x => x.role === role) : tous;
+      if (!rows.length) { list.innerHTML = UI.empty(UI.icon('users', 40), 'Aucun utilisateur', ''); return; }
 
-      list.innerHTML = '<div class="table-wrap"><table><thead><tr>' +
-        '<th>Utilisateur</th><th>Rôle</th><th>Téléphone</th><th>Zone</th><th>Statut</th><th>Inscrit</th><th></th>' +
+      list.innerHTML = '<div class="adm-table"><table><thead><tr>' +
+        '<th>Utilisateur</th><th>Rôle</th><th>Téléphone</th><th>Zone</th><th>Statut</th><th>Inscrit</th><th>Actions</th>' +
         '</tr></thead><tbody>' +
         rows.map(u => '<tr>' +
-          '<td><b>' + U.esc(u.full_name || '—') + '</b><div class="tiny">' + U.esc(u.email || '') + '</div></td>' +
-          '<td><span class="tag tag-info">' + U.esc(roleLabel(u.role)) + '</span></td>' +
-          '<td>' + U.esc(u.phone || '—') + '</td>' +
-          '<td>' + U.esc(u.zone ? u.zone.name : '—') + '</td>' +
-          '<td>' + (u.is_blocked ? '<span class="tag tag-danger">Bloqué</span>' : '<span class="tag tag-ok">Actif</span>') + '</td>' +
-          '<td class="tiny">' + U.dt(u.created_at) + '</td>' +
+          '<td><div class="adm-user">' + UI.avatar(u.full_name, u.avatar_url, 38) +
+            '<div><b>' + U.esc(u.full_name || '—') + '</b>' +
+            '<div class="tiny">' + U.esc(u.email || '') + '</div></div></div></td>' +
+          '<td><span class="adm-role ' + U.esc(u.role) + '">' + UI.icon(ROLE_ICON[u.role] || 'user', 14) +
+            ' ' + U.esc(roleLabel(u.role)) + '</span></td>' +
+          '<td class="ic-cell">' + (u.phone ? UI.icon('phone', 15) + ' ' + U.esc(u.phone) : '<span class="vide">—</span>') + '</td>' +
+          '<td class="ic-cell">' + (u.zone ? UI.icon('pin', 15) + ' ' + U.esc(u.zone.name) : '<span class="vide">—</span>') + '</td>' +
+          '<td>' + (u.is_blocked
+            ? '<span class="tag tag-danger">● Bloqué</span>'
+            : '<span class="tag tag-ok">● Actif</span>') + '</td>' +
+          '<td class="ic-cell tiny">' + UI.icon('calendar', 14) + ' ' + U.dt(u.created_at) + '</td>' +
           '<td><div class="row" style="gap:6px">' +
-            '<button class="btn btn-ghost btn-sm" data-edit="' + U.esc(u.id) + '">Modifier</button>' +
+            '<button class="btn btn-ghost btn-sm" data-edit="' + U.esc(u.id) + '">' +
+              UI.icon('pencil', 14) + ' Modifier</button>' +
             (u.role !== 'admin'
               ? '<button class="btn ' + (u.is_blocked ? 'btn-ok' : 'btn-danger') + ' btn-sm" data-block="' + U.esc(u.id) +
-                '" data-v="' + (u.is_blocked ? '0' : '1') + '">' + (u.is_blocked ? 'Débloquer' : 'Bloquer') + '</button>'
+                '" data-v="' + (u.is_blocked ? '0' : '1') + '">' + UI.icon(u.is_blocked ? 'check' : 'trash', 14) +
+                ' ' + (u.is_blocked ? 'Débloquer' : 'Bloquer') + '</button>'
               : '') +
           '</div></td>' +
         '</tr>').join('') + '</tbody></table></div>';
@@ -298,17 +393,14 @@
     }
 
     view.querySelector('#q').oninput = U.debounce(function () { term = this.value.trim(); load(); }, 300);
-    view.querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
-      role = b.dataset.r;
-      view.querySelectorAll('[data-r]').forEach(x => x.classList.toggle('on', x === b));
-      load();
-    });
     await load();
   }, GUARD);
 
   function roleLabel(r) {
     return { client: 'Client', restaurant: 'Restaurant', driver: 'Livreur', admin: 'Admin' }[r] || r;
   }
+
+  const ROLE_ICON = { client: 'user', restaurant: 'store', driver: 'scooter', admin: 'settings' };
 
   function userSheet(u, onSaved) {
     UI.sheet({
@@ -345,12 +437,12 @@
     const s = await API.safe(() => API.settings(), {}) || {};
 
     function paint() {
-      view.innerHTML = '<div class="wrap page">' + adminTabs('/a/settings') +
-        Cmp.pageHead('Réglages de la plateforme', 'Commissions, zones de livraison et catégories') +
+      view.innerHTML = page(
+        head('Réglages de la plateforme', 'Commissions, délais, zones de livraison et catégories') +
 
         /* --- commissions --- */
         '<form id="sf" class="card card-p stack">' +
-          '<div class="h3">💰 Commissions</div>' +
+          '<div class="h3">' + UI.icon('wallet', 18) + ' Commissions</div>' +
           '<div class="field"><label>Commission plateforme (%)</label>' +
             '<input class="input" name="commission_rate" type="number" min="0" max="50" step="0.5" value="' +
             (((s.commission_rate != null ? s.commission_rate : 0.1) * 100).toFixed(1)) + '">' +
@@ -384,7 +476,7 @@
         /* --- zones --- */
         '<div class="card card-p" style="margin-top:16px">' +
           '<div class="row-between" style="margin-bottom:12px">' +
-            '<div class="h3">🗺️ Quartiers de livraison</div>' +
+            '<div class="h3">' + UI.icon('pin', 18) + ' Quartiers de livraison</div>' +
             '<button class="btn btn-soft btn-sm" id="addZone">+ Ajouter</button></div>' +
           '<div class="chips" style="flex-wrap:wrap;overflow:visible">' +
             Store.zones.map(z => '<span class="chip" data-zone="' + U.esc(z.id) + '">' + UI.pin(14) + ' ' +
@@ -394,7 +486,7 @@
         /* --- catégories --- */
         '<div class="card card-p" style="margin-top:16px">' +
           '<div class="row-between" style="margin-bottom:12px">' +
-            '<div class="h3">🍽️ Catégories</div>' +
+            '<div class="h3">' + UI.icon('utensils', 18) + ' Catégories</div>' +
             '<button class="btn btn-soft btn-sm" id="addCat">+ Ajouter</button></div>' +
           '<div class="chips" style="flex-wrap:wrap;overflow:visible">' +
             Store.categories.map(c => '<span class="chip" data-cat2="' + U.esc(c.id) + '" ' +
@@ -408,12 +500,11 @@
 
         (API.mode === 'demo'
           ? '<div class="card card-p" style="margin-top:16px;border-color:var(--warn)">' +
-            '<div class="h3">🧪 Mode démo</div>' +
+            '<div class="h3">' + UI.icon('settings', 18) + ' Mode démo</div>' +
             '<p class="sub" style="margin:8px 0 12px">Les données sont stockées dans ce navigateur. ' +
             'Configurez Supabase dans <b>config.js</b> pour passer en production.</p>' +
             '<button class="btn btn-danger btn-sm" id="reset">Réinitialiser les données de démo</button></div>'
-          : '') +
-      '</div>';
+          : ''));
 
       view.querySelector('#sf').onsubmit = async function (e) {
         e.preventDefault();
