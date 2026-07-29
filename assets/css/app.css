@@ -802,6 +802,81 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 .tag-soft{background:var(--brand-soft);color:var(--brand);display:inline-flex;align-items:center;gap:5px}
 
+/* --------------------------------------------- tableau de bord du livreur */
+.driver-page{
+  --brand:#FF6B35;
+  --brand-light:#FF8A3D;
+  --brand-soft:#FFF1E8;
+  --brand-grad:linear-gradient(135deg,#FF8A3D 0%,#FF6B35 100%);
+  --line:#F3E9E0;
+
+  position:relative;overflow:hidden;min-height:calc(100vh - 60px);
+  background:
+    radial-gradient(560px 320px at 98% 0%, rgba(255,138,61,.12), transparent 60%),
+    radial-gradient(460px 300px at 0% 100%, rgba(255,107,53,.08), transparent 58%),
+    #FFF8F2;
+}
+.driver-page .card{
+  border-radius:22px;border:1px solid var(--line);
+  box-shadow:0 1px 2px rgba(196,120,74,.05), 0 10px 28px -18px rgba(196,120,74,.35);
+}
+
+/* en-tête : avatar cerclé, pastille verte quand le livreur est disponible */
+.drv-head{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.drv-ava{position:relative;flex:none;display:inline-flex;padding:3px;border-radius:50%;background:var(--brand-grad)}
+.drv-ava .avatar{border:3px solid #FFF8F2}
+.drv-ava.online::after{
+  content:'';position:absolute;right:2px;bottom:2px;width:16px;height:16px;
+  border-radius:50%;background:#12B76A;border:3px solid #FFF8F2;
+}
+.drv-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px}
+.drv-meta .dot{color:#CFC4B8}
+
+/* carte de statut : verte quand disponible, bleutée en course */
+.drv-status{transition:background .3s ease, border-color .3s ease}
+.drv-status .drv-badge{
+  width:46px;height:46px;border-radius:50%;flex:none;
+  display:grid;place-items:center;background:#D8D2C8;color:#fff;line-height:0;
+}
+.drv-status .drv-pill{
+  padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);
+  font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap;
+}
+.drv-status .drv-state{margin-top:2px}
+.drv-status.available{background:#F1FBF5;border-color:#CDEFDC}
+.drv-status.available .drv-badge{background:#12B76A;box-shadow:0 8px 18px -8px rgba(18,183,106,.6)}
+.drv-status.available .drv-state{color:#0E9F6E}
+.drv-status.available .drv-pill{color:#0E9F6E;border-color:#CDEFDC}
+.drv-status.busy{background:#EFF5FF;border-color:#D5E4FB}
+.drv-status.busy .drv-badge{background:#3B82F6}
+.drv-status.busy .drv-state{color:#1D4ED8}
+
+/* statistiques : pastille à gauche, intitulé, valeur, légende */
+.drv-stats{gap:12px}
+.drv-stat{
+  display:flex;align-items:center;gap:13px;padding:16px;
+  transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+}
+.drv-stat:hover{transform:translateY(-2px);box-shadow:0 14px 32px -20px rgba(196,120,74,.5)}
+.drv-stat .ic{
+  width:52px;height:52px;border-radius:16px;flex:none;
+  background:var(--brand-soft);display:grid;place-items:center;font-size:24px;
+}
+.drv-stat .k{
+  font-size:11px;font-weight:750;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.drv-stat .v{font-size:24px;font-weight:850;color:var(--brand);margin:2px 0 1px;letter-spacing:-.02em}
+.drv-stat .s{font-size:12px;color:var(--muted)}
+
+.drv-panel .link{color:var(--brand);font-weight:700}
+.driver-page .btn-primary{
+  border-radius:16px;box-shadow:0 8px 20px -8px rgba(255,107,53,.6);
+  transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+}
+.driver-page .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 30px -10px rgba(255,107,53,.7)}
+.driver-page .btn-primary:active{transform:translateY(0) scale(.985)}
+
 /* ------------------------------------------------ écrans vides illustrés */
 .empty-scene{text-align:center;padding:26px 0 40px}
 .empty-scene.compact{padding:14px 0 26px}

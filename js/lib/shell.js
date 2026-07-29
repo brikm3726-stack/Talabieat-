@@ -91,7 +91,7 @@
               ? ((w.Sound && (Store.role === 'restaurant' || Store.role === 'driver'))
                   ? '<button class="icon-btn" id="soundBtn" title="' +
                       (Sound.muted ? 'Réactiver la sonnerie' : 'Couper la sonnerie') + '">' +
-                      (Sound.muted ? '🔕' : '🔔') + '</button>'
+                      UI.icon(Sound.muted ? 'mute' : 'sound', 19) + '</button>'
                   : '') +
                 '<button class="icon-btn" id="notifBtn">🔔' +
                   (Store.unread ? '<span class="badge-dot">' + (Store.unread > 9 ? '9+' : Store.unread) + '</span>' : '') +

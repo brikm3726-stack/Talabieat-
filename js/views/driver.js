@@ -8,6 +8,16 @@
 
   const STATUS_LABEL = { offline: 'Indisponible', available: 'Disponible', busy: 'En livraison' };
 
+  /* Vignette de statistique : pastille, intitulé, valeur, légende. */
+  function drvStat(icone, label, valeur, legende) {
+    return '<div class="card drv-stat">' +
+      '<span class="ic">' + icone + '</span>' +
+      '<div class="grow"><div class="k">' + U.esc(label) + '</div>' +
+        '<div class="v">' + valeur + '</div>' +
+        '<div class="s">' + U.esc(legende) + '</div></div>' +
+    '</div>';
+  }
+
   function validationBanner(d) {
     if (!d) return '';
     if (d.validation_status === 'pending')
@@ -36,53 +46,81 @@
       const todayDone = done.filter(o => sameDay(o.delivered_at || o.created_at, new Date()));
       const approved = d && d.validation_status === 'approved';
 
-      view.innerHTML = '<div class="wrap page">' +
+      const statut = (d && d.status) || 'offline';
+
+      view.innerHTML = '<div class="driver-page"><div class="wrap page">' +
         validationBanner(d) +
 
-        '<div class="row-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">' +
-          '<div><div class="h1">Bonjour ' + U.esc((Store.profile.full_name || '').split(' ')[0]) + ' 👋</div>' +
-            '<div class="sub">' + U.esc((d && d.zone && d.zone.name) || 'Zone non définie') + ' • ' +
-            U.esc(U.VEHICLES[(d && d.vehicle) || 'moto']) + '</div></div>' +
+        /* --- en-tête : avatar, salutation, quartier et véhicule --- */
+        '<div class="drv-head">' +
+          '<span class="drv-ava' + (statut === 'available' ? ' online' : '') + '">' +
+            UI.avatar(Store.profile.full_name, Store.profile.avatar_url, 62) + '</span>' +
+          '<div class="grow">' +
+            '<div class="h1">Bonjour ' + U.esc((Store.profile.full_name || '').split(' ')[0]) + ' 👋</div>' +
+            '<div class="sub drv-meta">' + UI.pin(15) + ' ' +
+              U.esc((d && d.zone && d.zone.name) || 'Zone non définie') +
+              '<span class="dot">•</span>🛵 ' + U.esc(U.VEHICLES[(d && d.vehicle) || 'moto']) + '</div>' +
+          '</div>' +
         '</div>' +
 
         /* --- disponibilité --- */
-        '<div class="card card-p" style="background:' +
-          (d && d.status === 'available' ? 'var(--ok-soft)' : d && d.status === 'busy' ? 'var(--info-soft)' : '#fff') + '">' +
+        '<div class="card card-p drv-status ' + statut + '">' +
           '<div class="row-between">' +
-            '<div><div class="tiny">Mon statut</div>' +
-              '<div class="h2" style="margin-top:3px">' + U.esc(STATUS_LABEL[(d && d.status) || 'offline']) + '</div></div>' +
-            '<label class="switch" title="Disponibilité">' +
-              '<input type="checkbox" id="availSw" ' + (d && d.status === 'available' ? 'checked' : '') +
-              (approved && (!d || d.status !== 'busy') ? '' : ' disabled') + '>' +
-              '<span class="track"><span class="knob"></span></span></label>' +
+            '<div class="row" style="gap:14px">' +
+              '<span class="drv-badge">' + UI.icon(statut === 'available' ? 'check' : 'lock', 22) + '</span>' +
+              '<div><div class="tiny">Mon statut</div>' +
+                '<div class="h2 drv-state">' + U.esc(STATUS_LABEL[statut]) + '</div></div>' +
+            '</div>' +
+            '<div class="row" style="gap:12px">' +
+              '<span class="drv-pill">' + (statut === 'available' ? 'En ligne' : 'Hors ligne') + ' ●</span>' +
+              '<label class="switch" title="Disponibilité">' +
+                '<input type="checkbox" id="availSw" ' + (statut === 'available' ? 'checked' : '') +
+                (approved && statut !== 'busy' ? '' : ' disabled') + '>' +
+                '<span class="track"><span class="knob"></span></span></label>' +
+            '</div>' +
           '</div>' +
-          (!approved ? '<div class="tiny" style="margin-top:8px">Disponible après validation de votre compte.</div>' :
-            d.status === 'busy' ? '<div class="tiny" style="margin-top:8px">Terminez votre livraison en cours pour redevenir disponible.</div>' : '') +
+          (!approved ? '<div class="tiny" style="margin-top:10px">Disponible après validation de votre compte.</div>' :
+            statut === 'busy' ? '<div class="tiny" style="margin-top:10px">Terminez votre livraison en cours pour redevenir disponible.</div>' : '') +
         '</div>' +
 
-        '<div class="grid grid-stats" style="margin-top:14px">' +
-          UI.stat('Courses aujourd’hui', todayDone.length, '📅') +
-          UI.stat('Total livraisons', (d && d.total_deliveries) || 0, '📦') +
-          UI.stat('Gains cumulés', U.money((d && d.total_earnings) || 0), '💰') +
-          UI.stat('Note', ((d && +d.rating) || 5).toFixed(1) + ' ⭐', '⭐') +
+        '<div class="grid grid-stats drv-stats" style="margin-top:14px">' +
+          drvStat('📅', 'Courses aujourd’hui', todayDone.length, 'Aujourd’hui') +
+          drvStat('📦', 'Total livraisons', (d && d.total_deliveries) || 0, 'Livraisons effectuées') +
+          drvStat('💰', 'Gains cumulés', U.money((d && d.total_earnings) || 0), 'Total des gains') +
+          drvStat('⭐', 'Note', ((d && +d.rating) || 5).toFixed(1), 'Excellente note') +
         '</div>' +
 
         (active.length
-          ? '<div class="section-head"><div class="h2">Livraison en cours</div>' +
-            '<a class="link" href="#/d/active">Détails →</a></div>' +
-            '<div class="stack">' + active.map(o => deliveryCard(o, true)).join('') + '</div>'
+          ? '<div class="card card-p drv-panel" style="margin-top:16px">' +
+              '<div class="row-between" style="margin-bottom:12px">' +
+                '<div class="h2">Livraison en cours</div>' +
+                '<a class="link" href="#/d/active">Détails →</a></div>' +
+              '<div class="stack">' + active.map(o => deliveryCard(o, true)).join('') + '</div>' +
+            '</div>'
           : '') +
 
-        '<div class="section-head"><div class="h2">Courses disponibles</div>' +
-          '<a class="link" href="#/d/available">Tout voir →</a></div>' +
-        (available.length
-          ? '<div class="stack">' + available.slice(0, 3).map(o => deliveryCard(o)).join('') + '</div>'
-          : UI.empty(UI.icon('pin', 44), 'Aucune course pour le moment',
-              approved ? 'Restez disponible, les nouvelles courses de votre zone apparaîtront ici.'
-                       : 'Votre compte doit être validé pour recevoir des courses.')) +
-      '</div>';
+        '<div class="card card-p drv-panel" style="margin-top:16px">' +
+          '<div class="row-between" style="margin-bottom:12px">' +
+            '<div class="h2">Courses disponibles</div>' +
+            '<a class="link" href="#/d/available">Tout voir →</a></div>' +
+          (available.length
+            ? '<div class="stack">' + available.slice(0, 3).map(o => deliveryCard(o)).join('') + '</div>'
+            : '<div class="empty-scene compact">' +
+                '<img class="scene-art" src="assets/img/bg/livreur-vide.png" alt="" aria-hidden="true">' +
+                '<div class="h2 scene-title">Aucune course disponible pour le moment</div>' +
+                '<p class="scene-sub">' +
+                  (approved ? 'Restez disponible, les nouvelles courses de votre zone apparaîtront ici.'
+                            : 'Votre compte doit être validé pour recevoir des courses.') + '</p>' +
+                (approved ? '<div class="scene-cta">' +
+                  '<button class="btn btn-primary btn-lg" id="refresh">⟳ Actualiser les courses</button></div>' : '') +
+              '</div>') +
+        '</div>' +
+      '</div></div>';
 
       bindDelivery(view, load);
+
+      const rf = view.querySelector('#refresh');
+      if (rf) rf.onclick = function () { UI.busy(this, true, 'Recherche…'); load(); };
 
       const sw = view.querySelector('#availSw');
       if (sw && !sw.disabled) sw.onchange = async () => {
