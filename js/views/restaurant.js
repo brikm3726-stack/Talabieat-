@@ -247,7 +247,7 @@
       const rows = all.filter(MAP[tab]);
       list.innerHTML = rows.length
         ? '<div class="stack">' + rows.map(o => orderCard(o, true)).join('') + '</div>'
-        : UI.empty('📭', 'Aucune commande',
+        : UI.empty(UI.icon('inbox', 40), 'Aucune commande',
             all.length
               ? 'Rien dans cette catégorie pour le moment.'
               : 'Ce compte gère « ' + rest.name +' ». Une commande passée dans un autre ' +

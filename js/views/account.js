@@ -33,11 +33,11 @@
 
         /* ---- accès rapide ---- */
         (p.role === 'restaurant'
-          ? quickLinks([['#/r', '📊', 'Tableau de bord'], ['#/r/menu', '🍕', 'Gérer mon menu'], ['#/r/profile', '🏪', 'Ma fiche restaurant']])
+          ? quickLinks([['#/r', 'chart', 'Tableau de bord'], ['#/r/menu', 'pizza', 'Gérer mon menu'], ['#/r/profile', 'store', 'Ma fiche restaurant']])
           : p.role === 'driver'
-          ? quickLinks([['#/d', '📊', 'Tableau de bord'], ['#/d/profile', '🛵', 'Mon profil livreur'], ['#/d/history', '📜', 'Historique']])
+          ? quickLinks([['#/d', 'chart', 'Tableau de bord'], ['#/d/profile', 'scooter', 'Mon profil livreur'], ['#/d/history', 'history', 'Historique']])
           : p.role === 'admin'
-          ? quickLinks([['#/a', '📊', 'Tableau de bord'], ['#/a/settings', '⚙️', 'Réglages plateforme']])
+          ? quickLinks([['#/a', 'chart', 'Tableau de bord'], ['#/a/settings', 'settings', 'Réglages plateforme']])
           : quickLinks([['#/orders', 'package', 'Mes commandes', 'Suivre mes commandes'],
                         ['#/restaurants', 'utensils', 'Commander', 'Découvrir les restaurants']])) +
 

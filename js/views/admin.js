@@ -8,12 +8,12 @@
 
   function adminTabs(active) {
     const t = [
-      ['/a', '📊 Tableau'], ['/a/restaurants', '🏪 Restaurants'], ['/a/drivers', '🛵 Livreurs'],
-      ['/a/orders', '🧾 Commandes'], ['/a/users', '👥 Utilisateurs'], ['/a/settings', '⚙️ Réglages']
+      ['/a', 'chart', 'Tableau'], ['/a/restaurants', 'store', 'Restaurants'], ['/a/drivers', 'scooter', 'Livreurs'],
+      ['/a/orders', 'receipt', 'Commandes'], ['/a/users', 'users', 'Utilisateurs'], ['/a/settings', 'settings', 'Réglages']
     ];
     return '<div class="tabs" style="margin-bottom:18px">' +
       t.map(x => '<button onclick="Router.go(\'' + x[0] + '\')" class="' + (x[0] === active ? 'on' : '') + '">' +
-        x[1] + '</button>').join('') + '</div>';
+        UI.icon(x[1], 17) + ' ' + x[2] + '</button>').join('') + '</div>';
   }
 
   /* ======================================================================

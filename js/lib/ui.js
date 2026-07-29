@@ -121,7 +121,7 @@
 
     /* -------------------------------------------------------------- blocs */
     empty(icon, title, text, actionHtml) {
-      return '<div class="empty"><div class="ic">' + (icon || '📭') + '</div>' +
+      return '<div class="empty"><div class="ic">' + (icon || UI.icon('inbox', 40)) + '</div>' +
              '<b>' + U.esc(title || '') + '</b>' +
              '<div>' + U.esc(text || '') + '</div>' +
              (actionHtml ? '<div style="margin-top:16px">' + actionHtml + '</div>' : '') + '</div>';
@@ -188,7 +188,31 @@
       upload:   '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/>',
       store:    '<path d="m3 8 2-5h14l2 5"/><path d="M3 8h18"/><path d="M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><path d="M9 21v-6h6v6"/>',
       tag:      '<path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.2"/>',
-      pause:    '<circle cx="12" cy="12" r="9"/><path d="M10 9v6"/><path d="M14 9v6"/>'
+      pause:    '<circle cx="12" cy="12" r="9"/><path d="M10 9v6"/><path d="M14 9v6"/>',
+      bell:     '<path d="M18 8.5a6 6 0 1 0-12 0c0 6-2.5 8-2.5 8h17S18 14.5 18 8.5"/><path d="M13.8 20a2 2 0 0 1-3.6 0"/>',
+      inbox:    '<path d="M22 12h-6l-2 3h-4l-2-3H2"/>' +
+                '<path d="M5.4 5.1 2.4 11a2 2 0 0 0-.4 1.2V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5.8a2 2 0 0 0-.4-1.2l-3-5.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.8 1.1Z"/>',
+      // barres pleines plutôt que traits : à 20 px un histogramme au trait fin
+      // se lit comme trois bâtons sans rapport les uns avec les autres
+      chart:    '<path d="M4 3v17h17"/>' +
+                '<rect x="7.5" y="13.5" width="3.5" height="6.5" rx="1.2" fill="currentColor" stroke="none"/>' +
+                '<rect x="12.5" y="9" width="3.5" height="11" rx="1.2" fill="currentColor" stroke="none"/>' +
+                '<rect x="17.5" y="11.5" width="3.5" height="8.5" rx="1.2" fill="currentColor" stroke="none"/>',
+      pizza:    '<path d="m2.5 15.5 19 5.5-5.5-19a19 19 0 0 0-13.5 13.5"/>' +
+                '<path d="M16.5 6.2c-5.9 0-8.8 3.1-10.3 4.7"/>' +
+                '<circle cx="14.6" cy="11" r="1.1" fill="currentColor" stroke="none"/>' +
+                '<circle cx="10.8" cy="15" r="1.1" fill="currentColor" stroke="none"/>',
+      cart:     '<circle cx="9.5" cy="20" r="1.6"/><circle cx="17.5" cy="20" r="1.6"/>' +
+                '<path d="M2.5 3.5h2.6l2.5 11.8a1.8 1.8 0 0 0 1.8 1.4h7.6a1.8 1.8 0 0 0 1.8-1.4L21 7H6"/>',
+      history:  '<path d="M3.5 12a8.5 8.5 0 1 0 2.7-6.2L3 8.5"/><path d="M3 3.5V9h5.5"/><path d="M12 7.5V12l3.3 2"/>',
+      users:    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' +
+                '<path d="M22 21v-2a4 4 0 0 0-3.2-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>',
+      // scooter : deux roues, un plancher et une colonne de direction inclinée.
+      // Le vélo de Lucide ne va pas ici — sur Talabi on livre en moto
+      scooter:  '<circle cx="5.5" cy="17.5" r="2.8"/><circle cx="18.5" cy="17.5" r="2.8"/>' +
+                '<path d="M8.3 17.5h6.4"/>' +
+                '<path d="M5.5 14.7v-2.2a1.8 1.8 0 0 1 1.8-1.8h4.4"/>' +
+                '<path d="m17.6 14.6-1.9-7.4"/><path d="M13.9 6.6h3.4"/>'
     },
 
     icon(name, size) {

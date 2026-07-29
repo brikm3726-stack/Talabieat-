@@ -4,48 +4,44 @@
 (function (w) {
   'use strict';
 
+  /* `i` est un nom d'icône du jeu UI.ICONS, jamais du HTML : NAV est évalué au
+     chargement du fichier, et appeler UI.icon ici créerait une dépendance à
+     l'ordre des <script>. La résolution se fait au moment de l'affichage. */
   const NAV = {
     client: [
-      { p: '/',              i: '🏠', l: 'Accueil' },
-      { p: '/restaurants',   i: '🍽️', l: 'Restaurants' },
-      { p: '/cart',          i: '🛒', l: 'Panier', badge: 'cart' },
-      { p: '/orders',        i: '📦', l: 'Commandes' },
-      { p: '/account',       i: '👤', l: 'Compte' }
+      { p: '/',              i: 'home',     l: 'Accueil' },
+      { p: '/restaurants',   i: 'utensils', l: 'Restaurants' },
+      { p: '/cart',          i: 'cart',     l: 'Panier', badge: 'cart' },
+      { p: '/orders',        i: 'package',  l: 'Commandes' },
+      { p: '/account',       i: 'user',     l: 'Compte' }
     ],
     guest: [
-      { p: '/',              i: '🏠', l: 'Accueil' },
-      { p: '/restaurants',   i: '🍽️', l: 'Restaurants' },
-      { p: '/cart',          i: '🛒', l: 'Panier', badge: 'cart' },
-      { p: '/login',         i: '👤', l: 'Connexion' }
+      { p: '/',              i: 'home',     l: 'Accueil' },
+      { p: '/restaurants',   i: 'utensils', l: 'Restaurants' },
+      { p: '/cart',          i: 'cart',     l: 'Panier', badge: 'cart' },
+      { p: '/login',         i: 'user',     l: 'Connexion' }
     ],
     restaurant: [
-      { p: '/r',             i: '📊', l: 'Tableau' },
-      { p: '/r/orders',      i: '🧾', l: 'Commandes' },
-      { p: '/r/menu',        i: '🍕', l: 'Menu' },
-      { p: '/r/profile',     i: '🏪', l: 'Restaurant' },
-      { p: '/account',       i: '👤', l: 'Compte' }
+      { p: '/r',             i: 'chart',    l: 'Tableau' },
+      { p: '/r/orders',      i: 'receipt',  l: 'Commandes' },
+      { p: '/r/menu',        i: 'pizza',    l: 'Menu' },
+      { p: '/r/profile',     i: 'store',    l: 'Restaurant' },
+      { p: '/account',       i: 'user',     l: 'Compte' }
     ],
     driver: [
-      { p: '/d',             i: '📊', l: 'Tableau' },
-      // fonction et non chaîne : NAV est évalué au chargement du fichier, et
-      // appeler UI.icon ici créerait une dépendance à l'ordre des <script>
-      { p: '/d/available',   i: () => UI.icon('pin', 20), l: 'Courses' },
-      { p: '/d/active',      i: '🛵', l: 'En cours' },
-      { p: '/d/history',     i: '📜', l: 'Historique' },
-      { p: '/account',       i: '👤', l: 'Compte' }
+      { p: '/d',             i: 'chart',    l: 'Tableau' },
+      { p: '/d/available',   i: 'pin',      l: 'Courses' },
+      { p: '/d/active',      i: 'scooter',  l: 'En cours' },
+      { p: '/d/history',     i: 'history',  l: 'Historique' },
+      { p: '/account',       i: 'user',     l: 'Compte' }
     ],
     admin: [
-      { p: '/a',             i: '📊', l: 'Tableau' },
-      { p: '/a/restaurants', i: '🏪', l: 'Restaurants' },
-      { p: '/a/drivers',     i: '🛵', l: 'Livreurs' },
-      { p: '/a/orders',      i: '🧾', l: 'Commandes' },
-      { p: '/a/users',       i: '👥', l: 'Utilisateurs' }
+      { p: '/a',             i: 'chart',    l: 'Tableau' },
+      { p: '/a/restaurants', i: 'store',    l: 'Restaurants' },
+      { p: '/a/drivers',     i: 'scooter',  l: 'Livreurs' },
+      { p: '/a/orders',      i: 'receipt',  l: 'Commandes' },
+      { p: '/a/users',       i: 'users',    l: 'Utilisateurs' }
     ]
-  };
-
-  /* icône au trait de chaque entrée de la barre latérale */
-  const SIDE_ICONS = {
-    '/r': 'home', '/r/orders': 'receipt', '/r/menu': 'grid', '/r/profile': 'settings'
   };
 
   const Shell = {
@@ -55,10 +51,17 @@
       return NAV[Store.role] || NAV.client;
     },
 
+    /* Le chemin d'un tableau de bord est le préfixe de tous les autres de son
+       espace (/r contient /r/orders, /r/menu…). Sans le second test, Tableau
+       restait allumé sur toutes les pages du restaurant, en même temps que
+       l'onglet réellement ouvert. Un préfixe ne compte donc que si aucune
+       autre entrée du menu ne correspond mieux. */
     isActive(p) {
       const cur = Router.path().split('?')[0];
-      if (p === '/') return cur === '/';
-      return cur === p || cur.indexOf(p + '/') === 0;
+      if (cur === p) return true;
+      if (p === '/' || cur.indexOf(p + '/') !== 0) return false;
+      return !Shell.navItems().some(x =>
+        x.p.length > p.length && (cur === x.p || cur.indexOf(x.p + '/') === 0));
     },
 
     render() {
@@ -89,7 +92,7 @@
         '<nav class="side-nav">' +
           NAV.restaurant.filter(x => x.p !== '/account').map(x =>
             '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '">' +
-              '<span class="ic">' + UI.icon(SIDE_ICONS[x.p] || 'user', 20) + '</span>' +
+              '<span class="ic">' + UI.icon(x.i, 20) + '</span>' +
               '<span>' + U.esc(x.l) + '</span></a>').join('') +
         '</nav>' +
         '<div class="side-foot">' +
@@ -143,7 +146,7 @@
                       (Sound.muted ? 'Réactiver la sonnerie' : 'Couper la sonnerie') + '">' +
                       UI.icon(Sound.muted ? 'mute' : 'sound', 19) + '</button>'
                   : '') +
-                '<button class="icon-btn" id="notifBtn">🔔' +
+                '<button class="icon-btn" id="notifBtn" title="Notifications">' + UI.icon('bell', 19) +
                   (Store.unread ? '<span class="badge-dot">' + (Store.unread > 9 ? '9+' : Store.unread) + '</span>' : '') +
                 '</button>' +
                 '<a class="icon-btn" href="#/account" title="Mon compte" style="overflow:hidden;padding:0">' +
@@ -171,9 +174,9 @@
       nav.innerHTML = Shell.navItems().map(x => {
         let badge = '';
         if (x.badge === 'cart' && Store.cartCount) badge = '<span class="badge-dot">' + Store.cartCount + '</span>';
-        const ic = typeof x.i === 'function' ? x.i() : x.i;
         return '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '">' +
-               '<i style="position:relative">' + ic + badge + '</i><span>' + x.l + '</span></a>';
+               '<i style="position:relative">' + UI.icon(x.i, 22) + badge + '</i>' +
+               '<span>' + x.l + '</span></a>';
       }).join('');
     },
 
@@ -231,7 +234,7 @@
       const box = m.el.querySelector('#nlist');
 
       if (!list.length) {
-        box.innerHTML = UI.empty('🔔', 'Aucune notification', 'Vous serez prévenu ici à chaque étape de vos commandes.');
+        box.innerHTML = UI.empty(UI.icon('bell', 34), 'Aucune notification', 'Vous serez prévenu ici à chaque étape de vos commandes.');
       } else {
         box.style.margin = '-18px';
         box.innerHTML = list.map(n =>
