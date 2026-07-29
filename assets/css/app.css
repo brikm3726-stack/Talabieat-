@@ -811,7 +811,11 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
    posé à côté de l'icône ne tiendrait pas — « Commandes » et « Déconnexion »
    seraient coupés. */
 @media(min-width:1000px){
-  .sidenav{
+  /* `body.has-side` et non `.sidenav` seul : le JS pose bien l'attribut hidden
+     hors espace restaurant, mais une règle de classe l'emporte sur le
+     [hidden]{display:none} du navigateur — la colonne noire réapparaissait,
+     vide, chez le client et le livreur. */
+  body.has-side .sidenav{
     display:flex;flex-direction:column;
     position:fixed;left:0;top:0;bottom:0;width:110px;z-index:80;
     background:#14161A;color:#fff;padding:14px 8px;
