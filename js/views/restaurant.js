@@ -7,6 +7,78 @@
   const GUARD = { auth: true, roles: ['restaurant'] };
   const LIVE = ['pending', 'accepted', 'preparing', 'ready', 'driver_assigned', 'delivering'];
 
+  /* ------------------------------------------------------------- gabarit
+     En-tête commun aux quatre pages : pastille, titre, fil d'ariane, et à
+     droite l'interrupteur d'ouverture. */
+  function rsHead(icone, titre, crumb, rest) {
+    return '<div class="rs-head">' +
+      '<span class="ic">' + UI.icon(icone, 22) + '</span>' +
+      '<div class="grow"><div class="h1">' + U.esc(titre) + '</div>' +
+        '<div class="rs-crumb">' + crumb.map((c, i) =>
+          (i ? '<span class="sep">' + UI.icon('chevron', 13) + '</span>' : '') +
+          (i === crumb.length - 1 ? '<b>' + U.esc(c) + '</b>' : U.esc(c))).join('') + '</div></div>' +
+      (rest
+        ? '<div class="rs-head-side">' +
+            '<label class="rs-open">' + (rest.is_open ? 'Ouvert' : 'Fermé') +
+              '<span class="switch"><input type="checkbox" id="openSw" ' +
+              (rest.is_open ? 'checked' : '') + '>' +
+              '<span class="track"><span class="knob"></span></span></span></label>' +
+          '</div>'
+        : '') +
+    '</div>';
+  }
+
+  /** Branche l'interrupteur d'ouverture rendu par rsHead. */
+  function bindOpen(view, rest, reload) {
+    const sw = view.querySelector('#openSw');
+    if (!sw) return;
+    sw.onchange = async () => {
+      const r = await API.safe(() => API.saveRestaurant({ is_open: sw.checked }), null);
+      if (r) { rest.is_open = r.is_open; UI.ok(r.is_open ? 'Restaurant ouvert' : 'Restaurant fermé'); reload(); }
+    };
+  }
+
+  /** Vignette de statistique : pastille ronde, intitulé, valeur, courbe. */
+  function rsStat(icone, label, valeur, note, serie, ton) {
+    return '<div class="card rs-stat">' +
+      '<div class="top"><span class="ic ' + (ton || '') + '">' + UI.icon(icone, 21) + '</span>' +
+        '<div><div class="k">' + U.esc(label) + '</div>' +
+        '<div class="v">' + valeur + '</div></div></div>' +
+      (note ? '<div class="s up">' + note + '</div>' : '') +
+      (serie ? spark(serie) : '') +
+    '</div>';
+  }
+
+  /* Courbe de tendance dessinée à la main : une poignée de valeurs, aucun
+     besoin d'une librairie de graphiques pour ça. */
+  function spark(values, couleur) {
+    const v = values.length ? values : [0];
+    const max = Math.max.apply(null, v) || 1;
+    const w = 100, h = 30, n = v.length;
+    const pts = v.map((x, i) => [
+      n === 1 ? w / 2 : (i / (n - 1)) * w,
+      h - (x / max) * (h - 4) - 2
+    ]);
+    const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+    const aire = d + ' L' + w + ' ' + h + ' L0 ' + h + ' Z';
+    const c = couleur || 'var(--brand)';
+    return '<svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">' +
+      '<path d="' + aire + '" fill="' + c + '" opacity=".13"/>' +
+      '<path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  /** Nombre de commandes par jour sur les 7 derniers jours. */
+  function last7(orders, valeur) {
+    const jours = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      jours.push(orders.filter(o => sameDay(o.created_at, d))
+        .reduce((s, o) => s + (valeur ? valeur(o) : 1), 0));
+    }
+    return jours;
+  }
+
   /** Bandeau affiché tant que le restaurant n'est pas créé / validé */
   function gate(rest) {
     if (!rest) {
@@ -53,51 +125,71 @@
       const top = Object.keys(tally).map(k => ({ name: k, n: tally[k] }))
         .sort((a, b) => b.n - a.n).slice(0, 5);
 
-      view.innerHTML = '<div class="wrap page">' +
+      /* Séries réelles des 7 derniers jours : rien n'est inventé pour faire
+         joli, une courbe plate signifie qu'il n'y a pas eu de commandes. */
+      const serieCmd = last7(orders);
+      const serieCA  = last7(delivered, o => o.subtotal);
+      const maxCA    = Math.max.apply(null, serieCA) || 1;
+      const JOURS    = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+      const nomJour  = i => {
+        const d = new Date(); d.setDate(d.getDate() - (6 - i));
+        return JOURS[(d.getDay() + 6) % 7];
+      };
+      const caSemaine = serieCA.reduce((s, x) => s + x, 0);
+
+      view.innerHTML = '<div class="resto-page"><div class="wrap page">' +
         gate(rest) +
 
-        '<div class="row-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">' +
-          '<div><div class="h1">' + U.esc(rest.name) + '</div>' +
-            '<div class="sub">' + U.esc(rest.zone ? rest.zone.name : '') + ' • ' +
-            U.hhmm(rest.opens_at) + '–' + U.hhmm(rest.closes_at) + '</div></div>' +
-          '<label class="row" style="gap:10px;background:#fff;border:1px solid var(--line);padding:9px 14px;border-radius:14px">' +
-            '<span class="strong" style="font-size:13.5px">' + (rest.is_open ? 'Ouvert' : 'Fermé') + '</span>' +
-            '<span class="switch"><input type="checkbox" id="openSw" ' + (rest.is_open ? 'checked' : '') + '>' +
-            '<span class="track"><span class="knob"></span></span></span></label>' +
+        rsHead('home', rest.name, ['Tableau de bord'], rest) +
+
+        '<div class="rs-stats">' +
+          rsStat('calendar', 'Commandes aujourd’hui', today.length, '', serieCmd) +
+          rsStat('flame', 'En cours', live.length, '', serieCmd, 'info') +
+          rsStat('check', 'Terminées', delivered.length, '', serieCmd, 'ok') +
+          rsStat('wallet', 'Chiffre d’affaires', U.money(revenue), '', serieCA, 'gold') +
         '</div>' +
 
-        '<div class="grid grid-stats">' +
-          UI.stat('Commandes aujourd’hui', today.length, '📅') +
-          UI.stat('En cours', live.length, '🔥') +
-          UI.stat('Terminées', delivered.length, '✅') +
-          UI.stat('Chiffre d’affaires', U.money(revenue), '💰') +
-        '</div>' +
-
-        '<div class="section-head"><div class="h2">Commandes en cours</div>' +
-          '<a class="link" href="#/r/orders">Tout voir →</a></div>' +
-        (live.length
-          ? '<div class="stack">' + live.slice(0, 4).map(o => orderCard(o)).join('') + '</div>'
-          : UI.empty('😴', 'Aucune commande en cours', 'Les nouvelles commandes apparaîtront ici automatiquement.')) +
-
-        '<div class="grid" style="grid-template-columns:1fr;margin-top:26px">' +
+        '<div class="rs-cols">' +
+          /* ---- commandes en cours ---- */
           '<div class="card card-p">' +
-            '<div class="h3" style="margin-bottom:12px">🏆 Produits les plus vendus</div>' +
-            (top.length
-              ? top.map((t, i) =>
-                  '<div class="oline"><span class="l"><b>' + (i + 1) + '.</b> ' + U.esc(t.name) + '</span>' +
-                  '<b>' + t.n + ' vendus</b></div>').join('')
-              : '<div class="tiny">Pas encore de ventes.</div>') +
+            '<div class="row-between" style="margin-bottom:14px">' +
+              '<div class="h2">Commandes en cours</div>' +
+              '<a class="link" href="#/r/orders">Tout voir →</a></div>' +
+            (live.length
+              ? '<div class="stack">' + live.slice(0, 5).map(o => orderCard(o)).join('') + '</div>'
+              : UI.empty('😴', 'Aucune commande en cours',
+                  'Les nouvelles commandes apparaîtront ici automatiquement.')) +
+          '</div>' +
+
+          '<div class="stack">' +
+            /* ---- chiffre d'affaires de la semaine ---- */
+            '<div class="card card-p">' +
+              '<div class="h3">Chiffre d’affaires <span class="tiny">(7 derniers jours)</span></div>' +
+              '<div class="rs-big">' + U.money(caSemaine) + '</div>' +
+              '<div class="rs-bars">' + serieCA.map((v, i) =>
+                '<div class="b"><span style="height:' +
+                  Math.max(3, Math.round((v / maxCA) * 100)) + '%" title="' + U.money(v) + '"></span>' +
+                  '<i>' + nomJour(i) + '</i></div>').join('') + '</div>' +
+            '</div>' +
+
+            /* ---- meilleurs produits ---- */
+            '<div class="card card-p">' +
+              '<div class="h3" style="margin-bottom:12px">Meilleurs produits</div>' +
+              (top.length
+                ? '<div class="stack" style="gap:12px">' + top.map(t =>
+                    '<div class="rs-prod"><div class="row-between">' +
+                      '<b>' + U.esc(t.name) + '</b>' +
+                      '<span class="tiny">' + t.n + ' vendus</span></div>' +
+                      '<span class="bar"><i style="width:' +
+                        Math.round((t.n / top[0].n) * 100) + '%"></i></span></div>').join('') + '</div>'
+                : '<div class="tiny">Pas encore de ventes.</div>') +
+            '</div>' +
           '</div>' +
         '</div>' +
-      '</div>';
+      '</div></div>';
 
       bindOrderActions(view, load);
-
-      const sw = view.querySelector('#openSw');
-      if (sw) sw.onchange = async () => {
-        const r = await API.safe(() => API.saveRestaurant({ is_open: sw.checked }), null);
-        if (r) { rest.is_open = r.is_open; UI.ok(r.is_open ? 'Restaurant ouvert' : 'Restaurant fermé'); load(); }
-      };
+      bindOpen(view, rest, load);
     }
 
     await load();
@@ -113,28 +205,46 @@
     const rest = await API.safe(() => API.myRestaurant(), null);
     if (!rest) { view.innerHTML = '<div class="wrap-sm page">' + gate(null) + '</div>'; return; }
 
-    view.innerHTML = '<div class="wrap page">' +
-      Cmp.pageHead('Commandes', 'Vous gérez « ' + rest.name + ' » — seules ses commandes apparaissent ici') +
-      '<div class="tabs" style="margin-bottom:16px">' +
-        '<button data-t="new" class="on">Nouvelles</button>' +
-        '<button data-t="progress">En préparation</button>' +
-        '<button data-t="ready">Prêtes / en livraison</button>' +
-        '<button data-t="done">Historique</button>' +
-      '</div>' +
-      '<div id="list"><div class="skel" style="height:120px"></div></div></div>';
+    const MAP = {
+      new: o => o.status === 'pending',
+      progress: o => o.status === 'accepted' || o.status === 'preparing',
+      ready: o => ['ready', 'driver_assigned', 'delivering'].indexOf(o.status) >= 0,
+      done: o => ['delivered', 'rejected', 'cancelled'].indexOf(o.status) >= 0
+    };
+    const ONGLETS = [
+      ['new', 'chef', 'Nouvelles'], ['progress', 'flame', 'En préparation'],
+      ['ready', 'bike', 'Prêtes / en livraison'], ['done', 'clock', 'Historique']
+    ];
+
+    view.innerHTML = '<div class="resto-page"><div class="wrap page">' +
+      rsHead('receipt', 'Commandes', ['Tableau de bord', 'Commandes'], rest) +
+      '<div class="rs-stats" id="stats"></div>' +
+      '<div class="rs-tabs" id="tabs"></div>' +
+      '<div class="card card-p" style="border-top-left-radius:0;border-top-right-radius:0">' +
+        '<div id="list"><div class="skel" style="height:120px"></div></div></div>' +
+    '</div></div>';
 
     const list = view.querySelector('#list');
+    bindOpen(view, rest, () => load());
 
     async function load() {
       const all = await API.safe(() => API.orders({ scope: 'restaurant' }), []);
-      const map = {
-        new: o => o.status === 'pending',
-        progress: o => o.status === 'accepted' || o.status === 'preparing',
-        ready: o => ['ready', 'driver_assigned', 'delivering'].indexOf(o.status) >= 0,
-        done: o => ['delivered', 'rejected', 'cancelled'].indexOf(o.status) >= 0
-      };
-      const rows = all.filter(map[tab]);
+      const n = k => all.filter(MAP[k]).length;
+      const finiesJour = all.filter(o => o.status === 'delivered' && sameDay(o.delivered_at || o.created_at, new Date()));
 
+      view.querySelector('#stats').innerHTML =
+        rsStat('receipt', 'Nouvelles', n('new')) +
+        rsStat('chef', 'En préparation', n('progress'), '', null, 'gold') +
+        rsStat('bike', 'En livraison', n('ready'), '', null, 'info') +
+        rsStat('check', 'Terminées aujourd’hui', finiesJour.length, '', null, 'ok');
+
+      view.querySelector('#tabs').innerHTML = ONGLETS.map(([k, ic, l]) =>
+        '<button data-t="' + k + '" class="' + (tab === k ? 'on' : '') + '">' +
+          UI.icon(ic, 17) + '<span>' + U.esc(l) + '</span>' +
+          (n(k) ? '<b>' + n(k) + '</b>' : '') + '</button>').join('');
+      view.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tab = b.dataset.t; load(); });
+
+      const rows = all.filter(MAP[tab]);
       list.innerHTML = rows.length
         ? '<div class="stack">' + rows.map(o => orderCard(o, true)).join('') + '</div>'
         : UI.empty('📭', 'Aucune commande',
@@ -145,12 +255,6 @@
 
       bindOrderActions(view, load);
     }
-
-    view.querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
-      tab = b.dataset.t;
-      view.querySelectorAll('[data-t]').forEach(x => x.classList.toggle('on', x === b));
-      load();
-    });
 
     await load();
     const off = API.onChange(t => { if (t === 'orders' || t === '*') load(); });
@@ -223,20 +327,39 @@
     const rest = await API.safe(() => API.myRestaurant(), null);
     if (!rest) { view.innerHTML = '<div class="wrap-sm page">' + gate(null) + '</div>'; return; }
 
-    view.innerHTML = '<div class="wrap page">' +
-      Cmp.pageHead('Mon menu', 'Ajoutez, modifiez et activez vos plats',
-        '<button class="btn btn-primary" id="add">+ Ajouter un plat</button>') +
-      '<div id="menuNav" class="menu-tabs chips" hidden></div>' +
-      '<div id="list"><div class="skel" style="height:110px"></div></div></div>';
+    view.innerHTML = '<div class="resto-page"><div class="wrap page">' +
+      rsHead('grid', 'Mon menu', ['Tableau de bord', 'Menu'], rest) +
+      '<div class="rs-menubar">' +
+        '<div id="menuNav" class="menu-tabs chips" hidden></div>' +
+        '<button class="btn btn-primary" id="add">' + UI.icon('plus', 16) + ' Ajouter un plat</button>' +
+      '</div>' +
+      '<div id="list"><div class="skel" style="height:110px"></div></div>' +
+      '<div class="rs-stats" id="menuStats" style="margin-top:18px"></div>' +
+    '</div></div>';
 
     const nav = view.querySelector('#menuNav');
     const list = view.querySelector('#list');
+    bindOpen(view, rest, () => load());
     /* Catégorie ouverte, retenue par identifiant : elle survit aux
        rechargements déclenchés par un ajout, une bascule ou une suppression. */
     let activeCat = null;
 
+    /* Bilan du menu, sous la liste : total, disponibles, indisponibles,
+       nombre de catégories réellement utilisées. */
+    function paintStats(items) {
+      const dispo = items.filter(i => i.is_available !== false).length;
+      const cats = {};
+      items.forEach(i => { cats[i.category_id || 'other'] = 1; });
+      view.querySelector('#menuStats').innerHTML =
+        rsStat('grid', 'Total plats', items.length) +
+        rsStat('check', 'Disponibles', dispo, '', null, 'ok') +
+        rsStat('pause', 'Indisponibles', items.length - dispo, '', null, 'gold') +
+        rsStat('tag', 'Catégories', Object.keys(cats).length, '', null, 'info');
+    }
+
     async function load() {
       const items = await API.safe(() => API.menuItems(rest.id, { includeHidden: true }), []);
+      paintStats(items);
       if (!items.length) {
         nav.hidden = true;
         list.innerHTML = UI.empty('🍕', 'Votre menu est vide', 'Ajoutez votre premier plat pour commencer à vendre.',
@@ -532,14 +655,17 @@
     const r = rest || {};
     const selectedCats = r.categories || [];
 
-    view.innerHTML = '<div class="wrap-sm page">' +
-      Cmp.pageHead(rest ? 'Ma fiche restaurant' : 'Créer mon restaurant',
-        'Ces informations sont visibles par les clients') +
+    view.innerHTML = '<div class="resto-page"><div class="wrap-sm page">' +
+      rsHead('settings', rest ? 'Ma fiche restaurant' : 'Créer mon restaurant',
+        ['Tableau de bord', 'Restaurant', 'Ma fiche restaurant'], rest) +
+      '<p class="sub" style="margin:-10px 0 16px">Ces informations sont visibles par les clients.</p>' +
       (rest ? gate(rest) : '') +
 
       '<form id="rf" class="card card-p stack" novalidate>' +
         UI.imageField('logo_url', r.logo_url, 'Logo') +
+        '<div class="hint" style="margin-top:-6px">Format carré recommandé, 500 × 500 px.</div>' +
         UI.imageField('cover_url', r.cover_url, 'Photo de couverture', 'wide') +
+        '<div class="hint" style="margin-top:-6px">Format panoramique recommandé, 1920 × 600 px.</div>' +
 
         '<div class="field"><label>Nom du restaurant *</label>' +
           '<input class="input" name="name" placeholder="Ex : Meliza Tacos" value="' + U.esc(r.name || '') + '" required></div>' +
@@ -586,10 +712,12 @@
           '</div></div>' +
 
         '<button class="btn btn-primary btn-block btn-lg" type="submit">' +
+          UI.icon('save', 18) + ' ' +
           (rest ? 'Enregistrer les modifications' : 'Créer mon restaurant') + '</button>' +
-      '</form></div>';
+      '</form></div></div>';
 
     UI.bindImageFields(view);
+    if (rest) bindOpen(view, rest, () => Router.render());
 
     /* ------------------------------------------- position du restaurant */
     let pos = U.hasCoords(r) ? { lat: +r.lat, lng: +r.lng } : null;

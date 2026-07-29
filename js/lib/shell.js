@@ -43,6 +43,11 @@
     ]
   };
 
+  /* icône au trait de chaque entrée de la barre latérale */
+  const SIDE_ICONS = {
+    '/r': 'home', '/r/orders': 'receipt', '/r/menu': 'grid', '/r/profile': 'settings'
+  };
+
   const Shell = {
 
     navItems() {
@@ -59,6 +64,50 @@
     render() {
       Shell.renderTop();
       Shell.renderNav();
+      Shell.renderSide();
+    },
+
+    /* ------------------------------------------------------- barre latérale
+       Navigation verticale de l'espace restaurant, sur grand écran seulement.
+       Sur mobile la barre du bas reste la seule navigation : une colonne fixe
+       mangerait la moitié de l'écran. */
+    renderSide() {
+      const side = document.getElementById('sidenav');
+      if (!side) return;
+      const on = Store.isLogged && Store.role === 'restaurant';
+      side.hidden = !on;
+      document.body.classList.toggle('has-side', on);
+      if (!on) { side.innerHTML = ''; return; }
+
+      const rest = Store.profile && Store.profile.restaurant;
+      side.innerHTML =
+        '<a class="side-brand" href="#/r">' +
+          (rest && rest.logo_url
+            ? '<img src="' + U.escUrl(rest.logo_url) + '" alt="">'
+            : '<img src="assets/img/logo.jpg" alt="">') +
+        '</a>' +
+        '<nav class="side-nav">' +
+          NAV.restaurant.filter(x => x.p !== '/account').map(x =>
+            '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '">' +
+              '<span class="ic">' + UI.icon(SIDE_ICONS[x.p] || 'user', 20) + '</span>' +
+              '<span>' + U.esc(x.l) + '</span></a>').join('') +
+        '</nav>' +
+        '<div class="side-foot">' +
+          '<a href="#/account" class="' + (Shell.isActive('/account') ? 'on' : '') + '">' +
+            '<span class="ic">' + UI.icon('user', 20) + '</span><span>Mon compte</span></a>' +
+          '<button id="sideOut"><span class="ic">' + UI.icon('logout', 20) + '</span>' +
+            '<span>Déconnexion</span></button>' +
+        '</div>';
+
+      const out = side.querySelector('#sideOut');
+      if (out) out.onclick = async () => {
+        if (!(await UI.confirm('Se déconnecter ?', 'Vous devrez vous reconnecter pour gérer votre restaurant.',
+              'Déconnexion', true))) return;
+        await API.signOut();
+        await Store.refreshProfile();
+        UI.ok('À bientôt !');
+        Router.go('/', true);
+      };
     },
 
     /* ------------------------------------------------------------ topbar */

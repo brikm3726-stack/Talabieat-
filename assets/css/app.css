@@ -802,6 +802,142 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 .tag-soft{background:var(--brand-soft);color:var(--brand);display:inline-flex;align-items:center;gap:5px}
 
+/* ============================================================ ESPACE RESTAURANT
+   Barre latérale sombre + pages sur fond crème, d'après les maquettes. */
+.sidenav{display:none}
+@media(min-width:1000px){
+  .sidenav{
+    display:flex;flex-direction:column;
+    position:fixed;left:0;top:0;bottom:0;width:222px;z-index:80;
+    background:#14161A;color:#fff;padding:18px 14px;
+  }
+  /* le contenu se décale, la barre du haut aussi */
+  body.has-side #view,
+  body.has-side .topbar{margin-left:222px}
+  /* le menu horizontal ferait double emploi avec la colonne */
+  body.has-side .deskmenu,
+  body.has-side .brand{display:none}
+}
+.side-brand{display:block;margin:2px auto 22px;width:104px}
+.side-brand img{width:100%;border-radius:16px;background:#fff}
+.side-nav{display:flex;flex-direction:column;gap:6px;flex:1}
+.sidenav a, .sidenav button{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  padding:12px 14px;border-radius:14px;border:none;background:transparent;
+  color:rgba(255,255,255,.68);font:inherit;font-size:14.5px;font-weight:650;
+  cursor:pointer;transition:.22s;
+}
+.sidenav a:hover, .sidenav button:hover{background:rgba(255,255,255,.08);color:#fff}
+.sidenav a.on{
+  background:var(--brand-grad);color:#fff;
+  box-shadow:0 10px 22px -10px rgba(255,107,53,.8);
+}
+.sidenav .ic{line-height:0;flex:none}
+.side-foot{border-top:1px solid rgba(255,255,255,.1);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+
+/* ---- gabarit commun aux quatre pages ---- */
+.resto-page{
+  --brand:#FF6B35;
+  --brand-light:#FF8A3D;
+  --brand-soft:#FFF1E8;
+  --brand-grad:linear-gradient(135deg,#FF8A3D 0%,#FF6B35 100%);
+  --line:#F3E9E0;
+
+  position:relative;min-height:calc(100vh - 60px);
+  background:
+    radial-gradient(680px 380px at 100% 0%, rgba(255,138,61,.18), transparent 62%),
+    radial-gradient(520px 320px at 0% 100%, rgba(255,107,53,.07), transparent 58%),
+    #FFF8F2;
+}
+.resto-page .card{
+  border-radius:20px;border:1px solid var(--line);
+  box-shadow:0 1px 2px rgba(196,120,74,.05), 0 10px 28px -18px rgba(196,120,74,.35);
+}
+.resto-page .btn-primary{
+  border-radius:14px;box-shadow:0 8px 20px -8px rgba(255,107,53,.6);
+  transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+}
+.resto-page .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 30px -10px rgba(255,107,53,.7)}
+.resto-page .btn-primary:active{transform:translateY(0) scale(.985)}
+
+/* en-tête de page : pastille orange, titre, fil d'ariane */
+.rs-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.rs-head .ic{
+  width:48px;height:48px;border-radius:15px;flex:none;
+  background:var(--brand-soft);color:var(--brand);
+  display:grid;place-items:center;line-height:0;
+}
+.rs-head .h1{font-size:27px}
+.rs-crumb{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--muted);margin-top:3px}
+.rs-crumb b{color:var(--ink-2);font-weight:650}
+.rs-crumb .sep{color:#CFC4B8;line-height:0}
+.rs-head .grow{min-width:0}
+.rs-head-side{display:flex;align-items:center;gap:12px;margin-left:auto}
+.rs-open{
+  display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--line);
+  padding:9px 14px;border-radius:999px;font-weight:700;font-size:13.5px;box-shadow:var(--sh-1);
+}
+
+/* vignettes de statistique */
+.rs-stats{display:grid;gap:14px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:1000px){ .rs-stats{grid-template-columns:repeat(4,1fr)} }
+.rs-stat{padding:18px;display:flex;flex-direction:column;gap:2px;background:#fff}
+.rs-stat .top{display:flex;align-items:center;gap:12px}
+.rs-stat .ic{
+  width:46px;height:46px;border-radius:50%;flex:none;
+  display:grid;place-items:center;line-height:0;color:#fff;
+  background:var(--brand-grad);box-shadow:0 8px 18px -8px rgba(255,107,53,.6);
+}
+.rs-stat .ic.ok{background:linear-gradient(135deg,#34D399,#12B76A);box-shadow:0 8px 18px -8px rgba(18,183,106,.6)}
+.rs-stat .ic.info{background:linear-gradient(135deg,#93C5FD,#3B82F6);box-shadow:0 8px 18px -8px rgba(59,130,246,.55)}
+.rs-stat .ic.gold{background:linear-gradient(135deg,#FCD34D,#F59E0B);box-shadow:0 8px 18px -8px rgba(245,158,11,.55)}
+.rs-stat .k{font-size:13px;color:var(--muted);font-weight:650}
+.rs-stat .v{font-size:27px;font-weight:850;letter-spacing:-.02em;margin-top:2px}
+.rs-stat .s{font-size:12.5px;font-weight:650;margin-top:2px}
+.rs-stat .s.up{color:#0E9F6E}
+.rs-stat .spark{margin-top:10px;display:block;width:100%;height:34px}
+
+/* deux colonnes sur grand écran : commandes à gauche, indicateurs à droite */
+.rs-cols{display:grid;gap:16px;margin-top:16px}
+@media(min-width:1200px){ .rs-cols{grid-template-columns:1.55fr 1fr;align-items:start} }
+
+.rs-big{font-size:26px;font-weight:850;letter-spacing:-.02em;margin:6px 0 14px}
+/* histogramme du chiffre d'affaires, en CSS pur */
+.rs-bars{display:flex;align-items:flex-end;gap:10px;height:130px}
+.rs-bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:8px}
+.rs-bars .b span{
+  width:100%;max-width:26px;border-radius:8px 8px 3px 3px;
+  background:var(--brand-grad);transition:height .4s cubic-bezier(.22,1,.36,1);
+}
+.rs-bars .b i{font-style:normal;font-size:11.5px;color:var(--muted);font-weight:650}
+
+.rs-prod b{font-size:14px}
+.rs-prod .bar{display:block;height:7px;border-radius:99px;background:var(--brand-soft);margin-top:7px;overflow:hidden}
+.rs-prod .bar i{display:block;height:100%;border-radius:99px;background:var(--brand-grad)}
+
+/* onglets des commandes : pilules jointives au-dessus de la carte */
+.rs-tabs{display:flex;gap:6px;margin:18px 0 0;overflow-x:auto;scrollbar-width:none}
+.rs-tabs::-webkit-scrollbar{display:none}
+.rs-tabs button{
+  display:flex;align-items:center;gap:9px;flex:none;
+  padding:14px 20px;border:1px solid var(--line);border-bottom:none;
+  background:rgba(255,255,255,.6);color:var(--muted);
+  border-radius:16px 16px 0 0;font:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;transition:.22s;line-height:1;
+}
+.rs-tabs button:hover{background:#fff;color:var(--ink)}
+.rs-tabs button.on{background:var(--brand-grad);color:#fff;border-color:transparent}
+.rs-tabs b{
+  min-width:22px;padding:2px 7px;border-radius:999px;font-size:12px;
+  background:var(--brand-soft);color:var(--brand);
+}
+.rs-tabs button.on b{background:rgba(255,255,255,.25);color:#fff}
+
+/* barre du menu : onglets de catégories + bouton d'ajout */
+.rs-menubar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.rs-menubar .menu-tabs{flex:1;min-width:0;margin:0;padding:10px 0;background:transparent;border:none;position:static}
+.rs-menubar .btn{flex:none}
+
 /* --------------------------------------------- tableau de bord du livreur */
 .driver-page{
   --brand:#FF6B35;
