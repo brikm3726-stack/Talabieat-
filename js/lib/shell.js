@@ -93,10 +93,11 @@
               '<span>' + U.esc(x.l) + '</span></a>').join('') +
         '</nav>' +
         '<div class="side-foot">' +
-          '<a href="#/account" class="' + (Shell.isActive('/account') ? 'on' : '') + '">' +
-            '<span class="ic">' + UI.icon('user', 20) + '</span><span>Mon compte</span></a>' +
-          '<button id="sideOut"><span class="ic">' + UI.icon('logout', 20) + '</span>' +
-            '<span>Déconnexion</span></button>' +
+          '<a href="#/account" class="' + (Shell.isActive('/account') ? 'on' : '') + '" title="Mon compte">' +
+            '<span class="ic">' + UI.icon('user', 20) + '</span><span>Compte</span></a>' +
+          '<button id="sideOut" title="Se déconnecter">' +
+            '<span class="ic">' + UI.icon('logout', 20) + '</span>' +
+            '<span>Quitter</span></button>' +
         '</div>';
 
       const out = side.querySelector('#sideOut');
