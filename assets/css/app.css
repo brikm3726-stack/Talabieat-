@@ -1249,6 +1249,25 @@ tr:hover td{background:#FCFDFF}
 .map-preview{height:150px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:#F2EDE5}
 .leaflet-container{font:inherit}
 
+/* ---------------------------------------------------------------------------
+   La carte doit passer SOUS la barre du bas et sous l'en-tête.
+
+   Leaflet empile ses couches très haut : la couche principale est à 400, le
+   repère du sélecteur à 500. Le cadre qui les contient, lui, n'avait pas de
+   z-index : il ne formait donc aucun contexte d'empilement, et ces 400 et 500
+   se comparaient directement à la barre de navigation (70) et à l'en-tête (60).
+   Résultat : en défilant, la carte se dessinait par-dessus « Accueil /
+   Restaurants / Panier / Commandes / Compte ».
+
+   `z-index:0` sur le cadre suffit : tout Leaflet reste enfermé à l'intérieur,
+   et le cadre entier se range derrière la barre. À l'intérieur, l'ordre entre
+   les tuiles, les marqueurs et le repère ne change pas.
+   --------------------------------------------------------------------------- */
+.map-preview,
+.live-map,
+.mp-map,
+.leaflet-container{position:relative;z-index:0}
+
 /* ------------------------------------------------ carte de suivi en direct */
 .live-map{height:240px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:#F2EDE5}
 .lm-pin{
