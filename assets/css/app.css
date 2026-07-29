@@ -870,6 +870,60 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .drv-stat .s{font-size:12px;color:var(--muted)}
 
 .drv-panel .link{color:var(--brand);font-weight:700}
+
+/* en-tête de page : pastille orange, titre, sous-titre */
+.drv-title{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.drv-title .ic{
+  width:52px;height:52px;border-radius:17px;flex:none;
+  background:var(--brand-soft);display:grid;place-items:center;font-size:24px;
+}
+.drv-title .h1{font-size:26px}
+.drv-title .sub{margin-top:2px}
+
+/* pastille de titre des écrans vides (« Aucune course disponible ») */
+.drv-chip{
+  display:inline-flex;align-items:center;gap:10px;margin-top:2px;
+  padding:12px 22px;border-radius:999px;background:#fff;
+  border:1px solid var(--line);box-shadow:0 8px 22px -14px rgba(196,120,74,.5);
+  font-size:17px;font-weight:800;letter-spacing:-.01em;
+}
+
+/* rappel « Restez disponible » sous l'illustration */
+.drv-note{
+  display:flex;align-items:center;gap:13px;margin:20px auto 0;max-width:520px;
+  padding:15px 16px;border-radius:18px;text-align:left;
+  background:var(--brand-soft);border:1px solid #F7DECF;
+}
+.drv-note .art{font-size:26px;flex:none}
+.drv-note .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
+.drv-note b{color:var(--brand);font-size:14.5px}
+
+/* bandeau des gains cumulés */
+.drv-earn{
+  position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;
+  padding:20px 22px;border-radius:22px;color:#fff;
+  background:linear-gradient(100deg,#FF8A3D 0%,#FF6B35 48%,#F0355C 100%);
+  box-shadow:0 16px 34px -18px rgba(255,107,53,.75);
+}
+.drv-earn .k{font-size:11.5px;font-weight:750;letter-spacing:.06em;opacity:.9}
+.drv-earn .v{font-size:32px;font-weight:850;margin-top:4px;letter-spacing:-.02em}
+.drv-earn .art{
+  font-size:34px;flex:none;width:74px;height:74px;border-radius:50%;
+  background:rgba(255,255,255,.16);display:grid;place-items:center;
+}
+
+/* ligne d'historique */
+.drv-hist{transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease}
+.drv-hist:hover{transform:translateY(-2px);box-shadow:0 16px 34px -20px rgba(196,120,74,.5)}
+.drv-hist .ocode{
+  background:var(--brand-soft);color:var(--brand);font-weight:800;
+  padding:5px 12px;border-radius:999px;font-size:12.5px;
+}
+.drv-go{
+  width:36px;height:36px;border-radius:12px;flex:none;
+  background:var(--brand-soft);color:var(--brand);
+  display:grid;place-items:center;line-height:0;
+}
 .driver-page .btn-primary{
   border-radius:16px;box-shadow:0 8px 20px -8px rgba(255,107,53,.6);
   transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;

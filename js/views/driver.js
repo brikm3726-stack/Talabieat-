@@ -8,6 +8,15 @@
 
   const STATUS_LABEL = { offline: 'Indisponible', available: 'Disponible', busy: 'En livraison' };
 
+  /** En-tête de page : pastille orange, titre, sous-titre. */
+  function drvHead(icone, titre, sous) {
+    return '<div class="drv-title">' +
+      '<span class="ic">' + icone + '</span>' +
+      '<div><div class="h1">' + U.esc(titre) + '</div>' +
+        '<div class="sub">' + U.esc(sous) + '</div></div>' +
+    '</div>';
+  }
+
   /* Vignette de statistique : pastille, intitulé, valeur, légende. */
   function drvStat(icone, label, valeur, legende) {
     return '<div class="card drv-stat">' +
@@ -140,9 +149,11 @@
      COURSES DISPONIBLES
      ====================================================================== */
   Router.add('/d/available', async function (params, query, view) {
-    view.innerHTML = '<div class="wrap page">' +
-      Cmp.pageHead('Courses disponibles', 'Commandes prêtes dans votre zone') +
-      '<div id="list"><div class="skel" style="height:150px"></div></div></div>';
+    view.innerHTML = '<div class="driver-page"><div class="wrap page">' +
+      '<div class="card card-p drv-panel">' +
+        drvHead('🛍️', 'Courses disponibles', 'Commandes prêtes dans votre zone') +
+        '<div id="list"><div class="skel" style="height:150px"></div></div>' +
+      '</div></div></div>';
 
     const list = view.querySelector('#list');
 
@@ -164,9 +175,29 @@
       const rows = await API.safe(() => API.orders({ scope: 'available' }), []);
       list.innerHTML = rows.length
         ? '<div class="stack">' + rows.map(o => deliveryCard(o)).join('') + '</div>'
-        : UI.empty(UI.icon('pin', 44), 'Aucune course disponible',
-            'Restez disponible : dès qu’un restaurant de votre zone signale une commande prête, elle apparaît ici.');
+        : '<div class="empty-scene compact">' +
+            '<img class="scene-art" src="assets/img/bg/courses-vide.png" alt="" aria-hidden="true">' +
+            '<div class="drv-chip">📦 Aucune course disponible</div>' +
+            '<p class="scene-sub">Restez disponible : dès qu’un restaurant de votre zone ' +
+              'signale une commande prête, <b>elle apparaît ici</b>.</p>' +
+            '<div class="drv-note">' +
+              '<span class="art">🔔</span>' +
+              '<span class="grow"><b>Restez disponible</b>' +
+                '<span class="tiny">Activez les notifications pour ne manquer aucune course.</span></span>' +
+              '<label class="switch"><input type="checkbox" id="soundOn"' +
+                (w.Sound && Sound.muted ? '' : ' checked') + '>' +
+                '<span class="track"><span class="knob"></span></span></label>' +
+            '</div>' +
+          '</div>';
       bindDelivery(view, load);
+
+      const so = view.querySelector('#soundOn');
+      if (so) so.onchange = () => {
+        if (!w.Sound) return;
+        Sound.muted = !so.checked;
+        UI.ok(Sound.muted ? 'Sonnerie coupée' : 'Sonnerie réactivée');
+        Shell.renderTop();
+      };
     }
 
     await load();
@@ -185,14 +216,21 @@
       const mine = await API.safe(() => API.orders({ scope: 'driver' }), []);
       const active = mine.filter(o => ['driver_assigned', 'delivering'].indexOf(o.status) >= 0);
 
-      view.innerHTML = '<div class="wrap-sm page">' +
-        Cmp.pageHead('Ma livraison', 'Suivez et validez chaque étape') +
-        (active.length ? '<div id="shareBox" style="margin-bottom:14px"></div>' : '') +
-        (active.length
-          ? '<div class="stack">' + active.map(o => deliveryCard(o, true)).join('') + '</div>'
-          : UI.empty('🛵', 'Aucune livraison en cours', 'Acceptez une course pour la voir apparaître ici.',
-              '<a class="btn btn-primary" href="#/d/available">Voir les courses</a>')) +
-      '</div>';
+      view.innerHTML = '<div class="driver-page"><div class="wrap-sm page">' +
+        '<div class="card card-p drv-panel">' +
+          drvHead('🛵', 'Ma livraison', 'Suivez et validez chaque étape') +
+          (active.length ? '<div id="shareBox" style="margin-bottom:14px"></div>' : '') +
+          (active.length
+            ? '<div class="stack">' + active.map(o => deliveryCard(o, true)).join('') + '</div>'
+            : '<div class="empty-scene compact">' +
+                '<img class="scene-art" src="assets/img/bg/livraison-vide.png" alt="" aria-hidden="true">' +
+                '<div class="h2 scene-title">Aucune livraison en cours</div>' +
+                '<p class="scene-sub">Acceptez une course pour la voir apparaître ici.</p>' +
+                '<div class="scene-cta">' +
+                  '<a class="btn btn-primary btn-lg" href="#/d/available">Voir les courses →</a></div>' +
+              '</div>') +
+        '</div>' +
+      '</div></div>';
       bindDelivery(view, load);
       if (active.length) paintShare();
       LiveTrack.sync();
@@ -241,24 +279,38 @@
     const done = mine.filter(o => o.status === 'delivered');
     const total = done.reduce((s, o) => s + (o.driver_earning || 0), 0);
 
-    view.innerHTML = '<div class="wrap-sm page">' +
-      Cmp.pageHead('Historique', done.length + ' livraison(s) effectuée(s)') +
-      '<div class="card card-p" style="background:var(--brand-grad);color:#fff;border:none;margin-bottom:16px">' +
-        '<div class="tiny" style="color:rgba(255,255,255,.85)">GAINS CUMULÉS</div>' +
-        '<div style="font-size:30px;font-weight:850;margin-top:4px">' + U.money(total) + '</div></div>' +
+    view.innerHTML = '<div class="driver-page"><div class="wrap-sm page">' +
+      drvHead('📈', 'Historique', done.length + ' livraison(s) effectuée(s)') +
+
+      '<div class="drv-earn">' +
+        '<div class="grow"><div class="k">GAINS CUMULÉS</div>' +
+          '<div class="v">' + U.money(total) + '</div></div>' +
+        '<span class="art">💰</span>' +
+      '</div>' +
+
       (done.length
-        ? '<div class="stack">' + done.map(o =>
-            '<div class="order-card">' +
-              '<div class="row-between"><span class="ocode">#' + U.esc(o.code) + '</span>' +
+        ? '<div class="stack" style="margin-top:16px">' + done.map(o =>
+            '<div class="card card-p drv-hist">' +
+              '<div class="row-between">' +
+                '<span class="ocode">#' + U.esc(o.code) + '</span>' +
                 '<span class="tiny">' + U.dt(o.delivered_at || o.created_at) + '</span></div>' +
-              '<div style="margin-top:9px"><b>' + U.esc(o.restaurant ? o.restaurant.name : '') + '</b>' +
-                '<div class="tiny">' + UI.pin(13) + ' ' + U.esc(o.address_street) + '</div></div>' +
+              '<div class="row-between" style="margin-top:10px;gap:12px">' +
+                '<div class="grow"><b>' + U.esc(o.restaurant ? o.restaurant.name : '') + '</b>' +
+                  '<div class="tiny">' + UI.pin(13) + ' ' + U.esc(o.address_street) + '</div></div>' +
+                '<span class="drv-go">' + UI.icon('chevron', 17) + '</span></div>' +
               '<div class="divider"></div>' +
               '<div class="oline"><span class="l">Votre gain</span>' +
                 '<b class="price">' + U.money(o.driver_earning) + '</b></div>' +
             '</div>').join('') + '</div>'
-        : UI.empty('📜', 'Aucune livraison', 'Vos livraisons terminées s’afficheront ici.')) +
-    '</div>';
+        : '<div class="card card-p drv-panel" style="margin-top:16px">' +
+            '<div class="empty-scene compact">' +
+              '<img class="scene-art" src="assets/img/bg/livraison-vide.png" alt="" aria-hidden="true">' +
+              '<div class="h2 scene-title">Aucune livraison</div>' +
+              '<p class="scene-sub">Vos livraisons terminées s’afficheront ici.</p>' +
+              '<div class="scene-cta">' +
+                '<a class="btn btn-primary btn-lg" href="#/d/available">Voir les courses →</a></div>' +
+            '</div></div>') +
+    '</div></div>';
   }, GUARD);
 
   /* ======================================================================
