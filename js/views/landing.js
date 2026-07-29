@@ -68,7 +68,7 @@
         /* -------------------------------------------------- COMMENT ÇA MARCHE */
         '<div class="section-head" style="margin-top:34px"><div class="h2">Comment ça marche ?</div></div>' +
         '<div class="grid grid-auto">' +
-          step('1', '📍', 'Choisissez votre quartier', 'Indiquez où vous êtes pour voir les restaurants qui livrent chez vous.') +
+          step('1', UI.icon('pin', 21), 'Choisissez votre quartier', 'Indiquez où vous êtes pour voir les restaurants qui livrent chez vous.') +
           step('2', '🛒', 'Composez votre panier', 'Parcourez les menus, ajoutez vos plats et vos suppléments.') +
           step('3', '👨‍🍳', 'Le restaurant prépare', 'Vous êtes prévenu dès que la commande est acceptée puis prête.') +
           step('4', '🛵', 'Un livreur vous l’apporte', 'Suivez la livraison en direct et payez à la réception.') +

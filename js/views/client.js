@@ -14,7 +14,7 @@
 
     view.innerHTML = '<div class="wrap page">' +
       Cmp.pageHead('Restaurants', Store.zoneName() ? 'Livraison à ' + Store.zoneName() : 'Toute la ville de Tizi Ouzou',
-        '<button class="btn btn-ghost btn-sm" id="zoneBtn2">📍 ' + U.esc(Store.zoneName() || 'Mon quartier') + '</button>') +
+        '<button class="btn btn-ghost btn-sm" id="zoneBtn2">' + UI.pin(14) + ' ' + U.esc(Store.zoneName() || 'Mon quartier') + '</button>') +
       '<div class="search" style="margin-bottom:12px">' +
         '<input class="input" id="q" placeholder="Restaurant ou plat…" value="' + U.esc(term) + '" autocomplete="off">' +
       '</div>' +
@@ -71,7 +71,7 @@
       if (!list.length && Store.zoneId) {
         const city = await searchRestaurants(q, null, cat);
         if (city.length) {
-          results.innerHTML = UI.empty('📍', 'Rien dans ' + Store.zoneName(),
+          results.innerHTML = UI.empty(UI.icon('pin', 44), 'Rien dans ' + Store.zoneName(),
             city.length + ' restaurant(s) correspondent ailleurs dans la ville.',
             '<button class="btn btn-primary" id="allCity">Chercher dans toute la ville</button>');
           results.querySelector('#allCity').onclick = () => { Store.setZone(null); Shell.renderTop(); load(); };
@@ -170,7 +170,7 @@
           (r.description ? '<p class="sub" style="margin-top:12px">' + U.esc(r.description) + '</p>' : '') +
           '<div class="divider"></div>' +
           '<div class="tiny stack" style="gap:5px">' +
-            '<div>📍 ' + U.esc(r.address || '—') + (r.zone ? ' — ' + U.esc(r.zone.name) : '') + '</div>' +
+            '<div>' + UI.pin() + ' ' + U.esc(r.address || '—') + (r.zone ? ' — ' + U.esc(r.zone.name) : '') + '</div>' +
             '<div>🕘 Horaires : ' + U.hhmm(r.opens_at) + ' – ' + U.hhmm(r.closes_at) + '</div>' +
             (r.phone ? '<div>📞 <a href="tel:' + U.esc(r.phone) + '" style="color:var(--brand);font-weight:650">' + U.esc(r.phone) + '</a></div>' : '') +
             (r.min_order ? '<div>🧾 Minimum de commande : <b>' + U.money(r.min_order) + '</b></div>' : '') +

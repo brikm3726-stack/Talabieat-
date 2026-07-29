@@ -143,7 +143,7 @@
                       ? '<div class="tiny">' +
                         (a.driver_status === 'available' ? '🟢 disponible'
                           : a.driver_status === 'busy' ? '🔵 en livraison' : '⚪ indisponible') +
-                        (a.zone_name ? ' • 📍 ' + U.esc(a.zone_name) : ' • 📍 aucun quartier') + '</div>'
+                        (a.zone_name ? ' • ' + UI.pin(13) + ' ' + U.esc(a.zone_name) : ' • ' + UI.pin(13) + ' aucun quartier') + '</div>'
                       : '') +
                   '</div>' +
                   '<div style="color:var(--brand);font-weight:800">' + (a.is_current ? 'ACTUEL' : '→') + '</div>' +

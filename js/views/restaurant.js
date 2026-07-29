@@ -180,7 +180,7 @@
         '<div class="tiny stack" style="gap:4px">' +
           '<div>👤 ' + U.esc(o.client_name || (o.client && o.client.full_name) || '') + ' — 📞 ' +
             '<a href="tel:' + U.esc(o.client_phone) + '" style="color:var(--brand);font-weight:650">' + U.esc(o.client_phone) + '</a></div>' +
-          '<div>📍 ' + U.esc(o.address_street) + (o.address_details ? ' — ' + U.esc(o.address_details) : '') +
+          '<div>' + UI.pin() + ' ' + U.esc(o.address_street) + (o.address_details ? ' — ' + U.esc(o.address_details) : '') +
             (U.hasCoords({ lat: o.address_lat, lng: o.address_lng })
               ? ' — <a target="_blank" rel="noopener" style="color:var(--brand);font-weight:700" href="' +
                 U.gmapsPin(o.address_lat, o.address_lng) + '">carte ↗</a>' : '') + '</div>' +
@@ -603,7 +603,7 @@
             '<a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="' +
               U.gmapsPin(pos.lat, pos.lng) + '">Google Maps ↗</a></div>'
         : '<button type="button" class="btn btn-primary btn-block" id="rpick">' +
-          '📍 Placer mon restaurant sur la carte</button>';
+          UI.icon('pin', 17) + ' Placer mon restaurant sur la carte</button>';
 
       if (pos) MapPicker.preview(posBox.querySelector('#rprev'), pos.lat, pos.lng);
 

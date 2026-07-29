@@ -77,7 +77,7 @@
           '<a class="link" href="#/d/available">Tout voir →</a></div>' +
         (available.length
           ? '<div class="stack">' + available.slice(0, 3).map(o => deliveryCard(o)).join('') + '</div>'
-          : UI.empty('📍', 'Aucune course pour le moment',
+          : UI.empty(UI.icon('pin', 44), 'Aucune course pour le moment',
               approved ? 'Restez disponible, les nouvelles courses de votre zone apparaîtront ici.'
                        : 'Votre compte doit être validé pour recevoir des courses.')) +
       '</div>';
@@ -126,7 +126,7 @@
       const rows = await API.safe(() => API.orders({ scope: 'available' }), []);
       list.innerHTML = rows.length
         ? '<div class="stack">' + rows.map(o => deliveryCard(o)).join('') + '</div>'
-        : UI.empty('📍', 'Aucune course disponible',
+        : UI.empty(UI.icon('pin', 44), 'Aucune course disponible',
             'Restez disponible : dès qu’un restaurant de votre zone signale une commande prête, elle apparaît ici.');
       bindDelivery(view, load);
     }
@@ -214,7 +214,7 @@
               '<div class="row-between"><span class="ocode">#' + U.esc(o.code) + '</span>' +
                 '<span class="tiny">' + U.dt(o.delivered_at || o.created_at) + '</span></div>' +
               '<div style="margin-top:9px"><b>' + U.esc(o.restaurant ? o.restaurant.name : '') + '</b>' +
-                '<div class="tiny">📍 ' + U.esc(o.address_street) + '</div></div>' +
+                '<div class="tiny">' + UI.pin(13) + ' ' + U.esc(o.address_street) + '</div></div>' +
               '<div class="divider"></div>' +
               '<div class="oline"><span class="l">Votre gain</span>' +
                 '<b class="price">' + U.money(o.driver_earning) + '</b></div>' +

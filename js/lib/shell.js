@@ -27,7 +27,9 @@
     ],
     driver: [
       { p: '/d',             i: '📊', l: 'Tableau' },
-      { p: '/d/available',   i: '📍', l: 'Courses' },
+      // fonction et non chaîne : NAV est évalué au chargement du fichier, et
+      // appeler UI.icon ici créerait une dépendance à l'ordre des <script>
+      { p: '/d/available',   i: () => UI.icon('pin', 20), l: 'Courses' },
       { p: '/d/active',      i: '🛵', l: 'En cours' },
       { p: '/d/history',     i: '📜', l: 'Historique' },
       { p: '/account',       i: '👤', l: 'Compte' }
@@ -73,7 +75,7 @@
           '</a>' +
 
           (showZone ?
-            '<button class="zone-pick" id="zoneBtn">📍 <span>' +
+            '<button class="zone-pick" id="zoneBtn">' + UI.pin(15) + ' <span>' +
               U.esc(Store.zoneName() || 'Mon quartier') + '</span> ▾</button>' : '') +
 
           '<nav class="deskmenu">' +
@@ -119,8 +121,9 @@
       nav.innerHTML = Shell.navItems().map(x => {
         let badge = '';
         if (x.badge === 'cart' && Store.cartCount) badge = '<span class="badge-dot">' + Store.cartCount + '</span>';
+        const ic = typeof x.i === 'function' ? x.i() : x.i;
         return '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '">' +
-               '<i style="position:relative">' + x.i + badge + '</i><span>' + x.l + '</span></a>';
+               '<i style="position:relative">' + ic + badge + '</i><span>' + x.l + '</span></a>';
       }).join('');
     },
 
@@ -141,12 +144,12 @@
 
       UI.sheet({
         title: 'Mon quartier de livraison',
-        icon: '📍',
+        icon: UI.icon('pin', 21),
         subtitle: 'Sélectionnez votre zone de livraison',
         body:
           '<div class="zone-list">' +
             ligne('', 'Toute la ville', 'Livraison disponible partout', '🏙️') +
-            Store.zones.map(z => ligne(z.id, z.name, '', '📍')).join('') +
+            Store.zones.map(z => ligne(z.id, z.name, '', UI.icon('pin', 18))).join('') +
           '</div>' +
           '<div class="zone-foot">' +
             '<span class="art">🛵</span>' +
@@ -223,7 +226,7 @@
   function iconFor(type) {
     const m = {
       new_order: '🧾', accepted: '✅', preparing: '👨‍🍳', ready: '🛍️',
-      delivery_available: '📍', driver_assigned: '🛵', delivering: '🚀',
+      delivery_available: UI.icon('pin', 17), driver_assigned: '🛵', delivering: '🚀',
       delivered: '🎉', rejected: '⛔', cancelled: '🚫',
       restaurant_status: '🏪', restaurant_pending: '🏪', driver_status: '🛵'
     };

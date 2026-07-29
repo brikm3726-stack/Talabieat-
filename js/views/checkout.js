@@ -14,7 +14,7 @@
 
     function addrRow(a) {
       return '<label class="role-card ' + (selected && selected.id === a.id ? 'on' : '') + '" data-addr="' + U.esc(a.id) + '">' +
-        '<div class="ic">📍</div>' +
+        '<div class="ic">' + UI.icon('pin', 20) + '</div>' +
         '<div class="grow"><b>' + U.esc(a.label) + '</b>' +
           (U.hasCoords(a) ? ' <span class="tag tag-ok">GPS</span>' : ' <span class="tag tag-warn">sans GPS</span>') +
           '<div class="tiny">' + U.esc(a.street) + (a.details ? ' — ' + U.esc(a.details) : '') + '</div>' +
@@ -50,7 +50,7 @@
         /* ---- position manquante sur l'adresse choisie ---- */
         (selected && !U.hasCoords(selected)
           ? '<div class="banner banner-warn" style="margin-top:12px">' +
-            '<div class="grow">📍 Cette adresse n’a pas de position GPS — le livreur risque de vous chercher.</div>' +
+            '<div class="grow">' + UI.pin(14) + ' Cette adresse n’a pas de position GPS — le livreur risque de vous chercher.</div>' +
             '<button class="btn btn-primary btn-sm" id="fixGeo">Activer</button></div>'
           : '') +
 
@@ -240,7 +240,7 @@
           if (!pos) {
             box.innerHTML =
               '<button type="button" class="btn btn-primary btn-block btn-lg" id="pick">' +
-                '📍 Choisir ma position sur la carte</button>' +
+                UI.icon('pin', 17) + ' Choisir ma position sur la carte</button>' +
               '<div class="hint" style="margin-top:6px">Le livreur ouvrira ce point directement dans Google Maps.</div>';
           } else {
             box.innerHTML =

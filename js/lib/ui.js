@@ -180,6 +180,9 @@
         'stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
     },
 
+    /** Repère de lieu, en orange, aligné sur le texte qui l'entoure. */
+    pin(size) { return '<span class="pin-ic">' + UI.icon('pin', size || 15) + '</span>'; },
+
     avatar(name, url, size) {
       const s = size || 42;
       const st = 'width:' + s + 'px;height:' + s + 'px;font-size:' + Math.round(s / 2.6) + 'px' +

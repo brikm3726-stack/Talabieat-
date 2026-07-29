@@ -91,15 +91,15 @@
                 (r.status === 'approved' ? 'Validé' : r.status === 'rejected' ? 'Refusé' : 'En attente') + '</span>' +
               (r.open_now ? '<span class="tag tag-info">Ouvert</span>' : '') +
             '</div>' +
-            '<div class="tiny" style="margin-top:6px">📍 ' + U.esc(r.address || '—') +
+            '<div class="tiny" style="margin-top:6px">' + UI.pin() + ' ' + U.esc(r.address || '—') +
               (r.zone ? ' — ' + U.esc(r.zone.name) : '') + '</div>' +
             '<div class="tiny">📞 ' + U.esc(r.phone || '—') + ' • 🛵 ' + U.money(r.delivery_fee) + '</div>' +
             '<div class="tiny">' + (U.hasCoords(r)
               ? (r.gps_verified === false
-                  ? '<span style="color:var(--warn);font-weight:700">📍 position approximative — à vérifier</span>'
-                  : '📍 <a target="_blank" rel="noopener" style="color:var(--brand);font-weight:650" href="' +
+                  ? '<span style="color:var(--warn);font-weight:700">' + UI.icon('pin', 13) + ' position approximative — à vérifier</span>'
+                  : UI.pin(13) + ' <a target="_blank" rel="noopener" style="color:var(--brand);font-weight:650" href="' +
                     U.gmapsPin(r.lat, r.lng) + '">voir sur Google Maps ↗</a>')
-              : '<span style="color:var(--danger);font-weight:700">📍 aucune position GPS</span>') + '</div>' +
+              : '<span style="color:var(--danger);font-weight:700">' + UI.icon('pin', 13) + ' aucune position GPS</span>') + '</div>' +
             '<div class="tiny">👤 ' + U.esc(r.owner ? (r.owner.full_name + ' — ' + r.owner.email) : '—') + '</div>' +
             (r.reject_reason ? '<div class="tiny" style="color:var(--danger)">Motif : ' + U.esc(r.reject_reason) + '</div>' : '') +
             '</div>' +
@@ -107,7 +107,7 @@
           '<div class="row" style="gap:9px;margin-top:13px;flex-wrap:wrap">' +
             (r.status !== 'approved' ? '<button class="btn btn-ok btn-sm" data-ok="' + U.esc(r.id) + '">✅ Valider</button>' : '') +
             (r.status !== 'rejected' ? '<button class="btn btn-danger btn-sm" data-no="' + U.esc(r.id) + '">⛔ Refuser</button>' : '') +
-            '<button class="btn btn-ghost btn-sm" data-pos="' + U.esc(r.id) + '">📍 Position</button>' +
+            '<button class="btn btn-ghost btn-sm" data-pos="' + U.esc(r.id) + '">' + UI.pin(15) + ' Position</button>' +
             '<a class="btn btn-ghost btn-sm" href="#/resto/' + U.esc(r.id) + '">Voir la fiche</a>' +
           '</div>' +
         '</div>').join('') + '</div>';
@@ -180,7 +180,7 @@
               '</div>' +
               '<div class="tiny" style="margin-top:5px">📧 ' + U.esc(p.email || '') + ' • 📞 ' + U.esc(p.phone || '—') + '</div>' +
               '<div class="tiny">' + U.esc(U.VEHICLES[d.vehicle] || d.vehicle) +
-                (d.plate ? ' • ' + U.esc(d.plate) : '') + ' • 📍 ' + U.esc(d.zone ? d.zone.name : '—') + '</div>' +
+                (d.plate ? ' • ' + U.esc(d.plate) : '') + ' • ' + UI.pin(13) + ' ' + U.esc(d.zone ? d.zone.name : '—') + '</div>' +
               '<div class="tiny">📦 ' + (d.total_deliveries || 0) + ' livraisons • 💰 ' + U.money(d.total_earnings || 0) + '</div>' +
             '</div>' +
             (d.id_card_url ? '<a class="btn btn-ghost btn-sm" href="' + U.escUrl(d.id_card_url) + '" target="_blank" rel="noopener">Pièce ID</a>' : '') +
@@ -370,7 +370,7 @@
             '<div class="h3">🗺️ Quartiers de livraison</div>' +
             '<button class="btn btn-soft btn-sm" id="addZone">+ Ajouter</button></div>' +
           '<div class="chips" style="flex-wrap:wrap;overflow:visible">' +
-            Store.zones.map(z => '<span class="chip" data-zone="' + U.esc(z.id) + '">📍 ' +
+            Store.zones.map(z => '<span class="chip" data-zone="' + U.esc(z.id) + '">' + UI.pin(14) + ' ' +
               U.esc(z.name) + ' <b style="opacity:.4">✕</b></span>').join('') +
           '</div></div>' +
 

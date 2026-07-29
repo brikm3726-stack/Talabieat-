@@ -43,7 +43,7 @@
 
           '<div class="mp-map">' +
             '<div id="mpmap"></div>' +
-            '<div class="mp-pin">📍</div>' +
+            '<div class="mp-pin">' + UI.icon('pin', 38) + '</div>' +
             '<button type="button" class="mp-loc" id="mploc" title="Ma position">🎯</button>' +
           '</div>' +
 
@@ -76,8 +76,8 @@
             addrBox.innerHTML = '<span class="spinner dark"></span> Recherche de l’adresse…';
             label = await reverse(lat, lng);
             addrBox.innerHTML = label
-              ? '<b>📍 ' + U.esc(label) + '</b>'
-              : '<b>📍 Position sélectionnée</b>' +
+              ? '<b>' + UI.pin(16) + ' ' + U.esc(label) + '</b>'
+              : '<b>' + UI.pin(16) + ' Position sélectionnée</b>' +
                 '<div class="tiny">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div>';
           }, 550);
 
@@ -130,7 +130,7 @@
               return;
             }
             resBox.innerHTML = list.map((r, i) =>
-              '<div class="mp-item" data-r="' + i + '">📍 ' + U.esc(r.display_name) + '</div>').join('');
+              '<div class="mp-item" data-r="' + i + '">' + UI.pin() + ' ' + U.esc(r.display_name) + '</div>').join('');
             resBox.querySelectorAll('[data-r]').forEach(item => item.onclick = () => {
               const r = list[+item.dataset.r];
               map.setView([+r.lat, +r.lon], 17);
@@ -296,7 +296,7 @@
       title: o.title || 'Choisir la position',
       body: '<div class="banner banner-warn">🗺️ La carte n’a pas pu se charger (connexion internet). ' +
             'Vous pouvez quand même enregistrer votre position GPS.</div>',
-      footer: '<button class="btn btn-primary btn-block" id="fbgeo">📍 Utiliser ma position actuelle</button>',
+      footer: '<button class="btn btn-primary btn-block" id="fbgeo">' + UI.icon('pin', 17) + ' Utiliser ma position actuelle</button>',
       onMount(el, api) {
         el.querySelector('#fbgeo').onclick = function () {
           if (!navigator.geolocation) return UI.err('GPS indisponible');

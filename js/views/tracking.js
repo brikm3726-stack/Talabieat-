@@ -134,7 +134,7 @@
           '<div class="card card-p" style="margin-top:14px">' +
             '<div class="h3" style="margin-bottom:8px">Restaurant</div>' +
             '<b>' + U.esc(o.restaurant.name) + '</b>' +
-            '<div class="tiny" style="margin-top:4px">📍 ' + U.esc(o.restaurant.address || '') + '</div>' +
+            '<div class="tiny" style="margin-top:4px">' + UI.pin(13) + ' ' + U.esc(o.restaurant.address || '') + '</div>' +
             (o.restaurant.phone ? '<div class="tiny" style="margin-top:4px">📞 <a href="tel:' + U.esc(o.restaurant.phone) +
               '" style="color:var(--brand);font-weight:650">' + U.esc(o.restaurant.phone) + '</a></div>' : '') +
           '</div>' : '') +
@@ -152,7 +152,7 @@
           '<div class="h3" style="margin-bottom:8px">Livraison</div>' +
           (hasPos ? '<div class="map-preview" id="omap" style="margin-bottom:10px"></div>' : '') +
           '<div class="tiny stack" style="gap:5px">' +
-            '<div>📍 ' + U.esc(o.address_street) + (o.address_details ? ' — ' + U.esc(o.address_details) : '') + '</div>' +
+            '<div>' + UI.pin() + ' ' + U.esc(o.address_street) + (o.address_details ? ' — ' + U.esc(o.address_details) : '') + '</div>' +
             '<div>🗺️ ' + U.esc(o.zone ? o.zone.name : '') + '</div>' +
             '<div>📞 ' + U.esc(o.client_phone) + '</div>' +
             (o.note ? '<div>📝 ' + U.esc(o.note) + '</div>' : '') +
