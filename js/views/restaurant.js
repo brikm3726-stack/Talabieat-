@@ -706,13 +706,15 @@
             '<input class="input" name="closes_at" type="time" value="' + U.esc(U.hhmm(r.closes_at) || '23:00') + '"></div>' +
         '</div>' +
 
-        '<div class="row" style="gap:10px">' +
-          '<div class="field grow"><label>Frais de livraison (DA)</label>' +
-            '<input class="input" name="delivery_fee" type="number" min="0" step="50" value="' +
-            (r.delivery_fee != null ? r.delivery_fee : TALABI_CONFIG.DEFAULT_DELIVERY_FEE) + '"></div>' +
-          '<div class="field grow"><label>Minimum commande</label>' +
-            '<input class="input" name="min_order" type="number" min="0" step="50" value="' + (r.min_order || 0) + '"></div>' +
-        '</div>' +
+        /* Les frais de livraison ne sont plus fixés par le restaurant : ils
+           dépendent de la distance jusqu'au client et sont réglés par la
+           plateforme. Laisser un champ ici laisserait croire le contraire. */
+        '<div class="field"><label>Minimum commande</label>' +
+          '<input class="input" name="min_order" type="number" min="0" step="50" value="' + (r.min_order || 0) + '">' +
+          '<div class="hint">Les frais de livraison sont fixés par la plateforme selon la distance ' +
+            'jusqu’au client : ' + U.money(U.deliveryFor(0, Store.settings).fee) + ' à proximité, ' +
+            U.money(U.deliveryFor(1e6, Store.settings).fee) + ' au-delà de ' +
+            U.esc(String((Store.settings && Store.settings.near_km) || 10)) + ' km.</div></div>' +
 
         '<div class="field"><label>Temps de préparation (min)</label>' +
           '<input class="input" name="prep_time_min" type="number" min="5" max="120" step="5" value="' + (r.prep_time_min || 25) + '"></div>' +
@@ -780,7 +782,7 @@
 
       d.lat = pos.lat; d.lng = pos.lng;
       d.categories = chosen;
-      ['delivery_fee', 'min_order', 'prep_time_min'].forEach(k => d[k] = +d[k] || 0);
+      ['min_order', 'prep_time_min'].forEach(k => d[k] = +d[k] || 0);
 
       UI.busy(btn, true, 'Enregistrement…');
       try {

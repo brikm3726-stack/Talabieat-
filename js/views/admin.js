@@ -464,9 +464,29 @@
           '<div class="field"><label>Part du livreur sur les frais de livraison (%)</label>' +
             '<input class="input" name="driver_share" type="number" min="0" max="100" step="1" value="' +
             (((s.driver_share != null ? s.driver_share : 0.8) * 100).toFixed(0)) + '"></div>' +
-          '<div class="field"><label>Frais de livraison par défaut (DA)</label>' +
-            '<input class="input" name="default_delivery_fee" type="number" min="0" step="50" value="' +
-            (s.default_delivery_fee != null ? s.default_delivery_fee : 200) + '"></div>' +
+          '<div class="divider"></div>' +
+
+          /* --- barème de livraison --- */
+          '<div class="h3">' + UI.icon('scooter', 18) + ' Frais de livraison</div>' +
+          '<div class="hint" style="margin-bottom:8px">Le tarif dépend de la distance entre le ' +
+            'restaurant et le client, mesurée sur leurs positions GPS. Un livreur qui traverse la ' +
+            'ville n’est pas payé comme celui qui livre l’immeuble d’en face.</div>' +
+          '<div class="grid grid-2" style="gap:10px">' +
+            '<div class="field"><label>Courte distance (DA)</label>' +
+              '<input class="input" name="fee_near_da" type="number" min="0" step="50" value="' +
+              (s.fee_near_da != null ? s.fee_near_da : 250) + '"></div>' +
+            '<div class="field"><label>Jusqu’à (km)</label>' +
+              '<input class="input" name="near_km" type="number" min="1" max="100" step="0.5" value="' +
+              (s.near_km != null ? s.near_km : 10) + '"></div>' +
+            '<div class="field"><label>Longue distance (DA)</label>' +
+              '<input class="input" name="fee_far_da" type="number" min="0" step="50" value="' +
+              (s.fee_far_da != null ? s.fee_far_da : 400) + '"></div>' +
+            '<div class="field"><label>Livraison max (km)</label>' +
+              '<input class="input" name="max_km" type="number" min="1" max="100" step="0.5" value="' +
+              (s.max_km != null ? s.max_km : 15) + '"></div>' +
+          '</div>' +
+          '<div class="hint">Au-delà de la distance maximale, la commande est refusée — au moment ' +
+            'de la valider, pas après. Le client le voit avant de payer.</div>' +
           '<div class="divider"></div>' +
           '<div class="h3">' + UI.icon('clock', 18) + ' Délais de réponse</div>' +
           '<div class="field"><label>Réponse du restaurant (minutes)</label>' +
@@ -520,7 +540,10 @@
         const r = await API.safe(() => API.saveSettings({
           commission_rate: (+d.commission_rate || 0) / 100,
           driver_share: (+d.driver_share || 0) / 100,
-          default_delivery_fee: +d.default_delivery_fee || 0,
+          fee_near_da: +d.fee_near_da || 0,
+          fee_far_da: +d.fee_far_da || 0,
+          near_km: +d.near_km || 10,
+          max_km: +d.max_km || 15,
           // saisi en minutes, stocké en secondes comme les deux autres délais
           resto_timeout_s: Math.max(60, (+d.resto_timeout_min || 5) * 60),
           driver_timeout_s: Math.max(10, +d.driver_timeout_s || 30),

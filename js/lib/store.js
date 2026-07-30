@@ -91,9 +91,13 @@
       }
       Store.cart.restaurant_id = restaurant.id;
       Store.cart.restaurant_name = restaurant.name;
-      Store.cart.delivery_fee = restaurant.delivery_fee;
       Store.cart.min_order = restaurant.min_order || 0;
       Store.cart.zone_id = restaurant.zone_id;
+      /* Position du restaurant : les frais de livraison dépendent maintenant
+         de la distance jusqu'au client, il faut donc garder le point de
+         départ avec le panier. */
+      Store.cart.lat = restaurant.lat != null ? +restaurant.lat : null;
+      Store.cart.lng = restaurant.lng != null ? +restaurant.lng : null;
 
       const opts = (options || []).slice().sort((a, b) => a.name.localeCompare(b.name));
       /* Le format fait partie de l'identité de la ligne : une pizza Small et
@@ -127,7 +131,29 @@
 
     get cartCount() { return Store.cart.items.reduce((s, l) => s + l.quantity, 0); },
     get cartSubtotal() { return Store.cart.items.reduce((s, l) => s + Store.lineTotal(l), 0); },
-    get cartTotals() { return U.computeTotals(Store.cartSubtotal, Store.cart.delivery_fee, Store.settings); },
+
+    /**
+     * Livraison pour une adresse donnée : distance, tarif, et refus au-delà
+     * de la zone couverte. Sans adresse (page panier, avant le choix), on
+     * annonce le tarif de base — le montant définitif apparaît à l'étape
+     * suivante, quand on sait où livrer.
+     */
+    deliveryFor(address) {
+      const c = Store.cart;
+      let km = null;
+      if (address && address.lat != null && address.lng != null && c.lat != null && c.lng != null) {
+        // ×1,3 : les rues ne sont pas des lignes droites
+        km = +(U.haversine(c.lat, c.lng, +address.lat, +address.lng) * 1.3).toFixed(1);
+      }
+      return U.deliveryFor(km, Store.settings);
+    },
+
+    /** Montants du panier pour une adresse (ou sans adresse choisie) */
+    totalsFor(address) {
+      return U.computeTotals(Store.cartSubtotal, Store.deliveryFor(address).fee, Store.settings);
+    },
+
+    get cartTotals() { return Store.totalsFor(null); },
 
     /* --------------------------------------------------------- démarrage */
     async boot() {

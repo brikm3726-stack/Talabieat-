@@ -162,7 +162,9 @@
               '<div class="resto-meta">' +
                 '<span>⭐ <b>' + (+r.rating).toFixed(1) + '</b> (' + (r.rating_count || 0) + ')</span>' +
                 '<span class="dot-sep">🕒 ' + r.prep_time_min + ' min</span>' +
-                '<span class="dot-sep">🛵 ' + U.money(r.delivery_fee) + '</span>' +
+                // le tarif dépend de la distance : on annonce le plancher, le montant
+            // exact apparaît une fois l'adresse choisie
+            '<span class="dot-sep">🛵 dès ' + U.money(U.deliveryFor(0, Store.settings).fee) + '</span>' +
               '</div>' +
             '</div>' +
             '<span class="tag ' + (r.open_now ? 'tag-ok' : 'tag-muted') + '">' + (r.open_now ? 'Ouvert' : 'Fermé') + '</span>' +

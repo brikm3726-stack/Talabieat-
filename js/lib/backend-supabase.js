@@ -410,7 +410,21 @@
 
       if (subtotal < (rest.min_order || 0)) throw new Error('Minimum de commande : ' + U.money(rest.min_order));
 
-      const totals = U.computeTotals(subtotal, rest.delivery_fee, await SB.settings());
+      /* Frais selon la distance restaurant → client. La base recalculera ces
+         montants à l'insertion (12_frais_distance.sql) : ce qui est envoyé ici
+         ne sert qu'à ne pas afficher un total différent de celui enregistré. */
+      const reglages = await SB.settings();
+      let km = null;
+      if (rest.lat != null && rest.lng != null &&
+          payload.address_lat != null && payload.address_lng != null) {
+        km = +(U.haversine(+rest.lat, +rest.lng, +payload.address_lat, +payload.address_lng) * 1.3).toFixed(1);
+      }
+      const liv = U.deliveryFor(km, reglages);
+      if (liv.horsZone)
+        throw new Error('Cette adresse est à environ ' + liv.km + ' km du restaurant. ' +
+                        'Nous livrons jusqu’à ' + ((reglages && reglages.max_km) || 15) + ' km.');
+
+      const totals = U.computeTotals(subtotal, liv.fee, reglages);
       const order = unwrap(await sb.from('orders').insert(Object.assign({
         client_id: currentUser.id, restaurant_id: rest.id,
         zone_id: payload.zone_id || rest.zone_id, status: 'pending',
@@ -669,7 +683,8 @@
       cache.settings = null;
       const body = { updated_at: new Date().toISOString() };
       ['commission_rate', 'driver_share', 'default_delivery_fee',
-       'resto_timeout_s', 'driver_timeout_s', 'redispatch_after_s']
+       'resto_timeout_s', 'driver_timeout_s', 'redispatch_after_s',
+       'fee_near_da', 'fee_far_da', 'near_km', 'max_km']
         .forEach(k => { if (patch[k] !== undefined) body[k] = +patch[k]; });
       return unwrap(await sb.from('platform_settings').update(body).eq('id', 1).select().single());
     },

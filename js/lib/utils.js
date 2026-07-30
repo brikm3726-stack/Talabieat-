@@ -243,6 +243,34 @@
        une icône au trait précédait déjà le libellé. */
     VEHICLES: { moto: 'Moto', voiture: 'Voiture', velo: 'Vélo', autre: 'Autre' },
 
+    /* ------------------------------------------------- frais de livraison */
+
+    /**
+     * Barème selon la distance, identique à celui de la base
+     * (supabase/12_frais_distance.sql, qui fait foi).
+     *
+     *   jusqu'à near_km ...... fee_near_da
+     *   de near_km à max_km .. fee_far_da
+     *   au-delà .............. hors zone, la commande est refusée
+     *
+     * Le site l'applique pour AFFICHER le bon prix avant de commander ; le
+     * serveur le réapplique à l'enregistrement. Les deux doivent dire la même
+     * chose, sinon le client verrait un montant et paierait l'autre.
+     */
+    deliveryFor(km, settings) {
+      const s = settings || {};
+      const proche = s.fee_near_da != null ? +s.fee_near_da : 250;
+      const loin   = s.fee_far_da  != null ? +s.fee_far_da  : 400;
+      const kmNear = s.near_km     != null ? +s.near_km     : 10;
+      const kmMax  = s.max_km      != null ? +s.max_km      : 15;
+
+      // distance inconnue : on annonce le tarif de base plutôt que le plus cher
+      if (km == null || !isFinite(km)) return { fee: proche, km: null, horsZone: false, loin: false };
+      if (km > kmMax) return { fee: loin, km: km, horsZone: true, loin: true };
+      const estLoin = km > kmNear;
+      return { fee: estLoin ? loin : proche, km: km, horsZone: false, loin: estLoin };
+    },
+
     /** Calcule les montants d'une commande */
     computeTotals(subtotal, deliveryFee, settings) {
       const s = settings || {};

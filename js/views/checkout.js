@@ -10,7 +10,6 @@
 
     const addresses = await API.safe(() => API.addresses(), []);
     let selected = addresses.find(a => a.is_default) || addresses[0] || null;
-    const t = Store.cartTotals;
 
     function addrRow(a) {
       return '<label class="role-card ' + (selected && selected.id === a.id ? 'on' : '') + '" data-addr="' + U.esc(a.id) + '">' +
@@ -24,6 +23,12 @@
     }
 
     function paint() {
+      /* Les frais dépendent de l'adresse choisie : tout est recalculé à chaque
+         changement d'adresse, sinon le client verrait le tarif de la
+         précédente. */
+      const liv = Store.deliveryFor(selected);
+      const t = Store.totalsFor(selected);
+
       view.innerHTML = '<div class="wrap-sm page">' +
         Cmp.pageHead('Finaliser la commande', Store.cart.restaurant_name || '') +
 
@@ -53,6 +58,22 @@
             '<div class="grow">' + UI.pin(14) + ' Cette adresse n’a pas de position GPS — le livreur risque de vous chercher.</div>' +
             '<button class="btn btn-primary btn-sm" id="fixGeo">Activer</button></div>'
           : '') +
+
+        /* ---- distance et tarif : annoncés avant de payer, jamais après ---- */
+        (liv.horsZone
+          ? '<div class="banner banner-warn" style="margin-top:12px">🛵 <div class="grow">' +
+              '<b>Trop loin pour être livré</b><br>Cette adresse est à environ <b>' + liv.km +
+              ' km</b> du restaurant, au-delà des ' +
+              U.esc(String((Store.settings && Store.settings.max_km) || 15)) +
+              ' km que nous couvrons. Choisissez une autre adresse ou un restaurant plus proche.' +
+            '</div></div>'
+          : liv.km != null
+            ? '<div class="banner banner-info" style="margin-top:12px">🛵 <div class="grow">' +
+                'Environ <b>' + liv.km + ' km</b> entre le restaurant et vous — ' +
+                'livraison à <b>' + U.money(liv.fee) + '</b>' +
+                (liv.loin ? ' <span class="tiny">(tarif longue distance)</span>' : '') +
+              '</div></div>'
+            : '') +
 
         /* ---- contact + note ---- */
         '<div class="card card-p" style="margin-top:14px">' +
@@ -91,8 +112,10 @@
             '<div style="color:var(--brand);font-weight:800">✓</div></div>' +
         '</div>' +
 
-        '<button class="btn btn-primary btn-block btn-lg" style="margin-top:18px" id="confirm">' +
-          '✅ Confirmer la commande • ' + U.money(t.total) + '</button>' +
+        '<button class="btn btn-primary btn-block btn-lg" style="margin-top:18px" id="confirm"' +
+          (liv.horsZone ? ' disabled' : '') + '>' +
+          (liv.horsZone ? '🚫 Adresse hors zone de livraison'
+                        : '✅ Confirmer la commande • ' + U.money(t.total)) + '</button>' +
         '<div class="tiny center" style="margin-top:10px">Le restaurant confirmera votre commande dans quelques instants.</div>' +
       '</div>';
 
@@ -141,6 +164,12 @@
 
       if (!selected) return UI.err('Adresse manquante', 'Ajoutez une adresse de livraison.');
       if (!U.isPhoneDZ(phone)) return UI.err('Numéro invalide', 'Format : 05 / 06 / 07 xx xx xx xx');
+
+      const liv = Store.deliveryFor(selected);
+      if (liv.horsZone)
+        return UI.err('Adresse trop éloignée',
+          'Environ ' + liv.km + ' km depuis le restaurant. Nous livrons jusqu’à ' +
+          ((Store.settings && Store.settings.max_km) || 15) + ' km.');
 
       UI.busy(btn, true, 'Envoi de la commande…');
       try {

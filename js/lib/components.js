@@ -27,7 +27,9 @@
           '<div class="resto-meta">' +
             '<span>⭐ <b>' + (+r.rating).toFixed(1) + '</b> <span style="opacity:.7">(' + (r.rating_count || 0) + ')</span></span>' +
             '<span class="dot-sep">🕒 ' + (r.prep_time_min || 25) + ' min</span>' +
-            '<span class="dot-sep">🛵 ' + U.money(r.delivery_fee) + '</span>' +
+            // le tarif dépend de la distance : on annonce le plancher, le montant
+            // exact apparaît une fois l'adresse choisie
+            '<span class="dot-sep">🛵 dès ' + U.money(U.deliveryFor(0, Store.settings).fee) + '</span>' +
           '</div>' +
           '<div class="tiny" style="margin-top:6px">' + UI.pin() + ' ' + U.esc(r.zone ? r.zone.name : '') + '</div>' +
           (r.matched_dish
