@@ -491,6 +491,20 @@
      NOUVEAU MOT DE PASSE (retour du lien email Supabase)
      ====================================================================== */
   Router.add('/reset', async function (params, query, view) {
+    /* Sans session ouverte par le lien reçu par email, ce formulaire ne peut
+       rien enregistrer. Le dire tout de suite vaut mieux que de laisser
+       remplir deux champs pour finir sur « Auth session missing ». */
+    if (!Store.isLogged) {
+      view.innerHTML = shell('Lien expiré', 'Ce lien de réinitialisation n’est plus valable',
+        '<div class="card card-p stack">' +
+          '<div class="banner banner-warn">⏳ Un lien de réinitialisation ne sert qu’une fois, ' +
+            'et pas plus d’une heure. Demandez-en un nouveau.</div>' +
+          '<a class="btn btn-primary btn-block btn-lg" href="#/forgot">Recevoir un nouveau lien</a>' +
+          '<a class="btn btn-ghost btn-block" href="#/login">Retour à la connexion</a>' +
+        '</div>');
+      return;
+    }
+
     view.innerHTML = shell('Nouveau mot de passe', 'Choisissez un mot de passe sûr',
       '<div class="card card-p stack">' +
         '<form id="f" class="stack" novalidate>' +
@@ -510,8 +524,11 @@
       UI.busy(btn, true);
       try {
         await API.updatePassword(d.password);
-        UI.ok('Mot de passe modifié');
-        Router.go('/login', true);
+        /* Le lien de récupération a déjà ouvert la session : renvoyer vers la
+           connexion ferait retaper un mot de passe qui vient d'être choisi. */
+        await Store.refreshProfile();
+        UI.ok('Mot de passe modifié', 'Vous êtes connecté.');
+        Router.go(afterLogin(), true);
       } catch (err) { UI.busy(btn, false); UI.err(err.message); }
     };
   });

@@ -52,8 +52,12 @@
       const { data } = await sb.auth.getSession();
       currentUser = data && data.session ? data.session.user : null;
 
-      sb.auth.onAuthStateChange((_e, s) => {
+      sb.auth.onAuthStateChange((e, s) => {
         currentUser = s ? s.user : null;
+        /* Cet évènement arrive pendant l'initialisation, avant que
+           l'application n'ait eu le temps d'écouter : on le retient dans un
+           drapeau que le démarrage consultera. */
+        if (e === 'PASSWORD_RECOVERY') SB.recoveryPending = true;
         emit('session');
         subscribeRealtime();
       });
@@ -151,8 +155,14 @@
     },
 
     async resetPassword(email) {
+      /* Surtout pas de '#/reset' ici. Supabase ajoute son code d'échange à la
+         fin de l'adresse : avec un '#' déjà présent, le code se retrouve dans
+         le fragment, là où la librairie ne le cherche pas. Aucune session ne
+         s'ouvrait, et le formulaire de nouveau mot de passe répondait
+         « Auth session missing ». On revient donc sur l'adresse nue, et c'est
+         l'évènement PASSWORD_RECOVERY qui conduit au bon écran. */
       unwrap(await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + window.location.pathname + '#/reset'
+        redirectTo: window.location.origin + window.location.pathname
       }));
       return true;
     },

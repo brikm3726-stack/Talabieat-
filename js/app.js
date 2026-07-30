@@ -87,8 +87,10 @@
       await API.init();
 
       /* le lien de récupération mène au formulaire de nouveau mot de passe —
-         après l'init, sinon on effacerait le jeton avant sa lecture */
-      if (retour.recovery) location.hash = '#/reset';
+         après l'init, sinon on effacerait le jeton avant sa lecture.
+         Deux sources : l'ancien format, qui écrivait type=recovery dans
+         l'adresse, et l'évènement PASSWORD_RECOVERY du format actuel. */
+      if (retour.recovery || API.recoveryPending) location.hash = '#/reset';
 
       /* ---- 3. Retour d'une connexion Google : appliquer le rôle choisi ---- */
       if (API.applyPendingRole) { try { await API.applyPendingRole(); } catch (e) { console.warn(e); } }
