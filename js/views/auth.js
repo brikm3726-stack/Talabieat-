@@ -144,6 +144,10 @@
         Router.go(afterLogin(), true);
       } catch (err) {
         UI.busy(btn, false);
+        // compte créé mais jamais confirmé : on l'amène au bon écran au lieu
+        // de lui répéter une erreur sans issue
+        if (/pas encore confirmé/i.test(err.message))
+          return ecranCode(view, { email: d.email }, 'client');
         UI.err(err.message);
       }
     };
@@ -238,13 +242,7 @@
         const res = await API.signUp(d);
         if (res && res.needsConfirmation) {
           UI.busy(btn, false);
-          return view.querySelector('.card').innerHTML =
-            '<div class="center" style="padding:20px 0">' +
-              '<div style="font-size:46px">📬</div>' +
-              '<div class="h2" style="margin-top:10px">Vérifiez votre email</div>' +
-              '<p class="sub" style="margin-top:8px">Nous avons envoyé un lien de confirmation à <b>' + U.esc(d.email) + '</b>. ' +
-              'Cliquez dessus pour activer votre compte, puis connectez-vous.</p>' +
-              '<a class="btn btn-primary" style="margin-top:16px" href="#/login">Aller à la connexion</a></div>';
+          return ecranCode(view, d, role);
         }
         await Store.refreshProfile();
         if (Store.zoneId !== d.zone_id) Store.setZone(d.zone_id);
@@ -265,6 +263,75 @@
 
     return brancherInstall(view);
   });
+
+  /* ----------------------------------------------------------------------
+     CONFIRMATION DE L'EMAIL PAR CODE À 6 CHIFFRES
+
+     Un lien de confirmation oblige à quitter l'application, à ouvrir sa boîte
+     mail, puis à revenir — et sur téléphone le lien s'ouvre souvent dans un
+     autre navigateur, où la session ne suit pas. Le code se recopie sans
+     quitter la page : l'inscription se termine là où elle a commencé.
+     ---------------------------------------------------------------------- */
+  function ecranCode(view, d, role) {
+    view.innerHTML = shell('Confirmez votre email',
+      'Un code à 6 chiffres vient de partir',
+      '<div class="card card-p stack">' +
+        '<div class="center" style="padding:6px 0 2px">' +
+          '<div style="font-size:44px">📬</div>' +
+          '<p class="sub" style="margin-top:10px">Code envoyé à <b>' + U.esc(d.email) + '</b>.<br>' +
+            'Il est valable 1 heure. Pensez à regarder dans les spams.</p>' +
+        '</div>' +
+
+        '<form id="cf" class="stack" novalidate>' +
+          '<div class="field"><label>Code de confirmation</label>' +
+            '<input class="input input-code" name="code" inputmode="numeric" autocomplete="one-time-code" ' +
+              'maxlength="6" placeholder="000000" required></div>' +
+          '<button class="btn btn-primary btn-block btn-lg" type="submit">Confirmer mon compte</button>' +
+        '</form>' +
+
+        '<button class="btn btn-ghost btn-block" id="again">Je n’ai rien reçu — renvoyer un code</button>' +
+        '<div class="center tiny">Mauvaise adresse ? <a href="#/signup" style="color:var(--brand);font-weight:700">Recommencer</a></div>' +
+      '</div>');
+
+    const champ = view.querySelector('[name=code]');
+    champ.focus();
+    // le collage d'un code copié depuis l'email ne doit rien casser
+    champ.oninput = function () {
+      this.value = this.value.replace(/\D/g, '').slice(0, 6);
+      if (this.value.length === 6) view.querySelector('#cf').requestSubmit();
+    };
+
+    view.querySelector('#cf').onsubmit = async function (e) {
+      e.preventDefault();
+      const btn = this.querySelector('[type=submit]');
+      const code = champ.value;
+      if (code.length !== 6) return UI.err('Le code contient 6 chiffres');
+
+      UI.busy(btn, true, 'Vérification…');
+      try {
+        await API.verifySignupCode(d.email, code, d);
+        await Store.refreshProfile();
+        if (d.zone_id && Store.zoneId !== d.zone_id) Store.setZone(d.zone_id);
+        if (role === 'restaurant' || role === 'driver') return pendingScreen(view, role);
+        UI.ok('Compte confirmé !', 'Bienvenue sur ' + TALABI_CONFIG.APP_NAME);
+        Router.go('/', true);
+      } catch (err) {
+        UI.busy(btn, false);
+        champ.select();
+        UI.err(err.message);
+      }
+    };
+
+    view.querySelector('#again').onclick = async function () {
+      UI.busy(this, true, 'Envoi…');
+      const btn = this;
+      try {
+        await API.resendSignupCode(d.email);
+        UI.ok('Nouveau code envoyé', 'Vérifiez votre boîte mail, et les spams.');
+      } catch (err) { UI.err(err.message); }
+      UI.busy(btn, false);
+    };
+  }
 
   /* ----------------------------------------------------------------------
      Écran de fin d'inscription pour un restaurant ou un livreur.

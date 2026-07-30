@@ -23,7 +23,14 @@
     if (/Invalid login credentials/i.test(m)) return 'Email ou mot de passe incorrect.';
     if (/User already registered/i.test(m)) return 'Un compte existe déjà avec cet email.';
     if (/Password should be at least/i.test(m)) return 'Le mot de passe doit contenir au moins 6 caractères.';
-    if (/Email not confirmed/i.test(m)) return "Confirme d'abord ton email (lien envoyé dans ta boîte de réception).";
+    if (/Email not confirmed/i.test(m)) return "Votre email n'est pas encore confirmé. Saisissez le code reçu par email.";
+    if (/Token has expired or is invalid|invalid.*(otp|token)/i.test(m))
+      return 'Code incorrect ou expiré. Demandez-en un nouveau.';
+    // Supabase impose un délai entre deux envois pour éviter le harcèlement
+    const attente = m.match(/only request this after (\d+) seconds/i);
+    if (attente) return 'Patientez ' + attente[1] + ' secondes avant de redemander un code.';
+    if (/rate limit|too many requests/i.test(m))
+      return "Trop d'emails envoyés en peu de temps. Réessayez plus tard.";
     if (/row-level security|violates row-level/i.test(m)) return "Action non autorisée pour votre compte.";
     if (/duplicate key/i.test(m)) return 'Cet élément existe déjà.';
     if (/Failed to fetch|NetworkError/i.test(m)) return 'Connexion au serveur impossible. Vérifie ta connexion internet.';
@@ -83,6 +90,38 @@
         await patchProfileAfterSignup(d);
       }
       return { user: data.user, needsConfirmation: !data.session };
+    },
+
+    /**
+     * Confirmation par code à 6 chiffres.
+     *
+     * Tant que le code n'est pas validé, le compte existe mais n'a pas de
+     * session : le téléphone et le quartier saisis à l'inscription n'ont donc
+     * pas pu être écrits dans le profil (la RLS l'interdit, à juste titre).
+     * On les repasse ici, une fois la session ouverte.
+     *
+     * Deux types de jeton existent selon le modèle d'email utilisé
+     * (« Confirm signup » ou « Magic link »). On tente le premier, puis le
+     * second : un code juste ne doit pas être refusé pour une question de
+     * réglage dans le tableau de bord Supabase.
+     */
+    async verifySignupCode(email, code, d) {
+      const token = String(code || '').replace(/\D/g, '');
+      if (token.length < 6) throw new Error('Le code contient 6 chiffres.');
+
+      let res = await sb.auth.verifyOtp({ email: email, token: token, type: 'signup' });
+      if (res.error) res = await sb.auth.verifyOtp({ email: email, token: token, type: 'email' });
+
+      const data = unwrap(res);
+      currentUser = data.user;
+      if (d) await patchProfileAfterSignup(d);
+      return { user: data.user };
+    },
+
+    /** Renvoie un code neuf (l'envoi précédent reste valable jusqu'à expiration). */
+    async resendSignupCode(email) {
+      unwrap(await sb.auth.resend({ type: 'signup', email: email }));
+      return true;
     },
 
     async signIn(email, password) {

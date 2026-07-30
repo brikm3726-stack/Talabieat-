@@ -1176,6 +1176,13 @@ tr:hover td{background:#FCFDFF}
 .spinner.dark{border-color:rgba(0,0,0,.15);border-top-color:var(--brand)}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* champ de code de confirmation : des chiffres larges et espacés, lisibles
+   d'un coup d'œil pendant qu'on recopie depuis sa boîte mail */
+.input-code{
+  text-align:center;font-size:30px;font-weight:800;letter-spacing:.42em;
+  text-indent:.42em;padding-top:14px;padding-bottom:14px;font-variant-numeric:tabular-nums;
+}
+
 /* ------------------------------------------------- écran d'ouverture (5 s)
    Le logo naît d'un fondu, respire pendant que l'application se charge, puis
    l'écran entier s'efface en glissant vers le spectateur. Rien ne clignote :
