@@ -193,14 +193,10 @@
      INSCRIPTION
      ====================================================================== */
   Router.add('/signup', async function (params, query, view) {
-    /* Le rôle n'est un choix que dans l'application client, qui sert aussi de
-       vitrine. Dans Talabi Resto ou Talabi Livreur, la porte d'entrée l'a déjà
-       décidé : demander « êtes-vous livreur ? » à quelqu'un qui vient
-       d'installer Talabi Livreur n'aurait pas de sens. */
-    const choixDuRole = App.est('client');
-    let role = choixDuRole
-      ? (ROLES.some(r => r.v === query.role) ? query.role : 'client')
-      : App.role;
+    /* Plus aucun choix de rôle : c'est la porte d'entrée qui décide. Chaque
+       métier a son application, et lui demander ce qu'il est alors qu'il vient
+       d'ouvrir Talabi Livreur serait une question sans objet. */
+    const role = App.role;
 
     // Déjà connecté : on explique au lieu de renvoyer en silence vers l'accueil
     // (c'est ce qui donnait l'impression que « Ajouter mon restaurant » ne
@@ -208,18 +204,9 @@
     if (Store.isLogged) return alreadyLogged(view, role);
 
     view.innerHTML = shell(
-      choixDuRole ? 'Créer un compte' : 'Créer un compte ' + roleMot(role),
-      choixDuRole ? 'Choisissez votre type de compte' : App.sousTitre,
+      'Créer un compte ' + roleMot(role),
+      App.est('client') ? 'Commandez vos repas préférés en quelques minutes.' : App.sousTitre,
       '<div class="card card-p stack">' +
-
-        (choixDuRole
-          ? '<div class="stack" style="gap:9px" id="roles">' +
-              ROLES.map(r => '<div class="role-card" data-role="' + r.v + '">' +
-                roleIcon(r) +
-                '<div class="grow"><b>' + r.t + '</b><div class="tiny">' + U.esc(r.d) + '</div></div>' +
-                '<div data-check style="color:var(--brand);font-weight:800"></div></div>').join('') +
-            '</div>'
-          : '') +
 
         '<div id="roleNote"></div>' +
 
@@ -257,16 +244,9 @@
         'avant de pouvoir accepter des courses. <b>Comptez 24 h.</b></div>'
     };
 
-    function paint() {
-      view.querySelectorAll('[data-role]').forEach(el => {
-        const on = el.dataset.role === role;
-        el.classList.toggle('on', on);
-        el.querySelector('[data-check]').textContent = on ? '✓' : '';
-      });
-      view.querySelector('#roleNote').innerHTML = notes[role] || '';
-    }
-    view.querySelectorAll('[data-role]').forEach(el => el.onclick = () => { role = el.dataset.role; paint(); });
-    paint();
+    // avertissement propre au métier : un professionnel doit savoir avant de
+    // s'inscrire que son compte passera par une validation
+    view.querySelector('#roleNote').innerHTML = notes[role] || '';
 
     view.querySelector('#gbtn').onclick = async function () {
       UI.busy(this, true, 'Redirection…');
@@ -601,7 +581,9 @@
       await API.signOut();
       Store.clearCart(true);
       await Store.refreshProfile();
-      Router.go('/signup?role=' + wanted, true);
+      // le rôle ne se demande plus dans l'adresse : c'est l'application qui
+      // l'impose, et on est déjà dans la bonne
+      Router.go('/signup', true);
     };
   }
 

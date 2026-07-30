@@ -47,8 +47,8 @@
               '<a class="btn btn-lg" href="' + (Store.cartCount ? '#/cart' : '#/restaurants') + '">🛒 Commander maintenant</a>' +
               '<a class="btn btn-lg" href="#/orders">🛵 Le livreur t’attend</a>'
             : '<a class="btn btn-lg primary" href="#/restaurants">🍽️ Commander maintenant</a>' +
-              '<a class="btn btn-lg" href="#/signup?role=driver">🛵 Devenir livreur</a>' +
-              '<a class="btn btn-lg" href="#/signup?role=restaurant">🏪 Ajouter mon restaurant</a>') +
+              '<a class="btn btn-lg" href="' + App.lien('driver') + '">🛵 Devenir livreur</a>' +
+              '<a class="btn btn-lg" href="' + App.lien('restaurant') + '">🏪 Ajouter mon restaurant</a>') +
         '</div>' +
         '<div class="hero-stats" id="heroStats"></div>' +
       '</div></section>' +
@@ -84,8 +84,8 @@
         /* masqué pour un client connecté : il a déjà son compte */
         (isClient ? '' :
           '<div class="grid grid-auto" style="margin-top:34px">' +
-            promo('🏪', 'Vous avez un restaurant ?', 'Rejoignez Talabi, recevez des commandes dès aujourd’hui et gérez votre menu en toute autonomie.', 'Ajouter mon restaurant', '#/signup?role=restaurant', 'assets/img/roles/restaurant.jpg') +
-            promo('🛵', 'Vous voulez livrer ?', 'Travaillez quand vous voulez dans votre quartier et gagnez sur chaque course.', 'Devenir livreur', '#/signup?role=driver', 'assets/img/roles/driver.jpg') +
+            promo('🏪', 'Vous avez un restaurant ?', 'Rejoignez Talabi, recevez des commandes dès aujourd’hui et gérez votre menu en toute autonomie.', 'Ajouter mon restaurant', App.lien('restaurant'), 'assets/img/roles/restaurant.jpg') +
+            promo('🛵', 'Vous voulez livrer ?', 'Travaillez quand vous voulez dans votre quartier et gagnez sur chaque course.', 'Devenir livreur', App.lien('driver'), 'assets/img/roles/driver.jpg') +
           '</div>') +
       '</div></section>' +
 
@@ -100,8 +100,8 @@
             '<a href="#/restaurants">Restaurants</a>' +
             (isClient
               ? '<a href="#/orders">Mes commandes</a><a href="#/account">Mon compte</a>'
-              : '<a href="#/signup?role=driver">Devenir livreur</a>' +
-                '<a href="#/signup?role=restaurant">Inscrire mon restaurant</a>') +
+              : '<a href="' + App.lien('driver') + '">Devenir livreur</a>' +
+                '<a href="' + App.lien('restaurant') + '">Inscrire mon restaurant</a>') +
             '<a href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')) + '">' +
               '📞 ' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</a>' +
             (TALABI_CONFIG.SUPPORT_EMAIL
