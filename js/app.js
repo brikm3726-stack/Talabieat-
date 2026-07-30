@@ -34,6 +34,32 @@
     });
   }
 
+  /* ====================================================================
+     PREMIÈRE OUVERTURE
+     --------------------------------------------------------------------
+     Le repère vit dans le navigateur, donc « première fois » veut dire
+     première fois sur CET appareil. C'est bien ce qu'on veut : quelqu'un qui
+     installe l'application sur son téléphone doit être accueilli, même s'il
+     connaît déjà le site depuis son ordinateur.
+     ==================================================================== */
+  const CLE_PREMIERE_VISITE = 'talabi.deja_venu';
+
+  function premiereVisite() {
+    try {
+      if (localStorage.getItem(CLE_PREMIERE_VISITE)) return false;
+      localStorage.setItem(CLE_PREMIERE_VISITE, String(Date.now()));
+      return true;
+    } catch (e) {
+      // navigation privée ou stockage refusé : on n'insiste pas
+      return false;
+    }
+  }
+
+  /** Une page précise a-t-elle été demandée dans l'adresse ? */
+  function cheminDemande() {
+    return location.hash.replace(/^#\/?/, '').length > 0;
+  }
+
   /**
    * Lit ce que le serveur d'authentification a mis dans l'adresse, que ce soit
    * dans le hash (#access_token=…, #error=…) ou dans la requête (?code=…).
@@ -138,6 +164,13 @@
       });
 
       /* ---- 6. Navigation ---- */
+
+      /* Première ouverture : on présente l'application avant tout le reste.
+         Uniquement si le visiteur n'est pas connecté et n'a demandé aucune
+         page précise — un lien partagé vers un restaurant doit ouvrir ce
+         restaurant, pas un écran d'accueil. */
+      if (!Store.isLogged && premiereVisite() && !cheminDemande()) location.hash = '#/login';
+
       Router.start();
 
       // Une commande peut déjà attendre au moment où l'on ouvre l'application.

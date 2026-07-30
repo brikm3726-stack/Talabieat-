@@ -125,7 +125,14 @@
 
         '<div class="center tiny">Pas encore de compte ? ' +
           '<a href="#/signup" style="color:var(--brand);font-weight:700">Créer un compte</a></div>' +
-      '</div>');
+      '</div>' +
+
+      /* Regarder la carte ne demande pas de compte : celui-ci ne devient
+         nécessaire qu'au moment de commander. Fermer la porte d'entrée à un
+         visiteur qui voulait juste voir les prix serait absurde. */
+      '<div class="center" style="margin-top:14px">' +
+        '<a class="tiny" style="color:var(--muted);font-weight:650" href="#/">' +
+          'Voir les restaurants sans compte →</a></div>');
 
     view.querySelector('#gbtn').onclick = async function () {
       UI.busy(this, true, 'Redirection…');

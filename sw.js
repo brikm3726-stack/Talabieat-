@@ -17,7 +17,7 @@
 
 /* Changer ce numéro à chaque mise en ligne : c'est lui qui déclenche le
    remplacement de l'ancien cache par le nouveau. */
-const VERSION = 'talabi-v10';
+const VERSION = 'talabi-v11';
 const COQUILLE = VERSION + '-coquille';
 const RESTE    = VERSION + '-reste';
 
