@@ -46,18 +46,7 @@
         throw new Error("La librairie Supabase n'a pas pu être chargée (vérifie ta connexion internet).");
 
       sb = w.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, {
-        auth: {
-          persistSession: true, autoRefreshToken: true, detectSessionInUrl: true,
-          /* Flux implicite plutôt que PKCE.
-             PKCE range une clé secrète au départ et exige de la retrouver au
-             retour de Google. Or sur iPhone, une application ouverte depuis
-             l'écran d'accueil envoie vers Safari et récupère la réponse dans
-             Safari : autre espace de stockage, clé introuvable, session
-             perdue sans le moindre message. Le flux implicite rapporte le
-             jeton directement dans l'adresse : il traverse ce changement de
-             contexte. */
-          flowType: 'implicit'
-        }
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
 
       const { data } = await sb.auth.getSession();
@@ -148,7 +137,15 @@
       try { if (role) sessionStorage.setItem('talabi.pending_role', role); } catch (e) {}
       unwrap(await sb.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin + window.location.pathname }
+        options: {
+          redirectTo: window.location.origin + window.location.pathname,
+          /* Sans prompt=select_account, Google réutilise en silence le compte
+             déjà ouvert dans le navigateur. Se déconnecter de Talabi puis
+             cliquer « Continuer avec Google » ramenait donc toujours le même
+             compte, sans qu'on puisse en choisir un autre : un livreur et un
+             client ne pouvaient pas se relayer sur le même téléphone. */
+          queryParams: { prompt: 'select_account' }
+        }
       }));
       return { redirecting: true };
     },
