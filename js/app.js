@@ -4,6 +4,36 @@
 (function (w) {
   'use strict';
 
+  /* ====================================================================
+     ÉCRAN D'OUVERTURE
+     --------------------------------------------------------------------
+     Cinq secondes, comptées depuis l'ouverture de la page — pas depuis la
+     fin du chargement. Sur une bonne connexion l'application est prête en
+     moins d'une seconde : sans cette retenue, le logo n'aurait que le temps
+     d'apparaître avant de disparaître, et l'ouverture ressemblerait à un
+     clignotement. Sur une connexion lente, le chargement dépasse les cinq
+     secondes et l'écran s'efface dès qu'il est terminé : on ne fait jamais
+     attendre en plus.
+     ==================================================================== */
+  const DUREE_INTRO = 5000;   // ms, animation de sortie comprise
+  const SORTIE      = 700;    // doit couvrir la transition CSS de .sortie
+
+  function finDeLIntro() {
+    const splash = document.getElementById('splash');
+    if (!splash) return Promise.resolve();
+
+    // performance.now() part de l'ouverture de la page : c'est bien le temps
+    // vu par l'utilisateur depuis son clic, pas le temps de calcul.
+    const reste = Math.max(0, DUREE_INTRO - SORTIE - performance.now());
+
+    return new Promise(resolve => {
+      setTimeout(() => {
+        splash.classList.add('sortie');
+        setTimeout(() => { splash.remove(); resolve(); }, SORTIE);
+      }, reste);
+    });
+  }
+
   function fail(message, detail) {
     document.getElementById('splash').innerHTML =
       '<div class="wrap-sm center" style="color:#fff">' +
@@ -88,11 +118,8 @@
 
       horlogeDesDelais();
 
-      /* ---- 7. Fin du splash ---- */
-      const splash = document.getElementById('splash');
-      splash.style.transition = 'opacity .35s ease';
-      splash.style.opacity = '0';
-      setTimeout(() => splash.remove(), 380);
+      /* ---- 7. Fin de l'écran d'ouverture ---- */
+      await finDeLIntro();
 
     } catch (e) {
       console.error(e);

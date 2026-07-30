@@ -1176,13 +1176,47 @@ tr:hover td{background:#FCFDFF}
 .spinner.dark{border-color:rgba(0,0,0,.15);border-top-color:var(--brand)}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.splash{position:fixed;inset:0;background:var(--brand-grad);display:grid;place-items:center;z-index:500;color:#fff}
+/* ------------------------------------------------- écran d'ouverture (5 s)
+   Le logo naît d'un fondu, respire pendant que l'application se charge, puis
+   l'écran entier s'efface en glissant vers le spectateur. Rien ne clignote :
+   chaque étape enchaîne la suivante sans à-coup, même quand le chargement est
+   déjà terminé depuis longtemps — c'est le JS qui retient la sortie. */
+.splash{
+  position:fixed;inset:0;background:var(--brand-grad);display:grid;place-items:center;
+  z-index:500;color:#fff;
+  transition:opacity .65s ease, transform .65s ease;
+}
+.splash.sortie{opacity:0;transform:scale(1.07);pointer-events:none}
 .splash .brand-mark{width:64px;height:64px;border-radius:20px;background:rgba(255,255,255,.2);font-size:32px;margin:0 auto 14px;box-shadow:none}
 .splash-logo{
   width:min(230px,62vw);border-radius:26px;background:#fff;padding:14px;
-  box-shadow:0 22px 50px -14px rgba(0,0,0,.45);animation:logoIn .5s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 22px 50px -14px rgba(0,0,0,.45);
+  animation:logoIn 1.15s cubic-bezier(.22,1,.36,1) both,
+            logoSouffle 3.2s 1.15s ease-in-out infinite;
 }
-@keyframes logoIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.splash-sub{
+  opacity:.9;font-size:13px;margin-top:14px;
+  animation:splashSub .9s .6s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes logoIn{
+  from{opacity:0;transform:scale(.78) translateY(18px)}
+  to  {opacity:1;transform:none}
+}
+/* respiration très légère : le logo est vivant, pas figé sur une image morte */
+@keyframes logoSouffle{
+  0%,100%{transform:scale(1)}
+  50%    {transform:scale(1.035)}
+}
+@keyframes splashSub{
+  from{opacity:0;transform:translateY(10px)}
+  to  {opacity:.9;transform:none}
+}
+/* certains utilisateurs demandent explicitement moins d'animation au système :
+   on garde le fondu, on retire le mouvement */
+@media(prefers-reduced-motion:reduce){
+  .splash-logo{animation:logoIn .6s ease both}
+  .splash.sortie{transform:none}
+}
 
 /* logo dans la barre du haut */
 .brand-logo{height:34px;width:auto;border-radius:9px;display:block}
