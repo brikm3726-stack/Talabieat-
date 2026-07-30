@@ -406,6 +406,11 @@
   const ROLE_ICON = { client: 'user', restaurant: 'store', driver: 'scooter', admin: 'settings' };
 
   function userSheet(u, onSaved) {
+    /* Se rétrograder soi-même ferme la porte de l'intérieur : plus d'espace
+       admin, donc plus moyen de se redonner le rôle. Seul l'éditeur SQL de
+       Supabase pourrait rattraper le coup. */
+    const moi = Store.profile && u.id === Store.profile.id;
+
     UI.sheet({
       title: 'Modifier ' + (u.full_name || u.email),
       body: '<form id="uf" class="stack" novalidate>' +
@@ -413,16 +418,22 @@
           '<input class="input" name="full_name" value="' + U.esc(u.full_name || '') + '"></div>' +
         '<div class="field"><label>Téléphone</label>' +
           '<input class="input" name="phone" value="' + U.esc(u.phone || '') + '"></div>' +
-        '<div class="field"><label>Rôle</label><select class="input" name="role">' +
+        '<div class="field"><label>Rôle</label><select class="input" name="role"' +
+          (moi ? ' disabled' : '') + '>' +
           ['client', 'restaurant', 'driver', 'admin'].map(r =>
             '<option value="' + r + '"' + (u.role === r ? ' selected' : '') + '>' + roleLabel(r) + '</option>').join('') +
-        '</select></div>' +
+        '</select>' +
+        (moi ? '<div class="tiny" style="margin-top:6px">C’est votre propre compte : ' +
+               'vous ne pouvez pas changer votre rôle vous-même.</div>' : '') +
+        '</div>' +
         Cmp.zoneSelect('zone_id', u.zone_id, 'Zone') +
       '</form>',
       footer: '<button class="btn btn-primary btn-block" id="save">Enregistrer</button>',
       onMount(el, api) {
         el.querySelector('#save').onclick = async function () {
           const d = UI.formData(el.querySelector('#uf'));
+          // un champ désactivé n'est pas transmis : on ne touche pas au rôle
+          if (moi) delete d.role;
           UI.busy(this, true);
           try {
             await API.adminUpdateUser(u.id, d);
