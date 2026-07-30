@@ -89,6 +89,14 @@
         return Router.go(Router.homeFor(Store.role), true);
       }
 
+      /* --- garde applicative : posée par les vues (profil incomplet…).
+         Elle renvoie une adresse de redirection, ou rien pour laisser passer. */
+      if (typeof Router.beforeEach === 'function') {
+        let ailleurs = null;
+        try { ailleurs = Router.beforeEach(path, match.route); } catch (e) { console.error(e); }
+        if (ailleurs && ailleurs !== path) return Router.go(ailleurs, true);
+      }
+
       if (typeof cleanup === 'function') { try { cleanup(); } catch (e) {} cleanup = null; }
 
       current = { path: path, params: match.params, query: query, pattern: match.route.pattern };

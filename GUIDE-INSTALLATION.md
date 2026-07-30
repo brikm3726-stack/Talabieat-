@@ -136,31 +136,35 @@ Le bouton « Continuer avec Google » fonctionne maintenant.
 
 ---
 
-## Étape 4 — Configurer les emails et créer l'administrateur
+## Étape 4 — Créer l'administrateur
 
-### 4.1 Confirmation d'email
+### 4.1 L'inscription se fait uniquement par Google
 
-Par défaut, Supabase envoie un email de confirmation à chaque inscription.
+Il n'y a plus de formulaire email + mot de passe. On entre par **Continuer avec
+Google**, et c'est Google qui certifie que l'adresse appartient bien à la
+personne. Aucun email de confirmation n'a donc à partir, et le réglage
+*Confirm email* de Supabase n'a plus d'effet sur les inscriptions.
 
-- **Pour tester rapidement** : *Authentication* → *Providers* → *Email* → décoche
-  **Confirm email** → *Save*. Les comptes sont actifs immédiatement.
-- **En production** : garde-la activée. Les emails gratuits de Supabase sont
-  limités à quelques envois par heure ; pour un vrai lancement, branche un service
-  d'envoi dans *Project Settings → Authentication → SMTP Settings*
-  (Resend, Brevo ou Mailgun ont tous une offre gratuite).
+Juste après la première connexion, l'application demande le **téléphone** et le
+**quartier** — les deux choses que Google ne fournit pas et sans lesquelles on
+ne peut ni livrer ni rappeler quelqu'un. Tant qu'elles manquent, toute
+navigation ramène à cet écran.
 
-### 4.2 Traduire les emails en français
+> Une page de secours existe pour les comptes créés avant ce changement, qui ont
+> encore un mot de passe : elle n'est liée nulle part et s'atteint en ajoutant
+> `#/motdepasse` à l'adresse du site.
 
-*Authentication* → *Email Templates* → modifie **Confirm signup** et **Reset password**.
-Tu peux y mettre ton propre texte et le logo de la plateforme.
+Configurer l'envoi d'emails (SMTP) reste utile pour la réinitialisation de mot
+de passe de ces anciens comptes — voir **EMAIL-SMTP.md**. Ce n'est plus
+bloquant pour ouvrir la plateforme.
 
-### 4.3 Te créer un compte administrateur
+### 4.2 Te créer un compte administrateur
 
 Personne ne peut devenir admin depuis le site — c'est bloqué dans la base, pas
 seulement dans le formulaire. C'est volontaire : sinon n'importe quel visiteur
 s'inscrirait comme administrateur de la plateforme.
 
-1. Inscris-toi normalement sur ton site (n'importe quel rôle, ou avec Google)
+1. Connecte-toi sur ton site avec **Continuer avec Google**, et complète l'écran de bienvenue
 2. Ouvre **`supabase/admin.sql`**, remplace l'email par le tien
 3. Supabase → **SQL Editor** → nouvelle requête → colle le fichier → **Run**
 4. La requête de vérification doit afficher ta ligne avec `role = admin`
@@ -175,7 +179,7 @@ surveillance** prêtes à l'emploi : derniers comptes créés, restaurants en at
 livreurs et leur disponibilité, 50 dernières commandes, chiffres du jour.
 Décommente celle qui t'intéresse et clique **Run**.
 
-### 4.4 Dérouler un vrai parcours à plusieurs comptes
+### 4.3 Dérouler un vrai parcours à plusieurs comptes
 
 Il n'y a plus de bouton de bascule de compte : les données sont réelles et
 partagées. Pour tester le parcours complet, utilise **plusieurs navigateurs ou

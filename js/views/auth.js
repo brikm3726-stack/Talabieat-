@@ -109,47 +109,18 @@
     view.innerHTML = shell('Bienvenue sur ' + TALABI_CONFIG.APP_NAME,
       'Commandez vos repas préférés en quelques minutes.',
       '<div class="card card-p stack">' +
-        '<button class="btn btn-google btn-block" id="gbtn">' + GOOGLE_ICON + ' Continuer avec Google</button>' +
+        '<button class="btn btn-google btn-block btn-lg" id="gbtn">' + GOOGLE_ICON + ' Continuer avec Google</button>' +
+        '<div class="tiny center" style="margin-top:2px">Aucun mot de passe à retenir. ' +
+          'Google confirme votre adresse, nous ne la voyons jamais.</div>' +
         '<div class="row" style="gap:12px"><div style="flex:1;height:1px;background:var(--line)"></div>' +
-          '<span class="tiny">ou</span><div style="flex:1;height:1px;background:var(--line)"></div></div>' +
-        '<form id="f" class="stack" novalidate>' +
-          '<div class="field"><label>Adresse email</label>' +
-            '<input class="input" type="email" name="email" placeholder="exemple@gmail.com" autocomplete="email" required></div>' +
-          '<div class="field"><label>Mot de passe</label>' +
-            '<input class="input" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required></div>' +
-          '<div class="row-between"><a class="tiny" style="color:var(--brand);font-weight:650" href="#/forgot">Mot de passe oublié ?</a></div>' +
-          '<button class="btn btn-primary btn-block btn-lg" type="submit">Se connecter</button>' +
-        '</form>' +
-        '<div class="center tiny">Pas encore de compte ? ' +
-          '<a href="#/signup" style="color:var(--brand);font-weight:700">Créer un compte</a></div>' +
+          '<span class="tiny">nouveau ici ?</span><div style="flex:1;height:1px;background:var(--line)"></div></div>' +
+        '<a class="btn btn-ghost btn-block" href="#/signup">Créer un compte restaurant ou livreur</a>' +
       '</div>');
 
     view.querySelector('#gbtn').onclick = async function () {
       UI.busy(this, true, 'Redirection…');
       try { await API.signInGoogle('client'); }
       catch (e) { UI.busy(this, false); UI.err(e.message); }
-    };
-
-    view.querySelector('#f').onsubmit = async function (e) {
-      e.preventDefault();
-      const btn = this.querySelector('[type=submit]');
-      const d = UI.formData(this);
-      if (!U.isEmail(d.email)) return UI.err('Adresse email invalide');
-      if (!d.password) return UI.err('Saisissez votre mot de passe');
-      UI.busy(btn, true, 'Connexion…');
-      try {
-        await API.signIn(d.email, d.password);
-        await Store.refreshProfile();
-        UI.ok('Bienvenue ' + (Store.profile.full_name || '') + ' !');
-        Router.go(afterLogin(), true);
-      } catch (err) {
-        UI.busy(btn, false);
-        // compte créé mais jamais confirmé : on l'amène au bon écran au lieu
-        // de lui répéter une erreur sans issue
-        if (/pas encore confirmé/i.test(err.message))
-          return ecranCode(view, { email: d.email }, 'client');
-        UI.err(err.message);
-      }
     };
 
     return brancherInstall(view);
@@ -178,24 +149,11 @@
 
         '<div id="roleNote"></div>' +
 
-        '<button class="btn btn-google btn-block" id="gbtn">' + GOOGLE_ICON + ' S’inscrire avec Google</button>' +
-        '<div class="row" style="gap:12px"><div style="flex:1;height:1px;background:var(--line)"></div>' +
-          '<span class="tiny">ou avec un email</span><div style="flex:1;height:1px;background:var(--line)"></div></div>' +
-
-        '<form id="f" class="stack" novalidate>' +
-          '<div class="field"><label>Nom complet</label>' +
-            '<input class="input" name="full_name" placeholder="Ex : Amine Belkacem" autocomplete="name" required></div>' +
-          '<div class="field"><label>Adresse email</label>' +
-            '<input class="input" type="email" name="email" placeholder="exemple@gmail.com" autocomplete="email" required></div>' +
-          '<div class="field"><label>Numéro de téléphone</label>' +
-            '<input class="input" name="phone" placeholder="0555 12 34 56" inputmode="tel" autocomplete="tel" required></div>' +
-          Cmp.zoneSelect('zone_id', Store.zoneId, 'Mon quartier', true) +
-          '<div class="field"><label>Mot de passe</label>' +
-            '<input class="input" type="password" name="password" placeholder="6 caractères minimum" autocomplete="new-password" required></div>' +
-          '<button class="btn btn-primary btn-block btn-lg" type="submit">Créer mon compte</button>' +
-          '<div class="tiny center">En continuant vous acceptez les conditions d’utilisation de ' +
-            U.esc(TALABI_CONFIG.APP_NAME) + '.</div>' +
-        '</form>' +
+        '<button class="btn btn-google btn-block btn-lg" id="gbtn">' + GOOGLE_ICON + ' Continuer avec Google</button>' +
+        '<div class="tiny center">Vous compléterez votre téléphone et votre quartier ' +
+          'juste après, en une seule étape.</div>' +
+        '<div class="tiny center">En continuant vous acceptez les conditions d’utilisation de ' +
+          U.esc(TALABI_CONFIG.APP_NAME) + '.</div>' +
 
         '<div class="center tiny">Déjà inscrit ? <a href="#/login" style="color:var(--brand);font-weight:700">Se connecter</a></div>' +
       '</div>');
@@ -225,44 +183,139 @@
       catch (e) { UI.busy(this, false); UI.err(e.message); }
     };
 
+    return brancherInstall(view);
+  });
+
+  /* ======================================================================
+     PORTE DE SECOURS — connexion par mot de passe
+
+     L'inscription se fait uniquement par Google. Mais des comptes créés avant
+     ce changement ont un mot de passe et n'auraient plus aucun moyen d'entrer.
+     Cette page n'est liée nulle part : elle s'atteint en tapant #/motdepasse.
+     ====================================================================== */
+  Router.add('/motdepasse', async function (params, query, view) {
+    if (Store.isLogged) return Router.go(Router.homeFor(Store.role), true);
+
+    view.innerHTML = shell('Connexion par mot de passe',
+      'Réservée aux comptes créés avant le passage à Google',
+      '<div class="card card-p stack">' +
+        '<form id="f" class="stack" novalidate>' +
+          '<div class="field"><label>Adresse email</label>' +
+            '<input class="input" type="email" name="email" placeholder="exemple@gmail.com" autocomplete="email" required></div>' +
+          '<div class="field"><label>Mot de passe</label>' +
+            '<input class="input" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required></div>' +
+          '<div class="row-between"><a class="tiny" style="color:var(--brand);font-weight:650" href="#/forgot">Mot de passe oublié ?</a></div>' +
+          '<button class="btn btn-primary btn-block btn-lg" type="submit">Se connecter</button>' +
+        '</form>' +
+        '<div class="center tiny"><a href="#/login" style="color:var(--brand);font-weight:700">Revenir à la connexion Google</a></div>' +
+      '</div>');
+
+    view.querySelector('#f').onsubmit = async function (e) {
+      e.preventDefault();
+      const btn = this.querySelector('[type=submit]');
+      const d = UI.formData(this);
+      if (!U.isEmail(d.email)) return UI.err('Adresse email invalide');
+      if (!d.password) return UI.err('Saisissez votre mot de passe');
+      UI.busy(btn, true, 'Connexion…');
+      try {
+        await API.signIn(d.email, d.password);
+        await Store.refreshProfile();
+        UI.ok('Bienvenue ' + (Store.profile.full_name || '') + ' !');
+        Router.go(afterLogin(), true);
+      } catch (err) {
+        UI.busy(btn, false);
+        // compte créé mais jamais confirmé : on l'amène au bon écran au lieu
+        // de lui répéter une erreur sans issue
+        if (/pas encore confirmé/i.test(err.message))
+          return ecranCode(view, { email: d.email }, 'client');
+        UI.err(err.message);
+      }
+    };
+  });
+
+  /* ======================================================================
+     BIENVENUE — ce que Google ne nous donne pas
+
+     Google fournit le nom et l'adresse email, rien d'autre. Or on ne peut ni
+     livrer ni appeler quelqu'un sans son téléphone et son quartier. Cette page
+     réclame donc ces deux informations, une seule fois, juste après la
+     première connexion — et le routeur y ramène tant qu'elles manquent.
+     ====================================================================== */
+  Router.add('/bienvenue', async function (params, query, view) {
+    if (!Store.isLogged) return Router.go('/login', true);
+
+    const p = Store.profile || {};
+    const pro = p.role === 'restaurant' || p.role === 'driver';
+
+    view.innerHTML = shell('Bienvenue ' + (p.full_name || '') + ' !',
+      'Encore deux informations et c’est terminé',
+      '<div class="card card-p stack">' +
+        '<div class="banner banner-info">' +
+          (p.role === 'driver'
+            ? '🛵 Votre quartier détermine les courses que vous verrez.'
+            : p.role === 'restaurant'
+              ? '🏪 Votre téléphone sert aux livreurs et à vos clients.'
+              : '🏠 Votre téléphone sert au livreur pour vous joindre à l’arrivée.') +
+        '</div>' +
+
+        '<form id="f" class="stack" novalidate>' +
+          '<div class="field"><label>Nom complet</label>' +
+            '<input class="input" name="full_name" value="' + U.esc(p.full_name || '') + '" ' +
+              'placeholder="Ex : Amine Belkacem" autocomplete="name" required></div>' +
+          '<div class="field"><label>Numéro de téléphone</label>' +
+            '<input class="input" name="phone" value="' + U.esc(p.phone || '') + '" ' +
+              'placeholder="0555 12 34 56" inputmode="tel" autocomplete="tel" required></div>' +
+          Cmp.zoneSelect('zone_id', p.zone_id || Store.zoneId, 'Mon quartier', true) +
+          '<button class="btn btn-primary btn-block btn-lg" type="submit">Terminer</button>' +
+        '</form>' +
+
+        '<div class="tiny center">Connecté avec <b>' + U.esc(p.email || '') + '</b> — ' +
+          '<a href="#" id="out" style="color:var(--brand);font-weight:650">changer de compte</a></div>' +
+      '</div>');
+
+    view.querySelector('#out').onclick = async function (e) {
+      e.preventDefault();
+      await API.signOut();
+      Router.go('/login', true);
+    };
+
     view.querySelector('#f').onsubmit = async function (e) {
       e.preventDefault();
       const btn = this.querySelector('[type=submit]');
       const d = UI.formData(this);
 
       if (!d.full_name || d.full_name.length < 3) return UI.err('Indiquez votre nom complet');
-      if (!U.isEmail(d.email)) return UI.err('Adresse email invalide');
       if (!U.isPhoneDZ(d.phone)) return UI.err('Numéro invalide', 'Format attendu : 05 / 06 / 07 xx xx xx xx');
-      if (!d.zone_id) return UI.err('Choisissez votre zone');
-      if ((d.password || '').length < 6) return UI.err('Mot de passe trop court', '6 caractères minimum');
+      if (!d.zone_id) return UI.err('Choisissez votre quartier');
 
-      UI.busy(btn, true, 'Création…');
+      UI.busy(btn, true, 'Enregistrement…');
       try {
-        d.role = role;
-        const res = await API.signUp(d);
-        if (res && res.needsConfirmation) {
-          UI.busy(btn, false);
-          return ecranCode(view, d, role);
-        }
+        await API.updateProfile({ full_name: d.full_name, phone: d.phone, zone_id: d.zone_id });
         await Store.refreshProfile();
         if (Store.zoneId !== d.zone_id) Store.setZone(d.zone_id);
+
         /* Un client entre tout de suite. Un restaurant ou un livreur doit
            savoir, avant d'aller plus loin, que rien n'est encore actif : une
            simple notification passerait inaperçue. */
-        if (role === 'restaurant' || role === 'driver') {
-          UI.busy(btn, false);
-          return pendingScreen(view, role);
-        }
-        UI.ok('Compte créé !', 'Bienvenue sur ' + TALABI_CONFIG.APP_NAME);
-        Router.go('/', true);
+        if (pro) { UI.busy(btn, false); return pendingScreen(view, p.role); }
+
+        UI.ok('Compte prêt !', 'Bienvenue sur ' + TALABI_CONFIG.APP_NAME);
+        Router.go(afterLogin(), true);
       } catch (err) {
         UI.busy(btn, false);
         UI.err(err.message);
       }
     };
-
-    return brancherInstall(view);
   });
+
+  /* Tant que le téléphone ou le quartier manquent, toute navigation ramène ici.
+     Un administrateur en est dispensé : il ne commande pas et ne livre pas. */
+  Router.beforeEach = function (path) {
+    if (!Store.isLogged || !Store.profile) return null;
+    if (path === '/bienvenue' || Store.role === 'admin') return null;
+    if (Store.profile.phone && Store.profile.zone_id) return null;
+    return '/bienvenue';
+  };
 
   /* ----------------------------------------------------------------------
      CONFIRMATION DE L'EMAIL PAR CODE À 6 CHIFFRES
