@@ -187,8 +187,25 @@
         '<div id="roleNote"></div>' +
 
         '<button class="btn btn-google btn-block btn-lg" id="gbtn">' + GOOGLE_ICON + ' Continuer avec Google</button>' +
-        '<div class="tiny center">Vous compléterez votre téléphone et votre quartier ' +
-          'juste après, en une seule étape.</div>' +
+        '<div class="tiny center">Le plus rapide : rien à remplir, ' +
+          'juste votre téléphone et votre quartier ensuite.</div>' +
+
+        '<div class="row" style="gap:12px"><div style="flex:1;height:1px;background:var(--line)"></div>' +
+          '<span class="tiny">ou avec un email</span><div style="flex:1;height:1px;background:var(--line)"></div></div>' +
+
+        '<form id="f" class="stack" novalidate>' +
+          '<div class="field"><label>Nom complet</label>' +
+            '<input class="input" name="full_name" placeholder="Ex : Amine Belkacem" autocomplete="name" required></div>' +
+          '<div class="field"><label>Adresse email</label>' +
+            '<input class="input" type="email" name="email" placeholder="exemple@gmail.com" autocomplete="email" required></div>' +
+          '<div class="field"><label>Numéro de téléphone</label>' +
+            '<input class="input" name="phone" placeholder="0555 12 34 56" inputmode="tel" autocomplete="tel" required></div>' +
+          Cmp.zoneSelect('zone_id', Store.zoneId, 'Mon quartier', true) +
+          '<div class="field"><label>Mot de passe</label>' +
+            '<input class="input" type="password" name="password" placeholder="6 caractères minimum" autocomplete="new-password" required></div>' +
+          '<button class="btn btn-primary btn-block btn-lg" type="submit">Créer mon compte</button>' +
+        '</form>' +
+
         '<div class="tiny center">En continuant vous acceptez les conditions d’utilisation de ' +
           U.esc(TALABI_CONFIG.APP_NAME) + '.</div>' +
 
@@ -218,6 +235,47 @@
       UI.busy(this, true, 'Redirection…');
       try { await API.signInGoogle(role); }
       catch (e) { UI.busy(this, false); UI.err(e.message); }
+    };
+
+    view.querySelector('#f').onsubmit = async function (e) {
+      e.preventDefault();
+      const btn = this.querySelector('[type=submit]');
+      const d = UI.formData(this);
+
+      if (!d.full_name || d.full_name.length < 3) return UI.err('Indiquez votre nom complet');
+      if (!U.isEmail(d.email)) return UI.err('Adresse email invalide');
+      if (!U.isPhoneDZ(d.phone)) return UI.err('Numéro invalide', 'Format attendu : 05 / 06 / 07 xx xx xx xx');
+      if (!d.zone_id) return UI.err('Choisissez votre quartier');
+      if ((d.password || '').length < 6) return UI.err('Mot de passe trop court', '6 caractères minimum');
+
+      UI.busy(btn, true, 'Création…');
+      try {
+        d.role = role;
+        const res = await API.signUp(d);
+
+        // confirmation activée : le compte n'est pas ouvert tant que le code
+        // reçu par email n'est pas saisi
+        if (res && res.needsConfirmation) {
+          UI.busy(btn, false);
+          return ecranCode(view, d, role);
+        }
+
+        await Store.refreshProfile();
+        if (Store.zoneId !== d.zone_id) Store.setZone(d.zone_id);
+
+        /* Un client entre tout de suite. Un restaurant ou un livreur doit
+           savoir, avant d'aller plus loin, que rien n'est encore actif : une
+           simple notification passerait inaperçue. */
+        if (role === 'restaurant' || role === 'driver') {
+          UI.busy(btn, false);
+          return pendingScreen(view, role);
+        }
+        UI.ok('Compte créé !', 'Bienvenue sur ' + TALABI_CONFIG.APP_NAME);
+        Router.go('/', true);
+      } catch (err) {
+        UI.busy(btn, false);
+        UI.err(err.message);
+      }
     };
 
     return brancherInstall(view);
