@@ -34,6 +34,29 @@
     });
   }
 
+  /**
+   * Lit ce que le serveur d'authentification a mis dans l'adresse, que ce soit
+   * dans le hash (#access_token=…, #error=…) ou dans la requête (?code=…).
+   * Rien n'est modifié ici : on se contente de photographier l'adresse avant
+   * que la librairie Supabase ne la nettoie.
+   */
+  function lireRetourAuth() {
+    const hash = location.hash.replace(/^#/, '');
+    const query = location.search.replace(/^\?/, '');
+    const lire = (source, cle) => {
+      try { return new URLSearchParams(source).get(cle); } catch (e) { return null; }
+    };
+    const erreur = lire(hash, 'error_description') || lire(query, 'error_description') ||
+                   lire(hash, 'error')             || lire(query, 'error');
+    const tout = hash + '&' + query;
+
+    return {
+      recovery: /type=recovery/.test(tout),
+      attenduSession: /(^|[&?])(access_token|code)=/.test(tout),
+      erreur: erreur || ''
+    };
+  }
+
   function fail(message, detail) {
     document.getElementById('splash').innerHTML =
       '<div class="wrap-sm center" style="color:#fff">' +
@@ -54,11 +77,18 @@
           '(Supabase → Project Settings → API), puis rechargez la page.');
       }
 
-      /* ---- 1. Le lien de récupération Supabase arrive dans le hash ---- */
-      if (/type=recovery/.test(location.hash)) location.hash = '#/reset';
+      /* ---- 1. Ce que Supabase a déposé dans l'adresse ----
+         Retour de Google, d'un lien de confirmation ou de récupération : tout
+         arrive par l'adresse de la page. On la lit AVANT d'initialiser le
+         backend, car celui-ci la nettoie en passant. */
+      const retour = lireRetourAuth();
 
       /* ---- 2. Backend ---- */
       await API.init();
+
+      /* le lien de récupération mène au formulaire de nouveau mot de passe —
+         après l'init, sinon on effacerait le jeton avant sa lecture */
+      if (retour.recovery) location.hash = '#/reset';
 
       /* ---- 3. Retour d'une connexion Google : appliquer le rôle choisi ---- */
       if (API.applyPendingRole) { try { await API.applyPendingRole(); } catch (e) { console.warn(e); } }
@@ -120,6 +150,17 @@
 
       /* ---- 7. Fin de l'écran d'ouverture ---- */
       await finDeLIntro();
+
+      /* ---- 8. Un retour de connexion qui n'a rien donné ne doit pas être
+                silencieux : sans message, l'utilisateur revient sur l'accueil
+                déconnecté et croit que le site est cassé. ---- */
+      if (retour.erreur) {
+        UI.err('Connexion impossible', retour.erreur);
+      } else if (retour.attenduSession && !Store.isLogged) {
+        UI.err('Connexion impossible',
+          "Google a répondu, mais la session n'a pas pu s'ouvrir. Essayez depuis " +
+          'le navigateur plutôt que depuis l’icône de l’écran d’accueil.');
+      }
 
     } catch (e) {
       console.error(e);

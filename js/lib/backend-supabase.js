@@ -46,7 +46,18 @@
         throw new Error("La librairie Supabase n'a pas pu être chargée (vérifie ta connexion internet).");
 
       sb = w.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        auth: {
+          persistSession: true, autoRefreshToken: true, detectSessionInUrl: true,
+          /* Flux implicite plutôt que PKCE.
+             PKCE range une clé secrète au départ et exige de la retrouver au
+             retour de Google. Or sur iPhone, une application ouverte depuis
+             l'écran d'accueil envoie vers Safari et récupère la réponse dans
+             Safari : autre espace de stockage, clé introuvable, session
+             perdue sans le moindre message. Le flux implicite rapporte le
+             jeton directement dans l'adresse : il traverse ce changement de
+             contexte. */
+          flowType: 'implicit'
+        }
       });
 
       const { data } = await sb.auth.getSession();
