@@ -110,17 +110,54 @@
       'Commandez vos repas préférés en quelques minutes.',
       '<div class="card card-p stack">' +
         '<button class="btn btn-google btn-block btn-lg" id="gbtn">' + GOOGLE_ICON + ' Continuer avec Google</button>' +
-        '<div class="tiny center" style="margin-top:2px">Aucun mot de passe à retenir. ' +
-          'Google confirme votre adresse, nous ne la voyons jamais.</div>' +
+
         '<div class="row" style="gap:12px"><div style="flex:1;height:1px;background:var(--line)"></div>' +
-          '<span class="tiny">nouveau ici ?</span><div style="flex:1;height:1px;background:var(--line)"></div></div>' +
-        '<a class="btn btn-ghost btn-block" href="#/signup">Créer un compte restaurant ou livreur</a>' +
+          '<span class="tiny">ou avec votre email</span><div style="flex:1;height:1px;background:var(--line)"></div></div>' +
+
+        '<form id="f" class="stack" novalidate>' +
+          '<div class="field"><label>Adresse email</label>' +
+            '<input class="input" type="email" name="email" placeholder="exemple@gmail.com" autocomplete="email" required></div>' +
+          '<div class="field"><label>Mot de passe</label>' +
+            '<input class="input" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required></div>' +
+          '<div class="row-between"><a class="tiny" style="color:var(--brand);font-weight:650" href="#/forgot">Mot de passe oublié ?</a></div>' +
+          '<button class="btn btn-primary btn-block btn-lg" type="submit">Se connecter</button>' +
+        '</form>' +
+
+        '<div class="center tiny">Pas encore de compte ? ' +
+          '<a href="#/signup" style="color:var(--brand);font-weight:700">Créer un compte</a></div>' +
       '</div>');
 
     view.querySelector('#gbtn').onclick = async function () {
       UI.busy(this, true, 'Redirection…');
       try { await API.signInGoogle('client'); }
       catch (e) { UI.busy(this, false); UI.err(e.message); }
+    };
+
+    view.querySelector('#f').onsubmit = async function (e) {
+      e.preventDefault();
+      const btn = this.querySelector('[type=submit]');
+      const d = UI.formData(this);
+      if (!U.isEmail(d.email)) return UI.err('Adresse email invalide');
+      if (!d.password) return UI.err('Saisissez votre mot de passe');
+      UI.busy(btn, true, 'Connexion…');
+      try {
+        await API.signIn(d.email, d.password);
+        await Store.refreshProfile();
+        UI.ok('Bienvenue ' + (Store.profile.full_name || '') + ' !');
+        Router.go(afterLogin(), true);
+      } catch (err) {
+        UI.busy(btn, false);
+        // compte créé mais jamais confirmé : on l'amène au bon écran au lieu
+        // de lui répéter une erreur sans issue
+        if (/pas encore confirmé/i.test(err.message))
+          return ecranCode(view, { email: d.email }, 'client');
+        // un compte créé par Google n'a pas de mot de passe : le dire, plutôt
+        // que de laisser l'utilisateur réessayer indéfiniment
+        if (/incorrect/i.test(err.message))
+          return UI.err('Email ou mot de passe incorrect',
+            'Si vous vous êtes inscrit avec Google, utilisez le bouton Google ci-dessus.');
+        UI.err(err.message);
+      }
     };
 
     return brancherInstall(view);
@@ -186,52 +223,10 @@
     return brancherInstall(view);
   });
 
-  /* ======================================================================
-     PORTE DE SECOURS — connexion par mot de passe
-
-     L'inscription se fait uniquement par Google. Mais des comptes créés avant
-     ce changement ont un mot de passe et n'auraient plus aucun moyen d'entrer.
-     Cette page n'est liée nulle part : elle s'atteint en tapant #/motdepasse.
-     ====================================================================== */
-  Router.add('/motdepasse', async function (params, query, view) {
-    if (Store.isLogged) return Router.go(Router.homeFor(Store.role), true);
-
-    view.innerHTML = shell('Connexion par mot de passe',
-      'Réservée aux comptes créés avant le passage à Google',
-      '<div class="card card-p stack">' +
-        '<form id="f" class="stack" novalidate>' +
-          '<div class="field"><label>Adresse email</label>' +
-            '<input class="input" type="email" name="email" placeholder="exemple@gmail.com" autocomplete="email" required></div>' +
-          '<div class="field"><label>Mot de passe</label>' +
-            '<input class="input" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required></div>' +
-          '<div class="row-between"><a class="tiny" style="color:var(--brand);font-weight:650" href="#/forgot">Mot de passe oublié ?</a></div>' +
-          '<button class="btn btn-primary btn-block btn-lg" type="submit">Se connecter</button>' +
-        '</form>' +
-        '<div class="center tiny"><a href="#/login" style="color:var(--brand);font-weight:700">Revenir à la connexion Google</a></div>' +
-      '</div>');
-
-    view.querySelector('#f').onsubmit = async function (e) {
-      e.preventDefault();
-      const btn = this.querySelector('[type=submit]');
-      const d = UI.formData(this);
-      if (!U.isEmail(d.email)) return UI.err('Adresse email invalide');
-      if (!d.password) return UI.err('Saisissez votre mot de passe');
-      UI.busy(btn, true, 'Connexion…');
-      try {
-        await API.signIn(d.email, d.password);
-        await Store.refreshProfile();
-        UI.ok('Bienvenue ' + (Store.profile.full_name || '') + ' !');
-        Router.go(afterLogin(), true);
-      } catch (err) {
-        UI.busy(btn, false);
-        // compte créé mais jamais confirmé : on l'amène au bon écran au lieu
-        // de lui répéter une erreur sans issue
-        if (/pas encore confirmé/i.test(err.message))
-          return ecranCode(view, { email: d.email }, 'client');
-        UI.err(err.message);
-      }
-    };
-  });
+  /* L'ancienne page de secours a fusionné avec /login : le formulaire email +
+     mot de passe y est revenu. On garde l'adresse pour ne pas casser un lien
+     déjà envoyé à quelqu'un. */
+  Router.add('/motdepasse', async function () { return Router.go('/login', true); });
 
   /* ======================================================================
      BIENVENUE — ce que Google ne nous donne pas
