@@ -1178,9 +1178,12 @@ tr:hover td{background:#FCFDFF}
 
 /* champ de code de confirmation : des chiffres larges et espacés, lisibles
    d'un coup d'œil pendant qu'on recopie depuis sa boîte mail */
+/* La longueur du code varie (6 à 10 chiffres selon le réglage Supabase) :
+   la taille du texte suit la largeur disponible plutôt que de déborder. */
 .input-code{
-  text-align:center;font-size:30px;font-weight:800;letter-spacing:.42em;
-  text-indent:.42em;padding-top:14px;padding-bottom:14px;font-variant-numeric:tabular-nums;
+  text-align:center;font-size:clamp(20px,6.5vw,30px);font-weight:800;
+  letter-spacing:.3em;text-indent:.3em;padding-top:14px;padding-bottom:14px;
+  font-variant-numeric:tabular-nums;
 }
 
 /* ------------------------------------------------- écran d'ouverture (5 s)

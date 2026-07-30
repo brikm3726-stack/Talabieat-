@@ -110,8 +110,10 @@
      * réglage dans le tableau de bord Supabase.
      */
     async verifySignupCode(email, code, d) {
+      // La longueur du code est un réglage de Supabase (6 à 10 chiffres) :
+      // on ne la vérifie pas ici, c'est le serveur qui tranche.
       const token = String(code || '').replace(/\D/g, '');
-      if (token.length < 6) throw new Error('Le code contient 6 chiffres.');
+      if (token.length < 4) throw new Error('Saisissez le code reçu par email.');
 
       let res = await sb.auth.verifyOtp({ email: email, token: token, type: 'signup' });
       if (res.error) res = await sb.auth.verifyOtp({ email: email, token: token, type: 'email' });

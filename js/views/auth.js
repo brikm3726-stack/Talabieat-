@@ -380,7 +380,7 @@
      ---------------------------------------------------------------------- */
   function ecranCode(view, d, role) {
     view.innerHTML = shell('Confirmez votre email',
-      'Un code à 6 chiffres vient de partir',
+      'Le code vient de partir par email',
       '<div class="card card-p stack">' +
         '<div class="center" style="padding:6px 0 2px">' +
           '<div style="font-size:44px">📬</div>' +
@@ -390,8 +390,11 @@
 
         '<form id="cf" class="stack" novalidate>' +
           '<div class="field"><label>Code de confirmation</label>' +
+            /* La longueur du code se règle dans Supabase (6 à 10 chiffres) :
+               on ne la fige pas ici. Un champ limité à 6 tronquait un code de
+               8 et vérifiait un nombre qui n'existait pas. */
             '<input class="input input-code" name="code" inputmode="numeric" autocomplete="one-time-code" ' +
-              'maxlength="6" placeholder="000000" required></div>' +
+              'maxlength="10" placeholder="— — — — — —" required></div>' +
           '<button class="btn btn-primary btn-block btn-lg" type="submit">Confirmer mon compte</button>' +
         '</form>' +
 
@@ -401,17 +404,24 @@
 
     const champ = view.querySelector('[name=code]');
     champ.focus();
-    // le collage d'un code copié depuis l'email ne doit rien casser
+
+    /* Le champ n'accepte que des chiffres, et ne part tout seul que sur un
+       COLLAGE — reconnaissable au bond de plusieurs caractères d'un coup.
+       Sur une frappe au clavier on attend le bouton : partir dès qu'un seuil
+       est atteint reviendrait à vérifier un code encore incomplet. */
+    let avant = 0;
     champ.oninput = function () {
-      this.value = this.value.replace(/\D/g, '').slice(0, 6);
-      if (this.value.length === 6) view.querySelector('#cf').requestSubmit();
+      this.value = this.value.replace(/\D/g, '').slice(0, 10);
+      const saut = this.value.length - avant;
+      avant = this.value.length;
+      if (saut >= 4 && this.value.length >= 4) view.querySelector('#cf').requestSubmit();
     };
 
     view.querySelector('#cf').onsubmit = async function (e) {
       e.preventDefault();
       const btn = this.querySelector('[type=submit]');
       const code = champ.value;
-      if (code.length !== 6) return UI.err('Le code contient 6 chiffres');
+      if (code.length < 4) return UI.err('Saisissez le code reçu par email');
 
       UI.busy(btn, true, 'Vérification…');
       try {
