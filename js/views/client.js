@@ -349,7 +349,7 @@
       if (!Store.cartCount) {
         view.innerHTML =
           '<div class="empty-scene"><div class="wrap">' +
-            '<img class="scene-art" src="assets/img/bg/panier-vide.png" alt="" aria-hidden="true">' +
+            '<img class="scene-art" src="' + U.asset('assets/img/bg/panier-vide.png') + '" alt="" aria-hidden="true">' +
             '<div class="h1 scene-title">Votre panier est vide</div>' +
             '<p class="scene-sub">Ajoutez vos plats préférés parmi les meilleurs restaurants de votre ville.</p>' +
             '<div class="scene-cta">' +

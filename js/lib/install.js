@@ -174,7 +174,7 @@
 
       UI.sheet({
         title: titre,
-        icon: '<img src="assets/img/icons/icon-192.png" alt="" class="ins-logo">',
+        icon: '<img src="' + U.asset('assets/img/icons/icon-192.png') + '" alt="" class="ins-logo">',
         subtitle: 'Talabi • Livraison de repas',
         body: '<div class="ins-body">' + corps + '</div>',
         footer: '<button class="btn btn-primary btn-block" data-x>J’ai compris</button>'

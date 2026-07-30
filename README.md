@@ -7,6 +7,33 @@ Mobile-first, données réelles, sécurité par rôle.
 
 ---
 
+## Quatre applications, un seul code
+
+| Adresse | Pour qui | Nom sur le téléphone |
+|---|---|---|
+| `/` | Clients | Talabi |
+| `/resto/` | Restaurateurs | Talabi Resto |
+| `/livreur/` | Livreurs | Talabi Livreur |
+| `/admin/` | Toi | Talabi Admin |
+
+Chacune s'installe séparément sur le téléphone, avec son nom et sa couleur.
+Mais elles partagent **le même code et la même base de données** : une
+correction poussée une fois profite aux quatre. Seule leur page d'entrée
+diffère, et elle est **générée** — jamais écrite à la main :
+
+```bash
+node tools/generer-applications.js
+```
+
+À relancer après toute modification de `index.html`. Tout ce qui distingue les
+quatre applications est rassemblé dans [`js/lib/apps.js`](js/lib/apps.js).
+
+L'adresse `/admin/` n'est liée depuis aucune des trois autres. Ce n'est pas ce
+qui la protège — la sécurité vient de PostgreSQL, qui ne montre rien à qui n'a
+pas le rôle — mais un client n'a aucune raison de tomber dessus.
+
+---
+
 ## Une seule façon de fonctionner : en ligne
 
 Talabi tourne sur une **vraie base de données partagée** (Supabase). Il n'y a pas

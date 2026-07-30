@@ -1,36 +1,38 @@
 <!DOCTYPE html>
+<!-- FICHIER GÉNÉRÉ — ne pas modifier à la main.
+     Source : index.html à la racine, puis « node tools/generer-applications.js » -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
-<meta name="theme-color" content="#FF4D2D">
-<meta name="description" content="Talabi — Commandez vos repas préférés en ligne et faites-vous livrer rapidement partout dans la ville de Tizi Ouzou.">
-<title>Talabi — Livraison de repas à domicile</title>
+<meta name="theme-color" content="#1E6BE6">
+<meta name="description" content="Recevez vos commandes Talabi, gérez votre carte et suivez votre chiffre d’affaires.">
+<title>Talabi Resto</title>
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛵</text></svg>">
 
 <!-- Application installable sur téléphone -->
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="assets/img/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="../assets/img/icons/apple-touch-icon.png">
 <!-- iOS ignore le manifeste : ces trois balises sont le seul moyen de lui dire
      d'ouvrir Talabi en plein écran, sans la barre d'adresse de Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Talabi">
+<meta name="apple-mobile-web-app-title" content="Talabi Resto">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="assets/css/app.css">
+<link rel="stylesheet" href="../assets/css/app.css">
 </head>
 <body>
 
 <!-- écran de démarrage -->
 <div class="splash" id="splash">
   <div class="center">
-    <img src="assets/img/logo.jpg" alt="Talabi" class="splash-logo">
-    <div class="splash-sub">Livraison de repas • Tizi Ouzou</div>
+    <img src="../assets/img/logo.jpg" alt="Talabi" class="splash-logo">
+    <div class="splash-sub">Espace restaurant • Tizi Ouzou</div>
   </div>
 </div>
 
@@ -59,38 +61,38 @@
      Les trois autres (resto/, livreur/, admin/) déclarent la même chose avec
      leurs propres valeurs. Tout le reste du code est identique. -->
 <script>
-  window.TALABI_APP  = 'client';
-  window.TALABI_BASE = '';
+  window.TALABI_APP  = 'restaurant';
+  window.TALABI_BASE = '../';
 </script>
 
 <!-- Noyau -->
-<script src="config.js"></script>
-<script src="js/lib/apps.js"></script>
-<script src="js/lib/utils.js"></script>
-<script src="js/lib/ui.js"></script>
-<script src="js/lib/backend-supabase.js"></script>
-<script src="js/lib/api.js"></script>
-<script src="js/lib/store.js"></script>
-<script src="js/lib/router.js"></script>
-<script src="js/lib/shell.js"></script>
-<script src="js/lib/components.js"></script>
-<script src="js/lib/mappicker.js"></script>
-<script src="js/lib/livetrack.js"></script>
-<script src="js/lib/sound.js"></script>
-<script src="js/lib/install.js"></script>
+<script src="../config.js"></script>
+<script src="../js/lib/apps.js"></script>
+<script src="../js/lib/utils.js"></script>
+<script src="../js/lib/ui.js"></script>
+<script src="../js/lib/backend-supabase.js"></script>
+<script src="../js/lib/api.js"></script>
+<script src="../js/lib/store.js"></script>
+<script src="../js/lib/router.js"></script>
+<script src="../js/lib/shell.js"></script>
+<script src="../js/lib/components.js"></script>
+<script src="../js/lib/mappicker.js"></script>
+<script src="../js/lib/livetrack.js"></script>
+<script src="../js/lib/sound.js"></script>
+<script src="../js/lib/install.js"></script>
 
 <!-- Vues -->
-<script src="js/views/landing.js"></script>
-<script src="js/views/auth.js"></script>
-<script src="js/views/client.js"></script>
-<script src="js/views/checkout.js"></script>
-<script src="js/views/tracking.js"></script>
-<script src="js/views/restaurant.js"></script>
-<script src="js/views/driver.js"></script>
-<script src="js/views/admin.js"></script>
-<script src="js/views/account.js"></script>
+<script src="../js/views/landing.js"></script>
+<script src="../js/views/auth.js"></script>
+<script src="../js/views/client.js"></script>
+<script src="../js/views/checkout.js"></script>
+<script src="../js/views/tracking.js"></script>
+<script src="../js/views/restaurant.js"></script>
+<script src="../js/views/driver.js"></script>
+<script src="../js/views/admin.js"></script>
+<script src="../js/views/account.js"></script>
 
 <!-- Démarrage -->
-<script src="js/app.js"></script>
+<script src="../js/app.js"></script>
 </body>
 </html>

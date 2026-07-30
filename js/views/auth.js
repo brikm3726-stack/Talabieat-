@@ -12,7 +12,7 @@
     '<path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.4 0-11.7-3.7-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
 
   /* img : logo du rôle. L'emoji reste le repli si l'image ne charge pas. */
-  const ROLE_IMG = 'assets/img/roles/';
+  const ROLE_IMG = 'assets/img/roles/';   // passé à U.asset() au moment de l'affichage
   const ROLES = [
     { v: 'client',     i: '🍔', img: ROLE_IMG + 'client.jpg',     t: 'Client',     d: 'Commander des repas et me faire livrer' },
     { v: 'restaurant', i: '🏪', img: ROLE_IMG + 'restaurant.jpg', t: 'Restaurant', d: 'Vendre mes plats sur la plateforme' },
@@ -23,6 +23,21 @@
     return r.img
       ? '<div class="ic has-img" style="background-image:url(' + U.escUrl(r.img) + ')"></div>'
       : '<div class="ic">' + r.i + '</div>';
+  }
+
+  const MOT_ROLE = { client: 'client', restaurant: 'restaurant', driver: 'livreur', admin: 'administrateur' };
+  function roleMot(r) { return MOT_ROLE[r] || r; }
+
+  /* Dans un espace professionnel, celui qui n'a rien à y faire doit repartir
+     avec une adresse en main, pas avec une porte fermée. */
+  function liensVersLesAutresApplications() {
+    const autres = ['client', 'restaurant', 'driver']
+      .filter(id => !App.est(id))
+      .map(id => '<a class="tiny" style="color:var(--muted);font-weight:650" ' +
+                 'href="' + App.lien(id) + '">' + U.esc(App.def(id).nom) + ' →</a>');
+    if (!autres.length) return '';
+    return '<div class="center stack" style="margin-top:14px;gap:6px">' +
+      '<div class="tiny">Vous cherchez plutôt :</div>' + autres.join('') + '</div>';
   }
 
   /* Le nom de la marque passe en orange partout où il apparaît dans un titre,
@@ -47,14 +62,14 @@
           '<div class="auth-headtext">' +
             '<div class="auth-brandrow">' +
               // « multiply » : le logo est sur fond blanc, il se fond dans le fond
-              '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
+              '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
                 'class="auth-logo">' +
               boutonInstaller() +
             '</div>' +
             '<div class="h1">' + brandify(title) + '</div>' +
             '<div class="sub" style="margin-top:8px">' + U.esc(subtitle) + '</div>' +
           '</div>' +
-          '<img class="auth-rider" src="assets/img/bg/auth-rider.png" alt="" aria-hidden="true">' +
+          '<img class="auth-rider" src="' + U.asset('assets/img/bg/auth-rider.png') + '" alt="" aria-hidden="true">' +
         '</div>' +
         '<div class="auth-col">' + inner + '</div>' +
       '</div>' +
@@ -106,8 +121,7 @@
   Router.add('/login', async function (params, query, view) {
     if (Store.isLogged) return Router.go(Router.homeFor(Store.role), true);
 
-    view.innerHTML = shell('Bienvenue sur ' + TALABI_CONFIG.APP_NAME,
-      'Commandez vos repas préférés en quelques minutes.',
+    view.innerHTML = shell(App.titre, App.sousTitre,
       '<div class="card card-p stack">' +
         '<button class="btn btn-google btn-block btn-lg" id="gbtn">' + GOOGLE_ICON + ' Continuer avec Google</button>' +
 
@@ -129,14 +143,19 @@
 
       /* Regarder la carte ne demande pas de compte : celui-ci ne devient
          nécessaire qu'au moment de commander. Fermer la porte d'entrée à un
-         visiteur qui voulait juste voir les prix serait absurde. */
-      '<div class="center" style="margin-top:14px">' +
-        '<a class="tiny" style="color:var(--muted);font-weight:650" href="#/">' +
-          'Voir les restaurants sans compte →</a></div>');
+         visiteur qui voulait juste voir les prix serait absurde.
+         Dans les espaces professionnels, il n'y a rien à regarder sans compte. */
+      (App.publique
+        ? '<div class="center" style="margin-top:14px">' +
+            '<a class="tiny" style="color:var(--muted);font-weight:650" href="#/">' +
+              'Voir les restaurants sans compte →</a></div>'
+        : liensVersLesAutresApplications()));
 
     view.querySelector('#gbtn').onclick = async function () {
       UI.busy(this, true, 'Redirection…');
-      try { await API.signInGoogle('client'); }
+      // le rôle créé dépend de la porte d'entrée : Talabi Livreur crée un
+      // livreur, jamais un client
+      try { await API.signInGoogle(App.role); }
       catch (e) { UI.busy(this, false); UI.err(e.message); }
     };
 
@@ -174,22 +193,33 @@
      INSCRIPTION
      ====================================================================== */
   Router.add('/signup', async function (params, query, view) {
-    let role = ROLES.some(r => r.v === query.role) ? query.role : 'client';
+    /* Le rôle n'est un choix que dans l'application client, qui sert aussi de
+       vitrine. Dans Talabi Resto ou Talabi Livreur, la porte d'entrée l'a déjà
+       décidé : demander « êtes-vous livreur ? » à quelqu'un qui vient
+       d'installer Talabi Livreur n'aurait pas de sens. */
+    const choixDuRole = App.est('client');
+    let role = choixDuRole
+      ? (ROLES.some(r => r.v === query.role) ? query.role : 'client')
+      : App.role;
 
     // Déjà connecté : on explique au lieu de renvoyer en silence vers l'accueil
     // (c'est ce qui donnait l'impression que « Ajouter mon restaurant » ne
     // faisait rien quand on était connecté en client).
     if (Store.isLogged) return alreadyLogged(view, role);
 
-    view.innerHTML = shell('Créer un compte', 'Choisissez votre type de compte',
+    view.innerHTML = shell(
+      choixDuRole ? 'Créer un compte' : 'Créer un compte ' + roleMot(role),
+      choixDuRole ? 'Choisissez votre type de compte' : App.sousTitre,
       '<div class="card card-p stack">' +
 
-        '<div class="stack" style="gap:9px" id="roles">' +
-          ROLES.map(r => '<div class="role-card" data-role="' + r.v + '">' +
-            roleIcon(r) +
-            '<div class="grow"><b>' + r.t + '</b><div class="tiny">' + U.esc(r.d) + '</div></div>' +
-            '<div data-check style="color:var(--brand);font-weight:800"></div></div>').join('') +
-        '</div>' +
+        (choixDuRole
+          ? '<div class="stack" style="gap:9px" id="roles">' +
+              ROLES.map(r => '<div class="role-card" data-role="' + r.v + '">' +
+                roleIcon(r) +
+                '<div class="grow"><b>' + r.t + '</b><div class="tiny">' + U.esc(r.d) + '</div></div>' +
+                '<div data-check style="color:var(--brand);font-weight:800"></div></div>').join('') +
+            '</div>'
+          : '') +
 
         '<div id="roleNote"></div>' +
 
@@ -368,11 +398,53 @@
     };
   });
 
-  /* Tant que le téléphone ou le quartier manquent, toute navigation ramène ici.
-     Un administrateur en est dispensé : il ne commande pas et ne livre pas. */
+  /* ======================================================================
+     MAUVAISE PORTE
+
+     Les quatre applications partagent la même session : ouvrir Talabi Resto
+     avec un compte livreur est vite arrivé. Plutôt qu'une page vide ou un
+     « accès refusé », on nomme le problème et on donne l'adresse de la bonne
+     application, en un bouton.
+     ====================================================================== */
+  Router.add('/espace', async function (params, query, view) {
+    if (!Store.isLogged) return Router.go('/login', true);
+
+    const bonne = App.pourRole(Store.role);
+    const d = App.def(bonne);
+
+    view.innerHTML = shell('Ce n’est pas votre espace',
+      'Votre compte est un compte ' + roleMot(Store.role),
+      '<div class="card card-p stack">' +
+        '<div class="banner banner-info">' +
+          'Vous êtes connecté avec <b>' + U.esc(Store.profile && Store.profile.email || '') + '</b>, ' +
+          'un compte <b>' + roleMot(Store.role) + '</b>. Cette application est réservée ' +
+          'aux comptes ' + roleMot(App.role) + 's.' +
+        '</div>' +
+        '<a class="btn btn-primary btn-block btn-lg" href="' + App.lien(bonne, Router.homeFor(Store.role)) + '">' +
+          'Ouvrir ' + U.esc(d.nom) + '</a>' +
+        '<button class="btn btn-ghost btn-block" id="out">Me déconnecter</button>' +
+        '<div class="tiny center">Chaque compte a un seul rôle. Pour être à la fois ' +
+          'client et livreur, il faut deux comptes, avec deux adresses email.</div>' +
+      '</div>');
+
+    view.querySelector('#out').onclick = async function () {
+      await API.signOut();
+      await Store.refreshProfile();
+      Router.go('/login', true);
+    };
+  });
+
+  /* Deux gardes, dans l'ordre où elles comptent :
+     1. le rôle du compte correspond-il à l'application ouverte ?
+     2. le profil est-il complet (téléphone et quartier) ?
+     Un administrateur est dispensé de la seconde : il ne commande pas et ne se
+     fait pas livrer. */
   Router.beforeEach = function (path) {
     if (!Store.isLogged || !Store.profile) return null;
-    if (path === '/bienvenue' || Store.role === 'admin') return null;
+
+    if (Store.role !== App.role && path !== '/espace') return '/espace';
+
+    if (path === '/bienvenue' || path === '/espace' || Store.role === 'admin') return null;
     if (Store.profile.phone && Store.profile.zone_id) return null;
     return '/bienvenue';
   };

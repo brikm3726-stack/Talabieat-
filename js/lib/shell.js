@@ -21,6 +21,12 @@
       { p: '/cart',          i: 'cart',     l: 'Panier', badge: 'cart' },
       { p: '/login',         i: 'user',     l: 'Connexion' }
     ],
+    /* Visiteur d'un espace professionnel (resto/, livreur/, admin/) :
+       il n'y a rien à visiter tant qu'on n'est pas connecté. */
+    invitePro: [
+      { p: '/login',         i: 'user',     l: 'Connexion' },
+      { p: '/signup',        i: 'plus',     l: 'Créer un compte' }
+    ],
     restaurant: [
       { p: '/r',             i: 'chart',    l: 'Tableau' },
       { p: '/r/orders',      i: 'receipt',  l: 'Commandes' },
@@ -52,7 +58,10 @@
   const Shell = {
 
     navItems() {
-      if (!Store.isLogged) return NAV.guest;
+      /* Un visiteur non connecté dans un espace professionnel n'a qu'une chose
+         à faire : se connecter. Lui proposer « Panier » et « Restaurants »
+         l'enverrait vers des pages qui n'existent pas ici. */
+      if (!Store.isLogged) return App.publique ? NAV.guest : NAV.invitePro;
       return NAV[Store.role] || NAV.client;
     },
 
@@ -92,7 +101,7 @@
         '<a class="side-brand" href="#/r">' +
           (rest && rest.logo_url
             ? '<img src="' + U.escUrl(rest.logo_url) + '" alt="">'
-            : '<img src="assets/img/logo.jpg" alt="">') +
+            : '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="">') +
         '</a>' +
         '<nav class="side-nav">' +
           NAV.restaurant.filter(x => x.p !== '/account').map(x =>
@@ -123,16 +132,18 @@
     renderTop() {
       const bar = document.getElementById('topbar');
       const items = Shell.navItems();
-      const showZone = !Store.isLogged || Store.role === 'client';
+      // le quartier ne sert qu'à filtrer un catalogue : il n'existe que dans
+      // l'application client
+      const showZone = App.est('client') && (!Store.isLogged || Store.role === 'client');
       // la console d'administration est sombre, jusqu'à la barre du haut
       const admin = Store.isLogged && Store.role === 'admin';
       document.body.classList.toggle('role-admin', admin);
 
       bar.innerHTML =
         '<div class="wrap topbar-in">' +
-          '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : '/') + '" ' +
+          '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : App.accueil) + '" ' +
             'title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' +
-            '<img src="assets/img/logo.jpg" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" class="brand-logo">' +
+            '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" class="brand-logo">' +
           '</a>' +
 
           (showZone ?

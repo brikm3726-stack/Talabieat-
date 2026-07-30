@@ -25,9 +25,25 @@
     },
 
     /**
+     * Chemin d'un fichier livré avec le site.
+     *
+     * Les quatre applications (client à la racine, resto/, livreur/, admin/)
+     * partagent les mêmes images et les mêmes sons. Depuis un sous-dossier,
+     * « assets/img/logo.jpg » pointerait vers un fichier inexistant : chaque
+     * page annonce sa profondeur dans TALABI_BASE, et tout passe par ici.
+     */
+    asset(chemin) {
+      return (w.TALABI_BASE || '') + String(chemin || '');
+    },
+
+    /**
      * Nettoie une URL avant de l'injecter dans un src ou un url() CSS.
      * On bloque les schémas dangereux (javascript:, vbscript:…) tout en
      * acceptant les chemins relatifs du projet — « assets/img/… ».
+     *
+     * Ces chemins relatifs viennent aussi de la base (image d'une catégorie,
+     * par exemple) : ils reçoivent la même correction de profondeur, sinon
+     * ils casseraient dans les applications rangées en sous-dossier.
      */
     escUrl(s) {
       if (!s) return '';
@@ -35,7 +51,11 @@
       const scheme = v.match(/^([a-z][a-z0-9+.\-]*):/i);
       if (scheme && !/^(https?|data)$/i.test(scheme[1])) return '';
       if (/^data:/i.test(v) && !/^data:image\//i.test(v)) return '';
-      return v.replace(/["'\\<>\s]/g, '');
+      const propre = v.replace(/["'\\<>\s]/g, '');
+      // relatif au projet (ni absolu, ni schéma) → on préfixe
+      if (!scheme && propre.charAt(0) !== '/' && propre.charAt(0) !== '#')
+        return (w.TALABI_BASE || '') + propre;
+      return propre;
     },
 
     /* -------------------------------------------------------------- dates */

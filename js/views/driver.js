@@ -118,7 +118,7 @@
           (available.length
             ? '<div class="stack">' + available.slice(0, 3).map(o => deliveryCard(o)).join('') + '</div>'
             : '<div class="empty-scene compact">' +
-                '<img class="scene-art" src="assets/img/bg/livreur-vide.png" alt="" aria-hidden="true">' +
+                '<img class="scene-art" src="' + U.asset('assets/img/bg/livreur-vide.png') + '" alt="" aria-hidden="true">' +
                 '<div class="h2 scene-title">Aucune course disponible pour le moment</div>' +
                 '<p class="scene-sub">' +
                   (approved ? 'Restez disponible, les nouvelles courses de votre zone apparaîtront ici.'
@@ -179,7 +179,7 @@
       list.innerHTML = rows.length
         ? '<div class="stack">' + rows.map(o => deliveryCard(o)).join('') + '</div>'
         : '<div class="empty-scene compact">' +
-            '<img class="scene-art" src="assets/img/bg/courses-vide.png" alt="" aria-hidden="true">' +
+            '<img class="scene-art" src="' + U.asset('assets/img/bg/courses-vide.png') + '" alt="" aria-hidden="true">' +
             '<div class="drv-chip">📦 Aucune course disponible</div>' +
             '<p class="scene-sub">Restez disponible : dès qu’un restaurant de votre zone ' +
               'signale une commande prête, <b>elle apparaît ici</b>.</p>' +
@@ -226,7 +226,7 @@
           (active.length
             ? '<div class="stack">' + active.map(o => deliveryCard(o, true)).join('') + '</div>'
             : '<div class="empty-scene compact">' +
-                '<img class="scene-art" src="assets/img/bg/livraison-vide.png" alt="" aria-hidden="true">' +
+                '<img class="scene-art" src="' + U.asset('assets/img/bg/livraison-vide.png') + '" alt="" aria-hidden="true">' +
                 '<div class="h2 scene-title">Aucune livraison en cours</div>' +
                 '<p class="scene-sub">Acceptez une course pour la voir apparaître ici.</p>' +
                 '<div class="scene-cta">' +
@@ -307,7 +307,7 @@
             '</div>').join('') + '</div>'
         : '<div class="card card-p drv-panel" style="margin-top:16px">' +
             '<div class="empty-scene compact">' +
-              '<img class="scene-art" src="assets/img/bg/livraison-vide.png" alt="" aria-hidden="true">' +
+              '<img class="scene-art" src="' + U.asset('assets/img/bg/livraison-vide.png') + '" alt="" aria-hidden="true">' +
               '<div class="h2 scene-title">Aucune livraison</div>' +
               '<p class="scene-sub">Vos livraisons terminées s’afficheront ici.</p>' +
               '<div class="scene-cta">' +

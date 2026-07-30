@@ -60,7 +60,9 @@
 
   function player(key) {
     if (!players[key]) {
-      const audio = new Audio(FILES[key]);
+      // U.asset : les sons vivent à la racine, les applications resto/ et
+      // livreur/ sont un cran plus bas
+      const audio = new Audio(U.asset(FILES[key]));
       audio.preload = 'auto';
       const p = { audio: audio, left: 0 };
       audio.addEventListener('ended', () => { if (p.left > 0) start(p); else p.left = 0; });

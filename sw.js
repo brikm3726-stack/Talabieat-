@@ -17,43 +17,53 @@
 
 /* Changer ce numéro à chaque mise en ligne : c'est lui qui déclenche le
    remplacement de l'ancien cache par le nouveau. */
-const VERSION = 'talabi-v12';
-const COQUILLE = VERSION + '-coquille';
-const RESTE    = VERSION + '-reste';
+const VERSION = 'talabi-v13';
 
-/* Le strict nécessaire pour que l'application démarre hors ligne. Les chemins
-   sont relatifs : le site vit dans un sous-dossier sur GitHub Pages. */
+/* Quatre applications partagent ce fichier (client à la racine, resto/,
+   livreur/, admin/). Chacune a son propre service worker de trois lignes qui
+   déclare sa profondeur puis importe celui-ci — sans quoi les portées se
+   chevaucheraient et une seule des quatre serait installable.
+   Les caches sont nommés par application : vider celui du livreur ne doit pas
+   déconnecter le restaurant. */
+const R   = self.RACINE || './';                  // chemin de la racine commune
+const QUI = self.APPLICATION || 'client';
+
+const COQUILLE = VERSION + '-' + QUI + '-coquille';
+const RESTE    = VERSION + '-' + QUI + '-reste';
+
+/* Le strict nécessaire pour que l'application démarre hors ligne. */
 const A_PRECHARGER = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './config.js',
-  './assets/css/app.css',
-  './assets/img/logo.jpg',
-  './assets/img/icons/icon-192.png',
-  './assets/img/icons/icon-512.png',
-  './js/lib/utils.js',
-  './js/lib/ui.js',
-  './js/lib/backend-supabase.js',
-  './js/lib/api.js',
-  './js/lib/store.js',
-  './js/lib/router.js',
-  './js/lib/shell.js',
-  './js/lib/components.js',
-  './js/lib/mappicker.js',
-  './js/lib/livetrack.js',
-  './js/lib/sound.js',
-  './js/lib/install.js',
-  './js/views/landing.js',
-  './js/views/auth.js',
-  './js/views/client.js',
-  './js/views/checkout.js',
-  './js/views/tracking.js',
-  './js/views/restaurant.js',
-  './js/views/driver.js',
-  './js/views/admin.js',
-  './js/views/account.js',
-  './js/app.js'
+  R + 'config.js',
+  R + 'assets/css/app.css',
+  R + 'assets/img/logo.jpg',
+  R + 'assets/img/icons/icon-192.png',
+  R + 'assets/img/icons/icon-512.png',
+  R + 'js/lib/apps.js',
+  R + 'js/lib/utils.js',
+  R + 'js/lib/ui.js',
+  R + 'js/lib/backend-supabase.js',
+  R + 'js/lib/api.js',
+  R + 'js/lib/store.js',
+  R + 'js/lib/router.js',
+  R + 'js/lib/shell.js',
+  R + 'js/lib/components.js',
+  R + 'js/lib/mappicker.js',
+  R + 'js/lib/livetrack.js',
+  R + 'js/lib/sound.js',
+  R + 'js/lib/install.js',
+  R + 'js/views/landing.js',
+  R + 'js/views/auth.js',
+  R + 'js/views/client.js',
+  R + 'js/views/checkout.js',
+  R + 'js/views/tracking.js',
+  R + 'js/views/restaurant.js',
+  R + 'js/views/driver.js',
+  R + 'js/views/admin.js',
+  R + 'js/views/account.js',
+  R + 'js/app.js'
 ];
 
 self.addEventListener('install', e => {
@@ -71,7 +81,11 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil((async () => {
     const noms = await caches.keys();
-    await Promise.all(noms.filter(n => !n.startsWith(VERSION)).map(n => caches.delete(n)));
+    /* On ne supprime que ses propres caches périmés : les trois autres
+       applications ont les leurs, et le voisin n'a pas à en décider. */
+    await Promise.all(noms
+      .filter(n => n.indexOf('-' + QUI + '-') > 0 && !n.startsWith(VERSION))
+      .map(n => caches.delete(n)));
     await self.clients.claim();
   })());
 });
