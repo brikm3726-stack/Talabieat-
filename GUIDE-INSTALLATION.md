@@ -236,7 +236,8 @@ domaine dans Google (étape 3.1) et Supabase (étape 3.3).
 ```js
 APP_NAME: 'Talabi',                  // le nom affiché partout
 APP_TAGLINE: '…',                    // le slogan sur la page d'accueil
-SUPPORT_PHONE: '+213 555 00 00 00',  // ton numéro d'assistance
+SUPPORT_PHONE: '+213 792 779 320',       // ton numéro d'assistance
+SUPPORT_EMAIL: 'contacttalabi@gmail.com',// ton email d'assistance
 DEFAULT_DELIVERY_FEE: 200,           // frais de livraison par défaut
 COMMISSION_RATE: 0.10,               // ta commission (10 %)
 DEFAULT_WILAYA: 'Tizi Ouzou'

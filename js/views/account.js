@@ -103,12 +103,19 @@
         /* ---- infos plateforme ---- */
         '<div class="card card-p acc-block" style="margin-top:16px">' +
           bloc('headset', 'Assistance') +
-          '<a class="acc-link" href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '">' +
+          // le tel: ne supporte pas les espaces du numéro affiché
+          '<a class="acc-link" href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')) + '">' +
             '<span class="ic">' + UI.icon('phone', 18) + '</span>' +
-            '<span class="grow"><b>Support</b>' +
+            '<span class="grow"><b>Nous appeler</b>' +
               '<span class="tiny">' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</span></span>' +
             '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
-          '<div class="tiny" style="margin-top:10px">Mode : <b>En ligne</b></div>' +
+          (TALABI_CONFIG.SUPPORT_EMAIL
+            ? '<a class="acc-link" href="mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL) + '">' +
+                '<span class="ic">' + UI.icon('mail', 18) + '</span>' +
+                '<span class="grow"><b>Nous écrire</b>' +
+                  '<span class="tiny">' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL) + '</span></span>' +
+                '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>'
+            : '') +
         '</div>' +
 
         '<div class="acc-logout" style="margin-top:16px">' +

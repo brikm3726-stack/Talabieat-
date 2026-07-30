@@ -19,7 +19,8 @@ window.TALABI_CONFIG = {
   APP_NAME: 'Talabi',
   APP_TAGLINE: 'Vos plats préférés, livrés chez vous',
   CURRENCY: 'DA',
-  SUPPORT_PHONE: '+213 555 00 00 00',
+  SUPPORT_PHONE: '+213 792 779 320',
+  SUPPORT_EMAIL: 'contacttalabi@gmail.com',
 
   // ---- Règles métier (valeurs par défaut, l'admin peut les modifier) -----
   DEFAULT_DELIVERY_FEE: 200,   // DZD

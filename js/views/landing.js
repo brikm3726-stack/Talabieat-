@@ -96,7 +96,12 @@
               ? '<a href="#/orders">Mes commandes</a><a href="#/account">Mon compte</a>'
               : '<a href="#/signup?role=driver">Devenir livreur</a>' +
                 '<a href="#/signup?role=restaurant">Inscrire mon restaurant</a>') +
-            '<a href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '">Support : ' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</a>' +
+            '<a href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')) + '">' +
+              '📞 ' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</a>' +
+            (TALABI_CONFIG.SUPPORT_EMAIL
+              ? '<a href="mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL) + '">' +
+                  '✉️ ' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL) + '</a>'
+              : '') +
           '</div>' +
         '</div>' +
         '<div class="tiny" style="color:rgba(255,255,255,.45);margin-top:24px">© ' + new Date().getFullYear() + ' ' +
