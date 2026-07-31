@@ -13,6 +13,16 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
+      "package_name": "shop.talabi.resto",
+      "sha256_cert_fingerprints": [
+        "64:76:38:5D:D6:57:DA:A1:D7:69:D1:D8:1C:86:DD:DF:37:EF:B0:D3:8C:ED:9E:C8:15:29:4F:8A:20:46:BE:7B"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
       "package_name": "shop.talabi.twa",
       "sha256_cert_fingerprints": [
         "B2:B1:6B:4C:63:BD:5E:5A:15:97:03:D1:C4:B0:A9:9A:5D:3E:D5:B9:BD:FB:B8:EC:A6:FC:39:37:4C:82:7C:BD"
