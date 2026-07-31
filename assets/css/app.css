@@ -45,6 +45,7 @@ html{-webkit-text-size-adjust:100%}
    toute la ligne au moindre effleurement pendant le défilement. Nos boutons
    ont déjà leur propre retour visuel. */
 *{-webkit-tap-highlight-color:transparent}
+
 body{
   font-family:var(--font);
   background:var(--bg); color:var(--ink);
@@ -1468,6 +1469,9 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 .adm-card{
   background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;
   transition:border-color .25s ease;
+  /* comme les tableaux : on fait défiler ces listes au doigt, et chaque
+     glissement surlignait le texte au passage */
+  -webkit-user-select:none; user-select:none;
 }
 .adm-card:hover{border-color:#33373F}
 /* liseré de statut sur les livreurs, comme dans la maquette */
@@ -1499,6 +1503,10 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 /* ---- tableaux ---- */
 .adm-table{
   overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:var(--card);
+  /* On fait défiler ces listes au doigt : sans cela, chaque glissement
+     sélectionnait le texte survolé et le surlignait. Les valeurs restent
+     copiables depuis la fiche qui s'ouvre au clic sur « Modifier ». */
+  -webkit-user-select:none; user-select:none;
 }
 .adm-table table{width:100%;border-collapse:collapse;font-size:13.5px}
 .adm-table th{

@@ -294,12 +294,15 @@
      rentre vraiment.
      ====================================================================== */
   Router.add('/a/credits', async function (params, query, view) {
-    view.innerHTML = '<div class="wrap page">' +
+    /* page() : l'enveloppe qui porte le thème sombre de l'administration.
+       Sans elle, cet écran reprenait la palette claire du site client et ses
+       cartes ressortaient en blanc au milieu du noir. */
+    view.innerHTML = page(
       head('Crédits des livreurs', 'Encaissez et rechargez les comptes') +
       '<div id="demandes"></div>' +
-      '<div class="search" style="margin-bottom:14px">' +
+      '<div class="adm-search">' + UI.icon('search', 18) +
         '<input class="input" id="q" placeholder="Rechercher un livreur…" autocomplete="off"></div>' +
-      '<div id="list"><div class="skel" style="height:180px"></div></div></div>';
+      '<div id="list"><div class="skel" style="height:180px"></div></div>');
 
     let term = '';
     let voirTout = false;          // demandes en attente, ou historique complet
