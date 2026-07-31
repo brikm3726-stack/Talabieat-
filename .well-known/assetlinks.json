@@ -23,9 +23,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "shop.talabi.twa",
+      "package_name": "shop.talabi.livreur",
       "sha256_cert_fingerprints": [
-        "B2:B1:6B:4C:63:BD:5E:5A:15:97:03:D1:C4:B0:A9:9A:5D:3E:D5:B9:BD:FB:B8:EC:A6:FC:39:37:4C:82:7C:BD"
+        "41:82:16:1D:9C:7A:DB:27:F9:7D:10:9D:72:BE:DD:33:93:78:0E:9F:93:DB:D5:EC:CC:7A:39:5A:61:A0:F4:7E"
       ]
     }
   }
