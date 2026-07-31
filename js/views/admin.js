@@ -285,6 +285,151 @@
   /* ======================================================================
      COMMANDES
      ====================================================================== */
+  /* ======================================================================
+     CRÉDITS DES LIVREURS
+
+     Le livreur paie d'avance : chaque course acceptée prélève la part
+     plateforme des frais de livraison. À zéro, il ne peut plus travailler.
+     Cet écran sert à encaisser et à recharger — c'est ici que l'argent
+     rentre vraiment.
+     ====================================================================== */
+  Router.add('/a/credits', async function (params, query, view) {
+    view.innerHTML = '<div class="wrap page">' +
+      head('Crédits des livreurs', 'Encaissez et rechargez les comptes') +
+      '<div class="search" style="margin-bottom:14px">' +
+        '<input class="input" id="q" placeholder="Rechercher un livreur…" autocomplete="off"></div>' +
+      '<div id="list"><div class="skel" style="height:180px"></div></div></div>';
+
+    let term = '';
+    const list = view.querySelector('#list');
+
+    async function load() {
+      const rows = await API.safe(() => API.driverCredits(), []);
+      const t = term.toLowerCase();
+      const vus = rows.filter(r => !t || (
+        ((r.profile && r.profile.full_name) || '').toLowerCase().indexOf(t) >= 0 ||
+        ((r.profile && r.profile.phone) || '').indexOf(t) >= 0 ||
+        ((r.profile && r.profile.email) || '').toLowerCase().indexOf(t) >= 0));
+
+      if (!vus.length) {
+        list.innerHTML = UI.empty('💳', 'Aucun livreur',
+          'Les comptes livreurs validés apparaîtront ici avec leur crédit.');
+        return;
+      }
+
+      const bloques = vus.filter(r => (r.credit_da || 0) <= 0).length;
+
+      list.innerHTML =
+        (bloques
+          ? '<div class="banner banner-warn" style="margin-bottom:12px">🚫 <div class="grow">' +
+            '<b>' + bloques + ' livreur' + (bloques > 1 ? 's' : '') + ' bloqué' + (bloques > 1 ? 's' : '') +
+            '</b> — crédit épuisé, ' + (bloques > 1 ? 'ils ne peuvent' : 'il ne peut') +
+            ' plus accepter de course.</div></div>'
+          : '') +
+        vus.map(r => {
+          const solde = r.credit_da || 0;
+          const p = r.profile || {};
+          return '<div class="card card-p" style="margin-bottom:10px' +
+              (solde <= 0 ? ';border-color:var(--danger)' : '') + '">' +
+            '<div class="row-between" style="gap:12px;flex-wrap:wrap">' +
+              '<div class="row" style="gap:12px">' +
+                UI.avatar(p.full_name, null, 42) +
+                '<div><b>' + U.esc(p.full_name || p.email || 'Livreur') + '</b>' +
+                  '<div class="tiny">' + U.esc(p.phone || '') +
+                    (r.zone && r.zone.name ? ' • ' + U.esc(r.zone.name) : '') +
+                    (r.validation_status !== 'approved'
+                      ? ' • <span class="tag tag-warn">non validé</span>' : '') +
+                  '</div></div>' +
+              '</div>' +
+              '<div class="row" style="gap:10px">' +
+                '<div style="text-align:right">' +
+                  '<div class="tiny">Crédit</div>' +
+                  '<b style="font-size:17px;color:' + (solde <= 0 ? 'var(--danger)' : 'inherit') + '">' +
+                    U.money(solde) + '</b></div>' +
+                '<button class="btn btn-primary btn-sm" data-load="' + U.esc(r.id) + '">Recharger</button>' +
+                '<button class="btn btn-ghost btn-sm" data-hist="' + U.esc(r.id) + '">Carnet</button>' +
+              '</div>' +
+            '</div></div>';
+        }).join('');
+
+      list.querySelectorAll('[data-load]').forEach(b => b.onclick = () =>
+        rechargeSheet(vus.find(x => x.id === b.dataset.load), load));
+      list.querySelectorAll('[data-hist]').forEach(b => b.onclick = () =>
+        carnetSheet(vus.find(x => x.id === b.dataset.hist)));
+    }
+
+    view.querySelector('#q').oninput = U.debounce(function () { term = this.value.trim(); load(); }, 300);
+    await load();
+  }, GUARD);
+
+  function rechargeSheet(r, onSaved) {
+    const p = (r && r.profile) || {};
+    UI.sheet({
+      title: 'Recharger ' + (p.full_name || ''),
+      subtitle: 'Crédit actuel : ' + U.money(r.credit_da || 0),
+      body: '<form id="rf" class="stack" novalidate>' +
+        '<div class="field"><label>Montant reçu (DA)</label>' +
+          '<input class="input" name="amount" type="number" step="100" value="2000" required>' +
+          '<div class="hint">Montant que le livreur vient de vous verser. ' +
+            'Un montant négatif corrige une erreur de saisie.</div></div>' +
+        '<div class="field"><label>Note <span class="tiny">(facultatif)</span></label>' +
+          '<input class="input" name="note" placeholder="Ex : espèces, reçu n°12"></div>' +
+        '<div class="row" style="gap:8px;flex-wrap:wrap">' +
+          [1000, 2000, 3000, 5000].map(v =>
+            '<button type="button" class="btn btn-soft btn-sm" data-quick="' + v + '">' +
+              U.money(v) + '</button>').join('') +
+        '</div>' +
+      '</form>',
+      footer: '<button class="btn btn-primary btn-block" id="ok">Enregistrer le versement</button>',
+      onMount(el, api) {
+        const champ = el.querySelector('[name=amount]');
+        el.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => { champ.value = b.dataset.quick; });
+
+        el.querySelector('#ok').onclick = async function () {
+          const d = UI.formData(el.querySelector('#rf'));
+          const montant = Math.round(+d.amount || 0);
+          if (!montant) return UI.err('Indiquez un montant');
+          UI.busy(this, true);
+          try {
+            const solde = await API.rechargeDriver(r.id, montant, d.note || null);
+            api.close();
+            UI.ok('Versement enregistré', 'Nouveau crédit : ' + U.money(solde));
+            onSaved && onSaved();
+          } catch (e) { UI.busy(this, false); UI.err(e.message); }
+        };
+      }
+    });
+  }
+
+  function carnetSheet(r) {
+    const p = (r && r.profile) || {};
+    const m = UI.sheet({
+      title: 'Carnet de ' + (p.full_name || ''),
+      subtitle: 'Crédit actuel : ' + U.money(r.credit_da || 0),
+      body: '<div id="w"><div class="skel" style="height:120px"></div></div>'
+    });
+
+    API.safe(() => API.driverWallet(r.id, 60), []).then(lignes => {
+      const box = m.el.querySelector('#w');
+      if (!box) return;
+      box.innerHTML = lignes.length
+        ? lignes.map(l =>
+            '<div class="oline"><span class="l"><b>' + U.esc(LIB_MVT[l.kind] || l.kind) + '</b>' +
+              (l.note ? '<br><span class="tiny">' + U.esc(l.note) + '</span>' : '') +
+              '<br><span class="tiny">' + U.dt(l.created_at) + '</span></span>' +
+            '<span style="text-align:right"><b style="color:' +
+              (l.amount >= 0 ? 'var(--ok)' : 'var(--danger)') + '">' +
+              (l.amount >= 0 ? '+' : '') + U.money(l.amount) + '</b>' +
+            '<br><span class="tiny">reste ' + U.money(l.balance_after) + '</span></span></div>').join('')
+        : UI.empty('🧾', 'Aucun mouvement', 'Ce livreur n’a encore ni recharge ni course.');
+    });
+  }
+
+  const LIB_MVT = {
+    recharge: 'Recharge', commission: 'Commission de course',
+    remboursement: 'Remboursement', ajustement: 'Correction'
+  };
+
   Router.add('/a/orders', async function (params, query, view) {
     view.innerHTML = page(
       head('Toutes les commandes', 'Suivi global de la plateforme') +

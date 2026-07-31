@@ -38,7 +38,8 @@
       { p: '/d',             i: 'chart',    l: 'Tableau' },
       { p: '/d/available',   i: 'pin',      l: 'Courses' },
       { p: '/d/active',      i: 'scooter',  l: 'En cours' },
-      { p: '/d/history',     i: 'history',  l: 'Historique' },
+      { p: '/d/credit',      i: 'wallet',   l: 'Crédit' },
+      { p: '/d/history',     i: 'history',  l: 'Historique', c: 'Passé' },
       { p: '/account',       i: 'user',     l: 'Compte' }
     ],
     /* `c` : libellé court pour la barre du bas. Six rubriques sur 390 px font
@@ -47,6 +48,7 @@
       { p: '/a',             i: 'chart',    l: 'Tableau' },
       { p: '/a/restaurants', i: 'store',    l: 'Restaurants',  c: 'Restos' },
       { p: '/a/drivers',     i: 'scooter',  l: 'Livreurs' },
+      { p: '/a/credits',     i: 'wallet',   l: 'Crédits' },
       { p: '/a/orders',      i: 'receipt',  l: 'Commandes' },
       { p: '/a/users',       i: 'users',    l: 'Utilisateurs', c: 'Comptes' },
       // Réglages manquait ici : la page n'était atteignable que par la barre

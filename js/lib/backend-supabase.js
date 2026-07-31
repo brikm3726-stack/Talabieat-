@@ -634,6 +634,42 @@
       return unwrap(await sb.from('profiles').update(body).eq('id', id).select().single());
     },
 
+    /* ------------------------------------------------ CRÉDIT DU LIVREUR */
+
+    /** Mouvements du livreur connecté, du plus récent au plus ancien. */
+    async myWallet(limit) {
+      if (!currentUser) return [];
+      return unwrap(await sb.from('driver_wallet').select('*')
+        .eq('driver_id', currentUser.id)
+        .order('created_at', { ascending: false }).limit(limit || 30));
+    },
+
+    /** Soldes de tous les livreurs — vue administrateur. */
+    async driverCredits() {
+      const rows = unwrap(await sb.from('drivers')
+        .select('id, credit_da, status, validation_status, zone_id, ' +
+                'profile:profiles!drivers_id_fkey(id, full_name, phone, email), zone:zones(name)')
+        .order('credit_da', { ascending: true }));
+      return rows || [];
+    },
+
+    /** Carnet d'un livreur — vue administrateur. */
+    async driverWallet(driverId, limit) {
+      return unwrap(await sb.from('driver_wallet').select('*')
+        .eq('driver_id', driverId)
+        .order('created_at', { ascending: false }).limit(limit || 50));
+    },
+
+    /** Recharge (ou correction, si le montant est négatif). */
+    async rechargeDriver(driverId, amount, note) {
+      const r = await sb.rpc('driver_recharge', {
+        p_driver: driverId, p_amount: Math.round(+amount), p_note: note || null
+      });
+      if (r.error) throw new Error(translate(r.error.message));
+      emit('drivers');
+      return r.data;
+    },
+
     async adminStats() {
       const count = async (table, build) => {
         let q = sb.from(table).select('id', { count: 'exact', head: true });

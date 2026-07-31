@@ -95,6 +95,8 @@
             statut === 'busy' ? '<div class="tiny" style="margin-top:10px">Terminez votre livraison en cours pour redevenir disponible.</div>' : '') +
         '</div>' +
 
+        carteCredit(d) +
+
         '<div class="grid grid-stats drv-stats" style="margin-top:14px">' +
           drvStat('📅', 'Courses aujourd’hui', todayDone.length, 'Aujourd’hui') +
           drvStat('📦', 'Total livraisons', (d && d.total_deliveries) || 0, 'Livraisons effectuées') +
@@ -147,6 +149,108 @@
     const timer = setInterval(load, 25000);
     return () => { off(); clearInterval(timer); };
   }, GUARD);
+
+  /* ----------------------------------------------------------------------
+     LE CRÉDIT
+
+     Chaque course acceptée coûte la part plateforme des frais de livraison,
+     prélevée à l'instant où le livreur accepte. À zéro, plus de course : le
+     blocage est dans la base, pas ici — cet écran ne fait que l'annoncer
+     avant qu'il ne survienne, pour que personne ne soit pris de court.
+     ---------------------------------------------------------------------- */
+  function carteCredit(d) {
+    const solde = (d && d.credit_da) || 0;
+    const alerte = (Store.settings && Store.settings.credit_alert_da) != null
+      ? +Store.settings.credit_alert_da : 200;
+    const bloque = solde <= 0;
+    const bas = !bloque && solde <= alerte;
+
+    return '<div class="card card-p" style="margin-top:14px' +
+        (bloque ? ';border-color:var(--danger)' : bas ? ';border-color:var(--warn)' : '') + '">' +
+      '<div class="row-between">' +
+        '<div class="row" style="gap:12px">' +
+          '<span style="font-size:26px">' + (bloque ? '🚫' : bas ? '⚠️' : '💳') + '</span>' +
+          '<div><div class="tiny">Mon crédit</div>' +
+            '<div class="h2">' + U.money(solde) + '</div></div>' +
+        '</div>' +
+        '<a class="btn btn-soft btn-sm" href="#/d/credit">Détail</a>' +
+      '</div>' +
+      (bloque
+        ? '<div class="tiny" style="margin-top:10px"><b>Vous ne pouvez plus accepter de course.</b> ' +
+          'Rechargez votre crédit auprès de la plateforme pour reprendre.</div>'
+        : bas
+          ? '<div class="tiny" style="margin-top:10px">Crédit bas : pensez à recharger avant d’être bloqué.</div>'
+          : '<div class="tiny" style="margin-top:10px">La commission de chaque course est prélevée ici ' +
+            'au moment où vous l’acceptez.</div>') +
+    '</div>';
+  }
+
+  /* ======================================================================
+     MON CRÉDIT — solde et carnet des mouvements
+     ====================================================================== */
+  Router.add('/d/credit', async function (params, query, view) {
+    view.innerHTML = '<div class="driver-page"><div class="wrap page">' +
+      '<div class="card card-p drv-panel">' +
+        drvHead('💳', 'Mon crédit', 'Commission prélevée à chaque course acceptée') +
+        '<div id="box"><div class="skel" style="height:150px"></div></div>' +
+      '</div></div></div>';
+
+    const box = view.querySelector('#box');
+
+    async function load() {
+      const d = await API.safe(() => API.getDriver(), null);
+      const lignes = await API.safe(() => API.myWallet(40), []);
+      const solde = (d && d.credit_da) || 0;
+
+      box.innerHTML =
+        '<div class="card card-p" style="text-align:center' +
+          (solde <= 0 ? ';border-color:var(--danger)' : '') + '">' +
+          '<div class="tiny">Crédit disponible</div>' +
+          '<div style="font-size:34px;font-weight:900;margin-top:4px">' + U.money(solde) + '</div>' +
+          (solde <= 0
+            ? '<div class="banner banner-warn" style="margin-top:12px">🚫 <div class="grow">' +
+              'Compte bloqué : rechargez pour accepter de nouvelles courses.</div></div>'
+            : '') +
+          '<div class="tiny" style="margin-top:10px">Pour recharger, contactez la plateforme au ' +
+            '<a href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')) + '">' +
+            U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</a>.</div>' +
+        '</div>' +
+
+        '<div class="h3" style="margin:16px 0 8px">Mouvements</div>' +
+        (lignes.length
+          ? lignes.map(l =>
+              '<div class="oline"><span class="l">' +
+                '<b>' + U.esc(LIB_MOUVEMENT[l.kind] || l.kind) + '</b>' +
+                (l.note ? '<br><span class="tiny">' + U.esc(l.note) + '</span>' : '') +
+                '<br><span class="tiny">' + U.dt(l.created_at) + '</span>' +
+              '</span>' +
+              '<span style="text-align:right">' +
+                '<b style="color:' + (l.amount >= 0 ? 'var(--ok)' : 'var(--danger)') + '">' +
+                  (l.amount >= 0 ? '+' : '') + U.money(l.amount) + '</b>' +
+                '<br><span class="tiny">reste ' + U.money(l.balance_after) + '</span>' +
+              '</span></div>').join('')
+          : UI.empty('🧾', 'Aucun mouvement',
+              'Vos recharges et vos commissions apparaîtront ici.'));
+    }
+
+    await load();
+    const off = API.onChange(t => { if (t === 'drivers' || t === 'orders' || t === '*') load(); });
+    return () => off();
+  }, GUARD);
+
+  /** Part plateforme sur les frais de livraison — le même calcul qu'en base. */
+  function commissionDe(o) {
+    const part = (Store.settings && Store.settings.driver_share != null)
+      ? +Store.settings.driver_share : 0.80;
+    return Math.max(0, Math.round((o.delivery_fee || 0) * (1 - part)));
+  }
+
+  const LIB_MOUVEMENT = {
+    recharge: 'Recharge',
+    commission: 'Commission de course',
+    remboursement: 'Remboursement',
+    ajustement: 'Correction'
+  };
 
   /* ======================================================================
      COURSES DISPONIBLES
@@ -452,6 +556,12 @@
       '<div class="oline"><span class="l">Frais de livraison</span><b>' + U.money(o.delivery_fee) + '</b></div>' +
       '<div class="oline" style="font-size:15px"><span class="l"><b>Votre gain</b></span>' +
         '<b class="price">' + U.money(o.driver_earning) + '</b></div>' +
+
+      /* Ce que la course va coûter en crédit, dit AVANT d'accepter. Découvrir
+         le prélèvement après coup, c'est la première source de litige. */
+      (isMine ? '' :
+        '<div class="oline"><span class="l">Commission prélevée</span>' +
+          '<b>− ' + U.money(commissionDe(o)) + '</b></div>') +
 
       '<div class="row" style="gap:9px;margin-top:13px">' +
         (isMine
