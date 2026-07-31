@@ -169,6 +169,27 @@
       return true;
     },
 
+    /**
+     * Envoie un code à usage unique sur l'email d'un compte EXISTANT.
+     * shouldCreateUser: false — sans lui, saisir une adresse inconnue créerait
+     * un compte au lieu de refuser, et la page « sécurité » deviendrait une
+     * porte d'inscription déguisée.
+     */
+    async sendEmailCode(email) {
+      unwrap(await sb.auth.signInWithOtp({
+        email: email, options: { shouldCreateUser: false }
+      }));
+      return true;
+    },
+
+    /** Vérifie ce code : la session repart à neuf, ce qui autorise la suite. */
+    async verifyEmailCode(email, code) {
+      const token = String(code || '').replace(/\D/g, '');
+      const data = unwrap(await sb.auth.verifyOtp({ email: email, token: token, type: 'email' }));
+      currentUser = data.user;
+      return { user: data.user };
+    },
+
     async updatePassword(newPassword) {
       unwrap(await sb.auth.updateUser({ password: newPassword }));
       return true;

@@ -31,15 +31,27 @@
           '</div>' +
         '</div>' +
 
-        /* ---- accès rapide ---- */
+        /* ---- accès rapide ----
+           Le client n'a rien à faire ici de raccourcis vers les commandes ou
+           le catalogue : la barre du bas les lui donne déjà, à un pouce. Cette
+           page ne garde que ce qui lui est propre — ses informations, et sa
+           sécurité. Les comptes professionnels, eux, n'ont pas cette barre
+           complète : leurs raccourcis restent utiles. */
         (p.role === 'restaurant'
           ? quickLinks([['#/r', 'chart', 'Tableau de bord'], ['#/r/menu', 'pizza', 'Gérer mon menu'], ['#/r/profile', 'store', 'Ma fiche restaurant']])
           : p.role === 'driver'
           ? quickLinks([['#/d', 'chart', 'Tableau de bord'], ['#/d/profile', 'scooter', 'Mon profil livreur'], ['#/d/history', 'history', 'Historique']])
           : p.role === 'admin'
           ? quickLinks([['#/a', 'chart', 'Tableau de bord'], ['#/a/settings', 'settings', 'Réglages plateforme']])
-          : quickLinks([['#/orders', 'package', 'Mes commandes', 'Suivre mes commandes'],
-                        ['#/restaurants', 'utensils', 'Commander', 'Découvrir les restaurants']])) +
+          : '') +
+
+        /* ---- sécurité : en tête, avant le formulaire ---- */
+        '<a class="card card-p acc-block acc-secu" href="#/securite" style="margin-top:16px">' +
+          '<span class="ic">' + UI.icon('lock', 20) + '</span>' +
+          '<span class="grow"><b>Sécurité</b>' +
+            '<span class="tiny">Modifier mon mot de passe, vérifié par email</span></span>' +
+          '<span class="acc-chev">' + UI.icon('chevron', 20) + '</span>' +
+        '</a>' +
 
         /* ---- informations personnelles ---- */
         '<form id="pf" class="card card-p stack acc-block" style="margin-top:16px">' +
@@ -183,6 +195,114 @@
     }
 
     await paint();
+  }, { auth: true });
+
+  /* ======================================================================
+     SÉCURITÉ — changer son mot de passe, prouvé par email
+
+     Trois étapes, sur un seul écran : on demande un code, on le saisit, on
+     choisit le nouveau mot de passe. Le code prouve que la boîte mail est
+     bien celle de la personne assise devant l'écran — sans lui, quelqu'un
+     qui trouverait un téléphone déverrouillé changerait le mot de passe et
+     prendrait le compte.
+     ====================================================================== */
+  Router.add('/securite', async function (params, query, view) {
+    const p = Store.profile || {};
+    let etape = 'demande';        // demande → code → fini
+
+    function paint() {
+      view.innerHTML = '<div class="account-page">' +
+        '<span class="acc-dots a" aria-hidden="true"></span>' +
+        '<div class="wrap-sm page">' +
+
+        '<div class="row" style="gap:10px;margin-bottom:14px">' +
+          '<a class="icon-round" href="#/account" title="Retour">' + UI.icon('chevron', 18) + '</a>' +
+          '<div class="h1" style="font-size:23px">Sécurité</div>' +
+        '</div>' +
+
+        '<div class="card card-p acc-block">' +
+          bloc('lock', 'Mot de passe') +
+
+          (etape === 'demande'
+            ? '<p class="sub">Pour changer votre mot de passe, nous envoyons un code à ' +
+                '<b>' + U.esc(p.email || '') + '</b>. Il prouve que cette boîte mail est bien la vôtre.</p>' +
+              '<button class="btn btn-primary btn-block btn-lg" id="envoyer" style="margin-top:14px">' +
+                UI.icon('mail', 18) + ' Recevoir le code</button>'
+
+            : '<p class="sub">Code envoyé à <b>' + U.esc(p.email || '') + '</b>. ' +
+                'Valable 1 heure — pensez à regarder dans les spams.</p>' +
+              '<form id="sf" class="stack" style="margin-top:14px" novalidate>' +
+                '<div class="field"><label>Code reçu par email</label>' +
+                  '<input class="input input-code" name="code" inputmode="numeric" ' +
+                    'autocomplete="one-time-code" maxlength="10" placeholder="— — — — — —" required></div>' +
+                '<div class="field"><label>Nouveau mot de passe</label>' +
+                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
+                  '<input class="input" type="password" name="password" ' +
+                    'placeholder="6 caractères minimum" autocomplete="new-password" required></div></div>' +
+                '<div class="field"><label>Confirmer le mot de passe</label>' +
+                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
+                  '<input class="input" type="password" name="confirm" ' +
+                    'placeholder="Retapez-le" autocomplete="new-password" required></div></div>' +
+                '<button class="btn btn-primary btn-block btn-lg" type="submit">' +
+                  UI.icon('save', 18) + ' Enregistrer le nouveau mot de passe</button>' +
+              '</form>' +
+              '<button class="btn btn-ghost btn-block" id="renvoyer" style="margin-top:10px">' +
+                'Je n’ai rien reçu — renvoyer un code</button>') +
+        '</div>' +
+
+        '<div class="tiny center" style="margin-top:14px">Vous vous connectez avec Google ? ' +
+          'Définir un mot de passe ici vous ouvre une seconde façon d’entrer, ' +
+          'sans rien retirer à la première.</div>' +
+
+      '</div></div>';
+
+      const env = view.querySelector('#envoyer');
+      if (env) env.onclick = demander;
+
+      const re = view.querySelector('#renvoyer');
+      if (re) re.onclick = demander;
+
+      const f = view.querySelector('#sf');
+      if (f) f.onsubmit = enregistrer;
+    }
+
+    async function demander() {
+      const btn = view.querySelector('#envoyer') || view.querySelector('#renvoyer');
+      UI.busy(btn, true, 'Envoi…');
+      try {
+        await API.sendEmailCode(p.email);
+        etape = 'code';
+        paint();
+        UI.ok('Code envoyé', 'Vérifiez votre boîte mail, et les spams.');
+      } catch (e) { UI.busy(btn, false); UI.err(e.message); }
+    }
+
+    async function enregistrer(e) {
+      e.preventDefault();
+      const btn = this.querySelector('[type=submit]');
+      const d = UI.formData(this);
+      const code = String(d.code || '').replace(/\D/g, '');
+
+      if (code.length < 4) return UI.err('Saisissez le code reçu par email');
+      if ((d.password || '').length < 6) return UI.err('Mot de passe trop court', '6 caractères minimum');
+      if (d.password !== d.confirm) return UI.err('Les deux mots de passe ne correspondent pas');
+
+      UI.busy(btn, true, 'Vérification…');
+      try {
+        /* Le code d'abord : il rouvre une session fraîche, et c'est elle qui
+           autorise le changement. Dans l'autre ordre, on modifierait le mot de
+           passe sans avoir rien prouvé. */
+        await API.verifyEmailCode(p.email, code);
+        await API.updatePassword(d.password);
+        UI.ok('Mot de passe modifié', 'Il est actif dès maintenant.');
+        Router.go('/account', true);
+      } catch (err) {
+        UI.busy(btn, false);
+        UI.err(err.message);
+      }
+    }
+
+    paint();
   }, { auth: true });
 
   /* ------------------------------------------------------------ helpers */

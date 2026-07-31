@@ -758,6 +758,23 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .account-page .btn-soft:hover{background:var(--brand-grad);color:#fff;transform:translateY(-1px)}
 .account-page .btn .ico{margin-right:2px}
 
+/* Carte « Sécurité » : la même allure qu'une ligne de réglage, en plus large.
+   Elle est posée avant le formulaire, parce qu'on vient rarement ici pour
+   corriger son nom — on y vient quand on s'inquiète pour son compte. */
+.acc-secu{
+  display:flex;align-items:center;gap:14px;
+  transition:transform .3s cubic-bezier(.22,1,.36,1), border-color .3s ease, box-shadow .3s ease;
+}
+.acc-secu .ic{
+  width:44px;height:44px;border-radius:14px;flex:none;display:grid;place-items:center;
+  background:var(--brand-soft);color:var(--brand);
+}
+.acc-secu:hover{
+  transform:scale(1.01);border-color:#FFD9C2;
+  box-shadow:0 10px 24px -14px rgba(255,107,53,.5);
+}
+.acc-secu .acc-chev{margin-left:auto;color:var(--muted)}
+
 .acc-link{
   display:flex;align-items:center;gap:13px;padding:14px 15px;
   border:1px solid var(--line);border-radius:16px;background:#fff;
@@ -1176,8 +1193,30 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
 .notif-item.unread{background:var(--brand-soft)}
 .notif-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:17px;flex:none;background:#fff;border:1px solid var(--line)}
 
-.fade-in{animation:fadeUp .3s cubic-bezier(.22,1,.36,1)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* ------------------------------------------------- changement de page
+   Une page qui apparaît d'un coup se lit comme un à-coup, même quand elle est
+   instantanée. Le fondu ne sert pas à faire joli : il donne à l'œil le temps
+   de comprendre que le contenu a changé, au lieu de le lui imposer. 380 ms —
+   assez pour être perçu, assez court pour ne jamais faire attendre. */
+#view{position:relative}
+.fade-in{animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* la page sortante quitte le flux : les deux se croisent au lieu de se pousser */
+.view-out{
+  position:absolute;inset:0;pointer-events:none;
+  animation:fadeOut .24s ease forwards;
+}
+@keyframes fadeOut{to{opacity:0;transform:translateY(-8px)}}
+
+/* Rafraîchissement d'une liste sans changer de page : elle s'estompe au lieu
+   de disparaître. C'est ce qui faisait « sauter » l'écran au clic sur une
+   catégorie — la liste était remplacée par des squelettes plus courts. */
+.en-chargement{opacity:.42;transition:opacity .2s ease;pointer-events:none}
+
+@media(prefers-reduced-motion:reduce){
+  .fade-in,.view-out{animation-duration:.01ms}
+}
 
 .role-card{
   border:2px solid var(--line);border-radius:var(--r-lg);padding:16px;cursor:pointer;transition:.18s;

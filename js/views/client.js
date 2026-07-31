@@ -39,8 +39,31 @@
     }
 
     async function load() {
-      results.innerHTML = UI.skeletonCards(4);
+      /* Premier affichage : des squelettes, il n'y a rien à conserver.
+         Changement de filtre : on garde la liste en place, estompée, et on
+         fige sa hauteur le temps du chargement. Sans ça, la remplacer par
+         quatre squelettes plus courts faisait remonter la page d'un coup —
+         c'est ce saut qu'on voyait en passant de « Tout » à « Pizza ». */
+      const dejaRempli = results.children.length > 0 && !results.querySelector('.skel');
+      if (dejaRempli) {
+        results.style.minHeight = results.offsetHeight + 'px';
+        results.classList.add('en-chargement');
+      } else {
+        results.innerHTML = UI.skeletonCards(4);
+      }
 
+      const fini = () => {
+        results.classList.remove('en-chargement');
+        // la hauteur n'est figée que pendant le chargement, sinon la liste ne
+        // pourrait plus jamais raccourcir
+        requestAnimationFrame(() => { results.style.minHeight = ''; });
+      };
+      // quoi qu'il arrive — retour anticipé, résultat vide, erreur — la liste
+      // retrouve son état normal
+      try { await charger(); } finally { fini(); }
+    }
+
+    async function charger() {
       if (mode === 'dish') {
         if (term.trim().length < 2) {
           results.innerHTML = UI.empty('🔎', 'Recherchez un plat', 'Saisissez au moins 2 lettres (pizza, tacos, chawarma…).');

@@ -110,7 +110,19 @@
          Avec un conteneur par affichage, elle écrit dans un élément détaché du
          document : sans effet, et sans casse. */
       const hote = document.getElementById('view');
-      hote.innerHTML = '';
+
+      /* Fondu enchaîné plutôt que remplacement sec.
+         L'ancienne page était effacée d'un coup, puis la nouvelle apparaissait :
+         entre les deux, un vide blanc d'une fraction de seconde, et l'impression
+         que l'écran « saute ». On la sort du flux le temps qu'elle s'efface, et
+         les deux se croisent — c'est ce croisement qui donne l'impression de
+         fluidité, pas la durée. */
+      const sortante = hote.firstElementChild;
+      if (sortante) {
+        sortante.classList.add('view-out');
+        setTimeout(() => { try { sortante.remove(); } catch (e) {} }, 260);
+      }
+
       const view = document.createElement('div');
       view.className = 'view-in fade-in';
       hote.appendChild(view);
