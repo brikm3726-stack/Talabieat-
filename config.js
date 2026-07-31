@@ -20,7 +20,7 @@ window.TALABI_CONFIG = {
   // console Google Cloud. Elle part dans le navigateur de chaque visiteur —
   // c'est inévitable pour afficher une carte — donc la restriction est sa
   // seule protection. Vide : le site retombe sur la saisie GPS sans carte.
-  GOOGLE_MAPS_KEY: '',
+  GOOGLE_MAPS_KEY: 'AIzaSyD6jN6hL3eZVG1Ej1c4FwdmRj3P0L6Ilv4',
 
   // ---- Identité ---------------------------------------------------------
   APP_NAME: 'Talabi',
