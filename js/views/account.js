@@ -164,13 +164,21 @@
         paint();
       });
 
-      view.querySelector('#logout').onclick = async () => {
-        if (!(await UI.confirm('Se déconnecter ?', 'Vous devrez vous reconnecter pour commander.', 'Déconnexion', true))) return;
-        await API.signOut();
-        Store.clearCart(true);
-        await Store.refreshProfile();
-        UI.ok('À bientôt !');
-        Router.go('/', true);
+      view.querySelector('#logout').onclick = async function () {
+        if (!(await UI.confirm('Se déconnecter ?', 'Vous devrez vous reconnecter pour continuer.', 'Déconnexion', true))) return;
+        UI.busy(this, true, 'Déconnexion…');
+        try {
+          await API.signOut();
+          Store.clearCart(true);
+          await Store.refreshProfile();
+          UI.ok('À bientôt !');
+          Router.go(App.est('client') ? '/' : '/login', true);
+        } catch (e) {
+          /* Rien ne doit retenir quelqu'un dans son compte. Si un appel a
+             echoué en route, on recharge : la session locale est déjà effacée. */
+          console.error(e);
+          location.reload();
+        }
       };
     }
 

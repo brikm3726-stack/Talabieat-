@@ -304,6 +304,21 @@
   Router.add('/motdepasse', async function () { return Router.go('/login', true); });
 
   /* ======================================================================
+     SORTIE DE SECOURS
+
+     Une déconnexion qui dépend d'un bouton dépend aussi de l'écran qui le
+     porte, du menu qui y mène, et de la modale qui la confirme. Cette adresse
+     ne dépend de rien : on la tape, elle déconnecte, sans question.
+     ====================================================================== */
+  Router.add('/logout', async function (params, query, view) {
+    view.innerHTML = '<div class="wrap-sm page center" style="padding-top:60px">' +
+      '<div class="spinner dark" style="margin:0 auto"></div>' +
+      '<p class="sub" style="margin-top:14px">Déconnexion…</p></div>';
+    try { await API.signOut(); Store.clearCart(true); await Store.refreshProfile(); } catch (e) {}
+    Router.go('/login', true);
+  });
+
+  /* ======================================================================
      BIENVENUE — ce que Google ne nous donne pas
 
      Google fournit le nom et l'adresse email, rien d'autre. Or on ne peut ni

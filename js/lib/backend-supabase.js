@@ -174,7 +174,34 @@
       return true;
     },
 
-    async signOut() { await sb.auth.signOut(); currentUser = null; emit('session'); },
+    /**
+     * Se déconnecter doit TOUJOURS aboutir.
+     *
+     * L'appel au serveur peut échouer — jeton déjà expiré, réseau coupé — et
+     * l'erreur remontait alors jusqu'à l'appelant : le bouton ne faisait rien,
+     * sans le moindre message, et l'utilisateur restait enfermé dans son
+     * compte. Or une déconnexion est locale par nature : effacer la session de
+     * cet appareil ne demande la permission de personne.
+     */
+    async signOut() {
+      try { await sb.auth.signOut(); }
+      catch (e) { console.warn('déconnexion serveur impossible :', e && e.message); }
+
+      // filet : efface la session de cet appareil, même si le serveur a refusé
+      try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
+
+      // dernier recours : on retire la clé à la main
+      try {
+        const prefixe = 'sb-' + String(w.TALABI_CONFIG.SUPABASE_URL).replace(/^https?:\/\//, '').split('.')[0];
+        Object.keys(localStorage)
+          .filter(k => k.indexOf(prefixe) === 0)
+          .forEach(k => localStorage.removeItem(k));
+      } catch (e) {}
+
+      currentUser = null;
+      emit('session');
+      return true;
+    },
 
     /* ----------------------------------------------------------- PROFIL */
     async getProfile() {
