@@ -237,9 +237,9 @@
       '</div>');
 
     const notes = {
-      restaurant: '<div class="banner banner-info">🏪 Aucun restaurant n’est mis en ligne automatiquement. ' +
-        'Après l’inscription, complétez votre fiche : nous vérifions que l’établissement existe réellement, ' +
-        'et <b>votre compte est validé sous 24 h</b>.</div>',
+      restaurant: '<div class="banner banner-info">🏪 Après l’inscription, complétez votre fiche — ' +
+        'nom, adresse, position sur la carte, horaires — puis montez votre carte. ' +
+        '<b>Votre restaurant est visible des clients dès que la fiche est enregistrée.</b></div>',
       driver:     '<div class="banner banner-warn">🛵 Votre compte livreur est vérifié par un administrateur ' +
         'avant de pouvoir accepter des courses. <b>Comptez 24 h.</b></div>'
     };
@@ -513,32 +513,27 @@
      Aucun compte professionnel n'est actif sans validation d'un administrateur.
      ---------------------------------------------------------------------- */
   function pendingScreen(view, role) {
-    const resto = role === 'restaurant';
-    const suite = resto ? '/r/profile' : '/d/profile';
+    /* Un restaurant est en ligne dès qu'il a rempli sa fiche : plus rien à
+       attendre, on l'envoie directement au travail. Un livreur, lui, reste
+       validé à la main — il manipulera l'argent des clients. */
+    if (role === 'restaurant') return Router.go('/r/profile', true);
 
     view.innerHTML = shell(
       'Compte créé — en attente de validation',
-      resto ? 'Votre restaurant n’est pas encore visible des clients'
-            : 'Vous ne pouvez pas encore accepter de courses',
+      'Vous ne pouvez pas encore accepter de courses',
       '<div class="card card-p stack">' +
         '<div class="banner banner-warn">⏳ <div><b>Validation sous 24 h.</b><br>' +
-          (resto
-            ? 'Nous vérifions que votre établissement existe réellement avant de le mettre en ligne. '
-            : 'Un administrateur vérifie votre profil avant de vous ouvrir les courses. ') +
+          'Un administrateur vérifie votre profil avant de vous ouvrir les courses. ' +
           'Vous recevrez une notification dès que c’est fait.</div></div>' +
 
         '<div class="h3">En attendant, préparez tout</div>' +
         '<ol class="stack" style="gap:8px;padding-left:18px;margin:0;font-size:14px">' +
-          (resto
-            ? '<li>Complétez votre fiche : logo, photo de couverture, adresse et position sur la carte.</li>' +
-              '<li>Montez votre menu : plats, photos, prix, formats et suppléments.</li>' +
-              '<li>Dès la validation, votre restaurant apparaît et les commandes arrivent.</li>'
-            : '<li>Renseignez votre véhicule, votre quartier et votre téléphone.</li>' +
-              '<li>Dès la validation, mettez-vous « disponible » pour voir les courses.</li>') +
+          '<li>Renseignez votre véhicule, votre quartier et votre téléphone.</li>' +
+          '<li>Rechargez votre portefeuille : la commission de chaque course y est prélevée.</li>' +
+          '<li>Dès la validation, mettez-vous « disponible » pour voir les courses.</li>' +
         '</ol>' +
 
-        '<a class="btn btn-primary btn-block btn-lg" href="#' + suite + '">' +
-          (resto ? 'Compléter ma fiche restaurant' : 'Compléter mon profil livreur') + '</a>' +
+        '<a class="btn btn-primary btn-block btn-lg" href="#/d/profile">Compléter mon profil livreur</a>' +
         '<a class="btn btn-ghost btn-block" href="#/">Retour à l’accueil</a>' +
       '</div>');
   }

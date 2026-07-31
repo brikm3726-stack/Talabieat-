@@ -609,7 +609,7 @@
       list.innerHTML = '<div class="adm-table"><table><thead><tr>' +
         '<th>Utilisateur</th><th>Rôle</th><th>Téléphone</th><th>Zone</th><th>Statut</th><th>Inscrit</th><th>Actions</th>' +
         '</tr></thead><tbody>' +
-        rows.map(u => '<tr>' +
+        rows.map(u => '<tr' + (u.is_blocked ? ' class="bloque"' : '') + '>' +
           '<td class="tete"><div class="adm-user">' + UI.avatar(u.full_name, u.avatar_url, 38) +
             '<div><b>' + U.esc(u.full_name || '—') + '</b>' +
             '<div class="tiny">' + U.esc(u.email || '') + '</div></div></div></td>' +

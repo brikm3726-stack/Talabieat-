@@ -39,6 +39,12 @@
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
+
+/* Le voile gris-blanc que les navigateurs mobiles posent sur tout élément
+   touché. Sur les écrans sombres de l'espace administrateur, il éclaircissait
+   toute la ligne au moindre effleurement pendant le défilement. Nos boutons
+   ont déjà leur propre retour visuel. */
+*{-webkit-tap-highlight-color:transparent}
 body{
   font-family:var(--font);
   background:var(--bg); color:var(--ink);
@@ -1503,7 +1509,18 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 .adm-table td{padding:14px 16px;border-bottom:1px solid #1C1F25;color:#C6CCD6;vertical-align:middle}
 .adm-table tbody tr:last-child td{border-bottom:none}
 .adm-table tbody tr{transition:background .18s ease}
-.adm-table tbody tr:hover{background:#16191E}
+
+/* Le survol n'existe qu'à la souris. Sur un téléphone, un doigt qui touche une
+   ligne laissait le fond de survol collé dessus jusqu'au tap suivant. */
+@media(hover:hover){
+  .adm-table tbody tr:hover{background:#16191E}
+}
+
+/* Compte bloqué : la ligne est teintée de rouge, mais le texte garde sa
+   couleur claire. Un fond rouge plein rendait les noms illisibles. */
+.adm-table tbody tr.bloque{background:rgba(240,68,56,.12);box-shadow:inset 3px 0 0 #F04438}
+.adm-table tbody tr.bloque td{color:#E6C3C0}
+.adm-table tbody tr.bloque .adm-user b{color:#fff}
 .adm-table .ic-cell{white-space:nowrap}
 .adm-table .ic-cell .ico{color:#6F7684;margin-right:2px}
 .adm-table .vide{color:#4E545E}

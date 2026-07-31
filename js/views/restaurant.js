@@ -85,13 +85,15 @@
       return '<div class="card card-p" style="text-align:center">' +
         '<div style="font-size:42px">🏪</div>' +
         '<div class="h2" style="margin-top:10px">Créez la fiche de votre restaurant</div>' +
-        '<p class="sub" style="margin-top:8px">Nom, adresse, horaires, logo… Votre fiche sera ensuite validée par notre équipe.</p>' +
+        '<p class="sub" style="margin-top:8px">Nom, adresse, horaires, logo… Dès qu’elle est enregistrée, ' +
+          'votre restaurant apparaît chez les clients de votre quartier.</p>' +
         '<a class="btn btn-primary btn-lg" style="margin-top:16px" href="#/r/profile">Commencer</a></div>';
     }
+    /* Le statut « en attente » n'existe plus pour les nouvelles fiches, mais
+       d'anciennes peuvent encore le porter le temps de la mise à jour. */
     if (rest.status === 'pending') {
-      return '<div class="banner banner-warn" style="margin-bottom:16px">⏳ Votre restaurant est en attente de validation. ' +
-        'Nous vérifions que l’établissement existe réellement : <b>votre compte sera validé sous 24 h</b>. ' +
-        'Vous pouvez déjà préparer votre menu — il sera visible des clients dès la validation.</div>';
+      return '<div class="banner banner-info" style="margin-bottom:16px">⏳ Votre fiche est en cours ' +
+        'd’activation. Préparez votre menu, elle sera visible d’un instant à l’autre.</div>';
     }
     if (rest.status === 'rejected') {
       return '<div class="banner banner-danger" style="margin-bottom:16px">⛔ Inscription refusée' +
@@ -788,7 +790,8 @@
       try {
         await API.saveRestaurant(d);
         await Store.refreshProfile();
-        UI.ok(rest ? 'Fiche mise à jour' : 'Restaurant créé', rest ? '' : 'En attente de validation');
+        UI.ok(rest ? 'Fiche mise à jour' : 'Restaurant créé',
+              rest ? '' : 'Votre restaurant est maintenant visible des clients.');
         Router.go('/r');
       } catch (err) { UI.busy(btn, false); UI.err(err.message); }
     };
