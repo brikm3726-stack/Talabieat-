@@ -1367,6 +1367,13 @@ body.role-admin .bottomnav{background:rgba(12,13,16,.96);border-top-color:#1E202
 body.role-admin .bottomnav a{color:#8C93A0}
 body.role-admin .bottomnav a.on{color:#FF8A3D}
 
+/* Sur fond sombre, le surlignage de sélection du navigateur est un bloc
+   blanc : il recouvrait une ligne entière du tableau dès qu'on faisait
+   glisser la souris ou le doigt en la traversant. On lui impose une teinte
+   sourde, lisible, à la place. */
+.admin-page ::selection{background:rgba(255,122,45,.38);color:#fff}
+.admin-page ::-moz-selection{background:rgba(255,122,45,.38);color:#fff}
+
 .admin-page{
   /* palette redéfinie ici : les règles existantes (cartes, champs, boutons,
      étiquettes) suivent sans qu'aucune d'elles ait besoin d'être touchée */
