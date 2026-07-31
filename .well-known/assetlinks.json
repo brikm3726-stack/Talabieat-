@@ -8,5 +8,15 @@
         "D4:4D:34:A1:6D:94:8D:F0:B7:37:93:93:E2:0B:D5:0B:C0:70:F0:74:80:7E:00:04:6A:7D:77:27:BF:DF:CB:62"
       ]
     }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "shop.talabi.twa",
+      "sha256_cert_fingerprints": [
+        "B2:B1:6B:4C:63:BD:5E:5A:15:97:03:D1:C4:B0:A9:9A:5D:3E:D5:B9:BD:FB:B8:EC:A6:FC:39:37:4C:82:7C:BD"
+      ]
+    }
   }
 ]
