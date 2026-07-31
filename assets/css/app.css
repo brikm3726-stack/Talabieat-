@@ -1151,7 +1151,17 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
 th{text-align:left;padding:12px 14px;background:var(--bg);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;white-space:nowrap}
 td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
-tr:hover td{background:#FCFDFF}
+/* Survol d'une ligne, thème clair uniquement.
+   Deux précautions apprises à la dure :
+   — la règle vise td, pas tr : elle recouvrait donc le fond sombre posé sur
+     la ligne dans l'espace administrateur, qui virait au blanc au passage de
+     la souris. Elle s'arrête maintenant au thème clair.
+   — @media(hover:hover) : sur un téléphone, le survol se déclenche au toucher
+     et RESTE collé jusqu'au tap suivant. Un doigt qui fait défiler laissait
+     derrière lui une ligne blanche. */
+@media(hover:hover){
+  body:not(.role-admin) tr:hover td{background:#FCFDFF}
+}
 
 .notif-item{display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.14s}
 .notif-item:hover{background:var(--bg)}
@@ -1527,8 +1537,10 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 
 /* Le survol n'existe qu'à la souris. Sur un téléphone, un doigt qui touche une
    ligne laissait le fond de survol collé dessus jusqu'au tap suivant. */
+/* On peint sur les td, et non sur le tr : c'est le seul moyen de l'emporter
+   sur une règle qui vise elle-même les td. */
 @media(hover:hover){
-  .adm-table tbody tr:hover{background:#16191E}
+  .adm-table tbody tr:hover td{background:#16191E}
 }
 
 /* Compte bloqué : la ligne est teintée de rouge, mais le texte garde sa
@@ -1680,7 +1692,9 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
   .adm-table td.actions::before{content:none}
   .adm-table td.actions .row{width:100%;gap:8px}
   .adm-table td.actions .btn{flex:1}
-  .adm-table tbody tr:hover{background:var(--card)}
+  /* sur téléphone chaque ligne devient une fiche : aucun effet de survol,
+     et surtout aucun fond qui resterait collé après le passage du doigt */
+  .adm-table tbody tr:hover td{background:transparent}
   .adm-table .ic-cell{white-space:normal}
   /* le pictogramme de tête flotterait entre l intitulé et la valeur ;
      l intitulé dit déjà de quoi il s agit */
