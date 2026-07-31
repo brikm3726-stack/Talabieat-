@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "shop.talabi.client",
+      "sha256_cert_fingerprints": [
+        "D4:4D:34:A1:6D:94:8D:F0:B7:37:93:93:E2:0B:D5:0B:C0:70:F0:74:80:7E:00:04:6A:7D:77:27:BF:DF:CB:62"
+      ]
+    }
+  }
+]
