@@ -296,6 +296,7 @@
   Router.add('/a/credits', async function (params, query, view) {
     view.innerHTML = '<div class="wrap page">' +
       head('Crédits des livreurs', 'Encaissez et rechargez les comptes') +
+      '<div id="demandes"></div>' +
       '<div class="search" style="margin-bottom:14px">' +
         '<input class="input" id="q" placeholder="Rechercher un livreur…" autocomplete="off"></div>' +
       '<div id="list"><div class="skel" style="height:180px"></div></div></div>';
@@ -303,7 +304,70 @@
     let term = '';
     const list = view.querySelector('#list');
 
+    /* Les demandes de recharge passent avant les soldes : c'est de l'argent
+       qui attend d'être encaissé, et un livreur qui attend est un livreur
+       qui ne travaille pas. */
+    async function loadDemandes() {
+      const dem = await API.safe(() => API.recharges('pending'), []);
+      const box = view.querySelector('#demandes');
+      if (!box) return;
+
+      if (!dem.length) { box.innerHTML = ''; return; }
+
+      box.innerHTML =
+        '<div class="h3" style="margin-bottom:8px">📨 Demandes de recharge (' + dem.length + ')</div>' +
+        dem.map(r => {
+          const p = (r.driver && r.driver.profile) || {};
+          return '<div class="card card-p" style="margin-bottom:10px;border-color:var(--warn)">' +
+            '<div class="row-between" style="gap:12px;flex-wrap:wrap">' +
+              '<div><b>' + U.esc(p.full_name || p.email || 'Livreur') + '</b>' +
+                '<div class="tiny">' + U.esc(p.phone || '') + ' • ' + U.dt(r.created_at) + '</div>' +
+                '<div class="tiny">' + U.esc(LIB_METHODE[r.method] || r.method) +
+                  (r.reference ? ' • réf <b>' + U.esc(r.reference) + '</b>' : '') + '</div>' +
+                '<div class="tiny">Crédit actuel : ' + U.money((r.driver && r.driver.credit_da) || 0) + '</div>' +
+              '</div>' +
+              '<div style="text-align:right"><div class="tiny">Montant déclaré</div>' +
+                '<b style="font-size:19px">' + U.money(r.amount) + '</b></div>' +
+            '</div>' +
+            (r.proof_url
+              ? '<a href="' + U.escUrl(r.proof_url) + '" target="_blank" rel="noopener" ' +
+                'style="display:block;margin-top:10px">' +
+                '<img src="' + U.escUrl(r.proof_url) + '" alt="Reçu" ' +
+                'style="max-height:180px;border-radius:12px;border:1px solid var(--line)"></a>'
+              : '<div class="tiny" style="margin-top:8px">Aucun reçu joint.</div>') +
+            '<div class="row" style="gap:9px;margin-top:12px">' +
+              '<button class="btn btn-ghost btn-sm" data-no="' + U.esc(r.id) + '">Refuser</button>' +
+              '<button class="btn btn-primary grow" data-yes="' + U.esc(r.id) + '">' +
+                '✅ Valider et créditer ' + U.money(r.amount) + '</button>' +
+            '</div></div>';
+        }).join('');
+
+      box.querySelectorAll('[data-yes]').forEach(b => b.onclick = async function () {
+        if (!(await UI.confirm('Créditer ce livreur ?',
+              'Vérifiez que le versement est bien arrivé sur votre compte avant de valider.',
+              'Valider', false))) return;
+        UI.busy(this, true);
+        try {
+          const solde = await API.approveRecharge(this.dataset.yes);
+          UI.ok('Recharge validée', 'Nouveau crédit : ' + U.money(solde));
+          load();
+        } catch (e) { UI.busy(this, false); UI.err(e.message); }
+      });
+
+      box.querySelectorAll('[data-no]').forEach(b => b.onclick = async function () {
+        const motif = await UI.prompt('Refuser la demande', 'Motif communiqué au livreur',
+          'Aucun versement retrouvé');
+        if (motif === null) return;
+        try {
+          await API.rejectRecharge(this.dataset.no, motif);
+          UI.ok('Demande refusée');
+          load();
+        } catch (e) { UI.err(e.message); }
+      });
+    }
+
     async function load() {
+      await loadDemandes();
       const rows = await API.safe(() => API.driverCredits(), []);
       const t = term.toLowerCase();
       const vus = rows.filter(r => !t || (
@@ -428,6 +492,11 @@
   const LIB_MVT = {
     recharge: 'Recharge', commission: 'Commission de course',
     remboursement: 'Remboursement', ajustement: 'Correction'
+  };
+
+  const LIB_METHODE = {
+    baridimob: 'BaridiMob', ccp: 'Versement CCP',
+    especes: 'Espèces', carte: 'Carte bancaire', autre: 'Autre'
   };
 
   Router.add('/a/orders', async function (params, query, view) {
@@ -633,6 +702,17 @@
           '<div class="hint">Au-delà de la distance maximale, la commande est refusée — au moment ' +
             'de la valider, pas après. Le client le voit avant de payer.</div>' +
           '<div class="divider"></div>' +
+
+          /* --- coordonnées de versement --- */
+          '<div class="h3">' + UI.icon('wallet', 18) + ' Coordonnées de versement</div>' +
+          '<div class="field"><label>Affichées au livreur qui veut recharger</label>' +
+            '<textarea class="input" name="payment_info" rows="4" ' +
+              'placeholder="CCP : 0012345678 clé 45&#10;RIP : 007 99999 0012345678 45&#10;' +
+              'Bénéficiaire : BRIK Mohamed">' +
+              U.esc(s.payment_info || '') + '</textarea>' +
+            '<div class="hint">Le livreur verse par BaridiMob ou au guichet, puis déclare son ' +
+              'versement depuis son portefeuille. Vous validez après vérification sur votre compte.</div></div>' +
+          '<div class="divider"></div>' +
           '<div class="h3">' + UI.icon('clock', 18) + ' Délais de réponse</div>' +
           '<div class="field"><label>Réponse du restaurant (minutes)</label>' +
             '<input class="input" name="resto_timeout_min" type="number" min="1" max="60" step="1" value="' +
@@ -689,6 +769,7 @@
           fee_far_da: +d.fee_far_da || 0,
           near_km: +d.near_km || 10,
           max_km: +d.max_km || 15,
+          payment_info: d.payment_info || null,
           // saisi en minutes, stocké en secondes comme les deux autres délais
           resto_timeout_s: Math.max(60, (+d.resto_timeout_min || 5) * 60),
           driver_timeout_s: Math.max(10, +d.driver_timeout_s || 30),

@@ -660,6 +660,55 @@
         .order('created_at', { ascending: false }).limit(limit || 50));
     },
 
+    /* ------------------------------------------- DEMANDES DE RECHARGE */
+
+    /** Le livreur demande une recharge. Le crédit n'arrive qu'après validation. */
+    async requestRecharge(d) {
+      if (!currentUser) throw new Error('Connectez-vous.');
+      const row = unwrap(await sb.from('recharge_requests').insert({
+        driver_id: currentUser.id,
+        amount: Math.round(+d.amount || 0),
+        method: d.method || 'baridimob',
+        reference: d.reference || null,
+        proof_url: d.proof_url || null
+      }).select().single());
+      emit('recharges');
+      return row;
+    },
+
+    /** Mes demandes (livreur) */
+    async myRecharges(limit) {
+      if (!currentUser) return [];
+      return unwrap(await sb.from('recharge_requests').select('*')
+        .eq('driver_id', currentUser.id)
+        .order('created_at', { ascending: false }).limit(limit || 30));
+    },
+
+    /** Toutes les demandes (admin) — les plus anciennes en attente d'abord */
+    async recharges(status) {
+      /* driver_id pointe vers « drivers », pas vers « profiles » : on traverse
+         les deux liens pour obtenir le nom et le téléphone. */
+      let q = sb.from('recharge_requests')
+        .select('*, driver:drivers!recharge_requests_driver_id_fkey(' +
+                'id, credit_da, profile:profiles!drivers_id_fkey(id, full_name, phone, email))');
+      if (status) q = q.eq('status', status);
+      return unwrap(await q.order('created_at', { ascending: status === 'pending' }).limit(100));
+    },
+
+    async approveRecharge(id) {
+      const r = await sb.rpc('approve_recharge', { p_request: id });
+      if (r.error) throw new Error(translate(r.error.message));
+      emit('recharges');
+      return r.data;
+    },
+
+    async rejectRecharge(id, reason) {
+      const r = await sb.rpc('reject_recharge', { p_request: id, p_reason: reason || null });
+      if (r.error) throw new Error(translate(r.error.message));
+      emit('recharges');
+      return true;
+    },
+
     /** Recharge (ou correction, si le montant est négatif). */
     async rechargeDriver(driverId, amount, note) {
       const r = await sb.rpc('driver_recharge', {
@@ -720,8 +769,10 @@
       const body = { updated_at: new Date().toISOString() };
       ['commission_rate', 'driver_share', 'default_delivery_fee',
        'resto_timeout_s', 'driver_timeout_s', 'redispatch_after_s',
-       'fee_near_da', 'fee_far_da', 'near_km', 'max_km']
+       'fee_near_da', 'fee_far_da', 'near_km', 'max_km', 'credit_alert_da']
         .forEach(k => { if (patch[k] !== undefined) body[k] = +patch[k]; });
+      // texte libre : pas de conversion en nombre
+      if (patch.payment_info !== undefined) body.payment_info = patch.payment_info;
       return unwrap(await sb.from('platform_settings').update(body).eq('id', 1).select().single());
     },
 

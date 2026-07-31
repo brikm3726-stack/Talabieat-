@@ -186,57 +186,191 @@
   }
 
   /* ======================================================================
-     MON CRÉDIT — solde et carnet des mouvements
+     MON PORTEFEUILLE — solde, recharges et historiques
      ====================================================================== */
+  const ONGLETS = [
+    { k: 'tout',          l: 'Tout' },
+    { k: 'recharge',      l: 'Recharges' },
+    { k: 'commission',    l: 'Commissions' },
+    { k: 'remboursement', l: 'Remboursements' },
+    { k: 'demandes',      l: 'Mes demandes' }
+  ];
+
   Router.add('/d/credit', async function (params, query, view) {
+    let onglet = 'tout';
+
     view.innerHTML = '<div class="driver-page"><div class="wrap page">' +
       '<div class="card card-p drv-panel">' +
-        drvHead('💳', 'Mon crédit', 'Commission prélevée à chaque course acceptée') +
-        '<div id="box"><div class="skel" style="height:150px"></div></div>' +
+        drvHead('💳', 'Mon portefeuille', 'Commission prélevée à chaque course acceptée') +
+        '<div id="box"><div class="skel" style="height:180px"></div></div>' +
       '</div></div></div>';
 
     const box = view.querySelector('#box');
 
     async function load() {
       const d = await API.safe(() => API.getDriver(), null);
-      const lignes = await API.safe(() => API.myWallet(40), []);
+      const lignes = await API.safe(() => API.myWallet(80), []);
+      const demandes = await API.safe(() => API.myRecharges(30), []);
       const solde = (d && d.credit_da) || 0;
+      const enAttente = demandes.filter(r => r.status === 'pending');
+
+      const vues = onglet === 'tout' ? lignes : lignes.filter(l => l.kind === onglet);
 
       box.innerHTML =
+        /* ---- solde ---- */
         '<div class="card card-p" style="text-align:center' +
           (solde <= 0 ? ';border-color:var(--danger)' : '') + '">' +
-          '<div class="tiny">Crédit disponible</div>' +
+          '<div class="tiny">Solde actuel</div>' +
           '<div style="font-size:34px;font-weight:900;margin-top:4px">' + U.money(solde) + '</div>' +
           (solde <= 0
             ? '<div class="banner banner-warn" style="margin-top:12px">🚫 <div class="grow">' +
               'Compte bloqué : rechargez pour accepter de nouvelles courses.</div></div>'
             : '') +
-          '<div class="tiny" style="margin-top:10px">Pour recharger, contactez la plateforme au ' +
-            '<a href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')) + '">' +
-            U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</a>.</div>' +
+          '<button class="btn btn-primary btn-block btn-lg" id="recharger" style="margin-top:14px">' +
+            '💳 Recharger le portefeuille</button>' +
+          (enAttente.length
+            ? '<div class="tiny" style="margin-top:10px">⏳ ' + enAttente.length +
+              ' demande' + (enAttente.length > 1 ? 's' : '') + ' en attente de validation</div>'
+            : '') +
         '</div>' +
 
-        '<div class="h3" style="margin:16px 0 8px">Mouvements</div>' +
-        (lignes.length
-          ? lignes.map(l =>
-              '<div class="oline"><span class="l">' +
-                '<b>' + U.esc(LIB_MOUVEMENT[l.kind] || l.kind) + '</b>' +
-                (l.note ? '<br><span class="tiny">' + U.esc(l.note) + '</span>' : '') +
-                '<br><span class="tiny">' + U.dt(l.created_at) + '</span>' +
-              '</span>' +
-              '<span style="text-align:right">' +
-                '<b style="color:' + (l.amount >= 0 ? 'var(--ok)' : 'var(--danger)') + '">' +
-                  (l.amount >= 0 ? '+' : '') + U.money(l.amount) + '</b>' +
-                '<br><span class="tiny">reste ' + U.money(l.balance_after) + '</span>' +
-              '</span></div>').join('')
-          : UI.empty('🧾', 'Aucun mouvement',
-              'Vos recharges et vos commissions apparaîtront ici.'));
+        /* ---- onglets ---- */
+        '<div class="chips" style="margin:16px 0 10px;flex-wrap:wrap;overflow:visible">' +
+          ONGLETS.map(o => '<button class="chip' + (onglet === o.k ? ' on' : '') +
+            '" data-tab="' + o.k + '">' + o.l + '</button>').join('') +
+        '</div>' +
+
+        /* ---- historique ---- */
+        (onglet === 'demandes'
+          ? (demandes.length
+              ? demandes.map(ligneDemande).join('')
+              : UI.empty('📨', 'Aucune demande', 'Vos demandes de recharge apparaîtront ici.'))
+          : (vues.length
+              ? vues.map(ligneMouvement).join('')
+              : UI.empty('🧾', 'Rien à afficher',
+                  onglet === 'recharge' ? 'Aucune recharge pour l’instant.'
+                  : onglet === 'commission' ? 'Aucune commission prélevée pour l’instant.'
+                  : onglet === 'remboursement' ? 'Aucun remboursement — tant mieux.'
+                  : 'Vos mouvements apparaîtront ici.')));
+
+      box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { onglet = b.dataset.tab; load(); });
+      box.querySelector('#recharger').onclick = () => feuilleRecharge(load);
     }
 
     await load();
-    const off = API.onChange(t => { if (t === 'drivers' || t === 'orders' || t === '*') load(); });
+    const off = API.onChange(t => { if (t === 'drivers' || t === 'orders' || t === 'recharges' || t === '*') load(); });
     return () => off();
   }, GUARD);
+
+  function ligneMouvement(l) {
+    return '<div class="oline"><span class="l">' +
+        '<b>' + U.esc(LIB_MOUVEMENT[l.kind] || l.kind) + '</b>' +
+        (l.note ? '<br><span class="tiny">' + U.esc(l.note) + '</span>' : '') +
+        '<br><span class="tiny">' + U.dt(l.created_at) + '</span>' +
+      '</span>' +
+      '<span style="text-align:right">' +
+        '<b style="color:' + (l.amount >= 0 ? 'var(--ok)' : 'var(--danger)') + '">' +
+          (l.amount >= 0 ? '+' : '') + U.money(l.amount) + '</b>' +
+        '<br><span class="tiny">reste ' + U.money(l.balance_after) + '</span>' +
+      '</span></div>';
+  }
+
+  const ETAT_DEMANDE = {
+    pending:  ['⏳ En attente', 'tag-warn'],
+    approved: ['✅ Validée', 'tag-ok'],
+    rejected: ['⛔ Refusée', 'tag-danger']
+  };
+
+  function ligneDemande(r) {
+    const e = ETAT_DEMANDE[r.status] || ['—', 'tag-muted'];
+    return '<div class="oline"><span class="l">' +
+        '<b>' + U.money(r.amount) + '</b> <span class="tag ' + e[1] + '">' + e[0] + '</span>' +
+        '<br><span class="tiny">' + U.esc(LIB_METHODE[r.method] || r.method) +
+          (r.reference ? ' • réf ' + U.esc(r.reference) : '') + '</span>' +
+        (r.status === 'rejected' && r.reason
+          ? '<br><span class="tiny" style="color:var(--danger)">' + U.esc(r.reason) + '</span>' : '') +
+        '<br><span class="tiny">' + U.dt(r.created_at) + '</span>' +
+      '</span></div>';
+  }
+
+  const LIB_METHODE = {
+    baridimob: 'BaridiMob', ccp: 'Versement CCP',
+    especes: 'Espèces', carte: 'Carte bancaire', autre: 'Autre'
+  };
+
+  /* ----------------------------------------------------------------------
+     Demander une recharge
+
+     Le livreur ne se crédite pas lui-même : il déclare un versement. Le
+     portefeuille ne bouge qu'après vérification par un administrateur — le
+     jour où les paiements par carte seront branchés, c'est la passerelle
+     bancaire qui validera, et cet écran ne changera pas.
+     ---------------------------------------------------------------------- */
+  function feuilleRecharge(onSaved) {
+    const MONTANTS = [1000, 2000, 5000, 10000];
+    const infos = (Store.settings && Store.settings.payment_info) || '';
+
+    UI.sheet({
+      title: 'Recharger le portefeuille',
+      subtitle: 'Versez le montant, puis déclarez-le ici',
+      body:
+        (infos
+          ? '<div class="banner banner-info" style="white-space:pre-line">🏦 <div class="grow">' +
+              U.esc(infos) + '</div></div>'
+          : '<div class="banner banner-warn">🏦 <div class="grow">Contactez la plateforme au ' +
+              U.esc(TALABI_CONFIG.SUPPORT_PHONE) + ' pour connaître les coordonnées de versement.</div></div>') +
+
+        '<form id="rf" class="stack" style="margin-top:12px" novalidate>' +
+          '<div class="field"><label>Montant versé</label>' +
+            '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
+              MONTANTS.map(v => '<button type="button" class="btn btn-soft btn-sm" data-m="' + v + '">' +
+                U.money(v) + '</button>').join('') +
+            '</div>' +
+            '<input class="input" name="amount" type="number" min="100" step="100" ' +
+              'placeholder="Montant personnalisé" required></div>' +
+
+          '<div class="field"><label>Moyen utilisé</label>' +
+            '<select class="input" name="method">' +
+              '<option value="baridimob">BaridiMob</option>' +
+              '<option value="ccp">Versement au guichet CCP</option>' +
+              '<option value="especes">Espèces en main propre</option>' +
+              '<option value="autre">Autre</option>' +
+            '</select></div>' +
+
+          '<div class="field"><label>Numéro d’opération <span class="tiny">(facultatif)</span></label>' +
+            '<input class="input" name="reference" placeholder="Ex : 123456789"></div>' +
+
+          UI.imageField('proof_url', '', 'Photo du reçu (recommandé)') +
+        '</form>' +
+        '<div class="tiny">Votre demande part à la plateforme. Le crédit est ajouté ' +
+          'dès que le versement est vérifié.</div>',
+
+      footer: '<button class="btn btn-primary btn-block btn-lg" id="ok">Envoyer ma demande</button>',
+
+      onMount(el, api) {
+        UI.bindImageFields(el);
+        const champ = el.querySelector('[name=amount]');
+        el.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { champ.value = b.dataset.m; });
+
+        el.querySelector('#ok').onclick = async function () {
+          const d = UI.formData(el.querySelector('#rf'));
+          const montant = Math.round(+d.amount || 0);
+          if (montant < 100) return UI.err('Montant invalide', 'Indiquez au moins 100 DA.');
+
+          UI.busy(this, true, 'Envoi…');
+          try {
+            await API.requestRecharge({
+              amount: montant, method: d.method,
+              reference: d.reference || null, proof_url: d.proof_url || null
+            });
+            api.close();
+            UI.ok('Demande envoyée', 'Vous serez prévenu dès la validation.');
+            onSaved && onSaved();
+          } catch (e) { UI.busy(this, false); UI.err(e.message); }
+        };
+      }
+    });
+  }
 
   /** Part plateforme sur les frais de livraison — le même calcul qu'en base. */
   function commissionDe(o) {
