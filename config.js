@@ -15,6 +15,13 @@ window.TALABI_CONFIG = {
   SUPABASE_URL:      'https://nxwgrpiubgrlvaszclmz.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54d2dycGl1YmdybHZhc3pjbG16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTkyNTAsImV4cCI6MjEwMDkzNTI1MH0.wKsQIAiB_sJcttPQQbTDfWsVAdbRA_PqokF0TNBeF-c',
 
+  // ---- Google Maps ------------------------------------------------------
+  // Clé « Maps JavaScript API », à restreindre au domaine talabi.shop dans la
+  // console Google Cloud. Elle part dans le navigateur de chaque visiteur —
+  // c'est inévitable pour afficher une carte — donc la restriction est sa
+  // seule protection. Vide : le site retombe sur la saisie GPS sans carte.
+  GOOGLE_MAPS_KEY: '',
+
   // ---- Identité ---------------------------------------------------------
   APP_NAME: 'Talabi',
   APP_TAGLINE: 'Vos plats préférés, livrés chez vous',

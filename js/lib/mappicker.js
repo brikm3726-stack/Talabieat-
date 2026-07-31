@@ -1,34 +1,95 @@
 /* ==========================================================================
-   SÉLECTEUR DE POSITION SUR CARTE
+   SÉLECTEUR DE POSITION SUR CARTE — Google Maps
    --------------------------------------------------------------------------
-   • Carte OpenStreetMap via Leaflet — gratuit, aucune clé API
-   • Bouton "Ma position" via le GPS du téléphone (navigator.geolocation)
-   • Recherche et adresse automatique via Nominatim (OpenStreetMap)
-   • Le point choisi est ensuite ouvrable dans Google Maps pour la navigation
+   • Carte, recherche d'adresse et adresse inverse : Google Maps
+   • Bouton « Ma position » via le GPS du téléphone (navigator.geolocation)
+   • Navigation du livreur : liens Google Maps (aucune clé requise pour ça)
+
+   LA CLÉ
+   La clé vit dans config.js (GOOGLE_MAPS_KEY) et part donc dans le navigateur
+   de chaque visiteur — c'est inévitable, une carte s'affiche côté client. Elle
+   DOIT être restreinte à talabi.shop dans la console Google Cloud, sinon
+   n'importe qui peut la reprendre et faire tourner son propre site à vos
+   frais. La restriction, pas le secret, est la seule protection réelle.
+
+   CHARGEMENT À LA DEMANDE
+   Le script Google n'est téléchargé qu'à la première carte affichée. Un client
+   qui parcourt les menus sans jamais ouvrir de carte ne paie ni le temps de
+   chargement, ni l'appel facturé.
+
+   SANS CLÉ, OU SANS RÉSEAU
+   Tout continue de fonctionner en mode dégradé : on peut enregistrer sa
+   position par le GPS, sans voir la carte. Une adresse sans carte vaut mieux
+   qu'un écran bloqué.
    ========================================================================== */
 (function (w) {
   'use strict';
 
   // Centre de la ville de Tizi Ouzou
   const CITY = { lat: 36.7118, lng: 4.0458 };
-  const NOMINATIM = 'https://nominatim.openstreetmap.org';
+
+  let promesse = null;
+
+  /** Charge l'API Google Maps une seule fois. Résout false si c'est impossible. */
+  function chargerGoogle() {
+    if (w.google && w.google.maps && w.google.maps.Map) return Promise.resolve(true);
+    if (promesse) return promesse;
+
+    const cle = (w.TALABI_CONFIG && w.TALABI_CONFIG.GOOGLE_MAPS_KEY) || '';
+    if (!cle) return Promise.resolve(false);
+
+    promesse = new Promise(resolve => {
+      const fini = ok => { clearTimeout(minuteur); resolve(ok); };
+      // au-delà de 12 s, on considère que la carte ne viendra pas : le mode
+      // dégradé vaut mieux qu'une attente sans fin
+      const minuteur = setTimeout(() => fini(false), 12000);
+
+      w.__talabiMapsPret = () => fini(true);
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://maps.googleapis.com/maps/api/js' +
+              '?key=' + encodeURIComponent(cle) +
+              '&language=fr&region=DZ&loading=async&callback=__talabiMapsPret';
+      s.onerror = () => fini(false);
+      document.head.appendChild(s);
+    });
+    return promesse;
+  }
+
+  /* Style sobre : la carte sert à repérer une porte, pas à découvrir la ville.
+     On efface les points d'intérêt commerciaux, qui encombrent le centre. */
+  const STYLE = [
+    { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
+    { featureType: 'transit', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] }
+  ];
+
+  const OPTIONS = {
+    disableDefaultUI: true,
+    zoomControl: true,
+    gestureHandling: 'greedy',   // un doigt suffit à déplacer la carte
+    clickableIcons: false,
+    styles: STYLE
+  };
 
   const MapPicker = {
 
-    /** La librairie de carte a-t-elle bien été chargée ? (nécessite internet) */
-    get available() { return !!w.L; },
+    /** Une carte peut-elle s'afficher ? (la clé est-elle renseignée) */
+    get available() {
+      return !!((w.google && w.google.maps) ||
+                (w.TALABI_CONFIG && w.TALABI_CONFIG.GOOGLE_MAPS_KEY));
+    },
 
     /**
      * MapPicker.open({ lat, lng, title, onPick })
      * onPick reçoit { lat, lng, address }
      */
-    open(opts) {
+    async open(opts) {
       const o = opts || {};
       let lat = U.hasCoords(o) ? +o.lat : CITY.lat;
       let lng = U.hasCoords(o) ? +o.lng : CITY.lng;
       let label = '';
 
-      if (!MapPicker.available) return fallback(o);
+      if (!(await chargerGoogle())) return fallback(o);
 
       const sheet = UI.sheet({
         title: o.title || 'Choisir la position',
@@ -54,38 +115,30 @@
           '<button class="btn btn-primary btn-block btn-lg" id="mpok">✅ Confirmer cette position</button>',
 
         onMount(el, api) {
-          const map = L.map(el.querySelector('#mpmap'), {
-            zoomControl: true, attributionControl: true
-          }).setView([lat, lng], U.hasCoords(o) ? 17 : 14);
+          const map = new google.maps.Map(el.querySelector('#mpmap'), Object.assign({}, OPTIONS, {
+            center: { lat: lat, lng: lng },
+            zoom: U.hasCoords(o) ? 17 : 14
+          }));
 
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-          }).addTo(map);
-
-          // la carte est créée dans un panneau animé : il faut la remesurer
-          setTimeout(() => map.invalidateSize(), 320);
-
+          const geocodeur = new google.maps.Geocoder();
           const addrBox = el.querySelector('#mpaddr');
           const resBox = el.querySelector('#mpres');
+          const pin = el.querySelector('.mp-pin');
 
           /* ------------------------------------------- adresse du centre */
           const refresh = U.debounce(async () => {
             const c = map.getCenter();
-            lat = +c.lat.toFixed(6); lng = +c.lng.toFixed(6);
+            lat = +c.lat().toFixed(6); lng = +c.lng().toFixed(6);
             addrBox.innerHTML = '<span class="spinner dark"></span> Recherche de l’adresse…';
-            label = await reverse(lat, lng);
+            label = await inverse(geocodeur, lat, lng);
             addrBox.innerHTML = label
               ? '<b>' + UI.pin(16) + ' ' + U.esc(label) + '</b>'
               : '<b>' + UI.pin(16) + ' Position sélectionnée</b>' +
                 '<div class="tiny">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div>';
           }, 550);
 
-          map.on('move', () => el.querySelector('.mp-pin').classList.add('moving'));
-          map.on('moveend', () => {
-            el.querySelector('.mp-pin').classList.remove('moving');
-            refresh();
-          });
+          map.addListener('dragstart', () => pin.classList.add('moving'));
+          map.addListener('idle', () => { pin.classList.remove('moving'); refresh(); });
           refresh();
 
           /* --------------------------------------------- ma position GPS */
@@ -97,7 +150,8 @@
             navigator.geolocation.getCurrentPosition(
               pos => {
                 btn.innerHTML = '🎯';
-                map.setView([pos.coords.latitude, pos.coords.longitude], 18);
+                map.setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                map.setZoom(18);
                 UI.ok('Position trouvée', 'Ajustez le repère si besoin');
               },
               err => {
@@ -117,23 +171,25 @@
             // coordonnées ou lien Google Maps collés : on y va directement
             const c = parseCoords(term);
             if (c) {
-              map.setView([c.lat, c.lng], 18);
+              map.setCenter({ lat: c.lat, lng: c.lng });
+              map.setZoom(18);
               resBox.innerHTML = '';
               q.value = '';
               UI.ok('Position appliquée', c.lat.toFixed(5) + ', ' + c.lng.toFixed(5));
               return;
             }
 
-            const list = await search(term);
+            const list = await chercher(geocodeur, term);
             if (!list.length) {
               resBox.innerHTML = '<div class="mp-item tiny">Aucun résultat</div>';
               return;
             }
             resBox.innerHTML = list.map((r, i) =>
-              '<div class="mp-item" data-r="' + i + '">' + UI.pin() + ' ' + U.esc(r.display_name) + '</div>').join('');
+              '<div class="mp-item" data-r="' + i + '">' + UI.pin() + ' ' + U.esc(r.adresse) + '</div>').join('');
             resBox.querySelectorAll('[data-r]').forEach(item => item.onclick = () => {
               const r = list[+item.dataset.r];
-              map.setView([+r.lat, +r.lon], 17);
+              map.setCenter({ lat: r.lat, lng: r.lng });
+              map.setZoom(17);
               resBox.innerHTML = '';
               q.value = '';
             });
@@ -154,80 +210,100 @@
     /**
      * Carte de suivi : restaurant, client et livreur sur la même vue.
      * MapPicker.live(el, { restaurant:{lat,lng}, client:{lat,lng}, driver:{lat,lng} })
-     * Retourne { update(points), destroy() } — les repères bougent sans
-     * recréer la carte, ce qui évite le clignotement à chaque rafraîchissement.
+     * Retourne { update(points), recenter(), destroy() } — les repères bougent
+     * sans recréer la carte, ce qui évite le clignotement à chaque
+     * rafraîchissement.
+     *
+     * L'objet est rendu tout de suite, avant même que Google ait répondu : les
+     * appels reçus entre-temps sont gardés et appliqués à l'ouverture.
      */
     live(container, points) {
-      if (!MapPicker.available || !container) return null;
+      if (!container) return null;
 
-      const map = L.map(container, { zoomControl: true, attributionControl: false });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      let map = null, markers = {}, attendus = points, premier = true, mort = false;
 
-      const icon = (emoji, cls) => L.divIcon({
-        className: '', iconSize: [38, 38], iconAnchor: [19, 19],
-        html: '<div class="lm-pin ' + (cls || '') + '">' + emoji + '</div>'
-      });
-
-      const markers = {};
       const defs = {
         restaurant: ['🏪', 'lm-resto', 'Restaurant'],
         client:     ['🏠', 'lm-client', 'Vous'],
         driver:     ['🛵', 'lm-driver', 'Livreur']
       };
-      let first = true;
 
-      function update(pts) {
-        const bounds = [];
+      function appliquer(pts) {
+        if (!map) return;
+        const bounds = new google.maps.LatLngBounds();
+        let n = 0;
+
         Object.keys(defs).forEach(k => {
           const p = pts && pts[k];
           if (!p || !U.hasCoords(p)) {
-            if (markers[k]) { map.removeLayer(markers[k]); delete markers[k]; }
+            if (markers[k]) { markers[k].setMap(null); delete markers[k]; }
             return;
           }
-          const ll = [+p.lat, +p.lng];
-          bounds.push(ll);
-          if (markers[k]) markers[k].setLatLng(ll);
-          else markers[k] = L.marker(ll, { icon: icon(defs[k][0], defs[k][1]), title: defs[k][2] }).addTo(map);
+          const ll = { lat: +p.lat, lng: +p.lng };
+          bounds.extend(ll); n++;
+          if (markers[k]) markers[k].setPosition(ll);
+          else markers[k] = new google.maps.Marker({
+            position: ll, map: map, title: defs[k][2],
+            label: { text: defs[k][0], fontSize: '20px' },
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE, scale: 18,
+              fillColor: '#ffffff', fillOpacity: 1,
+              strokeColor: k === 'driver' ? '#12A150' : k === 'resto' ? '#FF4D2D' : '#1E6BE6',
+              strokeWeight: 3
+            }
+          });
         });
 
-        if (!bounds.length) { map.setView([CITY.lat, CITY.lng], 13); return; }
-        if (first) {
-          bounds.length > 1
-            ? map.fitBounds(bounds, { padding: [42, 42], maxZoom: 16 })
-            : map.setView(bounds[0], 16);
-          first = false;
+        if (!n) { map.setCenter(CITY); map.setZoom(13); return; }
+        if (premier) {
+          if (n > 1) { map.fitBounds(bounds, 42); }
+          else { map.setCenter(bounds.getCenter()); map.setZoom(16); }
+          premier = false;
         }
       }
 
-      update(points);
-      setTimeout(() => map.invalidateSize(), 260);
+      chargerGoogle().then(ok => {
+        if (!ok || mort) return;
+        map = new google.maps.Map(container, Object.assign({}, OPTIONS, {
+          center: CITY, zoom: 13
+        }));
+        appliquer(attendus);
+      });
 
       return {
-        update: update,
+        update(pts) { attendus = pts; appliquer(pts); },
         recenter() {
-          const b = Object.keys(markers).map(k => markers[k].getLatLng());
-          if (b.length > 1) map.fitBounds(b, { padding: [42, 42], maxZoom: 16 });
-          else if (b.length) map.setView(b[0], 16);
+          if (!map) return;
+          const b = new google.maps.LatLngBounds();
+          let n = 0;
+          Object.keys(markers).forEach(k => { b.extend(markers[k].getPosition()); n++; });
+          if (n > 1) map.fitBounds(b, 42);
+          else if (n) { map.setCenter(b.getCenter()); map.setZoom(16); }
         },
-        destroy() { try { map.remove(); } catch (e) {} }
+        destroy() { mort = true; Object.keys(markers).forEach(k => markers[k].setMap(null)); markers = {}; map = null; }
       };
     },
 
     /** Petite carte non modifiable, pour afficher une position */
     preview(container, lat, lng) {
-      if (!MapPicker.available || !U.hasCoords({ lat: lat, lng: lng })) return null;
-      const map = L.map(container, {
-        zoomControl: false, dragging: false, scrollWheelZoom: false,
-        doubleClickZoom: false, attributionControl: false, keyboard: false
-      }).setView([lat, lng], 16);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-      L.marker([lat, lng]).addTo(map);
-      setTimeout(() => map.invalidateSize(), 250);
-      return map;
+      if (!container || !U.hasCoords({ lat: lat, lng: lng })) return null;
+
+      chargerGoogle().then(ok => {
+        if (!ok) return;
+        const pos = { lat: +lat, lng: +lng };
+        const map = new google.maps.Map(container, {
+          center: pos, zoom: 16,
+          disableDefaultUI: true, gestureHandling: 'none',
+          keyboardShortcuts: false, clickableIcons: false, styles: STYLE
+        });
+        new google.maps.Marker({ position: pos, map: map });
+      });
+
+      return null;
     }
   };
 
-  /* ====================================================== OpenStreetMap */
+  /* ====================================================== outils Google */
 
   /**
    * Reconnaît une position collée par l'utilisateur :
@@ -257,30 +333,36 @@
   }
 
   /** Coordonnées → adresse lisible */
-  async function reverse(lat, lng) {
-    try {
-      const r = await fetch(NOMINATIM + '/reverse?format=jsonv2&zoom=18&accept-language=fr' +
-        '&lat=' + lat + '&lon=' + lng);
-      if (!r.ok) return '';
-      const j = await r.json();
-      const a = j.address || {};
-      const parts = [
-        a.road || a.pedestrian || a.residential || a.neighbourhood,
-        a.suburb || a.quarter,
-        a.city || a.town || a.village
-      ].filter(Boolean);
-      return parts.length ? parts.join(', ') : (j.display_name || '').split(',').slice(0, 3).join(', ');
-    } catch (e) { return ''; }
+  function inverse(geocodeur, lat, lng) {
+    return new Promise(resolve => {
+      geocodeur.geocode({ location: { lat: lat, lng: lng } }, (res, statut) => {
+        if (statut !== 'OK' || !res || !res.length) return resolve('');
+        /* Google classe du plus précis au plus large : le premier résultat est
+           l'adresse de la porte. On coupe le pays et le code postal, qui
+           n'apprennent rien à quelqu'un qui commande dans sa propre ville. */
+        const parts = String(res[0].formatted_address).split(',')
+          .map(x => x.trim())
+          .filter(x => x && !/^\d{5}$/.test(x) && !/alg[ée]rie/i.test(x));
+        resolve(parts.slice(0, 3).join(', '));
+      });
+    });
   }
 
-  /** Texte → liste de lieux (limité à l'Algérie) */
-  async function search(term) {
-    try {
-      const r = await fetch(NOMINATIM + '/search?format=jsonv2&limit=6&countrycodes=dz' +
-        '&accept-language=fr&q=' + encodeURIComponent(term));
-      if (!r.ok) return [];
-      return await r.json();
-    } catch (e) { return []; }
+  /** Texte → liste de lieux (limités à l'Algérie) */
+  function chercher(geocodeur, term) {
+    return new Promise(resolve => {
+      geocodeur.geocode({
+        address: term,
+        componentRestrictions: { country: 'dz' }
+      }, (res, statut) => {
+        if (statut !== 'OK' || !res) return resolve([]);
+        resolve(res.slice(0, 6).map(r => ({
+          adresse: r.formatted_address,
+          lat: r.geometry.location.lat(),
+          lng: r.geometry.location.lng()
+        })));
+      });
+    });
   }
 
   function geoError(err) {
@@ -290,11 +372,11 @@
     return 'Placez le repère à la main sur la carte.';
   }
 
-  /* ----------------------------- secours : pas de carte (hors connexion) */
+  /* ------------------- secours : pas de carte (clé absente, hors ligne) */
   function fallback(o) {
     return UI.sheet({
       title: o.title || 'Choisir la position',
-      body: '<div class="banner banner-warn">🗺️ La carte n’a pas pu se charger (connexion internet). ' +
+      body: '<div class="banner banner-warn">🗺️ La carte n’a pas pu se charger. ' +
             'Vous pouvez quand même enregistrer votre position GPS.</div>',
       footer: '<button class="btn btn-primary btn-block" id="fbgeo">' + UI.icon('pin', 17) + ' Utiliser ma position actuelle</button>',
       onMount(el, api) {
