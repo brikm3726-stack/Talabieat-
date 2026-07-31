@@ -302,25 +302,53 @@
       '<div id="list"><div class="skel" style="height:180px"></div></div></div>';
 
     let term = '';
+    let voirTout = false;          // demandes en attente, ou historique complet
     const list = view.querySelector('#list');
 
     /* Les demandes de recharge passent avant les soldes : c'est de l'argent
        qui attend d'être encaissé, et un livreur qui attend est un livreur
        qui ne travaille pas. */
     async function loadDemandes() {
-      const dem = await API.safe(() => API.recharges('pending'), []);
+      const dem = await API.safe(() => API.recharges(voirTout ? null : 'pending'), []);
       const box = view.querySelector('#demandes');
       if (!box) return;
 
-      if (!dem.length) { box.innerHTML = ''; return; }
+      const enTete =
+        '<div class="row-between" style="margin-bottom:8px">' +
+          '<div class="h3">📨 Demandes de recharge' +
+            (voirTout ? '' : dem.length ? ' (' + dem.length + ')' : '') + '</div>' +
+          '<button class="btn btn-ghost btn-sm" id="bascule">' +
+            (voirTout ? 'Voir les demandes en attente' : 'Voir l’historique') + '</button>' +
+        '</div>';
 
-      box.innerHTML =
-        '<div class="h3" style="margin-bottom:8px">📨 Demandes de recharge (' + dem.length + ')</div>' +
+      /* La section reste visible même vide : sans elle, un administrateur qui
+         cherche « où valider une recharge ? » ne trouve rien et croit que la
+         fonction n'existe pas. */
+      if (!dem.length) {
+        box.innerHTML = enTete +
+          '<div class="card card-p" style="margin-bottom:14px">' +
+            '<div class="tiny">' +
+              (voirTout
+                ? 'Aucune demande, ni en attente ni traitée.'
+                : 'Aucune demande en attente. Les livreurs déclarent leurs versements ' +
+                  'depuis leur portefeuille ; ils apparaîtront ici avec le reçu, ' +
+                  'et vous validerez après vérification sur votre compte.') +
+            '</div></div>';
+        const b = box.querySelector('#bascule');
+        if (b) b.onclick = () => { voirTout = !voirTout; loadDemandes(); };
+        return;
+      }
+
+      box.innerHTML = enTete +
         dem.map(r => {
           const p = (r.driver && r.driver.profile) || {};
-          return '<div class="card card-p" style="margin-bottom:10px;border-color:var(--warn)">' +
+          const traitee = r.status !== 'pending';
+          const etat = { approved: ['Validée', 'tag-ok'], rejected: ['Refusée', 'tag-danger'] }[r.status];
+          return '<div class="card card-p" style="margin-bottom:10px' +
+              (traitee ? '' : ';border-color:var(--warn)') + '">' +
             '<div class="row-between" style="gap:12px;flex-wrap:wrap">' +
               '<div><b>' + U.esc(p.full_name || p.email || 'Livreur') + '</b>' +
+                (etat ? ' <span class="tag ' + etat[1] + '">' + etat[0] + '</span>' : '') +
                 '<div class="tiny">' + U.esc(p.phone || '') + ' • ' + U.dt(r.created_at) + '</div>' +
                 '<div class="tiny">' + U.esc(LIB_METHODE[r.method] || r.method) +
                   (r.reference ? ' • réf <b>' + U.esc(r.reference) + '</b>' : '') + '</div>' +
@@ -335,12 +363,18 @@
                 '<img src="' + U.escUrl(r.proof_url) + '" alt="Reçu" ' +
                 'style="max-height:180px;border-radius:12px;border:1px solid var(--line)"></a>'
               : '<div class="tiny" style="margin-top:8px">Aucun reçu joint.</div>') +
-            '<div class="row" style="gap:9px;margin-top:12px">' +
-              '<button class="btn btn-ghost btn-sm" data-no="' + U.esc(r.id) + '">Refuser</button>' +
-              '<button class="btn btn-primary grow" data-yes="' + U.esc(r.id) + '">' +
-                '✅ Valider et créditer ' + U.money(r.amount) + '</button>' +
-            '</div></div>';
+            (traitee
+              ? '<div class="tiny" style="margin-top:10px">Traitée le ' + U.dt(r.reviewed_at) +
+                (r.reason ? ' — ' + U.esc(r.reason) : '') + '</div>'
+              : '<div class="row" style="gap:9px;margin-top:12px">' +
+                  '<button class="btn btn-ghost btn-sm" data-no="' + U.esc(r.id) + '">Refuser</button>' +
+                  '<button class="btn btn-primary grow" data-yes="' + U.esc(r.id) + '">' +
+                    '✅ Valider et créditer ' + U.money(r.amount) + '</button>' +
+                '</div>') + '</div>';
         }).join('');
+
+      const bascule = box.querySelector('#bascule');
+      if (bascule) bascule.onclick = () => { voirTout = !voirTout; loadDemandes(); };
 
       box.querySelectorAll('[data-yes]').forEach(b => b.onclick = async function () {
         if (!(await UI.confirm('Créditer ce livreur ?',
