@@ -162,18 +162,16 @@
 
           '<div class="top-actions">' +
             (Store.isLogged
-              // le son ne concerne que ceux qu'on appelle : restaurant et livreur
-              // w.Sound && … : la barre du haut ne doit pas tomber si le module
-              // audio n'a pas pu se charger
-              ? ((w.Sound && (Store.role === 'restaurant' || Store.role === 'driver'))
-                  ? '<button class="icon-btn" id="soundBtn" title="' +
-                      (Sound.muted ? 'Réactiver la sonnerie' : 'Couper la sonnerie') + '">' +
-                      UI.icon(Sound.muted ? 'mute' : 'sound', 19) + '</button>'
-                  : '') +
+              /* La sonnerie avait son interrupteur ici, à côté de la cloche des
+                 notifications : deux pictogrammes voisins, l'un qui informe et
+                 l'autre qui règle, qu'on confondait sans cesse. Le réglage a
+                 rejoint les autres réglages ; cette place revient à un accès
+                 direct aux paramètres. */
+              ? '<a class="icon-btn" href="#/account" title="Paramètres">' + UI.icon('settings', 19) + '</a>' +
                 '<button class="icon-btn" id="notifBtn" title="Notifications">' + UI.icon('bell', 19) +
                   (Store.unread ? '<span class="badge-dot">' + (Store.unread > 9 ? '9+' : Store.unread) + '</span>' : '') +
                 '</button>' +
-                '<a class="icon-btn" href="#/account" title="Mon compte" style="overflow:hidden;padding:0">' +
+                '<a class="icon-btn" href="#/profil" title="Mes informations" style="overflow:hidden;padding:0">' +
                   UI.avatar(Store.profile.full_name, Store.profile.avatar_url, 38) + '</a>'
               : '<a class="btn btn-primary btn-sm" href="#/login">Connexion</a>') +
           '</div>' +
@@ -183,13 +181,6 @@
       if (zb) zb.onclick = Shell.zonePicker;
       const nb = document.getElementById('notifBtn');
       if (nb) nb.onclick = Shell.notifPanel;
-      const sb = document.getElementById('soundBtn');
-      if (sb) sb.onclick = () => {
-        Sound.muted = !Sound.muted;
-        UI.ok(Sound.muted ? 'Sonnerie coupée' : 'Sonnerie réactivée',
-              Sound.muted ? 'Vous ne serez plus averti par un son.' : '');
-        Shell.renderTop();
-      };
     },
 
     /* --------------------------------------------------------- bottom nav */

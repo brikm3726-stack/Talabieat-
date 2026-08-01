@@ -1,22 +1,36 @@
 /* ==========================================================================
-   VUE — Mon compte (tous les rôles)
+   VUES — Compte
+
+   Trois écrans, et la séparation compte autant que le contenu :
+
+     /account   les réglages — une liste de portes, rien d'autre
+     /profil    les informations personnelles, et ce qui en dépend
+     /securite  le mot de passe, prouvé par un code reçu par email
+
+   Un écran de réglages qui contient aussi un formulaire oblige à faire défiler
+   pour trouver ce qu'on cherche. Ici, on ouvre la porte qui nous concerne.
    ========================================================================== */
 (function (w) {
   'use strict';
 
   const ROLE_LABEL = { client: 'Client', restaurant: 'Restaurant', driver: 'Livreur', admin: 'Administrateur' };
+  const VEHICULES = ['moto', 'voiture', 'velo', 'autre'];
+  const VEHICULE_ICON = { moto: 'scooter', voiture: 'car', velo: 'bike', autre: 'package' };
 
+  /* ======================================================================
+     RÉGLAGES — la page d'accueil du compte
+     ====================================================================== */
   Router.add('/account', async function (params, query, view) {
-    const p = Store.profile;
+    const p = Store.profile || {};
+    /* Seuls ceux qu'on appelle entendent une sonnerie : le client, lui, n'a
+       rien à couper. Et si le module audio n'a pas pu se charger, la ligne
+       disparaît plutôt que de faire tomber la page entière. */
+    const sonnerie = !!w.Sound && (p.role === 'restaurant' || p.role === 'driver');
 
-    async function paint() {
-      const addresses = p.role === 'client' ? await API.safe(() => API.addresses(), []) : [];
-      const verrou = U.phoneLock(p);
-
+    function paint() {
       view.innerHTML = '<div class="account-page">' +
         '<span class="acc-dots a" aria-hidden="true"></span>' +
         '<span class="acc-dots b" aria-hidden="true"></span>' +
-        '<span class="acc-leaf" aria-hidden="true">🌿</span>' +
         '<div class="wrap-sm page">' +
 
         /* ---- en-tête profil ---- */
@@ -27,92 +41,46 @@
               '<div class="tiny">' + U.esc(p.email || '') + '</div>' +
               '<span class="tag tag-soft" style="margin-top:7px">' + UI.icon('user', 14) + ' ' +
                 U.esc(ROLE_LABEL[p.role] || p.role) + '</span></div>' +
-            '<span class="acc-chev">' + UI.icon('chevron', 20) + '</span>' +
           '</div>' +
         '</div>' +
 
-        /* ---- accès rapide ----
-           Le client n'a rien à faire ici de raccourcis vers les commandes ou
-           le catalogue : la barre du bas les lui donne déjà, à un pouce. Cette
-           page ne garde que ce qui lui est propre — ses informations, et sa
-           sécurité. Les comptes professionnels, eux, n'ont pas cette barre
-           complète : leurs raccourcis restent utiles. */
-        (p.role === 'restaurant'
-          ? quickLinks([['#/r', 'chart', 'Tableau de bord'], ['#/r/menu', 'pizza', 'Gérer mon menu'], ['#/r/profile', 'store', 'Ma fiche restaurant']])
-          : p.role === 'driver'
-          ? quickLinks([['#/d', 'chart', 'Tableau de bord'], ['#/d/profile', 'scooter', 'Mon profil livreur'], ['#/d/history', 'history', 'Historique']])
-          : p.role === 'admin'
-          ? quickLinks([['#/a', 'chart', 'Tableau de bord'], ['#/a/settings', 'settings', 'Réglages plateforme']])
-          : '') +
+        '<div class="stack acc-reglages" style="gap:10px;margin-top:16px">' +
 
-        /* ---- sécurité : en tête, avant le formulaire ---- */
-        '<a class="card card-p acc-block acc-secu" href="#/securite" style="margin-top:16px">' +
-          '<span class="ic">' + UI.icon('lock', 20) + '</span>' +
-          '<span class="grow"><b>Sécurité</b>' +
-            '<span class="tiny">Modifier mon mot de passe, vérifié par email</span></span>' +
-          '<span class="acc-chev">' + UI.icon('chevron', 20) + '</span>' +
-        '</a>' +
+          /* 1 ---- informations personnelles ---- */
+          porte('#/profil', 'user', 'Informations personnelles',
+                'Nom, téléphone, quartier' +
+                (p.role === 'client' ? ', adresses de livraison' : '') +
+                (p.role === 'driver' ? ', moyen de transport' : '')) +
 
-        /* ---- informations personnelles ---- */
-        '<form id="pf" class="card card-p stack acc-block" style="margin-top:16px">' +
-          bloc('user', 'Informations personnelles') +
-          '<div class="acc-grid">' +
-            UI.imageField('avatar_url', p.avatar_url, 'Photo de profil') +
-            '<div class="field"><label>Nom complet</label>' +
-              '<div class="input-ic"><span>' + UI.icon('user', 17) + '</span>' +
-              '<input class="input" name="full_name" value="' + U.esc(p.full_name || '') + '" required></div></div>' +
-            '<div class="field"><label>Téléphone</label>' +
-              '<div class="input-ic"><span>' + UI.icon(verrou.bloque ? 'lock' : 'phone', 17) + '</span>' +
-              '<input class="input" name="phone" inputmode="tel" placeholder="Entrez votre numéro" value="' +
-                U.esc(p.phone || '') + '"' + (verrou.bloque ? ' disabled' : '') + '></div>' +
-              // le compte à rebours est spécifique et important : il reste sous le
-              // champ, en plus de la note générique sous le bouton
-              (verrou.bloque
-                ? '<div class="hint">Numéro enregistré il y a moins de 30 jours. Modifiable dans <b>' +
-                  verrou.jours + ' jour' + (verrou.jours > 1 ? 's' : '') + '</b>. ' +
-                  'Le téléphone de chaque adresse de livraison, lui, reste libre.</div>'
-                : '') +
-            '</div>' +
-            Cmp.zoneSelect('zone_id', p.zone_id, 'Ma zone') +
-            '<div class="field acc-full"><label>Email</label>' +
-              '<div class="input-ic"><span>' + UI.icon('mail', 17) + '</span>' +
-              '<input class="input" value="' + U.esc(p.email || '') + '" disabled></div></div>' +
-          '</div>' +
-          '<button class="btn btn-primary btn-block btn-lg" type="submit">' +
-            UI.icon('save', 18) + ' Enregistrer les modifications</button>' +
-          '<div class="tiny center" style="margin-top:2px">Une fois modifié, il sera bloqué 30 jours.</div>' +
-        '</form>' +
+          /* 2 ---- sécurité ---- */
+          porte('#/securite', 'lock', 'Sécurité',
+                'Modifier mon mot de passe, vérifié par email') +
 
-        /* ---- adresses (clients) ---- */
-        (p.role === 'client'
-          ? '<div class="card card-p acc-block" style="margin-top:16px">' +
-            '<div class="row-between" style="margin-bottom:14px">' +
-              bloc('pin', 'Adresses de livraison') +
-              '<button class="btn btn-soft btn-sm" id="addAddr">' + UI.icon('plus', 16) +
-                ' Ajouter une adresse</button></div>' +
-            (addresses.length
-              ? '<div class="stack" style="gap:9px">' + addresses.map(a =>
-                  '<div class="role-card addr-row">' +
-                    '<div class="ic">' + UI.icon('pin', 20) + '</div>' +
-                    '<div class="grow"><b>' + U.esc(a.label) +
-                      (a.is_default ? ' <span class="tag tag-ok">' + UI.icon('check', 13) + ' Par défaut</span>' : '') +
-                      (U.hasCoords(a) ? '' : ' <span class="tag tag-warn">' + UI.icon('warn', 13) + ' sans GPS</span>') + '</b>' +
-                      '<div class="tiny">' + U.esc(a.street) + (a.details ? ' — ' + U.esc(a.details) : '') + '</div>' +
-                      '<div class="tiny">' + U.esc(zoneName(a.zone_id)) + ' • ' + U.esc(a.phone || '') +
-                        (U.hasCoords(a) ? ' • <a class="addr-map" target="_blank" rel="noopener" href="' +
-                          U.gmapsPin(a.lat, a.lng) + '">carte ' + UI.icon('link', 12) + '</a>' : '') + '</div></div>' +
-                    '<div class="row" style="gap:8px">' +
-                      '<button class="icon-round" data-ae="' + U.esc(a.id) + '" title="Modifier">' +
-                        UI.icon('pencil', 17) + '</button>' +
-                      '<button class="icon-round danger" data-ad="' + U.esc(a.id) + '" title="Supprimer">' +
-                        UI.icon('trash', 17) + '</button></div>' +
-                  '</div>').join('') + '</div>'
-              : '<div class="tiny">Aucune adresse enregistrée. Ajoutez-en une depuis ' +
-                'votre position : c’est le point que le livreur ouvrira dans Google Maps.</div>') +
-          '</div>'
-          : '') +
+          /* 3 ---- sonnerie ---- */
+          (sonnerie
+            ? '<div class="card card-p acc-secu" style="cursor:default">' +
+                '<span class="ic">' + UI.icon(Sound.muted ? 'mute' : 'sound', 20) + '</span>' +
+                '<span class="grow"><b>Sonnerie</b>' +
+                  '<span class="tiny">' +
+                    (Sound.muted
+                      ? 'Coupée — vous ne serez plus averti par un son'
+                      : (p.role === 'driver'
+                          ? 'Vous êtes averti à chaque course disponible'
+                          : 'Vous êtes averti à chaque nouvelle commande')) +
+                  '</span></span>' +
+                '<label class="switch"><input type="checkbox" id="son"' +
+                  (Sound.muted ? '' : ' checked') + '>' +
+                  '<span class="track"><span class="knob"></span></span></label>' +
+              '</div>'
+            : '') +
 
-        /* ---- infos plateforme ---- */
+          /* 4 ---- l'application ---- */
+          porte('#/apropos', 'info', 'À propos de l’application',
+                U.esc(TALABI_CONFIG.APP_NAME) + ' version ' + U.esc(TALABI_CONFIG.APP_VERSION || '1.0')) +
+
+        '</div>' +
+
+        /* ---- assistance ---- */
         '<div class="card card-p acc-block" style="margin-top:16px">' +
           bloc('headset', 'Assistance') +
           // le tel: ne supporte pas les espaces du numéro affiché
@@ -135,20 +103,143 @@
             UI.icon('logout', 18) + ' Se déconnecter</button></div>' +
       '</div></div>';
 
+      const son = view.querySelector('#son');
+      if (son) son.onchange = function () {
+        Sound.muted = !this.checked;
+        UI.ok(Sound.muted ? 'Sonnerie coupée' : 'Sonnerie réactivée',
+              Sound.muted ? 'Vous ne serez plus averti par un son.' : '');
+        paint();
+      };
+
+      view.querySelector('#logout').onclick = deconnexion;
+    }
+
+    paint();
+  }, { auth: true });
+
+  /* ======================================================================
+     INFORMATIONS PERSONNELLES
+     ====================================================================== */
+  Router.add('/profil', async function (params, query, view) {
+    const p = Store.profile || {};
+
+    async function paint() {
+      const addresses = p.role === 'client' ? await API.safe(() => API.addresses(), []) : [];
+      const d = p.role === 'driver' ? (p.driver || await API.safe(() => API.getDriver(), {}) || {}) : {};
+      const verrou = U.phoneLock(p);
+      let vehicule = d.vehicle || 'moto';
+
+      view.innerHTML = '<div class="account-page">' +
+        '<span class="acc-dots a" aria-hidden="true"></span>' +
+        '<div class="wrap-sm page">' +
+
+        entete('Informations personnelles') +
+
+        '<form id="pf" class="card card-p stack acc-block">' +
+          '<div class="acc-grid">' +
+            UI.imageField('avatar_url', p.avatar_url, 'Photo de profil') +
+            '<div class="field"><label>Nom complet</label>' +
+              '<div class="input-ic"><span>' + UI.icon('user', 17) + '</span>' +
+              '<input class="input" name="full_name" value="' + U.esc(p.full_name || '') + '" required></div></div>' +
+            '<div class="field"><label>Téléphone</label>' +
+              '<div class="input-ic"><span>' + UI.icon(verrou.bloque ? 'lock' : 'phone', 17) + '</span>' +
+              '<input class="input" name="phone" inputmode="tel" placeholder="Entrez votre numéro" value="' +
+                U.esc(p.phone || '') + '"' + (verrou.bloque ? ' disabled' : '') + '></div>' +
+              (verrou.bloque
+                ? '<div class="hint">Numéro enregistré il y a moins de 30 jours. Modifiable dans <b>' +
+                  verrou.jours + ' jour' + (verrou.jours > 1 ? 's' : '') + '</b>. ' +
+                  'Le téléphone de chaque adresse de livraison, lui, reste libre.</div>'
+                : '') +
+            '</div>' +
+            Cmp.zoneSelect('zone_id', p.zone_id, p.role === 'driver' ? 'Mon quartier de livraison' : 'Ma zone') +
+            '<div class="field acc-full"><label>Email</label>' +
+              '<div class="input-ic"><span>' + UI.icon('mail', 17) + '</span>' +
+              '<input class="input" value="' + U.esc(p.email || '') + '" disabled></div></div>' +
+          '</div>' +
+
+          /* ---- moyen de transport : il appartient au livreur, pas à un
+                  écran séparé qu'il faut aller chercher ---- */
+          (p.role === 'driver'
+            ? '<div class="divider"></div>' +
+              '<div class="field"><label>Moyen de transport</label>' +
+                '<div class="grid grid-2" style="gap:9px" id="vehic">' +
+                  VEHICULES.map(k =>
+                    '<div class="role-card ' + (vehicule === k ? 'on' : '') + '" data-v="' + k + '">' +
+                      '<div class="ic">' + UI.icon(VEHICULE_ICON[k] || 'scooter', 20) + '</div>' +
+                      '<div class="grow"><b>' + U.esc(U.VEHICLES[k]) + '</b></div>' +
+                      '<div data-check style="color:var(--brand);font-weight:800">' +
+                        (vehicule === k ? '✓' : '') + '</div></div>').join('') +
+                '</div></div>' +
+              '<div class="field"><label>Plaque d’immatriculation <span class="tiny">(facultatif)</span></label>' +
+                '<input class="input" name="plate" placeholder="Ex : 16-1234-118" value="' + U.esc(d.plate || '') + '"></div>'
+            : '') +
+
+          '<button class="btn btn-primary btn-block btn-lg" type="submit">' +
+            UI.icon('save', 18) + ' Enregistrer les modifications</button>' +
+          (verrou.bloque ? '' :
+            '<div class="tiny center" style="margin-top:2px">Une fois modifié, le téléphone sera bloqué 30 jours.</div>') +
+        '</form>' +
+
+        /* ---- adresses (clients) ---- */
+        (p.role === 'client'
+          ? '<div class="card card-p acc-block" style="margin-top:16px">' +
+            '<div class="row-between" style="margin-bottom:14px">' +
+              bloc('pin', 'Adresses de livraison') +
+              '<button class="btn btn-soft btn-sm" id="addAddr">' + UI.icon('plus', 16) +
+                ' Ajouter</button></div>' +
+            (addresses.length
+              ? '<div class="stack" style="gap:9px">' + addresses.map(a =>
+                  '<div class="role-card addr-row">' +
+                    '<div class="ic">' + UI.icon('pin', 20) + '</div>' +
+                    '<div class="grow"><b>' + U.esc(a.label) +
+                      (a.is_default ? ' <span class="tag tag-ok">' + UI.icon('check', 13) + ' Par défaut</span>' : '') +
+                      (U.hasCoords(a) ? '' : ' <span class="tag tag-warn">' + UI.icon('warn', 13) + ' sans GPS</span>') + '</b>' +
+                      '<div class="tiny">' + U.esc(a.street) + (a.details ? ' — ' + U.esc(a.details) : '') + '</div>' +
+                      '<div class="tiny">' + U.esc(zoneName(a.zone_id)) + ' • ' + U.esc(a.phone || '') +
+                        (U.hasCoords(a) ? ' • <a class="addr-map" target="_blank" rel="noopener" href="' +
+                          U.gmapsPin(a.lat, a.lng) + '">carte ' + UI.icon('link', 12) + '</a>' : '') + '</div></div>' +
+                    '<div class="row" style="gap:8px">' +
+                      '<button class="icon-round" data-ae="' + U.esc(a.id) + '" title="Modifier">' +
+                        UI.icon('pencil', 17) + '</button>' +
+                      '<button class="icon-round danger" data-ad="' + U.esc(a.id) + '" title="Supprimer">' +
+                        UI.icon('trash', 17) + '</button></div>' +
+                  '</div>').join('') + '</div>'
+              : '<div class="tiny">Aucune adresse enregistrée. Ajoutez-en une depuis ' +
+                'votre position : c’est le point que le livreur ouvrira dans Google Maps.</div>') +
+          '</div>'
+          : '') +
+
+      '</div></div>';
+
       /* ------------------------------------------------------ actions */
       UI.bindImageFields(view);
+
+      view.querySelectorAll('[data-v]').forEach(el => el.onclick = () => {
+        vehicule = el.dataset.v;
+        view.querySelectorAll('[data-v]').forEach(x => {
+          const on = x.dataset.v === vehicule;
+          x.classList.toggle('on', on);
+          x.querySelector('[data-check]').textContent = on ? '✓' : '';
+        });
+      });
 
       view.querySelector('#pf').onsubmit = async function (e) {
         e.preventDefault();
         const btn = this.querySelector('[type=submit]');
-        const d = UI.formData(this);
-        if (!d.full_name || d.full_name.length < 3) return UI.err('Indiquez votre nom complet');
-        // le champ est désactivé quand il est verrouillé : il n'arrive pas dans
-        // le formulaire, on n'envoie donc rien qui serait refusé côté serveur
-        if (d.phone && !U.isPhoneDZ(d.phone)) return UI.err('Numéro invalide');
+        const f = UI.formData(this);
+        if (!f.full_name || f.full_name.length < 3) return UI.err('Indiquez votre nom complet');
+        // le champ verrouillé n'arrive pas dans le formulaire : on n'envoie
+        // donc rien que le serveur refuserait
+        if (f.phone && !U.isPhoneDZ(f.phone)) return UI.err('Numéro invalide');
+
         UI.busy(btn, true);
         try {
-          await API.updateProfile(d);
+          await API.updateProfile({
+            full_name: f.full_name, phone: f.phone,
+            zone_id: f.zone_id, avatar_url: f.avatar_url
+          });
+          if (p.role === 'driver')
+            await API.saveDriver({ vehicle: vehicule, plate: f.plate, zone_id: f.zone_id });
           await Store.refreshProfile();
           UI.busy(btn, false);
           UI.ok('Profil mis à jour');
@@ -175,26 +266,43 @@
         UI.ok('Adresse supprimée');
         paint();
       });
-
-      view.querySelector('#logout').onclick = async function () {
-        if (!(await UI.confirm('Se déconnecter ?', 'Vous devrez vous reconnecter pour continuer.', 'Déconnexion', true))) return;
-        UI.busy(this, true, 'Déconnexion…');
-        try {
-          await API.signOut();
-          Store.clearCart(true);
-          await Store.refreshProfile();
-          UI.ok('À bientôt !');
-          Router.go(App.est('client') ? '/' : '/login', true);
-        } catch (e) {
-          /* Rien ne doit retenir quelqu'un dans son compte. Si un appel a
-             echoué en route, on recharge : la session locale est déjà effacée. */
-          console.error(e);
-          location.reload();
-        }
-      };
     }
 
     await paint();
+  }, { auth: true });
+
+  /* ======================================================================
+     À PROPOS
+     ====================================================================== */
+  Router.add('/apropos', async function (params, query, view) {
+    view.innerHTML = '<div class="account-page"><div class="wrap-sm page">' +
+      entete('À propos') +
+
+      '<div class="card card-p acc-block center">' +
+        '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
+          'style="width:88px;border-radius:22px;margin:0 auto">' +
+        '<div class="h2" style="margin-top:12px">' + U.esc(App.nom) + '</div>' +
+        '<div class="tiny">Version ' + U.esc(TALABI_CONFIG.APP_VERSION || '1.0') + '</div>' +
+        '<p class="sub" style="margin-top:12px">' +
+          U.esc(TALABI_CONFIG.APP_TAGLINE) + '<br>Tizi Ouzou, Algérie.</p>' +
+      '</div>' +
+
+      '<div class="card card-p acc-block" style="margin-top:16px">' +
+        '<a class="acc-link" href="' + U.asset('confidentialite.html') + '" target="_blank" rel="noopener">' +
+          '<span class="ic">' + UI.icon('lock', 18) + '</span>' +
+          '<span class="grow"><b>Politique de confidentialité</b>' +
+            '<span class="tiny">Quelles données, pourquoi, et comment les effacer</span></span>' +
+          '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
+        '<a class="acc-link" href="mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL || '') + '">' +
+          '<span class="ic">' + UI.icon('mail', 18) + '</span>' +
+          '<span class="grow"><b>Signaler un problème</b>' +
+            '<span class="tiny">Décrivez ce que vous avez vu, on répond sous 7 jours</span></span>' +
+          '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
+      '</div>' +
+
+      '<div class="tiny center" style="margin-top:18px">© ' + new Date().getFullYear() + ' ' +
+        U.esc(TALABI_CONFIG.APP_NAME) + '</div>' +
+    '</div></div>';
   }, { auth: true });
 
   /* ======================================================================
@@ -208,17 +316,14 @@
      ====================================================================== */
   Router.add('/securite', async function (params, query, view) {
     const p = Store.profile || {};
-    let etape = 'demande';        // demande → code → fini
+    let etape = 'demande';        // demande → code
 
     function paint() {
       view.innerHTML = '<div class="account-page">' +
         '<span class="acc-dots a" aria-hidden="true"></span>' +
         '<div class="wrap-sm page">' +
 
-        '<div class="row" style="gap:10px;margin-bottom:14px">' +
-          '<a class="icon-round" href="#/account" title="Retour">' + UI.icon('chevron', 18) + '</a>' +
-          '<div class="h1" style="font-size:23px">Sécurité</div>' +
-        '</div>' +
+        entete('Sécurité') +
 
         '<div class="card card-p acc-block">' +
           bloc('lock', 'Mot de passe') +
@@ -258,10 +363,8 @@
 
       const env = view.querySelector('#envoyer');
       if (env) env.onclick = demander;
-
       const re = view.querySelector('#renvoyer');
       if (re) re.onclick = demander;
-
       const f = view.querySelector('#sf');
       if (f) f.onsubmit = enregistrer;
     }
@@ -305,24 +408,45 @@
     paint();
   }, { auth: true });
 
-  /* ------------------------------------------------------------ helpers */
+  /* ------------------------------------------------------------ fragments */
 
-  /** Titre de bloc : pastille orange + intitulé */
+  /** En-tête d'une sous-page : une flèche de retour et un titre. */
+  function entete(titre) {
+    return '<div class="row" style="gap:10px;margin-bottom:14px">' +
+      '<a class="icon-round" href="#/account" title="Retour aux réglages">' +
+        UI.icon('chevron', 18) + '</a>' +
+      '<div class="h1" style="font-size:23px">' + U.esc(titre) + '</div></div>';
+  }
+
+  /** Une ligne de réglage qui mène ailleurs. */
+  function porte(href, icone, titre, sous) {
+    return '<a class="card card-p acc-secu" href="' + href + '">' +
+      '<span class="ic">' + UI.icon(icone, 20) + '</span>' +
+      '<span class="grow"><b>' + U.esc(titre) + '</b>' +
+        '<span class="tiny">' + sous + '</span></span>' +
+      '<span class="acc-chev">' + UI.icon('chevron', 20) + '</span></a>';
+  }
+
   function bloc(icone, titre) {
     return '<div class="acc-title"><span class="ic">' + UI.icon(icone, 19) + '</span>' +
            '<span class="h3">' + U.esc(titre) + '</span></div>';
   }
 
-  /* [href, icône, titre, sous-titre] — le sous-titre est facultatif.
-     L'icône est un nom du jeu UI.ICONS, ou un emoji pour les autres rôles. */
-  function quickLinks(items) {
-    return '<div class="grid grid-2" style="margin-top:14px">' +
-      items.map(i => '<a class="card card-p card-hover acc-quick" href="' + i[0] + '">' +
-        '<span class="ic">' + (UI.ICONS[i[1]] ? UI.icon(i[1], 21) : i[1]) + '</span>' +
-        '<span class="grow"><b>' + U.esc(i[2]) + '</b>' +
-          (i[3] ? '<span class="tiny">' + U.esc(i[3]) + '</span>' : '') + '</span>' +
-        '<span class="acc-chev">›</span></a>').join('') +
-    '</div>';
+  async function deconnexion() {
+    if (!(await UI.confirm('Se déconnecter ?', 'Vous devrez vous reconnecter pour continuer.', 'Déconnexion', true))) return;
+    UI.busy(this, true, 'Déconnexion…');
+    try {
+      await API.signOut();
+      Store.clearCart(true);
+      await Store.refreshProfile();
+      UI.ok('À bientôt !');
+      Router.go(App.est('client') ? '/' : '/login', true);
+    } catch (e) {
+      /* Rien ne doit retenir quelqu'un dans son compte. Si un appel a échoué
+         en route, on recharge : la session locale est déjà effacée. */
+      console.error(e);
+      location.reload();
+    }
   }
 
   w.zoneName = function (id) {

@@ -186,6 +186,10 @@
       wallet:   '<path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H5a2 2 0 0 1-2-2Z"/><circle cx="17" cy="14" r="1"/>',
       chef:     '<path d="M6 20h12"/><path d="M7 17h10l1-6a4 4 0 0 0-2-4 4 4 0 0 0-7.6-1A4 4 0 0 0 6 11Z"/>',
       bike:     '<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17 10 8h5l3 9"/><path d="M13 8h4"/>',
+      car:      '<path d="M5 13l1.6-4.7A2 2 0 0 1 8.5 7h7a2 2 0 0 1 1.9 1.3L19 13"/>' +
+                '<path d="M3.5 13h17v4.5a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1V17H7v.5a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1z"/>' +
+                '<circle cx="7.5" cy="15" r=".6"/><circle cx="16.5" cy="15" r=".6"/>',
+      info:     '<circle cx="12" cy="12" r="9"/><path d="M12 16v-4.5"/><path d="M12 8.2h.01"/>',
       clock:    '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
       search:   '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
       upload:   '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/>',
