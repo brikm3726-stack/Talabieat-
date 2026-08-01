@@ -254,7 +254,8 @@
       } else {
         box.style.margin = '-18px';
         box.innerHTML = list.map(n =>
-          '<div class="notif-item ' + (n.is_read ? '' : 'unread') + '" data-o="' + U.esc(n.order_id || '') + '">' +
+          '<div class="notif-item ' + (n.is_read ? '' : 'unread') + '" data-o="' + U.esc(n.order_id || '') +
+            '" data-t="' + U.esc(n.type || '') + '">' +
             '<div class="notif-ic">' + iconFor(n.type) + '</div>' +
             '<div class="grow"><b style="font-size:14px">' + U.esc(n.title) + '</b>' +
             '<div class="tiny" style="margin-top:2px">' + U.esc(n.body || '') + '</div>' +
@@ -264,7 +265,7 @@
         box.querySelectorAll('[data-o]').forEach(el => el.onclick = () => {
           const id = el.dataset.o;
           m.close();
-          if (id) Router.go(targetFor(id));
+          if (id) Router.go(targetFor(id, el.dataset.t));
         });
       }
 
@@ -285,9 +286,16 @@
     }
   };
 
-  function targetFor(orderId) {
+  /* Où mène une notification.
+     Le rôle ne suffit pas : un livreur prévenu qu'une COURSE EST À PRENDRE
+     était envoyé sur « Ma livraison », l'écran de la course qu'il a déjà
+     acceptée — donc vide. Il recevait l'alerte et ne trouvait rien. C'est le
+     type de la notification qui dit où aller, pas la fonction de celui qui la
+     reçoit. */
+  function targetFor(orderId, type) {
+    if (Store.role === 'driver')
+      return type === 'delivery_available' ? '/d/available' : '/d/active';
     if (Store.role === 'restaurant') return '/r/orders';
-    if (Store.role === 'driver') return '/d/active';
     if (Store.role === 'admin') return '/a/orders';
     return '/order/' + orderId;
   }
