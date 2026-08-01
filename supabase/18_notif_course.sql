@@ -70,13 +70,38 @@ begin
         'Bon appétit ! Confirmez la réception de #' || new.code, 'delivered', new.id);
       perform public.notify(r_owner, 'Commande livrée',
         'La commande #' || new.code || ' a été livrée', 'delivered', new.id);
+
+      /* LIBÉRER LE LIVREUR — la ligne la plus importante de ce fichier.
+         claim_order le passe en « occupé » ; sans ce retour à « disponible »,
+         il le reste pour toujours. Et comme l'interrupteur de disponibilité
+         est verrouillé pendant une course, il n'a aucun moyen de s'en sortir
+         lui-même : une seule livraison suffisait à le mettre hors service. */
+      if new.driver_id is not null then
+        update public.drivers
+           set total_deliveries = total_deliveries + 1,
+               total_earnings   = total_earnings + coalesce(new.driver_earning, 0),
+               status           = 'available'
+         where id = new.driver_id;
+      end if;
+
     when 'rejected' then
       perform public.notify(new.client_id, 'Commande refusée',
         coalesce(new.reject_reason, 'Le restaurant n''a pas pu accepter votre commande #' || new.code),
         'rejected', new.id);
+      -- une course refusée après attribution libère aussi son livreur
+      if new.driver_id is not null then
+        update public.drivers set status = 'available' where id = new.driver_id;
+      end if;
+
     when 'cancelled' then
       perform public.notify(r_owner, 'Commande annulée',
         'Le client a annulé la commande #' || new.code, 'cancelled', new.id);
+      /* Ce cas manquait depuis le début : un client qui annulait pendant que
+         le livreur roulait le laissait occupé indéfiniment. */
+      if new.driver_id is not null then
+        update public.drivers set status = 'available' where id = new.driver_id;
+      end if;
+
     else null;
   end case;
 
@@ -156,7 +181,29 @@ begin
   return suivant;
 end $$;
 
+-- 3. Rattrapage : libérer ceux qui sont restés bloqués -----------------------
+-- Un livreur marqué « occupé » sans course en cours ne peut plus rien accepter,
+-- et l'interrupteur de disponibilité lui est fermé tant qu'il est occupé.
+update public.drivers d
+   set status = 'available'
+ where d.status = 'busy'
+   and not exists (
+     select 1 from public.orders o
+      where o.driver_id = d.id
+        and o.status in ('driver_assigned', 'delivering')
+   );
+
 -- ---- Vérification -----------------------------------------------------------
+-- Doit renvoyer 0 : plus aucun livreur occupé sans course.
+select count(*) as livreurs_bloques_sans_course
+  from public.drivers d
+ where d.status = 'busy'
+   and not exists (
+     select 1 from public.orders o
+      where o.driver_id = d.id and o.status in ('driver_assigned', 'delivering')
+   );
+
+
 -- Les courses prêtes et non attribuées, avec le livreur à qui elles sont
 -- proposées en ce moment (null = ouverte à tous).
 select o.code, o.status, o.offer_driver_id, o.offer_deadline, o.search_since
