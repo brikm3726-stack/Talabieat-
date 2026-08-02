@@ -277,7 +277,8 @@
       }
 
       chargerGoogle().then(ok => {
-        if (!ok || mort) return;
+        if (mort) return;
+        if (!ok) { if (opts && opts.onEchec) opts.onEchec(); return; }
         map = new google.maps.Map(container, Object.assign({}, OPTIONS, {
           center: CITY, zoom: 13
         }, fige ? {

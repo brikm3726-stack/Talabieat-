@@ -1164,6 +1164,16 @@ body.app-driver{
 }
 .drv-mapcard{margin-top:0}
 
+/* carte indisponible : on dit ce qui se passe, et surtout ce qui marche
+   quand même — un rectangle gris se lit comme une panne générale */
+.drv-mapko{
+  height:100%;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;text-align:center;padding:18px;
+  font-size:26px;color:var(--ink-2);
+}
+.drv-mapko b{font-size:14.5px}
+.drv-mapko span{font-size:12.5px;color:var(--muted);max-width:280px}
+
 /* recentrage : un repère posé sur la carte, pas un bouton d'en-tête */
 .drv-mapfit{
   position:absolute;right:10px;bottom:10px;

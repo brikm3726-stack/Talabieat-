@@ -50,18 +50,30 @@
      TABLEAU DE BORD LIVREUR
      ====================================================================== */
   Router.add('/d', async function (params, query, view) {
-    view.innerHTML = '<div class="wrap page"><div class="skel" style="height:220px"></div></div>';
 
     /* ====================================================================
-       CARTE EN DIRECT — conservée d'un rafraîchissement à l'autre
+       SQUELETTE FIXE
        --------------------------------------------------------------------
-       Le tableau de bord se redessine toutes les 25 secondes. Reconstruire
-       une carte Google à chaque passage, ce serait un « chargement de carte »
-       facturé toutes les 25 secondes et par livreur — plus un clignotement à
-       l'écran. On fabrique donc ce bloc UNE fois, hors du innerHTML, et on le
-       rebranche après chaque rendu : la carte survit, seuls les repères
-       bougent.
+       Le tableau de bord se rafraîchit toutes les 25 secondes. Il ne se
+       réécrit pas en entier pour autant : la carte est posée dans un bloc
+       qui n'est JAMAIS touché, entre deux zones qui, elles, se redessinent.
+
+       Ce découpage n'est pas du confort. Une carte Google arrachée du
+       document puis rebranchée perd ses tuiles et ne les redemande pas
+       toujours — on se retrouve devant un rectangle gris. Et la recréer à
+       chaque passage coûterait un « chargement de carte » facturé toutes
+       les 25 secondes, par livreur.
        ==================================================================== */
+    view.innerHTML = '<div class="driver-page"><div class="wrap page">' +
+      '<div id="drvHaut"><div class="skel" style="height:220px"></div></div>' +
+      '<div id="drvMapSlot" style="margin-top:14px"></div>' +
+      '<div id="drvBas"></div>' +
+    '</div></div>';
+
+    const zoneHaut = view.querySelector('#drvHaut');
+    const zoneBas  = view.querySelector('#drvBas');
+    const slot     = view.querySelector('#drvMapSlot');
+
     const boite = document.createElement('div');
     boite.className = 'card card-p drv-panel drv-mapcard';
     boite.innerHTML =
@@ -77,9 +89,26 @@
       '<button class="btn btn-primary btn-block btn-lg drv-search" id="drvSearch">' +
         '🔎 Chercher une course</button>';
 
+    /* La carte n'est construite qu'une fois le bloc DANS le document : une
+       carte Google créée dans un élément détaché naît sans dimensions, et
+       reste grise. */
+    slot.appendChild(boite);
+
     /* Carte figée : le tableau de bord défile, et un doigt posé sur la carte
        doit faire défiler la page — pas déplacer la carte. */
-    const live = MapPicker.live(boite.querySelector('#drvMap'), {}, { fige: true });
+    const live = MapPicker.live(boite.querySelector('#drvMap'), {}, {
+      fige: true,
+      /* Sans réseau, sans clé, ou si Google met plus de 12 secondes à
+         répondre, la carte ne viendra pas. Le dire vaut mieux qu'un
+         rectangle gris qu'on prend pour une panne de l'application. */
+      onEchec: function () {
+        const el = boite.querySelector('#drvMap');
+        if (el) el.innerHTML =
+          '<div class="drv-mapko">🗺️<b>La carte n’a pas pu se charger</b>' +
+          '<span>Votre position est bien envoyée : les courses proches vous ' +
+          'seront proposées normalement.</span></div>';
+      }
+    });
     boite.querySelector('#drvMapFit').onclick = () => live && live.recenter();
 
     const titre = boite.querySelector('#drvMapTitle');
@@ -285,7 +314,8 @@
 
       const statut = (d && d.status) || 'offline';
 
-      view.innerHTML = '<div class="driver-page"><div class="wrap page">' +
+      /* ---- zone du haut : tout ce qui précède la carte ---- */
+      zoneHaut.innerHTML =
         validationBanner(d) +
 
         /* --- en-tête : avatar, salutation, quartier et véhicule --- */
@@ -320,11 +350,18 @@
             statut === 'busy' ? '<div class="tiny" style="margin-top:10px">Terminez votre livraison en cours pour redevenir disponible.</div>' : '') +
         '</div>' +
 
-        carteCredit(d) +
+        carteCredit(d);
 
-        /* La carte se glisse ici : sous le crédit, sous la disponibilité. */
-        (approved ? '<div id="drvMapSlot" style="margin-top:14px"></div>' : '') +
+      /* La carte occupe le bloc du milieu : elle n'est jamais réécrite. On se
+         contente de la montrer ou de la cacher — un compte pas encore validé
+         n'a rien à suivre. Au retour de l'invisible, il faut la réveiller :
+         cachée, elle mesurait zéro. */
+      const etaitCachee = slot.hidden;
+      slot.hidden = !approved;
+      if (etaitCachee && approved && live) live.nudge();
 
+      /* ---- zone du bas : tout ce qui suit la carte ---- */
+      zoneBas.innerHTML =
         '<div class="grid grid-stats drv-stats" style="margin-top:14px">' +
           drvStat('📅', 'Courses aujourd’hui', todayDone.length, 'Aujourd’hui') +
           drvStat('📦', 'Total livraisons', (d && d.total_deliveries) || 0,
@@ -358,17 +395,9 @@
                 (approved ? '<div class="scene-cta">' +
                   '<button class="btn btn-primary btn-lg" id="refresh">⟳ Actualiser les courses</button></div>' : '') +
               '</div>') +
-        '</div>' +
-      '</div></div>';
+        '</div>';
 
-      /* On rebranche la carte fabriquée plus haut, puis on la réveille : elle
-         vient d'être détachée par la réécriture du tableau de bord. */
-      const slot = view.querySelector('#drvMapSlot');
-      if (slot) {
-        slot.appendChild(boite);
-        if (live) live.nudge();
-        peindreCarte(d, active[0] || null);
-      }
+      peindreCarte(d, active[0] || null);
 
       /* Le régime de partage découle de ce qu'on vient de charger : inutile de
          repasser par LiveTrack.sync(), qui referait les deux mêmes requêtes. */
