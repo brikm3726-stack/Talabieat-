@@ -15,11 +15,14 @@ window.TALABI_CONFIG = {
   SUPABASE_URL:      'https://nxwgrpiubgrlvaszclmz.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54d2dycGl1YmdybHZhc3pjbG16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTkyNTAsImV4cCI6MjEwMDkzNTI1MH0.wKsQIAiB_sJcttPQQbTDfWsVAdbRA_PqokF0TNBeF-c',
 
-  // ---- Google Maps ------------------------------------------------------
-  // Clé « Maps JavaScript API », à restreindre au domaine talabi.shop dans la
-  // console Google Cloud. Elle part dans le navigateur de chaque visiteur —
-  // c'est inévitable pour afficher une carte — donc la restriction est sa
-  // seule protection. Vide : le site retombe sur la saisie GPS sans carte.
+  // ---- Cartes -----------------------------------------------------------
+  // Les cartes utilisent OpenStreetMap : aucune clé, aucun compte, aucune
+  // carte bancaire. Google Maps exigeait une facturation active même dans le
+  // quota gratuit, et l'ajout de carte échouait (OR_BACR2_44) — la carte
+  // cessait alors de s'afficher sans que rien n'ait changé dans le code.
+  //
+  // Cette clé n'est plus lue par l'application. Conservée au cas où la
+  // facturation Google serait débloquée un jour.
   GOOGLE_MAPS_KEY: 'AIzaSyD6jN6hL3eZVG1Ej1c4FwdmRj3P0L6Ilv4',
 
   // ---- Identité ---------------------------------------------------------

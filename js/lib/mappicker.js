@@ -1,128 +1,52 @@
 /* ==========================================================================
-   SÉLECTEUR DE POSITION SUR CARTE — Google Maps
+   SÉLECTEUR DE POSITION SUR CARTE — OpenStreetMap
    --------------------------------------------------------------------------
-   • Carte, recherche d'adresse et adresse inverse : Google Maps
+   • Carte OpenStreetMap via Leaflet — gratuit, aucune clé, aucun compte
    • Bouton « Ma position » via le GPS du téléphone (navigator.geolocation)
-   • Navigation du livreur : liens Google Maps (aucune clé requise pour ça)
+   • Recherche et adresse inverse via Nominatim (OpenStreetMap)
+   • Navigation du livreur : liens Google Maps, qui ouvrent l'application du
+     téléphone et ne demandent aucune clé
 
-   LA CLÉ
-   La clé vit dans config.js (GOOGLE_MAPS_KEY) et part donc dans le navigateur
-   de chaque visiteur — c'est inévitable, une carte s'affiche côté client. Elle
-   DOIT être restreinte à talabi.shop dans la console Google Cloud, sinon
-   n'importe qui peut la reprendre et faire tourner son propre site à vos
-   frais. La restriction, pas le secret, est la seule protection réelle.
+   POURQUOI PAS GOOGLE
+   Google Maps exige une carte bancaire liée au projet, même pour rester dans
+   le quota gratuit. En Algérie, l'ajout de carte échoue régulièrement
+   (OR_BACR2_44), et la carte cesse alors de s'afficher du jour au lendemain
+   sans que rien n'ait changé dans le code. Pour ce que la plateforme demande
+   à une carte — montrer un plan, poser trois repères, suivre un livreur —
+   OpenStreetMap fait le même travail sans compte à maintenir ni facture
+   possible. Ce qu'on perd : un rendu un peu moins soigné, et une recherche
+   d'adresse par texte moins fine sur les adresses algériennes.
 
    CHARGEMENT À LA DEMANDE
-   Le script Google n'est téléchargé qu'à la première carte affichée. Un client
-   qui parcourt les menus sans jamais ouvrir de carte ne paie ni le temps de
-   chargement, ni l'appel facturé.
+   Leaflet n'est téléchargé qu'à la première carte affichée. Un client qui
+   parcourt les menus sans jamais ouvrir de carte ne paie pas ce temps de
+   chargement.
 
-   SANS CLÉ, OU SANS RÉSEAU
-   Tout continue de fonctionner en mode dégradé : on peut enregistrer sa
-   position par le GPS, sans voir la carte. Une adresse sans carte vaut mieux
-   qu'un écran bloqué.
+   SANS RÉSEAU
+   Tout continue en mode dégradé : on peut enregistrer sa position par le GPS,
+   sans voir la carte. Une adresse sans carte vaut mieux qu'un écran bloqué.
    ========================================================================== */
 (function (w) {
   'use strict';
 
   // Centre de la ville de Tizi Ouzou
   const CITY = { lat: 36.7118, lng: 4.0458 };
+  const NOMINATIM = 'https://nominatim.openstreetmap.org';
+
+  const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  const LEAFLET_JS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+
+  const TUILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  // La licence OpenStreetMap impose de citer la source sur toute carte
+  // affichée. Ce n'est pas décoratif : c'est la contrepartie du service.
+  const CREDIT = '© OpenStreetMap';
 
   let promesse = null;
 
-  /* ======================================================================
-     ATTRAPER LES ERREURS DE CLÉ GOOGLE
-     ----------------------------------------------------------------------
-     Quand la clé est refusée, Google n'affiche rien d'utile sur la carte :
-     il écrit le nom de l'erreur dans la console du navigateur. Sur un
-     téléphone, cette console n'existe pas — le propriétaire du site voit un
-     rectangle cassé et n'a aucun moyen de savoir pourquoi.
-
-     On intercepte donc ces messages au passage pour pouvoir les afficher
-     dans l'application, en français. C'est la différence entre « la carte
-     bugue » et « l'adresse du site n'est pas dans la liste autorisée de la
-     clé » — la seconde se corrige en deux minutes.
-     ====================================================================== */
-  const EXPLICATIONS = {
-    RefererNotAllowedMapError:
-      'L’adresse de ce site n’est pas autorisée pour cette clé. Dans Google Cloud → ' +
-      'Identifiants → votre clé → Restrictions de site web, ajoutez https://talabi.shop/* ' +
-      'ET https://www.talabi.shop/* — sans le /* final, seule la page d’accueil est acceptée.',
-    ApiNotActivatedMapError:
-      'L’API « Maps JavaScript API » n’est pas activée sur le projet Google Cloud.',
-    BillingNotEnabledMapError:
-      'La facturation n’est pas activée sur le projet Google Cloud. Google l’exige même ' +
-      'dans les quotas gratuits.',
-    InvalidKeyMapError:      'La clé Google Maps est invalide.',
-    ExpiredKeyMapError:      'La clé Google Maps a expiré.',
-    ApiTargetBlockedMapError:
-      'Cette clé est restreinte à d’autres API que « Maps JavaScript API ».',
-    RefererDeniedMapError:   'Google a refusé l’adresse de ce site pour cette clé.'
-  };
-
-  let panne = '';                 // nom brut de la dernière erreur Google
-  let urlAAutoriser = '';         // adresse que Google demande d'autoriser
-  const abonnes = [];             // cartes à prévenir quand la clé est refusée
-
-  function signaler(nom) {
-    /* « AuthFailure » est le nom générique du rappel de Google : il ne dit
-       que « refusé ». S'il arrive après un nom précis, il ne doit pas
-       l'écraser — sinon on perd la seule information utile. */
-    if (!nom) return;
-    if (panne && (nom === 'AuthFailure' || panne === nom)) return;
-    panne = nom;
-    abonnes.slice().forEach(cb => { try { cb(pourquoi()); } catch (e) {} });
-  }
-
-  /* Google n'écrit pas toujours par le même canal ni dans le même format
-     selon la version de l'API : on écoute les deux et on cherche le nom
-     d'erreur partout dans le message, pas seulement derrière un préfixe. */
-  ['error', 'warn'].forEach(canal => {
-    const original = console[canal];
-    console[canal] = function () {
-      const texte = Array.prototype.join.call(arguments, ' ');
-      if (/Google Maps/i.test(texte)) {
-        const nom = texte.match(/([A-Za-z]+MapError)/);
-        // Google indique l'adresse exacte à inscrire dans les restrictions
-        const url = texte.match(/authoriz(?:ed|é)\s*:?\s*(https?:\/\/\S+)/i);
-        if (url) urlAAutoriser = url[1];
-        if (nom) signaler(nom[1]);
-      }
-      return original.apply(console, arguments);
-    };
-  });
-
-  /* Rappel documenté par Google : appelé dès que l'authentification échoue,
-     quelle qu'en soit la raison. Il arrive APRÈS la création de la carte —
-     d'où l'abonnement plutôt qu'un simple test au chargement. */
-  w.gm_authFailure = function () { signaler(panne || 'AuthFailure'); };
-
-  /** Dernière erreur Google, expliquée en français. '' si tout va bien. */
-  function pourquoi() {
-    if (!panne) return '';
-    const sup = urlAAutoriser ? ' Adresse à autoriser : ' + urlAAutoriser : '';
-    if (EXPLICATIONS[panne]) return EXPLICATIONS[panne] + sup;
-
-    /* Nom générique : Google a refusé sans dire pourquoi. Plutôt que de le
-       laisser deviner, on donne les trois causes possibles, dans l'ordre où
-       il faut les vérifier. */
-    if (panne === 'AuthFailure') {
-      return 'Google a refusé la clé. Trois causes possibles, à vérifier dans cet ordre ' +
-        'sur console.cloud.google.com : 1) la facturation n’est pas activée sur le projet ' +
-        '(Google l’exige même dans les quotas gratuits) ; 2) l’API « Maps JavaScript API » ' +
-        'n’est pas activée ; 3) l’adresse du site n’est pas autorisée pour cette clé — il ' +
-        'faut https://talabi.shop/* avec l’étoile finale.' + sup;
-    }
-    return 'Google a refusé d’afficher la carte (' + panne + ').' + sup;
-  }
-
-  /** Charge l'API Google Maps une seule fois. Résout false si c'est impossible. */
-  function chargerGoogle() {
-    if (w.google && w.google.maps && w.google.maps.Map) return Promise.resolve(true);
+  /** Charge Leaflet une seule fois. Résout false si c'est impossible. */
+  function chargerLeaflet() {
+    if (w.L && w.L.map) return Promise.resolve(true);
     if (promesse) return promesse;
-
-    const cle = (w.TALABI_CONFIG && w.TALABI_CONFIG.GOOGLE_MAPS_KEY) || '';
-    if (!cle) return Promise.resolve(false);
 
     promesse = new Promise(resolve => {
       const fini = ok => { clearTimeout(minuteur); resolve(ok); };
@@ -130,40 +54,29 @@
       // dégradé vaut mieux qu'une attente sans fin
       const minuteur = setTimeout(() => fini(false), 12000);
 
-      w.__talabiMapsPret = () => fini(true);
+      if (!document.querySelector('link[data-leaflet]')) {
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = LEAFLET_CSS;
+        css.setAttribute('data-leaflet', '');
+        document.head.appendChild(css);
+      }
+
       const s = document.createElement('script');
+      s.src = LEAFLET_JS;
       s.async = true;
-      s.src = 'https://maps.googleapis.com/maps/api/js' +
-              '?key=' + encodeURIComponent(cle) +
-              '&language=fr&region=DZ&loading=async&callback=__talabiMapsPret';
+      s.onload  = () => fini(!!(w.L && w.L.map));
       s.onerror = () => fini(false);
       document.head.appendChild(s);
     });
     return promesse;
   }
 
-  /* Style sobre : la carte sert à repérer une porte, pas à découvrir la ville.
-     On efface les points d'intérêt commerciaux, qui encombrent le centre. */
-  const STYLE = [
-    { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
-    { featureType: 'transit', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] }
-  ];
-
-  const OPTIONS = {
-    disableDefaultUI: true,
-    zoomControl: true,
-    gestureHandling: 'greedy',   // un doigt suffit à déplacer la carte
-    clickableIcons: false,
-    styles: STYLE
-  };
-
   const MapPicker = {
 
-    /** Une carte peut-elle s'afficher ? (la clé est-elle renseignée) */
-    get available() {
-      return !!((w.google && w.google.maps) ||
-                (w.TALABI_CONFIG && w.TALABI_CONFIG.GOOGLE_MAPS_KEY));
-    },
+    /** Une carte peut-elle s'afficher ? OpenStreetMap ne demande pas de clé :
+        seule la connexion peut manquer, et on ne le sait qu'en essayant. */
+    get available() { return true; },
 
     /**
      * MapPicker.open({ lat, lng, title, onPick })
@@ -175,7 +88,7 @@
       let lng = U.hasCoords(o) ? +o.lng : CITY.lng;
       let label = '';
 
-      if (!(await chargerGoogle())) return fallback(o);
+      if (!(await chargerLeaflet())) return fallback(o);
 
       const sheet = UI.sheet({
         title: o.title || 'Choisir la position',
@@ -201,12 +114,16 @@
           '<button class="btn btn-primary btn-block btn-lg" id="mpok">✅ Confirmer cette position</button>',
 
         onMount(el, api) {
-          const map = new google.maps.Map(el.querySelector('#mpmap'), Object.assign({}, OPTIONS, {
-            center: { lat: lat, lng: lng },
-            zoom: U.hasCoords(o) ? 17 : 14
-          }));
+          const map = L.map(el.querySelector('#mpmap'), {
+            zoomControl: true, attributionControl: true
+          }).setView([lat, lng], U.hasCoords(o) ? 17 : 14);
 
-          const geocodeur = new google.maps.Geocoder();
+          L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT }).addTo(map);
+
+          // la carte naît dans un panneau qui glisse : elle doit se remesurer
+          // une fois l'animation terminée, sinon elle reste grise à moitié
+          setTimeout(() => map.invalidateSize(), 320);
+
           const addrBox = el.querySelector('#mpaddr');
           const resBox = el.querySelector('#mpres');
           const pin = el.querySelector('.mp-pin');
@@ -214,17 +131,17 @@
           /* ------------------------------------------- adresse du centre */
           const refresh = U.debounce(async () => {
             const c = map.getCenter();
-            lat = +c.lat().toFixed(6); lng = +c.lng().toFixed(6);
+            lat = +c.lat.toFixed(6); lng = +c.lng.toFixed(6);
             addrBox.innerHTML = '<span class="spinner dark"></span> Recherche de l’adresse…';
-            label = await inverse(geocodeur, lat, lng);
+            label = await inverse(lat, lng);
             addrBox.innerHTML = label
               ? '<b>' + UI.pin(16) + ' ' + U.esc(label) + '</b>'
               : '<b>' + UI.pin(16) + ' Position sélectionnée</b>' +
                 '<div class="tiny">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div>';
           }, 550);
 
-          map.addListener('dragstart', () => pin.classList.add('moving'));
-          map.addListener('idle', () => { pin.classList.remove('moving'); refresh(); });
+          map.on('move', () => pin.classList.add('moving'));
+          map.on('moveend', () => { pin.classList.remove('moving'); refresh(); });
           refresh();
 
           /* --------------------------------------------- ma position GPS */
@@ -236,8 +153,7 @@
             navigator.geolocation.getCurrentPosition(
               pos => {
                 btn.innerHTML = '🎯';
-                map.setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                map.setZoom(18);
+                map.setView([pos.coords.latitude, pos.coords.longitude], 18);
                 UI.ok('Position trouvée', 'Ajustez le repère si besoin');
               },
               err => {
@@ -257,15 +173,14 @@
             // coordonnées ou lien Google Maps collés : on y va directement
             const c = parseCoords(term);
             if (c) {
-              map.setCenter({ lat: c.lat, lng: c.lng });
-              map.setZoom(18);
+              map.setView([c.lat, c.lng], 18);
               resBox.innerHTML = '';
               q.value = '';
               UI.ok('Position appliquée', c.lat.toFixed(5) + ', ' + c.lng.toFixed(5));
               return;
             }
 
-            const list = await chercher(geocodeur, term);
+            const list = await chercher(term);
             if (!list.length) {
               resBox.innerHTML = '<div class="mp-item tiny">Aucun résultat</div>';
               return;
@@ -274,8 +189,7 @@
               '<div class="mp-item" data-r="' + i + '">' + UI.pin() + ' ' + U.esc(r.adresse) + '</div>').join('');
             resBox.querySelectorAll('[data-r]').forEach(item => item.onclick = () => {
               const r = list[+item.dataset.r];
-              map.setCenter({ lat: r.lat, lng: r.lng });
-              map.setZoom(17);
+              map.setView([r.lat, r.lng], 17);
               resBox.innerHTML = '';
               q.value = '';
             });
@@ -295,24 +209,24 @@
 
     /**
      * Carte de suivi : restaurant, client et livreur sur la même vue.
-     * MapPicker.live(el, { restaurant:{lat,lng}, client:{lat,lng}, driver:{lat,lng} })
-     * Retourne { update(points), recenter(), destroy() } — les repères bougent
-     * sans recréer la carte, ce qui évite le clignotement à chaque
-     * rafraîchissement.
+     * MapPicker.live(el, points, { fige, onEchec })
      *
-     * L'objet est rendu tout de suite, avant même que Google ait répondu : les
-     * appels reçus entre-temps sont gardés et appliqués à l'ouverture.
+     *   fige     la carte ne réagit plus au doigt — indispensable dans une
+     *            page qui défile, sinon le doigt posé dessus fait glisser la
+     *            carte au lieu de la page
+     *   onEchec  appelé si la carte ne peut pas s'afficher, avec la raison
+     *
+     * Retourne { update(points), recenter(), nudge(), destroy() } : les
+     * repères bougent sans recréer la carte, ce qui évite le clignotement à
+     * chaque rafraîchissement.
+     *
+     * L'objet est rendu tout de suite, avant même que Leaflet soit chargé :
+     * les appels reçus entre-temps sont gardés et appliqués à l'ouverture.
      */
     live(container, points, opts) {
       if (!container) return null;
 
-      /* fige : la carte ne réagit plus au doigt. Indispensable dans une page
-         qui défile — sinon, sur téléphone, le doigt posé sur la carte fait
-         glisser la carte au lieu de faire défiler la page, et l'utilisateur
-         se retrouve coincé devant un plan qui s'échappe. Elle reste vivante :
-         les repères bougent, la vue suit. */
       const fige = !!(opts && opts.fige);
-
       let map = null, markers = {}, attendus = points, premier = true, mort = false;
 
       const defs = {
@@ -321,97 +235,76 @@
         driver:     ['🛵', 'lm-driver', 'Livreur']
       };
 
+      const repere = (emoji, cls) => L.divIcon({
+        className: '', iconSize: [38, 38], iconAnchor: [19, 19],
+        html: '<div class="lm-pin ' + (cls || '') + '">' + emoji + '</div>'
+      });
+
       function appliquer(pts) {
         if (!map) return;
-        const bounds = new google.maps.LatLngBounds();
-        let n = 0;
+        const bornes = [];
 
         Object.keys(defs).forEach(k => {
           const p = pts && pts[k];
           if (!p || !U.hasCoords(p)) {
-            if (markers[k]) { markers[k].setMap(null); delete markers[k]; }
+            if (markers[k]) { map.removeLayer(markers[k]); delete markers[k]; }
             return;
           }
-          const ll = { lat: +p.lat, lng: +p.lng };
-          bounds.extend(ll); n++;
-          if (markers[k]) markers[k].setPosition(ll);
-          else markers[k] = new google.maps.Marker({
-            position: ll, map: map, title: defs[k][2],
-            label: { text: defs[k][0], fontSize: '20px' },
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE, scale: 18,
-              fillColor: '#ffffff', fillOpacity: 1,
-              /* la clé est « restaurant », pas « resto » : écrit ainsi, le
-                 repère du restaurant prenait le bleu du client */
-              strokeColor: k === 'driver' ? '#12A150' : k === 'restaurant' ? '#FF4D2D' : '#1E6BE6',
-              strokeWeight: 3
-            }
-          });
+          const ll = [+p.lat, +p.lng];
+          bornes.push(ll);
+          if (markers[k]) markers[k].setLatLng(ll);
+          else markers[k] = L.marker(ll, {
+            icon: repere(defs[k][0], defs[k][1]), title: defs[k][2]
+          }).addTo(map);
         });
 
-        if (!n) { map.setCenter(CITY); map.setZoom(13); return; }
+        if (!bornes.length) { map.setView([CITY.lat, CITY.lng], 13); return; }
 
         /* Carte figée avec un seul repère : la vue le suit, sinon le livreur
            qui roule sortirait du cadre sans pouvoir y revenir au doigt. */
-        if (fige && n === 1 && !premier) { map.setCenter(bounds.getCenter()); return; }
+        if (fige && bornes.length === 1 && !premier) { map.setView(bornes[0]); return; }
 
         if (premier) {
-          if (n > 1) { map.fitBounds(bounds, 42); }
-          else { map.setCenter(bounds.getCenter()); map.setZoom(16); }
+          if (bornes.length > 1) map.fitBounds(bornes, { padding: [42, 42], maxZoom: 16 });
+          else map.setView(bornes[0], 16);
           premier = false;
         }
       }
 
-      /* Une clé refusée ne se voit pas au chargement : le script Google arrive
-         normalement, la carte se crée, et c'est seulement ensuite que
-         l'authentification échoue. On s'abonne donc, en plus de tester. */
-      const prevenir = raison => {
-        if (mort || !opts || !opts.onEchec) return;
-        opts.onEchec(raison || pourquoi());
-      };
-      if (opts && opts.onEchec) {
-        abonnes.push(prevenir);
-        if (panne) setTimeout(() => prevenir(), 0);
-      }
-
-      chargerGoogle().then(ok => {
+      chargerLeaflet().then(ok => {
         if (mort) return;
-        if (!ok) { prevenir('La carte n’a pas répondu — vérifiez votre connexion.'); return; }
-        map = new google.maps.Map(container, Object.assign({}, OPTIONS, {
-          center: CITY, zoom: 13
+        if (!ok) {
+          if (opts && opts.onEchec)
+            opts.onEchec('La carte n’a pas pu être téléchargée — vérifiez votre connexion.');
+          return;
+        }
+        map = L.map(container, Object.assign({
+          zoomControl: true, attributionControl: true
         }, fige ? {
-          gestureHandling: 'none',
-          zoomControl: false,
-          keyboardShortcuts: false
+          dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+          touchZoom: false, boxZoom: false, keyboard: false,
+          zoomControl: false, tap: false
         } : null));
+
+        L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT }).addTo(map);
         appliquer(attendus);
+        setTimeout(() => map.invalidateSize(), 260);
       });
 
       return {
         update(pts) { attendus = pts; appliquer(pts); },
-        /* À appeler quand le conteneur a été détaché puis rebranché dans la
-           page : la carte a pu perdre ses tuiles pendant le déplacement.
-           Bien moins cher qu'en recréer une — un « chargement de carte » est
-           facturé, un redimensionnement non. */
-        nudge() {
-          if (!map) return;
-          const c = map.getCenter();
-          google.maps.event.trigger(map, 'resize');
-          map.setCenter(c);
-        },
+        /* À appeler quand le conteneur a changé de taille ou est redevenu
+           visible : Leaflet mesure une fois et ne s'en aperçoit pas seul. */
+        nudge() { if (map) map.invalidateSize(); },
         recenter() {
           if (!map) return;
-          const b = new google.maps.LatLngBounds();
-          let n = 0;
-          Object.keys(markers).forEach(k => { b.extend(markers[k].getPosition()); n++; });
-          if (n > 1) map.fitBounds(b, 42);
-          else if (n) { map.setCenter(b.getCenter()); map.setZoom(16); }
+          const b = Object.keys(markers).map(k => markers[k].getLatLng());
+          if (b.length > 1) map.fitBounds(b, { padding: [42, 42], maxZoom: 16 });
+          else if (b.length) map.setView(b[0], 16);
         },
         destroy() {
           mort = true;
-          const i = abonnes.indexOf(prevenir);
-          if (i >= 0) abonnes.splice(i, 1);
-          Object.keys(markers).forEach(k => markers[k].setMap(null));
+          try { if (map) map.remove(); } catch (e) {}
           markers = {}; map = null;
         }
       };
@@ -421,22 +314,23 @@
     preview(container, lat, lng) {
       if (!container || !U.hasCoords({ lat: lat, lng: lng })) return null;
 
-      chargerGoogle().then(ok => {
+      chargerLeaflet().then(ok => {
         if (!ok) return;
-        const pos = { lat: +lat, lng: +lng };
-        const map = new google.maps.Map(container, {
-          center: pos, zoom: 16,
-          disableDefaultUI: true, gestureHandling: 'none',
-          keyboardShortcuts: false, clickableIcons: false, styles: STYLE
-        });
-        new google.maps.Marker({ position: pos, map: map });
+        const map = L.map(container, {
+          zoomControl: false, dragging: false, scrollWheelZoom: false,
+          doubleClickZoom: false, touchZoom: false, keyboard: false,
+          attributionControl: true
+        }).setView([+lat, +lng], 16);
+        L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT }).addTo(map);
+        L.marker([+lat, +lng]).addTo(map);
+        setTimeout(() => map.invalidateSize(), 250);
       });
 
       return null;
     }
   };
 
-  /* ====================================================== outils Google */
+  /* ==================================================== OpenStreetMap */
 
   /**
    * Reconnaît une position collée par l'utilisateur :
@@ -466,36 +360,36 @@
   }
 
   /** Coordonnées → adresse lisible */
-  function inverse(geocodeur, lat, lng) {
-    return new Promise(resolve => {
-      geocodeur.geocode({ location: { lat: lat, lng: lng } }, (res, statut) => {
-        if (statut !== 'OK' || !res || !res.length) return resolve('');
-        /* Google classe du plus précis au plus large : le premier résultat est
-           l'adresse de la porte. On coupe le pays et le code postal, qui
-           n'apprennent rien à quelqu'un qui commande dans sa propre ville. */
-        const parts = String(res[0].formatted_address).split(',')
-          .map(x => x.trim())
-          .filter(x => x && !/^\d{5}$/.test(x) && !/alg[ée]rie/i.test(x));
-        resolve(parts.slice(0, 3).join(', '));
-      });
-    });
+  async function inverse(lat, lng) {
+    try {
+      const r = await fetch(NOMINATIM + '/reverse?format=jsonv2&zoom=18&accept-language=fr' +
+        '&lat=' + lat + '&lon=' + lng);
+      if (!r.ok) return '';
+      const j = await r.json();
+      const a = j.address || {};
+      /* On garde la rue, le quartier et la ville. Le pays et le code postal
+         n'apprennent rien à quelqu'un qui commande dans sa propre ville. */
+      const parts = [
+        a.road || a.pedestrian || a.residential || a.neighbourhood,
+        a.suburb || a.quarter,
+        a.city || a.town || a.village
+      ].filter(Boolean);
+      return parts.length ? parts.join(', ')
+                          : (j.display_name || '').split(',').slice(0, 3).join(', ');
+    } catch (e) { return ''; }
   }
 
   /** Texte → liste de lieux (limités à l'Algérie) */
-  function chercher(geocodeur, term) {
-    return new Promise(resolve => {
-      geocodeur.geocode({
-        address: term,
-        componentRestrictions: { country: 'dz' }
-      }, (res, statut) => {
-        if (statut !== 'OK' || !res) return resolve([]);
-        resolve(res.slice(0, 6).map(r => ({
-          adresse: r.formatted_address,
-          lat: r.geometry.location.lat(),
-          lng: r.geometry.location.lng()
-        })));
-      });
-    });
+  async function chercher(term) {
+    try {
+      const r = await fetch(NOMINATIM + '/search?format=jsonv2&limit=6&countrycodes=dz' +
+        '&accept-language=fr&q=' + encodeURIComponent(term));
+      if (!r.ok) return [];
+      const l = await r.json();
+      return (l || []).map(x => ({
+        adresse: x.display_name, lat: +x.lat, lng: +x.lon
+      }));
+    } catch (e) { return []; }
   }
 
   function geoError(err) {
@@ -505,7 +399,7 @@
     return 'Placez le repère à la main sur la carte.';
   }
 
-  /* ------------------- secours : pas de carte (clé absente, hors ligne) */
+  /* ------------------- secours : pas de carte (hors connexion) */
   function fallback(o) {
     return UI.sheet({
       title: o.title || 'Choisir la position',
@@ -535,9 +429,6 @@
   }
 
   MapPicker.parseCoords = parseCoords;   // exposé pour les tests
-  /** Nom brut de la panne Google, et son explication en français. */
-  MapPicker.panne   = () => panne;
-  MapPicker.pourquoi = pourquoi;
 
   w.MapPicker = MapPicker;
 })(window);

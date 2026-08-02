@@ -1466,7 +1466,7 @@ body.role-driver .brand-logo{
 .mp-item:last-child{border-bottom:none}
 .mp-item:hover{background:var(--brand-soft)}
 
-.mp-map{position:relative;height:300px;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line)}
+.mp-map{position:relative;z-index:0;height:300px;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line)}
 .mp-map #mpmap{position:absolute;inset:0}
 /* le repère reste fixe au centre : c'est la carte qui bouge sous lui */
 .mp-pin{
