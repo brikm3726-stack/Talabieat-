@@ -60,12 +60,17 @@
     const boite = document.createElement('div');
     boite.className = 'card card-p drv-panel drv-mapcard';
     boite.innerHTML =
-      '<div class="row-between" style="margin-bottom:10px">' +
-        '<div class="h2" id="drvMapTitle">📍 Ma position</div>' +
-        '<button class="btn btn-soft btn-sm" id="drvMapFit">Recentrer</button>' +
+      '<div class="h2" id="drvMapTitle" style="margin-bottom:10px">📍 Ma position</div>' +
+      '<div class="drv-mapwrap">' +
+        '<div class="drv-map" id="drvMap"></div>' +
+        /* Le recentrage quitte l'en-tête pour ce petit repère posé sur la
+           carte : il ne sert qu'à réparer un déplacement du doigt, il n'a
+           pas à occuper la place du bouton principal. */
+        '<button type="button" class="drv-mapfit" id="drvMapFit" title="Recentrer">🎯</button>' +
       '</div>' +
-      '<div class="drv-map" id="drvMap"></div>' +
-      '<div id="drvMapInfo"></div>';
+      '<div id="drvMapInfo"></div>' +
+      '<button class="btn btn-primary btn-block btn-lg drv-search" id="drvSearch">' +
+        '🔎 Chercher une course</button>';
 
     const live = MapPicker.live(boite.querySelector('#drvMap'), {});
     boite.querySelector('#drvMapFit').onclick = () => live && live.recenter();
@@ -76,6 +81,94 @@
     /* Dernier état connu, pour redessiner la carte à chaque nouvelle position
        sans rappeler le serveur. */
     let dernierD = null, derniereCourse = null;
+
+    /* ====================================================================
+       CHERCHER UNE COURSE — 30 secondes de recherche active
+       --------------------------------------------------------------------
+       Le serveur propose déjà les courses tout seul. Ce bouton sert à autre
+       chose : il donne au livreur un geste à faire au lieu d'attendre devant
+       un écran vide. Ce qu'il déclenche vraiment, dans l'ordre :
+
+         1. envoi immédiat de la position — le serveur choisit le plus proche
+            du restaurant, autant qu'il sache où vous êtes AVANT de choisir ;
+         2. pendant 30 secondes, un tour d'attribution est relancé toutes les
+            3 secondes, et on regarde ce qui devient visible ;
+         3. dès qu'une course apparaît, la recherche s'arrête et sonne.
+
+       Le bouton reste bloqué pendant les 30 secondes : sans cela, un livreur
+       nerveux relancerait un tour par seconde, ce qui ne ferait apparaître
+       aucune commande de plus et chargerait la base pour rien.
+       ==================================================================== */
+    const btnCherche = boite.querySelector('#drvSearch');
+    let recherche = null;      // { restant, minuteur, occupe } pendant la recherche
+
+    function libelleBouton() {
+      if (!recherche) {
+        btnCherche.disabled = false;
+        btnCherche.innerHTML = '🔎 Chercher une course';
+        return;
+      }
+      btnCherche.disabled = true;
+      btnCherche.innerHTML = '<span class="spinner"></span> Recherche… ' + recherche.restant + ' s';
+    }
+
+    function arreterRecherche() {
+      if (!recherche) return;
+      clearInterval(recherche.minuteur);
+      recherche = null;
+      libelleBouton();
+    }
+
+    async function chercherUneCourse() {
+      if (recherche) return;
+
+      const d = dernierD;
+      if (!d || d.validation_status !== 'approved')
+        return UI.err('Compte non validé', 'Vous pourrez chercher une course dès la validation.');
+      if (d.status === 'busy')
+        return UI.err('Livraison en cours', 'Terminez votre course avant d’en chercher une autre.');
+      if (d.status !== 'available')
+        return UI.err('Vous êtes hors ligne', 'Passez en disponible pour recevoir des courses.');
+
+      recherche = { restant: 30, occupe: false, minuteur: null };
+      libelleBouton();
+
+      // la position d'abord, avant le premier tour d'attribution
+      await LiveTrack.pushOnce().catch(() => {});
+
+      recherche.minuteur = setInterval(async () => {
+        if (!recherche) return;
+        recherche.restant--;
+
+        if (recherche.restant <= 0) {
+          arreterRecherche();
+          UI.err('Aucune course pour le moment',
+                 'Restez en ligne : dès qu’un restaurant est prêt près de vous, ça sonne.');
+          load();
+          return;
+        }
+        libelleBouton();
+
+        /* Un sondage toutes les 3 secondes, jamais deux en même temps :
+           sur une connexion lente, un appel peut durer plus d'une seconde. */
+        if (recherche.restant % 3 !== 0 || recherche.occupe) return;
+        recherche.occupe = true;
+        await API.safe(() => API.tick(), false);
+        const rows = await API.safe(() => API.orders({ scope: 'available' }), []);
+        if (!recherche) return;
+        recherche.occupe = false;
+
+        if (rows.length) {
+          arreterRecherche();
+          if (w.Sound) Sound.play('delivery', 1);
+          UI.ok(rows.length > 1 ? rows.length + ' courses trouvées' : 'Une course pour vous !',
+                'Elle apparaît juste en dessous.');
+          load();
+        }
+      }, 1000);
+    }
+
+    btnCherche.onclick = chercherUneCourse;
 
     /** Repères et légende, à partir du livreur et de sa course éventuelle. */
     function peindreCarte(d, course) {
@@ -107,6 +200,11 @@
       titre.textContent = course
         ? '🛵 Course #' + (course.code || '') + ' en direct'
         : '📍 Ma position';
+
+      /* Chercher une course pendant qu'on en livre une n'a pas de sens : le
+         serveur refuserait la seconde de toute façon. */
+      btnCherche.style.display = course ? 'none' : '';
+      if (course) arreterRecherche();
 
       /* --- pas encore de position : dire pourquoi, et comment y remédier */
       if (!moi) {
@@ -287,6 +385,7 @@
     const timer = setInterval(load, 25000);
     return () => {
       off(); offPos(); clearInterval(timer);
+      arreterRecherche();
       if (live) live.destroy();
     };
   }, GUARD);
