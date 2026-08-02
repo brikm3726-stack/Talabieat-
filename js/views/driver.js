@@ -72,7 +72,9 @@
       '<button class="btn btn-primary btn-block btn-lg drv-search" id="drvSearch">' +
         '🔎 Chercher une course</button>';
 
-    const live = MapPicker.live(boite.querySelector('#drvMap'), {});
+    /* Carte figée : le tableau de bord défile, et un doigt posé sur la carte
+       doit faire défiler la page — pas déplacer la carte. */
+    const live = MapPicker.live(boite.querySelector('#drvMap'), {}, { fige: true });
     boite.querySelector('#drvMapFit').onclick = () => live && live.recenter();
 
     const titre = boite.querySelector('#drvMapTitle');

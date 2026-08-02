@@ -217,8 +217,15 @@
      * L'objet est rendu tout de suite, avant même que Google ait répondu : les
      * appels reçus entre-temps sont gardés et appliqués à l'ouverture.
      */
-    live(container, points) {
+    live(container, points, opts) {
       if (!container) return null;
+
+      /* fige : la carte ne réagit plus au doigt. Indispensable dans une page
+         qui défile — sinon, sur téléphone, le doigt posé sur la carte fait
+         glisser la carte au lieu de faire défiler la page, et l'utilisateur
+         se retrouve coincé devant un plan qui s'échappe. Elle reste vivante :
+         les repères bougent, la vue suit. */
+      const fige = !!(opts && opts.fige);
 
       let map = null, markers = {}, attendus = points, premier = true, mort = false;
 
@@ -257,6 +264,11 @@
         });
 
         if (!n) { map.setCenter(CITY); map.setZoom(13); return; }
+
+        /* Carte figée avec un seul repère : la vue le suit, sinon le livreur
+           qui roule sortirait du cadre sans pouvoir y revenir au doigt. */
+        if (fige && n === 1 && !premier) { map.setCenter(bounds.getCenter()); return; }
+
         if (premier) {
           if (n > 1) { map.fitBounds(bounds, 42); }
           else { map.setCenter(bounds.getCenter()); map.setZoom(16); }
@@ -268,7 +280,11 @@
         if (!ok || mort) return;
         map = new google.maps.Map(container, Object.assign({}, OPTIONS, {
           center: CITY, zoom: 13
-        }));
+        }, fige ? {
+          gestureHandling: 'none',
+          zoomControl: false,
+          keyboardShortcuts: false
+        } : null));
         appliquer(attendus);
       });
 

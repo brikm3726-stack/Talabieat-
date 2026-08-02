@@ -1112,6 +1112,9 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .drv-map{
   height:240px;border-radius:16px;overflow:hidden;
   background:var(--cream-2);
+  /* renfort du gestureHandling:'none' de Google : le doigt fait défiler la
+     page, il ne déplace jamais la carte */
+  touch-action:pan-y;
 }
 .drv-mapcard{margin-top:0}
 
