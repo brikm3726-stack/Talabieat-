@@ -155,7 +155,20 @@ p{margin:0}
 .bottomnav a.on::before{
   content:'';position:absolute;top:0;width:26px;height:3px;border-radius:0 0 4px 4px;background:var(--brand);
 }
-@media(min-width:1000px){ .bottomnav{display:none} :root{--nav-h:0px} }
+/* ---- barre du bas de l'espace livreur ----------------------------------
+   Cinq rubriques au lieu de six : chacune gagne un cinquième de largeur. On
+   rend cette place à l'icône et au libellé plutôt que de la laisser en blanc
+   — un livreur consulte son téléphone en roulant, casque sur la tête, il n'a
+   pas le temps de viser. */
+body.role-driver{ --nav-h:70px }
+body.role-driver .bottomnav a{font-size:12px;gap:4px}
+body.role-driver .bottomnav a i svg{width:26px;height:26px}
+body.role-driver .bottomnav a.on::before{width:32px;height:3.5px}
+
+/* body est un descendant de :root : sans cette seconde remise à zéro, la
+   valeur posée sur body l'emporterait sur le --nav-h:0 du bureau et les pages
+   du livreur garderaient 70 px de vide sous une barre qui n'existe plus. */
+@media(min-width:1000px){ .bottomnav{display:none} :root,body.role-driver{--nav-h:0px} }
 
 /* min-width:0 + défilement : c'est le menu qui cède quand la place manque,
    jamais les actions de droite. */
@@ -742,6 +755,24 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .account-page .input:disabled{background:#FDF7F2;color:var(--muted)}
 .account-page .field label{font-size:13.5px;font-weight:700;color:var(--ink-2)}
 
+/* Chez le livreur, la page Compte suit le bleu de son application : elle
+   redéclare sa palette localement, il faut donc la reprendre ici, sinon
+   c'était le seul écran resté orange au milieu d'une application bleue. */
+body.role-driver .account-page{
+  --brand:#1E6BE6;
+  --brand-light:#3E8BFF;
+  --brand-dark:#1552B8;
+  --brand-soft:#E9F1FF;
+  --brand-grad:linear-gradient(135deg,#3E8BFF 0%,#1E6BE6 100%);
+  --line:#E2E9F5;
+  --ring:rgba(30,107,230,.16);
+  background:
+    radial-gradient(600px 340px at 98% 2%, rgba(62,139,255,.11), transparent 60%),
+    radial-gradient(520px 320px at 0% 100%, rgba(30,107,230,.07), transparent 58%),
+    #F5F9FF;
+}
+body.role-driver .account-page .input:disabled{background:#F2F6FD}
+
 /* bouton principal : dégradé orange, coins larges, ombre colorée */
 .account-page .btn-primary{
   border-radius:16px;
@@ -1009,40 +1040,50 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .rs-menubar .btn{flex:none}
 
 /* --------------------------------------------- tableau de bord du livreur */
+/* L'espace livreur est bleu. Ce n'est pas qu'une préférence : trois
+   applications tournent sur les mêmes téléphones, et la couleur est ce qui
+   dit le plus vite laquelle on a ouverte. Le orange reste au client, le
+   sombre à l'administration. */
+body.role-driver{
+  --brand:#1E6BE6;
+  --brand-light:#3E8BFF;
+  --brand-soft:#E9F1FF;
+  --brand-grad:linear-gradient(135deg,#3E8BFF 0%,#1E6BE6 100%);
+}
 .driver-page{
-  --brand:#FF6B35;
-  --brand-light:#FF8A3D;
-  --brand-soft:#FFF1E8;
-  --brand-grad:linear-gradient(135deg,#FF8A3D 0%,#FF6B35 100%);
-  --line:#F3E9E0;
+  --brand:#1E6BE6;
+  --brand-light:#3E8BFF;
+  --brand-soft:#E9F1FF;
+  --brand-grad:linear-gradient(135deg,#3E8BFF 0%,#1E6BE6 100%);
+  --line:#E2E9F5;
 
   position:relative;overflow:hidden;min-height:calc(100vh - 60px);
   background:
-    radial-gradient(560px 320px at 98% 0%, rgba(255,138,61,.12), transparent 60%),
-    radial-gradient(460px 300px at 0% 100%, rgba(255,107,53,.08), transparent 58%),
-    #FFF8F2;
+    radial-gradient(560px 320px at 98% 0%, rgba(62,139,255,.13), transparent 60%),
+    radial-gradient(460px 300px at 0% 100%, rgba(30,107,230,.09), transparent 58%),
+    #F5F9FF;
 }
 .driver-page .card{
   border-radius:22px;border:1px solid var(--line);
-  box-shadow:0 1px 2px rgba(196,120,74,.05), 0 10px 28px -18px rgba(196,120,74,.35);
+  box-shadow:0 1px 2px rgba(74,120,196,.06), 0 10px 28px -18px rgba(74,120,196,.4);
 }
 
 /* en-tête : avatar cerclé, pastille verte quand le livreur est disponible */
 .drv-head{display:flex;align-items:center;gap:16px;margin-bottom:16px}
 .drv-ava{position:relative;flex:none;display:inline-flex;padding:3px;border-radius:50%;background:var(--brand-grad)}
-.drv-ava .avatar{border:3px solid #FFF8F2}
+.drv-ava .avatar{border:3px solid #F5F9FF}
 .drv-ava.online::after{
   content:'';position:absolute;right:2px;bottom:2px;width:16px;height:16px;
-  border-radius:50%;background:#12B76A;border:3px solid #FFF8F2;
+  border-radius:50%;background:#12B76A;border:3px solid #F5F9FF;
 }
 .drv-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px}
-.drv-meta .dot{color:#CFC4B8}
+.drv-meta .dot{color:#B4C2D6}
 
 /* carte de statut : verte quand disponible, bleutée en course */
 .drv-status{transition:background .3s ease, border-color .3s ease}
 .drv-status .drv-badge{
   width:46px;height:46px;border-radius:50%;flex:none;
-  display:grid;place-items:center;background:#D8D2C8;color:#fff;line-height:0;
+  display:grid;place-items:center;background:#C7D2E2;color:#fff;line-height:0;
 }
 .drv-status .drv-pill{
   padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);
@@ -1063,7 +1104,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   display:flex;align-items:center;gap:13px;padding:16px;
   transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
 }
-.drv-stat:hover{transform:translateY(-2px);box-shadow:0 14px 32px -20px rgba(196,120,74,.5)}
+.drv-stat:hover{transform:translateY(-2px);box-shadow:0 14px 32px -20px rgba(74,120,196,.5)}
 .drv-stat .ic{
   width:52px;height:52px;border-radius:16px;flex:none;
   background:var(--brand-soft);display:grid;place-items:center;font-size:24px;
@@ -1090,7 +1131,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .drv-chip{
   display:inline-flex;align-items:center;gap:10px;margin-top:2px;
   padding:12px 22px;border-radius:999px;background:#fff;
-  border:1px solid var(--line);box-shadow:0 8px 22px -14px rgba(196,120,74,.5);
+  border:1px solid var(--line);box-shadow:0 8px 22px -14px rgba(74,120,196,.5);
   font-size:17px;font-weight:800;letter-spacing:-.01em;
 }
 
@@ -1098,7 +1139,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .drv-note{
   display:flex;align-items:center;gap:13px;margin:20px auto 0;max-width:520px;
   padding:15px 16px;border-radius:18px;text-align:left;
-  background:var(--brand-soft);border:1px solid #F7DECF;
+  background:var(--brand-soft);border:1px solid #CFE0FA;
 }
 .drv-note .art{font-size:26px;flex:none}
 .drv-note .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -1124,7 +1165,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   width:40px;height:40px;border-radius:50%;
   border:1px solid var(--line);background:#fff;
   font-size:17px;line-height:1;cursor:pointer;
-  box-shadow:0 6px 16px -6px rgba(196,120,74,.5);
+  box-shadow:0 6px 16px -6px rgba(74,120,196,.5);
   transition:transform .2s ease;
 }
 .drv-mapfit:active{transform:scale(.92)}
@@ -1148,9 +1189,12 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   padding:11px 12px;border-radius:14px;
   background:var(--cream);border:1px solid var(--line);
 }
-.drv-step.now{background:var(--brand-soft);border-color:#F7DECF}
+.drv-step.now{background:var(--brand-soft);border-color:#CFE0FA}
 .drv-step.now .grow b{color:var(--brand)}
 .drv-step .art{font-size:21px;flex:none}
+/* vignette de statistique cliquable : le chevron dit qu'elle mène ailleurs */
+.drv-stat.lien{cursor:pointer}
+.drv-stat .go{flex:none;font-size:22px;color:var(--brand);opacity:.55;line-height:1}
 .drv-step .grow{display:flex;flex-direction:column;gap:1px;min-width:0}
 .drv-step .grow b{font-size:14px}
 .drv-step .grow .tiny{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1164,8 +1208,8 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .drv-earn{
   position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;
   padding:20px 22px;border-radius:22px;color:#fff;
-  background:linear-gradient(100deg,#FF8A3D 0%,#FF6B35 48%,#F0355C 100%);
-  box-shadow:0 16px 34px -18px rgba(255,107,53,.75);
+  background:linear-gradient(100deg,#3E8BFF 0%,#1E6BE6 48%,#1450B8 100%);
+  box-shadow:0 16px 34px -18px rgba(30,107,230,.75);
 }
 .drv-earn .k{font-size:11.5px;font-weight:750;letter-spacing:.06em;opacity:.9}
 .drv-earn .v{font-size:32px;font-weight:850;margin-top:4px;letter-spacing:-.02em}
@@ -1176,7 +1220,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 /* ligne d'historique */
 .drv-hist{transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease}
-.drv-hist:hover{transform:translateY(-2px);box-shadow:0 16px 34px -20px rgba(196,120,74,.5)}
+.drv-hist:hover{transform:translateY(-2px);box-shadow:0 16px 34px -20px rgba(74,120,196,.5)}
 .drv-hist .ocode{
   background:var(--brand-soft);color:var(--brand);font-weight:800;
   padding:5px 12px;border-radius:999px;font-size:12.5px;
@@ -1187,10 +1231,10 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   display:grid;place-items:center;line-height:0;
 }
 .driver-page .btn-primary{
-  border-radius:16px;box-shadow:0 8px 20px -8px rgba(255,107,53,.6);
+  border-radius:16px;box-shadow:0 8px 20px -8px rgba(30,107,230,.6);
   transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
 }
-.driver-page .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 30px -10px rgba(255,107,53,.7)}
+.driver-page .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 30px -10px rgba(30,107,230,.7)}
 .driver-page .btn-primary:active{transform:translateY(0) scale(.985)}
 
 /* ------------------------------------------------ écrans vides illustrés */

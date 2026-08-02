@@ -34,12 +34,15 @@
       { p: '/r/profile',     i: 'store',    l: 'Restaurant' },
       { p: '/account',       i: 'user',     l: 'Compte' }
     ],
+    /* Cinq rubriques, pas six : « Passé » ouvrait l'historique des courses,
+       qu'on atteint désormais depuis les gains cumulés du tableau de bord.
+       Une rubrique de moins, c'est 20 % de largeur en plus pour les autres —
+       sur un téléphone tenu à bout de bras, ça se voit. */
     driver: [
       { p: '/d',             i: 'chart',    l: 'Tableau' },
       { p: '/d/available',   i: 'pin',      l: 'Courses' },
       { p: '/d/active',      i: 'scooter',  l: 'En cours' },
       { p: '/d/credit',      i: 'wallet',   l: 'Crédit' },
-      { p: '/d/history',     i: 'history',  l: 'Historique', c: 'Passé' },
       { p: '/account',       i: 'user',     l: 'Compte' }
     ],
     /* `c` : libellé court pour la barre du bas. Six rubriques sur 390 px font
@@ -140,6 +143,13 @@
       // la console d'administration est sombre, jusqu'à la barre du haut
       const admin = Store.isLogged && Store.role === 'admin';
       document.body.classList.toggle('role-admin', admin);
+      /* L'espace livreur est bleu de bout en bout — barre du haut, barre du
+         bas, boutons. Sans cette classe sur <body>, seul l'intérieur des
+         pages (.driver-page) changeait de couleur et les deux barres
+         restaient orange : l'application avait l'air d'être à moitié
+         repeinte. */
+      document.body.classList.toggle('role-driver',
+        Store.isLogged && Store.role === 'driver');
 
       bar.innerHTML =
         '<div class="wrap topbar-in">' +

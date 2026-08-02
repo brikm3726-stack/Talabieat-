@@ -36,7 +36,11 @@ const APPS = [
     nom: 'Talabi Livreur',
     court: 'Livreur',
     description: 'Prenez des courses dans votre quartier, livrez et suivez vos gains.',
-    couleur: '#12A150',              // vert : on avance, on gagne
+    /* Bleu, comme l'intérieur de l'application depuis qu'elle a changé de
+       teinte. Un bleu plus profond que celui du resto (#1E6BE6) : les deux
+       tournent sur les mêmes téléphones, et l'écran de démarrage est ce qu'on
+       voit avant tout le reste — il doit dire laquelle des deux s'ouvre. */
+    couleur: '#1552B8',
     sousTitre: 'Espace livreur'
   },
   {

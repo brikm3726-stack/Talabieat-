@@ -21,13 +21,18 @@
   }
 
   /* Vignette de statistique : pastille, intitulé, valeur, légende. */
-  function drvStat(icone, label, valeur, legende) {
-    return '<div class="card drv-stat">' +
+  /* `lien` : la vignette devient cliquable. C'est par là qu'on atteint
+     l'historique des courses depuis que « Passé » a quitté la barre du bas. */
+  function drvStat(icone, label, valeur, legende, lien) {
+    const dedans =
       '<span class="ic">' + icone + '</span>' +
       '<div class="grow"><div class="k">' + U.esc(label) + '</div>' +
         '<div class="v">' + valeur + '</div>' +
         '<div class="s">' + U.esc(legende) + '</div></div>' +
-    '</div>';
+      (lien ? '<span class="go">›</span>' : '');
+    return lien
+      ? '<a class="card drv-stat lien" href="#' + lien + '">' + dedans + '</a>'
+      : '<div class="card drv-stat">' + dedans + '</div>';
   }
 
   function validationBanner(d) {
@@ -316,8 +321,10 @@
 
         '<div class="grid grid-stats drv-stats" style="margin-top:14px">' +
           drvStat('📅', 'Courses aujourd’hui', todayDone.length, 'Aujourd’hui') +
-          drvStat('📦', 'Total livraisons', (d && d.total_deliveries) || 0, 'Livraisons effectuées') +
-          drvStat('💰', 'Gains cumulés', U.money((d && d.total_earnings) || 0), 'Total des gains') +
+          drvStat('📦', 'Total livraisons', (d && d.total_deliveries) || 0,
+                  'Voir l’historique', '/d/history') +
+          drvStat('💰', 'Gains cumulés', U.money((d && d.total_earnings) || 0),
+                  'Voir le détail', '/d/history') +
           drvStat('⭐', 'Note', ((d && +d.rating) || 5).toFixed(1), 'Excellente note') +
         '</div>' +
 
