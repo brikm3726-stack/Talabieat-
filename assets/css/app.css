@@ -2250,7 +2250,10 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 .h3d-step .num{
   position:absolute;right:14px;top:6px;
   font-size:44px;font-weight:850;line-height:1;
-  color:rgba(255,255,255,.16);pointer-events:none;
+  /* Noir comme les titres. En filigrane et non en aplat : un 44 px plein
+     ecraserait la phrase a cote de lui, alors qu'un numero n'est la que
+     pour dire l'ordre. */
+  color:rgba(18,20,26,.26);pointer-events:none;
 }
 .h3d-step .ic{
   width:54px;height:54px;border-radius:16px;flex:none;
