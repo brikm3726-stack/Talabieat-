@@ -101,12 +101,14 @@
       /* Sans réseau, sans clé, ou si Google met plus de 12 secondes à
          répondre, la carte ne viendra pas. Le dire vaut mieux qu'un
          rectangle gris qu'on prend pour une panne de l'application. */
-      onEchec: function () {
+      onEchec: function (raison) {
         const el = boite.querySelector('#drvMap');
-        if (el) el.innerHTML =
-          '<div class="drv-mapko">🗺️<b>La carte n’a pas pu se charger</b>' +
-          '<span>Votre position est bien envoyée : les courses proches vous ' +
-          'seront proposées normalement.</span></div>';
+        if (!el) return;
+        el.innerHTML =
+          '<div class="drv-mapko">🗺️<b>La carte ne s’affiche pas</b>' +
+          '<span>' + U.esc(raison || '') + '</span>' +
+          '<span><b>Votre position est bien envoyée</b> — les courses proches ' +
+          'vous seront proposées normalement.</span></div>';
       }
     });
     boite.querySelector('#drvMapFit').onclick = () => live && live.recenter();

@@ -30,6 +30,65 @@
 
   let promesse = null;
 
+  /* ======================================================================
+     ATTRAPER LES ERREURS DE CLÉ GOOGLE
+     ----------------------------------------------------------------------
+     Quand la clé est refusée, Google n'affiche rien d'utile sur la carte :
+     il écrit le nom de l'erreur dans la console du navigateur. Sur un
+     téléphone, cette console n'existe pas — le propriétaire du site voit un
+     rectangle cassé et n'a aucun moyen de savoir pourquoi.
+
+     On intercepte donc ces messages au passage pour pouvoir les afficher
+     dans l'application, en français. C'est la différence entre « la carte
+     bugue » et « l'adresse du site n'est pas dans la liste autorisée de la
+     clé » — la seconde se corrige en deux minutes.
+     ====================================================================== */
+  const EXPLICATIONS = {
+    RefererNotAllowedMapError:
+      'L’adresse de ce site n’est pas autorisée pour cette clé. Dans Google Cloud → ' +
+      'Identifiants → votre clé → Restrictions de site web, ajoutez https://talabi.shop/* ' +
+      'ET https://www.talabi.shop/* — sans le /* final, seule la page d’accueil est acceptée.',
+    ApiNotActivatedMapError:
+      'L’API « Maps JavaScript API » n’est pas activée sur le projet Google Cloud.',
+    BillingNotEnabledMapError:
+      'La facturation n’est pas activée sur le projet Google Cloud. Google l’exige même ' +
+      'dans les quotas gratuits.',
+    InvalidKeyMapError:      'La clé Google Maps est invalide.',
+    ExpiredKeyMapError:      'La clé Google Maps a expiré.',
+    ApiTargetBlockedMapError:
+      'Cette clé est restreinte à d’autres API que « Maps JavaScript API ».',
+    RefererDeniedMapError:   'Google a refusé l’adresse de ce site pour cette clé.'
+  };
+
+  let panne = '';                 // nom brut de la dernière erreur Google
+  const abonnes = [];             // cartes à prévenir quand la clé est refusée
+
+  function signaler(nom) {
+    if (!nom || panne === nom) return;
+    panne = nom;
+    abonnes.slice().forEach(cb => { try { cb(pourquoi()); } catch (e) {} });
+  }
+
+  const _consoleError = console.error;
+  console.error = function () {
+    const texte = Array.prototype.join.call(arguments, ' ');
+    const m = texte.match(/Google Maps JavaScript API (?:error|warning):\s*([A-Za-z]+)/);
+    if (m) signaler(m[1]);
+    return _consoleError.apply(console, arguments);
+  };
+
+  /* Rappel documenté par Google : appelé dès que l'authentification échoue,
+     quelle qu'en soit la raison. Il arrive APRÈS la création de la carte —
+     d'où l'abonnement plutôt qu'un simple test au chargement. */
+  w.gm_authFailure = function () { signaler(panne || 'AuthFailure'); };
+
+  /** Dernière erreur Google, expliquée en français. '' si tout va bien. */
+  function pourquoi() {
+    if (!panne) return '';
+    return EXPLICATIONS[panne] ||
+      ('Google a refusé d’afficher la carte (' + panne + ').');
+  }
+
   /** Charge l'API Google Maps une seule fois. Résout false si c'est impossible. */
   function chargerGoogle() {
     if (w.google && w.google.maps && w.google.maps.Map) return Promise.resolve(true);
@@ -276,9 +335,21 @@
         }
       }
 
+      /* Une clé refusée ne se voit pas au chargement : le script Google arrive
+         normalement, la carte se crée, et c'est seulement ensuite que
+         l'authentification échoue. On s'abonne donc, en plus de tester. */
+      const prevenir = raison => {
+        if (mort || !opts || !opts.onEchec) return;
+        opts.onEchec(raison || pourquoi());
+      };
+      if (opts && opts.onEchec) {
+        abonnes.push(prevenir);
+        if (panne) setTimeout(() => prevenir(), 0);
+      }
+
       chargerGoogle().then(ok => {
         if (mort) return;
-        if (!ok) { if (opts && opts.onEchec) opts.onEchec(); return; }
+        if (!ok) { prevenir('La carte n’a pas répondu — vérifiez votre connexion.'); return; }
         map = new google.maps.Map(container, Object.assign({}, OPTIONS, {
           center: CITY, zoom: 13
         }, fige ? {
@@ -309,7 +380,13 @@
           if (n > 1) map.fitBounds(b, 42);
           else if (n) { map.setCenter(b.getCenter()); map.setZoom(16); }
         },
-        destroy() { mort = true; Object.keys(markers).forEach(k => markers[k].setMap(null)); markers = {}; map = null; }
+        destroy() {
+          mort = true;
+          const i = abonnes.indexOf(prevenir);
+          if (i >= 0) abonnes.splice(i, 1);
+          Object.keys(markers).forEach(k => markers[k].setMap(null));
+          markers = {}; map = null;
+        }
       };
     },
 
@@ -431,6 +508,9 @@
   }
 
   MapPicker.parseCoords = parseCoords;   // exposé pour les tests
+  /** Nom brut de la panne Google, et son explication en français. */
+  MapPicker.panne   = () => panne;
+  MapPicker.pourquoi = pourquoi;
 
   w.MapPicker = MapPicker;
 })(window);
