@@ -817,7 +817,8 @@
       const body = { updated_at: new Date().toISOString() };
       ['commission_rate', 'driver_share', 'default_delivery_fee',
        'resto_timeout_s', 'driver_timeout_s', 'redispatch_after_s',
-       'fee_near_da', 'fee_far_da', 'near_km', 'max_km', 'credit_alert_da']
+       'fee_near_da', 'fee_far_da', 'near_km', 'max_km', 'credit_alert_da',
+       'driver_radius_km', 'position_max_age_s']
         .forEach(k => { if (patch[k] !== undefined) body[k] = +patch[k]; });
       // texte libre : pas de conversion en nombre
       if (patch.payment_info !== undefined) body.payment_info = patch.payment_info;

@@ -761,6 +761,17 @@
             (s.driver_timeout_s != null ? s.driver_timeout_s : 30) + '">' +
             '<div class="hint">La course est proposée à un livreur à la fois. Sans réponse, elle passe ' +
             'au suivant — le plus proche du restaurant parmi ceux qui sont en ligne.</div></div>' +
+          '<div class="grid grid-2" style="gap:10px">' +
+            '<div class="field"><label>Rayon de proximité (km)</label>' +
+              '<input class="input" name="driver_radius_km" type="number" min="1" max="30" step="0.5" value="' +
+              (s.driver_radius_km != null ? s.driver_radius_km : 7) + '"></div>' +
+            '<div class="field"><label>Position valable pendant (minutes)</label>' +
+              '<input class="input" name="position_max_age_min" type="number" min="1" max="60" step="1" value="' +
+              Math.round((s.position_max_age_s != null ? s.position_max_age_s : 600) / 60) + '"></div>' +
+          '</div>' +
+          '<div class="hint">La course part au livreur en ligne le plus proche du restaurant dans ce ' +
+            'rayon. Un livreur dont la position n’a pas été reçue depuis ce délai est considéré comme ' +
+            'non situé : il passe après ceux que l’on sait placer, jamais avant.</div>' +
           '<div class="field"><label>Nouvelle tentative si personne ne répond (secondes)</label>' +
             '<input class="input" name="redispatch_after_s" type="number" min="15" max="600" step="15" value="' +
             (s.redispatch_after_s != null ? s.redispatch_after_s : 60) + '">' +
@@ -810,7 +821,9 @@
           // saisi en minutes, stocké en secondes comme les deux autres délais
           resto_timeout_s: Math.max(60, (+d.resto_timeout_min || 5) * 60),
           driver_timeout_s: Math.max(10, +d.driver_timeout_s || 30),
-          redispatch_after_s: Math.max(15, +d.redispatch_after_s || 60)
+          redispatch_after_s: Math.max(15, +d.redispatch_after_s || 60),
+          driver_radius_km: Math.max(1, +d.driver_radius_km || 7),
+          position_max_age_s: Math.max(60, (+d.position_max_age_min || 10) * 60)
         }), null);
         UI.busy(btn, false);
         if (r) { Store.settings = r; UI.ok('Réglages enregistrés'); }

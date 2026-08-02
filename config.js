@@ -27,7 +27,7 @@ window.TALABI_CONFIG = {
   // Affichée dans « À propos ». À incrémenter quand une mise en ligne apporte
   // un changement visible : c'est ce numéro qu'un utilisateur citera pour
   // signaler un problème.
-  APP_VERSION: '1.0',
+  APP_VERSION: '1.1',
   APP_TAGLINE: 'Vos plats préférés, livrés chez vous',
   CURRENCY: 'DA',
   SUPPORT_PHONE: '+213 792 779 320',

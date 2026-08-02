@@ -140,6 +140,10 @@
       if (sw && !sw.disabled) sw.onchange = async () => {
         const r = await API.safe(() => API.saveDriver({ status: sw.checked ? 'available' : 'offline' }), null);
         if (r) UI.ok(r.status === 'available' ? 'Vous êtes disponible' : 'Vous êtes indisponible');
+        /* Passer en ligne démarre le partage de position en veille : c'est lui
+           qui fait qu'une course tombant à côté vous revient plutôt qu'à un
+           autre. Passer hors ligne l'arrête aussitôt. */
+        LiveTrack.sync();
         load();
       };
     }
@@ -393,13 +397,50 @@
     view.innerHTML = '<div class="driver-page"><div class="wrap page">' +
       '<div class="card card-p drv-panel">' +
         drvHead('🛍️', 'Courses disponibles', 'Commandes prêtes dans votre zone') +
+        '<div id="posBox"></div>' +
         '<div id="list"><div class="skel" style="height:150px"></div></div>' +
       '</div></div></div>';
 
     const list = view.querySelector('#list');
 
+    /* ---- pourquoi les courses vous arrivent, ou pas -------------------- */
+    /* Le serveur propose chaque course au livreur le plus proche du
+       restaurant. « Le plus proche » se calcule sur la dernière position
+       reçue : sans partage, on ne sait pas où vous êtes et vous passez
+       systématiquement derrière ceux qu'on situe. Le livreur a le droit de
+       savoir ça — sinon il croit à un favoritisme de la plateforme. */
+    function paintPos() {
+      const box = view.querySelector('#posBox');
+      if (!box) return;
+      const st = LiveTrack.state;
+
+      box.innerHTML = st.error
+        ? '<div class="banner banner-warn" style="margin-bottom:14px"><div class="grow">📍 ' +
+            U.esc(st.error) + '</div>' +
+            '<button class="btn btn-primary btn-sm" id="posNow">Activer</button></div>'
+        : st.running
+          ? '<div class="banner banner-ok" style="margin-bottom:14px"><div class="grow">📍 ' +
+              '<b>Position partagée</b> — les courses les plus proches de vous ' +
+              'vous sont proposées en premier.</div></div>'
+          : '<div class="banner banner-warn" style="margin-bottom:14px"><div class="grow">📍 ' +
+              'Partagez votre position : les courses partent d’abord au livreur ' +
+              'le plus proche du restaurant.</div>' +
+              '<button class="btn btn-primary btn-sm" id="posNow">Activer</button></div>';
+
+      const b = box.querySelector('#posNow');
+      if (b) b.onclick = async function () {
+        UI.busy(this, true);
+        try { await LiveTrack.pushOnce(); LiveTrack.start('veille'); UI.ok('Position partagée'); }
+        catch (e) { UI.err(e.message); }
+        paintPos();
+      };
+    }
+
     async function load() {
       const d = await API.safe(() => API.getDriver(), null);
+      const posBox = view.querySelector('#posBox');
+      if (posBox) posBox.innerHTML = '';
+
       if (!d || d.validation_status !== 'approved') {
         list.innerHTML = validationBanner(d) + UI.empty('🔒', 'Compte non validé',
           'Vous pourrez accepter des courses dès la validation de votre profil.',
@@ -412,6 +453,18 @@
           '<a class="btn btn-primary" href="#/d/active">Voir ma livraison</a>');
         return;
       }
+      if (d.status !== 'available') {
+        list.innerHTML = UI.empty('🌙', 'Vous êtes hors ligne',
+          'Aucune course ne vous est proposée tant que vous n’êtes pas disponible.',
+          '<a class="btn btn-primary" href="#/d">Passer en ligne</a>');
+        return;
+      }
+
+      /* On sait déjà, deux lignes plus haut, qu'il est validé, en ligne et
+         libre : inutile de repasser par sync() et ses deux requêtes toutes
+         les quinze secondes. start() ne fait rien s'il tourne déjà. */
+      LiveTrack.start('veille');
+      paintPos();
 
       const rows = await API.safe(() => API.orders({ scope: 'available' }), []);
       list.innerHTML = rows.length
@@ -443,8 +496,9 @@
 
     await load();
     const off = API.onChange(t => { if (t === 'orders' || t === '*') load(); });
+    const offPos = LiveTrack.onChange(paintPos);
     const timer = setInterval(load, 15000);
-    return () => { off(); clearInterval(timer); };
+    return () => { off(); offPos(); clearInterval(timer); };
   }, GUARD);
 
   /* ======================================================================
