@@ -161,7 +161,15 @@
 
       Store.subscribe(what => {
         if (what === 'cart') Shell.renderNav();
+        if (what === 'wilaya') Shell.renderTop();
       });
+
+      /* Où est la personne ? La barre du haut annonce sa wilaya, et le
+         téléphone connaît la réponse. On la demande une seule fois, en tâche
+         de fond : refus ou échec, la wilaya par défaut reste affichée et rien
+         ne s'arrête. On n'attend surtout pas la réponse pour ouvrir la page —
+         le navigateur peut mettre plusieurs secondes à poser la question. */
+      if (App.est('client') && !Store.wilaya) Store.detectWilaya();
 
       /* ---- 6. Navigation ---- */
 

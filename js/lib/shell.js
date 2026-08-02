@@ -166,8 +166,7 @@
               '<path d="M5 8h14l-1.1 11.1a2 2 0 0 1-2 1.8H8.1a2 2 0 0 1-2-1.8z"/>' +
               '<path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>' +
               '<path d="M10 12v4M14 12v4"/>' +
-            '</svg></span>' +
-          '<span class="brand-word">talabi<span>.shop</span></span>'
+            '</svg></span>'
         : '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' +
             U.esc(TALABI_CONFIG.APP_NAME) + '" class="brand-logo">';
 
@@ -176,9 +175,12 @@
           '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : App.accueil) + '" ' +
             'title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' + marque + '</a>' +
 
+          /* Plus de liste de quartiers à dérouler : la barre annonce la wilaya
+             où l'on se trouve, que le téléphone connaît déjà. Un appui la
+             redemande, pour qui se déplace ou a refusé la première fois. */
           (showZone ?
-            '<button class="zone-pick" id="zoneBtn">' + UI.pin(15) + ' <span>' +
-              U.esc(Store.zoneName() || 'Mon quartier') + '</span> ▾</button>' : '') +
+            '<button class="zone-pick" id="zoneBtn" title="Actualiser ma position">' +
+              UI.pin(15) + ' <span>' + U.esc(Store.wilayaName()) + '</span></button>' : '') +
 
           /* Le bouton en bout de première rangée sur la maquette : il mène aux
              commandes, la seule chose qu'un client vient revoir sans détour. */
@@ -213,7 +215,18 @@
         '</div>';
 
       const zb = document.getElementById('zoneBtn');
-      if (zb) zb.onclick = Shell.zonePicker;
+      if (zb) zb.onclick = async function () {
+        const avant = this.innerHTML;
+        this.innerHTML = '<span class="spinner dark"></span> Localisation…';
+        const nom = await Store.detectWilaya(true);
+        if (nom) UI.ok('Vous êtes à ' + nom);
+        else {
+          this.innerHTML = avant;
+          UI.err('Position introuvable',
+                 'Autorisez la localisation pour que Talabi trouve votre wilaya.');
+        }
+        Shell.renderTop();
+      };
       const nb = document.getElementById('notifBtn');
       if (nb) nb.onclick = Shell.notifPanel;
     },

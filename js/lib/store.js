@@ -9,6 +9,7 @@
   // plutôt que de bloquer le client sur un message qu'il ne comprendrait pas.
   const CART_KEY = 'talabi.cart.v2';
   const ZONE_KEY = 'talabi.zone.v1';
+  const WILAYA_KEY = 'talabi.wilaya.v1';
 
   const subs = [];
 
@@ -54,6 +55,63 @@
     zoneName(id) {
       const z = Store.zones.find(x => x.id === (id || Store.zoneId));
       return z ? z.name : null;
+    },
+
+    /* ------------------------------------------------------------ wilaya */
+    /* La barre du haut n'affiche plus un quartier à choisir dans une liste,
+       mais la wilaya où se trouve la personne. Personne n'a envie de dérouler
+       quatorze quartiers avant de regarder un menu, et neuf fois sur dix le
+       téléphone connaît déjà la réponse.
+
+       On la garde en mémoire locale : la question du GPS n'est posée qu'une
+       fois, pas à chaque ouverture. Refus ou échec, on retombe sur la wilaya
+       par défaut — l'application ne s'arrête jamais là-dessus. */
+    wilaya: null,
+
+    loadWilaya() {
+      try { Store.wilaya = localStorage.getItem(WILAYA_KEY) || null; } catch (e) { Store.wilaya = null; }
+      return Store.wilaya;
+    },
+
+    setWilaya(nom) {
+      Store.wilaya = nom || null;
+      try {
+        nom ? localStorage.setItem(WILAYA_KEY, nom) : localStorage.removeItem(WILAYA_KEY);
+      } catch (e) {}
+      Store.notify('wilaya');
+    },
+
+    /** Nom à afficher : celui détecté, sinon la ville de la plateforme. */
+    wilayaName() {
+      return Store.wilaya || TALABI_CONFIG.DEFAULT_WILAYA || 'Tizi Ouzou';
+    },
+
+    /**
+     * Demande la position et en déduit la wilaya.
+     * @param {boolean} force  redemande même si une wilaya est déjà connue
+     * @returns {Promise<string|null>} le nom trouvé, ou null
+     */
+    detectWilaya(force) {
+      if (!force && Store.wilaya) return Promise.resolve(Store.wilaya);
+      if (!navigator.geolocation) return Promise.resolve(null);
+
+      return new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(async pos => {
+          try {
+            /* Nominatim rend la wilaya dans « state » pour l'Algérie ; on
+               garde deux replis, certaines communes ne remontant que county
+               ou city. */
+            const r = await fetch('https://nominatim.openstreetmap.org/reverse' +
+              '?format=jsonv2&zoom=8&accept-language=fr' +
+              '&lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude);
+            if (!r.ok) return resolve(null);
+            const a = (await r.json()).address || {};
+            const nom = a.state || a.county || a.city || a.town || null;
+            if (nom) Store.setWilaya(nom);
+            resolve(nom);
+          } catch (e) { resolve(null); }
+        }, () => resolve(null), { enableHighAccuracy: false, timeout: 12000, maximumAge: 600000 });
+      });
     },
 
     /* ------------------------------------------------------------ panier */
@@ -158,6 +216,7 @@
     /* --------------------------------------------------------- démarrage */
     async boot() {
       Store.loadZone();
+      Store.loadWilaya();
       Store.loadCart();
       const [z, c, s] = await Promise.all([
         API.zones().catch(() => []),

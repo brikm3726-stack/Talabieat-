@@ -69,9 +69,9 @@
           results.innerHTML = UI.empty('🔎', 'Recherchez un plat', 'Saisissez au moins 2 lettres (pizza, tacos, chawarma…).');
           return;
         }
-        const dishes = await API.safe(() => API.searchDishes(term, Store.zoneId), []);
+        const dishes = await API.safe(() => API.searchDishes(term, null), []);
         if (!dishes.length) {
-          results.innerHTML = UI.empty('🍽️', 'Aucun plat trouvé', 'Essayez un autre mot-clé ou changez de quartier.');
+          results.innerHTML = UI.empty('🍽️', 'Aucun plat trouvé', 'Essayez un autre mot-clé.');
           return;
         }
         const catOf = id => Store.categories.find(c => c.id === id) || {};
@@ -87,20 +87,15 @@
       }
 
       const q = term.trim();
-      const list = await searchRestaurants(q, Store.zoneId, cat);
+      /* Plus de filtre par quartier : le catalogue montre toute la ville.
+         Le quartier reste demandé à la commande, là où il sert — pas pour
+         retrancher des restaurants a quelqu'un qui regarde. */
+      const list = await searchRestaurants(q, null, cat);
 
-      // Rien dans le quartier choisi, mais des résultats ailleurs en ville :
-      // on le dit au lieu d'afficher un vide qui ressemble à une panne.
-      if (!list.length && Store.zoneId) {
-        const city = await searchRestaurants(q, null, cat);
-        if (city.length) {
-          results.innerHTML = UI.empty(UI.icon('pin', 44), 'Rien dans ' + Store.zoneName(),
-            city.length + ' restaurant(s) correspondent ailleurs dans la ville.',
-            '<button class="btn btn-primary" id="allCity">Chercher dans toute la ville</button>');
-          results.querySelector('#allCity').onclick = () => { Store.setZone(null); Shell.renderTop(); load(); };
-          return;
-        }
-      }
+      /* Le repli « rien dans votre quartier, mais des résultats ailleurs »
+         vivait ici. Il n'a plus lieu d'être : la liste couvre déjà toute la
+         ville, donc un résultat vide veut dire vide, pas « masqué par un
+         filtre que vous avez oublié ». */
       Cmp.restoGrid(list, results);
     }
 

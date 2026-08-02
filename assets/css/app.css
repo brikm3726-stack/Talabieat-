@@ -2204,3 +2204,78 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
   .h3d-promo{padding:28px 26px;min-height:190px}
   .h3d-promo .scoot{width:248px;height:198px;background-size:650px auto;background-position:-401px -1068px}
 }
+
+/* ---- « Comment ça marche ? » : quatre étapes en orange -------------------
+   Un trait court derrière les pastilles. C'est lui qui fait lire « une
+   suite » plutôt que « quatre cartes posées côte à côte » — sans lui, rien
+   ne dit que l'ordre compte. */
+.h3d-steps{
+  position:relative;overflow:hidden;margin-top:30px;
+  border-radius:24px;padding:26px 20px 24px;
+  background:linear-gradient(158deg,#FF8A3D 0%,#FF6B35 46%,#F0553C 100%);
+  color:#fff;
+  box-shadow:0 20px 44px -26px rgba(255,107,53,1);
+}
+/* deux halos très doux : la surface orange n'est pas un aplat mort */
+.h3d-steps::before,
+.h3d-steps::after{
+  content:"";position:absolute;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,255,255,.22),transparent);
+}
+.h3d-steps::before{width:280px;height:280px;top:-130px;right:-90px}
+.h3d-steps::after{width:220px;height:220px;bottom:-120px;left:-70px}
+
+.h3d-steps .h2{position:relative;z-index:1;color:#fff;font-size:21px;letter-spacing:-.02em}
+.h3d-steps .lead{
+  position:relative;z-index:1;margin-top:6px;margin-bottom:20px;
+  font-size:13px;color:rgba(255,255,255,.86);
+}
+
+.h3d-steps .rail{position:relative;z-index:1;display:flex;flex-direction:column;gap:14px}
+/* le trait vertical qui relie les quatre pastilles */
+.h3d-steps .rail::before{
+  content:"";position:absolute;left:39px;top:26px;bottom:26px;width:2px;
+  background:repeating-linear-gradient(to bottom,
+    rgba(255,255,255,.55) 0 6px, transparent 6px 12px);
+}
+
+.h3d-step{
+  position:relative;display:grid;
+  grid-template-columns:52px 1fr;align-items:start;gap:14px;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:18px;padding:14px 16px 15px;
+  backdrop-filter:blur(6px);
+}
+/* le numéro en filigrane, coin haut-droit : il numérote sans encombrer */
+.h3d-step .num{
+  position:absolute;right:14px;top:6px;
+  font-size:44px;font-weight:850;line-height:1;
+  color:rgba(255,255,255,.16);pointer-events:none;
+}
+.h3d-step .ic{
+  width:52px;height:52px;border-radius:16px;
+  background:#fff;display:grid;place-items:center;font-size:25px;
+  box-shadow:0 8px 18px -8px rgba(120,40,0,.55);
+}
+.h3d-step .h3{font-size:15.5px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.h3d-step p{margin-top:5px;font-size:12.8px;line-height:1.55;color:rgba(255,255,255,.9)}
+
+@media(min-width:760px){
+  .h3d-steps{padding:34px 30px 32px}
+  .h3d-steps .rail{
+    flex-direction:row;gap:16px;
+  }
+  /* à l'horizontale, le trait passe derrière la rangée de pastilles */
+  .h3d-steps .rail::before{
+    left:56px;right:56px;top:47px;bottom:auto;width:auto;height:2px;
+    background:repeating-linear-gradient(to right,
+      rgba(255,255,255,.55) 0 6px, transparent 6px 12px);
+  }
+  .h3d-step{
+    flex:1;grid-template-columns:1fr;gap:12px;text-align:center;
+    padding:18px 16px 20px;
+  }
+  .h3d-step .ic{margin:0 auto}
+  .h3d-step .num{right:12px;top:4px;font-size:38px}
+}

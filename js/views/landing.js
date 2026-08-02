@@ -5,11 +5,10 @@
    un téléphone tenu à une main, de haut en bas —
 
      héro (titre + plat)  →  recherche  →  trois raccourcis  →  bandeau de
-     chiffres  →  catégories  →  promesse de livraison  →  le reste
+     chiffres  →  promesse de livraison  →  restaurants  →  les 4 étapes
 
-   Les emoji des catégories viennent de la base et sont rendus en grand plutôt
-   que leurs vignettes : les vignettes sont des écussons sombres, qui jurent
-   avec les cartes blanches de la maquette.
+   Les catégories ne sont plus ici : elles vivent sur la page Restaurants, où
+   elles filtrent réellement une liste.
    ========================================================================== */
 (function (w) {
   'use strict';
@@ -44,7 +43,7 @@
     // les comptes pro sont redirigés vers leur espace
     if (Store.isLogged && Store.role !== 'client') return Router.go(Router.homeFor(Store.role), true);
 
-    const zoneLabel = Store.zoneName() || 'toute la ville';
+    const ouLabel = Store.wilayaName();
 
     /* Un client connecté n'a rien à faire des appels à recruter des livreurs
        ou des restaurants : on lui propose les trois actions qui le concernent. */
@@ -85,12 +84,10 @@
         /* ------------------------------------------------------ CHIFFRES */
         '<div class="h3d-stats" id="heroStats"></div>' +
 
-        /* ---------------------------------------------------- CATÉGORIES */
-        '<div class="h3d-head">' +
-          '<div class="h2">Que voulez-vous manger ?</div>' +
-          '<a class="h3d-all" href="#/restaurants">Voir tout ' + UI.icon('chevron', 15) + '</a>' +
-        '</div>' +
-        '<div class="h3d-cats" id="cats"></div>' +
+        /* Les catégories vivaient ici. Elles sont désormais uniquement sur la
+           page Restaurants, où elles servent réellement à filtrer une liste :
+           sur l'accueil, elles renvoyaient vers cette même page — un détour
+           pour arriver au même endroit. */
 
         /* -------------------------------------------------------- PROMESSE */
         '<div class="h3d-promo">' +
@@ -105,18 +102,21 @@
         /* ------------------------------------------------ RESTAURANTS */
         '<div class="section-head">' +
           '<div><div class="h2">Restaurants populaires</div>' +
-          '<div class="sub">Livraison à ' + U.esc(zoneLabel) + '</div></div>' +
+          '<div class="sub">Livraison à ' + U.esc(ouLabel) + '</div></div>' +
           '<a class="link" href="#/restaurants">Tout voir →</a>' +
         '</div>' +
         '<div id="popular">' + UI.skeletonCards(4) + '</div>' +
 
         /* -------------------------------------------- COMMENT ÇA MARCHE */
-        '<div class="section-head" style="margin-top:34px"><div class="h2">Comment ça marche ?</div></div>' +
-        '<div class="grid grid-auto">' +
-          step('1', UI.icon('pin', 21), 'Choisissez votre quartier', 'Indiquez où vous êtes pour voir les restaurants qui livrent chez vous.') +
-          step('2', '🛒', 'Composez votre panier', 'Parcourez les menus, ajoutez vos plats et vos suppléments.') +
-          step('3', '👨‍🍳', 'Le restaurant prépare', 'Vous êtes prévenu dès que la commande est acceptée puis prête.') +
-          step('4', '🛵', 'Un livreur vous l’apporte', 'Suivez la livraison en direct et payez à la réception.') +
+        '<div class="h3d-steps">' +
+          '<div class="h2">Comment ça marche ?</div>' +
+          '<p class="lead">Quatre étapes, et votre repas est en route.</p>' +
+          '<div class="rail">' +
+            step('1', '📍', 'On vous situe', 'Votre position donne les restaurants qui livrent chez vous.') +
+            step('2', '🛒', 'Composez votre panier', 'Parcourez les menus, ajoutez vos plats et vos suppléments.') +
+            step('3', '👨‍🍳', 'Le restaurant prépare', 'Vous êtes prévenu dès que la commande est acceptée, puis prête.') +
+            step('4', '🛵', 'Un livreur vous l’apporte', 'Suivez la livraison en direct et payez à la réception.') +
+          '</div>' +
         '</div>' +
 
         /* -------------------------------------------------------- PARTENAIRES */
@@ -163,21 +163,11 @@
     view.querySelector('#goSearch').onclick = search;
     q.onkeydown = e => { if (e.key === 'Enter') search(); };
 
-    /* ---------------------------------------------------- catégories */
-    /* « Tout » d'abord, en pastille pleine, puis les catégories de la base.
-       On rend l'emoji, pas la vignette : les vignettes sont des écussons
-       sombres qui jurent avec les cartes blanches. */
-    view.querySelector('#cats').innerHTML =
-      '<a class="h3d-cat on" href="#/restaurants">' +
-        '<span class="ic">' + UI.icon('grid', 26) + '</span>' +
-        '<span class="nm">Tout</span></a>' +
-      Store.categories.map(c =>
-        '<a class="h3d-cat" href="#/restaurants?cat=' + encodeURIComponent(c.id) + '">' +
-          '<span class="em">' + (c.icon || '🍽️') + '</span>' +
-          '<span class="nm">' + U.esc(c.name_fr) + '</span></a>').join('');
-
     /* -------------------------------------------------------- données */
-    const list = await API.safe(() => API.restaurants({ zone_id: Store.zoneId }), []);
+    /* Plus de filtre par quartier : on annonce la wilaya, on ne trie plus le
+       catalogue dessus. Un client qui ouvre l'accueil veut voir ce qui existe,
+       pas une liste déjà rétrécie par un réglage qu'il n'a pas fait. */
+    const list = await API.safe(() => API.restaurants({}), []);
     Cmp.restoGrid(list.slice(0, 6), view.querySelector('#popular'));
 
     const chiffre = (icone, valeur, label) =>
@@ -191,14 +181,16 @@
   });
 
   /* ---------------------------------------------------------- fragments */
-  function step(n, icon, title, text) {
-    return '<div class="card card-p">' +
-      '<div class="row" style="gap:12px">' +
-        '<div style="width:44px;height:44px;border-radius:14px;background:var(--brand-soft);display:grid;place-items:center;font-size:21px;flex:none">' + icon + '</div>' +
-        '<div><div class="tiny" style="font-weight:800;color:var(--brand)">ÉTAPE ' + n + '</div>' +
-        '<div class="h3">' + U.esc(title) + '</div></div>' +
-      '</div>' +
-      '<p class="sub" style="margin-top:10px">' + U.esc(text) + '</p></div>';
+  /* Une étape : gros numéro fantôme en fond, pastille orange, titre, texte.
+     Les quatre sont reliées par un trait qui court derrière elles — c'est ce
+     trait qui fait lire « une suite » plutôt que « quatre cartes ». */
+  function step(n, icone, titre, texte) {
+    return '<div class="h3d-step">' +
+      '<span class="num">' + n + '</span>' +
+      '<span class="ic">' + icone + '</span>' +
+      '<div class="h3">' + U.esc(titre) + '</div>' +
+      '<p>' + U.esc(texte) + '</p>' +
+    '</div>';
   }
 
   /* img : logo du rôle sur pastille blanche (les logos sont sur fond blanc,
