@@ -87,7 +87,7 @@ for (const a of APPS) {
      L'écran d'ouverture s'affiche avant que le moindre script ait tourné :
      poser cette classe depuis le JS aurait laissé voir un logo orange une
      fraction de seconde avant qu'il ne devienne bleu. */
-  html = html.replace('<body>', '<body class="app-' + a.app + '">');
+  html = html.replace(/<body[^>]*>/, '<body class="app-' + a.app + '">');
 
   // 4. Bandeau d'avertissement en tête du fichier généré
   html = html.replace('<!DOCTYPE html>',

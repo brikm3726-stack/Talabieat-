@@ -155,6 +155,16 @@ p{margin:0}
 .bottomnav a.on::before{
   content:'';position:absolute;top:0;width:26px;height:3px;border-radius:0 0 4px 4px;background:var(--brand);
 }
+/* ---- barre du bas de l'application client -------------------------------
+   Le trait de l'onglet actif passe du haut de la barre au-dessous du
+   libellé, comme sur la maquette : à cet endroit il souligne le mot au lieu
+   de flotter au-dessus du pictogramme, et l'œil le rattache à la rubrique. */
+body.app-client .bottomnav a.on::before{
+  top:auto;bottom:9px;width:20px;height:3px;border-radius:2px;
+}
+body.app-client .bottomnav a{padding-bottom:8px;font-size:11px}
+body.app-client .bottomnav a i svg{width:24px;height:24px}
+
 /* ---- barre du bas de l'espace livreur ----------------------------------
    Cinq rubriques au lieu de six : chacune gagne un cinquième de largeur. On
    rend cette place à l'icône et au libellé plutôt que de la laisser en blanc
@@ -1995,4 +2005,202 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
   .auth-logo{width:84px}
   .btn-install{min-height:46px;font-size:14px;padding:12px 18px}
   .ins-etape .grow{font-size:14.5px}
+}
+
+/* ==========================================================================
+   ACCUEIL CLIENT — maquette « talabi 3d plat »
+   --------------------------------------------------------------------------
+   Pensée pour un téléphone tenu à une main. Tout est empilé, rien ne défile
+   latéralement sauf la rangée de catégories, et chaque bloc a sa couleur de
+   fond propre : le regard descend par paliers au lieu de chercher des repères
+   dans une page uniformément blanche.
+   ========================================================================== */
+
+/* ---- barre du haut sur deux rangées (application client, téléphone) ----
+   Sur une seule rangée, « Mon quartier » et trois pastilles se disputaient
+   390 px : le nom du quartier finissait tronqué à deux lettres. */
+@media(max-width:999px){
+  body.app-client .topbar-in{
+    height:auto;flex-wrap:wrap;padding:10px 0 12px;gap:10px 12px;
+  }
+  body.app-client .topbar-in .brand{order:1}
+  body.app-client .topbar-in .brand-side{order:2;margin-left:auto}
+  /* la rangée se coupe ici : ce trait invisible occupe toute la largeur */
+  body.app-client .topbar-in::after{content:"";flex-basis:100%;order:3;height:0}
+  body.app-client .topbar-in .zone-pick{order:4;max-width:56%}
+  body.app-client .topbar-in .top-actions{order:5;margin-left:auto}
+}
+
+.brand-mark3d{
+  width:36px;height:36px;border-radius:12px;flex:none;
+  background:var(--brand-grad);display:grid;place-items:center;
+  box-shadow:0 7px 16px -6px rgba(255,107,53,.75);
+}
+.brand-mark3d svg{width:21px;height:21px}
+.brand-word{font-size:22px;font-weight:850;letter-spacing:-.035em;color:var(--ink)}
+.brand-word span{color:var(--brand)}
+
+.brand-side{
+  width:42px;height:42px;border-radius:13px;flex:none;
+  border:1.6px solid var(--brand);color:var(--brand);
+  display:grid;place-items:center;background:#fff;
+}
+
+/* ---------------------------------------------------------------- héro */
+.h3d-hero{
+  position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#FFF6EE 0%,#FDECDD 58%,#FFF3E9 100%);
+}
+.h3d-hin{
+  position:relative;display:flex;align-items:center;gap:10px;
+  padding:26px 0 34px;min-height:210px;
+}
+.h3d-txt{position:relative;z-index:2;max-width:62%}
+.h3d-txt h1{
+  font-size:clamp(26px,7.4vw,38px);line-height:1.12;font-weight:850;
+  letter-spacing:-.035em;color:var(--ink);
+}
+.h3d-txt h1 .accent{display:block;color:var(--brand)}
+.h3d-txt p{margin-top:12px;font-size:14px;line-height:1.62;color:var(--muted);max-width:330px}
+
+/* Le plat de la maquette. Il n'existe pas en fichier détouré : on le découpe
+   dans la maquette elle-même par un cadrage de fond, et un masque radial en
+   dissout les bords. Sans ce masque on verrait le rectangle du découpage dès
+   que le dégradé du héro s'écarte d'un ton de celui de la maquette. */
+.h3d-bol{
+  position:absolute;right:-30px;top:50%;transform:translateY(-50%);
+  width:228px;height:212px;z-index:1;pointer-events:none;
+  background:url("../img/bg/maquette-3d.jpg") no-repeat;
+  background-size:512px auto;
+  background-position:-278px -172px;
+  -webkit-mask-image:radial-gradient(closest-side at 52% 50%,#000 60%,transparent 97%);
+          mask-image:radial-gradient(closest-side at 52% 50%,#000 60%,transparent 97%);
+}
+
+/* --------------------------------------------------------------- corps */
+.h3d-body{padding-bottom:calc(var(--nav-h) + 30px)}
+
+/* ---- recherche ---- */
+.h3d-search{
+  display:flex;align-items:center;gap:8px;
+  margin:-24px 0 0;position:relative;z-index:3;
+  background:#fff;border-radius:20px;padding:9px 9px 9px 15px;
+  box-shadow:0 2px 6px rgba(196,120,74,.07), 0 18px 38px -22px rgba(196,120,74,.55);
+}
+.h3d-search .lo{color:var(--ink);display:flex;flex:none}
+.h3d-search input{
+  flex:1;min-width:0;border:none;outline:none;background:none;
+  font-size:14.5px;font-family:inherit;color:var(--ink);
+}
+.h3d-search input::placeholder{color:#9AA0AC}
+.h3d-search .btn{flex:none;border-radius:14px;padding:12px 17px;font-size:14px}
+
+/* ---- trois raccourcis ---- */
+.h3d-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:16px}
+.h3d-q{
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border:1px solid var(--line);border-radius:16px;padding:11px 9px;
+  box-shadow:0 10px 24px -20px rgba(196,120,74,.7);
+  transition:transform .25s cubic-bezier(.22,1,.36,1);
+}
+.h3d-q:active{transform:scale(.975)}
+.h3d-q .ic{
+  width:36px;height:36px;border-radius:12px;flex:none;
+  background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;
+}
+.h3d-q .tx{flex:1;min-width:0;font-size:12.5px;font-weight:750;line-height:1.28;color:var(--ink)}
+.h3d-q .ch{color:#C2C8D2;display:flex;flex:none}
+
+/* ---- bandeau de chiffres ---- */
+.h3d-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  margin-top:16px;border-radius:20px;padding:16px 8px;
+  background:var(--brand-grad);color:#fff;
+  box-shadow:0 16px 34px -20px rgba(255,107,53,.9);
+}
+.h3d-stats > div{
+  display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;
+  padding:0 6px;position:relative;
+}
+.h3d-stats > div + div::before{
+  content:"";position:absolute;left:0;top:6px;bottom:6px;width:1px;
+  background:rgba(255,255,255,.28);
+}
+.h3d-stats .ic{
+  width:38px;height:38px;border-radius:50%;margin-bottom:5px;
+  background:rgba(255,255,255,.22);display:grid;place-items:center;color:#fff;
+}
+.h3d-stats b{font-size:19px;font-weight:850;letter-spacing:-.02em}
+.h3d-stats .lb{font-size:11.5px;opacity:.92;line-height:1.25}
+
+/* ---- titre de section avec pilule ---- */
+.h3d-head{display:flex;align-items:center;gap:12px;margin:28px 0 14px}
+.h3d-head .h2{flex:1;min-width:0;font-size:19px}
+.h3d-all{
+  flex:none;display:flex;align-items:center;gap:3px;
+  border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;
+  font-size:13px;font-weight:750;color:var(--brand);background:#fff;
+}
+
+/* ---- catégories ---- */
+.h3d-cats{
+  display:flex;gap:10px;overflow-x:auto;padding:2px 0 6px;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.h3d-cats::-webkit-scrollbar{display:none}
+.h3d-cat{
+  flex:none;width:88px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 6px 12px;
+  box-shadow:0 10px 24px -20px rgba(196,120,74,.7);
+}
+.h3d-cat .em{font-size:34px;line-height:1}
+.h3d-cat .ic{
+  width:52px;height:52px;border-radius:16px;
+  background:var(--brand-grad);color:#fff;display:grid;place-items:center;
+}
+.h3d-cat .nm{
+  font-size:12.5px;font-weight:700;color:var(--ink-2);text-align:center;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.h3d-cat.on .nm{color:var(--brand);font-weight:800;position:relative;padding-bottom:7px}
+.h3d-cat.on .nm::after{
+  content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:22px;height:3px;border-radius:2px;background:var(--brand);
+}
+
+/* ---- promesse de livraison ---- */
+.h3d-promo{
+  position:relative;overflow:hidden;margin-top:24px;
+  border-radius:22px;padding:20px 18px;min-height:152px;
+  background:linear-gradient(150deg,#FFF3E8 0%,#FCE7D5 100%);
+}
+.h3d-promo .tx{position:relative;z-index:2;max-width:62%}
+.h3d-promo .ic{font-size:24px;display:block;margin-bottom:6px}
+.h3d-promo .h2{font-size:20px;line-height:1.2;letter-spacing:-.02em}
+.h3d-promo .h2 .accent{color:var(--brand)}
+.h3d-promo p{margin-top:8px;font-size:12.5px;color:var(--muted);line-height:1.5}
+/* même découpage que le plat du héro, sur le scooter de la maquette */
+.h3d-promo .scoot{
+  position:absolute;right:-12px;bottom:-4px;width:178px;height:148px;z-index:1;
+  background:url("../img/bg/maquette-3d.jpg") no-repeat;
+  background-size:470px auto;
+  background-position:-290px -772px;
+  -webkit-mask-image:radial-gradient(closest-side at 50% 55%,#000 58%,transparent 96%);
+          mask-image:radial-gradient(closest-side at 50% 55%,#000 58%,transparent 96%);
+}
+
+/* ---- grand écran : le héro s'étale, le reste garde ses proportions ---- */
+@media(min-width:760px){
+  .h3d-hin{padding:46px 0 56px;min-height:300px}
+  .h3d-txt{max-width:52%}
+  .h3d-bol{width:340px;height:316px;background-size:762px auto;background-position:-414px -256px;right:0}
+  .h3d-quick{gap:14px}
+  .h3d-q{padding:14px 13px}
+  .h3d-q .tx{font-size:13.5px}
+  .h3d-stats{padding:20px 10px}
+  .h3d-stats b{font-size:24px}
+  .h3d-cat{width:104px}
+  .h3d-cat .em{font-size:40px}
+  .h3d-promo{padding:28px 26px;min-height:190px}
+  .h3d-promo .scoot{width:248px;height:198px;background-size:650px auto;background-position:-401px -1068px}
 }

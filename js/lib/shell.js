@@ -155,16 +155,37 @@
       document.body.classList.toggle('role-driver',
         Store.isLogged && Store.role === 'driver');
 
+      /* Dans l'application client, la barre se déplie sur deux rangées au
+         téléphone : la marque seule d'abord, puis le quartier et les boutons.
+         Sur une seule rangée, « Mon quartier » et trois pastilles se
+         disputaient 390 px et le nom du quartier finissait tronqué. */
+      const marque = App.est('client')
+        ? '<span class="brand-mark3d" aria-hidden="true">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" ' +
+              'stroke-linecap="round" stroke-linejoin="round">' +
+              '<path d="M5 8h14l-1.1 11.1a2 2 0 0 1-2 1.8H8.1a2 2 0 0 1-2-1.8z"/>' +
+              '<path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>' +
+              '<path d="M10 12v4M14 12v4"/>' +
+            '</svg></span>' +
+          '<span class="brand-word">talabi<span>.shop</span></span>'
+        : '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' +
+            U.esc(TALABI_CONFIG.APP_NAME) + '" class="brand-logo">';
+
       bar.innerHTML =
         '<div class="wrap topbar-in">' +
           '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : App.accueil) + '" ' +
-            'title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' +
-            '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" class="brand-logo">' +
-          '</a>' +
+            'title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' + marque + '</a>' +
 
           (showZone ?
             '<button class="zone-pick" id="zoneBtn">' + UI.pin(15) + ' <span>' +
               U.esc(Store.zoneName() || 'Mon quartier') + '</span> ▾</button>' : '') +
+
+          /* Le bouton en bout de première rangée sur la maquette : il mène aux
+             commandes, la seule chose qu'un client vient revoir sans détour. */
+          (App.est('client') && Store.isLogged
+            ? '<a class="brand-side" href="#/orders" title="Mes commandes">' +
+                UI.icon('receipt', 20) + '</a>'
+            : '') +
 
           '<nav class="deskmenu">' +
             items.filter(x => x.p !== '/account' && x.p !== '/login')

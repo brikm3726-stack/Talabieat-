@@ -1,5 +1,15 @@
 /* ==========================================================================
    VUE — Page d'accueil publique / client
+   --------------------------------------------------------------------------
+   Mise en page reprise de la maquette « theme talabi 3d plat » : pensée pour
+   un téléphone tenu à une main, de haut en bas —
+
+     héro (titre + plat)  →  recherche  →  trois raccourcis  →  bandeau de
+     chiffres  →  catégories  →  promesse de livraison  →  le reste
+
+   Les emoji des catégories viennent de la base et sont rendus en grand plutôt
+   que leurs vignettes : les vignettes sont des écussons sombres, qui jurent
+   avec les cartes blanches de la maquette.
    ========================================================================== */
 (function (w) {
   'use strict';
@@ -13,6 +23,14 @@
     if (i < 0) return U.esc(t);
     return U.esc(t.slice(0, i + 1)) +
       '<span class="accent">' + U.esc(t.slice(i + 1).trim()) + '</span>';
+  }
+
+  /** Un raccourci : pastille pêche, deux lignes de texte, chevron. */
+  function raccourci(icone, l1, l2, href) {
+    return '<a class="h3d-q" href="' + href + '">' +
+      '<span class="ic">' + icone + '</span>' +
+      '<span class="tx">' + U.esc(l1) + '<br>' + U.esc(l2) + '</span>' +
+      '<span class="ch">' + UI.icon('chevron', 17) + '</span></a>';
   }
 
   Router.add('/', async function (params, query, view) {
@@ -32,36 +50,57 @@
        ou des restaurants : on lui propose les trois actions qui le concernent. */
     const isClient = Store.isLogged && Store.role === 'client';
 
-    view.innerHTML =
+    view.innerHTML = '<div class="home3d">' +
+
       /* ---------------------------------------------------------- HÉRO */
-      '<section class="hero"><div class="wrap hero-in">' +
-        '<h1>' + tagline() + '</h1>' +
-        '<p>Les meilleurs restaurants de Tizi Ouzou livrés chez vous en quelques minutes. Paiement à la livraison.</p>' +
-        '<div class="hero-search">' +
-          '<input id="q" placeholder="Rechercher un restaurant ou un plat…" autocomplete="off">' +
-          '<button class="btn btn-dark" id="goSearch">Rechercher</button>' +
+      '<section class="h3d-hero"><div class="wrap h3d-hin">' +
+        '<div class="h3d-txt">' +
+          '<h1>' + tagline() + '</h1>' +
+          '<p>Les meilleurs restaurants de Tizi Ouzou livrés chez vous en ' +
+            'quelques minutes. Paiement à la livraison.</p>' +
         '</div>' +
-        '<div class="hero-cta">' +
-          (isClient
-            ? '<a class="btn btn-lg primary" href="#/restaurants">🍽️ Choisis ton restaurant</a>' +
-              '<a class="btn btn-lg" href="' + (Store.cartCount ? '#/cart' : '#/restaurants') + '">🛒 Commander maintenant</a>' +
-              '<a class="btn btn-lg" href="#/orders">🛵 Le livreur t’attend</a>'
-            : '<a class="btn btn-lg primary" href="#/restaurants">🍽️ Commander maintenant</a>' +
-              '<a class="btn btn-lg" href="' + App.lien('driver') + '">🛵 Devenir livreur</a>' +
-              '<a class="btn btn-lg" href="' + App.lien('restaurant') + '">🏪 Ajouter mon restaurant</a>') +
-        '</div>' +
-        '<div class="hero-stats" id="heroStats"></div>' +
+        /* le plat de la maquette, découpé au vol et fondu sur les bords : voir
+           la note dans app.css (.h3d-bol) */
+        '<span class="h3d-bol" aria-hidden="true"></span>' +
       '</div></section>' +
 
-      /* le décor culinaire de bordure vit sur cette section, pas sur .wrap :
-         il doit filer jusqu'au bord de l'écran, pas s'arrêter à 1200 px */
-      '<section class="home-decor">' +
-        '<span class="decor-dots" aria-hidden="true"></span>' +
-        '<div class="wrap page">' +
+      '<div class="wrap h3d-body">' +
 
-        /* ------------------------------------------------- CATÉGORIES */
-        '<div class="section-head"><div class="h2">Que voulez-vous manger ?</div></div>' +
-        '<div id="cats"></div>' +
+        /* ----------------------------------------------------- RECHERCHE */
+        '<div class="h3d-search">' +
+          '<span class="lo">' + UI.icon('search', 20) + '</span>' +
+          '<input id="q" placeholder="Rechercher un restaurant ou un plat…" autocomplete="off">' +
+          '<button class="btn btn-primary" id="goSearch">Rechercher</button>' +
+        '</div>' +
+
+        /* --------------------------------------------------- RACCOURCIS */
+        '<div class="h3d-quick">' +
+          raccourci(UI.icon('utensils', 22), 'Choisis ton', 'restaurant', '#/restaurants') +
+          raccourci(UI.icon('cart', 22), 'Commander', 'maintenant',
+                    Store.cartCount ? '#/cart' : '#/restaurants') +
+          raccourci(UI.icon('scooter', 22), 'Le livreur', 't’attend',
+                    isClient ? '#/orders' : App.lien('driver')) +
+        '</div>' +
+
+        /* ------------------------------------------------------ CHIFFRES */
+        '<div class="h3d-stats" id="heroStats"></div>' +
+
+        /* ---------------------------------------------------- CATÉGORIES */
+        '<div class="h3d-head">' +
+          '<div class="h2">Que voulez-vous manger ?</div>' +
+          '<a class="h3d-all" href="#/restaurants">Voir tout ' + UI.icon('chevron', 15) + '</a>' +
+        '</div>' +
+        '<div class="h3d-cats" id="cats"></div>' +
+
+        /* -------------------------------------------------------- PROMESSE */
+        '<div class="h3d-promo">' +
+          '<div class="tx">' +
+            '<span class="ic">⚡</span>' +
+            '<div class="h2">Livraison rapide<br><span class="accent">à votre porte</span></div>' +
+            '<p>Fraîcheur garantie, où que vous soyez.</p>' +
+          '</div>' +
+          '<span class="scoot" aria-hidden="true"></span>' +
+        '</div>' +
 
         /* ------------------------------------------------ RESTAURANTS */
         '<div class="section-head">' +
@@ -71,7 +110,7 @@
         '</div>' +
         '<div id="popular">' + UI.skeletonCards(4) + '</div>' +
 
-        /* -------------------------------------------------- COMMENT ÇA MARCHE */
+        /* -------------------------------------------- COMMENT ÇA MARCHE */
         '<div class="section-head" style="margin-top:34px"><div class="h2">Comment ça marche ?</div></div>' +
         '<div class="grid grid-auto">' +
           step('1', UI.icon('pin', 21), 'Choisissez votre quartier', 'Indiquez où vous êtes pour voir les restaurants qui livrent chez vous.') +
@@ -87,7 +126,7 @@
             promo('🏪', 'Vous avez un restaurant ?', 'Rejoignez Talabi, recevez des commandes dès aujourd’hui et gérez votre menu en toute autonomie.', 'Ajouter mon restaurant', App.lien('restaurant'), 'assets/img/roles/restaurant.jpg') +
             promo('🛵', 'Vous voulez livrer ?', 'Travaillez quand vous voulez dans votre quartier et gagnez sur chaque course.', 'Devenir livreur', App.lien('driver'), 'assets/img/roles/driver.jpg') +
           '</div>') +
-      '</div></section>' +
+      '</div>' +
 
       /* -------------------------------------------------------------- PIED */
       '<footer class="footer"><div class="wrap">' +
@@ -112,7 +151,8 @@
         '</div>' +
         '<div class="tiny" style="color:rgba(255,255,255,.45);margin-top:24px">© ' + new Date().getFullYear() + ' ' +
           U.esc(TALABI_CONFIG.APP_NAME) + ' — Tous droits réservés.</div>' +
-      '</div></footer>';
+      '</div></footer>' +
+    '</div>';
 
     /* ------------------------------------------------------ interactions */
     const q = view.querySelector('#q');
@@ -123,18 +163,31 @@
     view.querySelector('#goSearch').onclick = search;
     q.onkeydown = e => { if (e.key === 'Enter') search(); };
 
-    const cats = Cmp.categoryScroller(null, id => Router.go('/restaurants' + (id ? '?cat=' + id : '')));
-    view.querySelector('#cats').innerHTML = cats.html;
-    cats.bind(view);
+    /* ---------------------------------------------------- catégories */
+    /* « Tout » d'abord, en pastille pleine, puis les catégories de la base.
+       On rend l'emoji, pas la vignette : les vignettes sont des écussons
+       sombres qui jurent avec les cartes blanches. */
+    view.querySelector('#cats').innerHTML =
+      '<a class="h3d-cat on" href="#/restaurants">' +
+        '<span class="ic">' + UI.icon('grid', 26) + '</span>' +
+        '<span class="nm">Tout</span></a>' +
+      Store.categories.map(c =>
+        '<a class="h3d-cat" href="#/restaurants?cat=' + encodeURIComponent(c.id) + '">' +
+          '<span class="em">' + (c.icon || '🍽️') + '</span>' +
+          '<span class="nm">' + U.esc(c.name_fr) + '</span></a>').join('');
 
     /* -------------------------------------------------------- données */
     const list = await API.safe(() => API.restaurants({ zone_id: Store.zoneId }), []);
     Cmp.restoGrid(list.slice(0, 6), view.querySelector('#popular'));
 
+    const chiffre = (icone, valeur, label) =>
+      '<div><span class="ic">' + icone + '</span>' +
+      '<b>' + U.esc(valeur) + '</b><span class="lb">' + U.esc(label) + '</span></div>';
+
     view.querySelector('#heroStats').innerHTML =
-      '<div><b>' + list.length + '+</b><span>Restaurants</span></div>' +
-      '<div><b>' + Store.zones.length + '</b><span>Quartiers couverts</span></div>' +
-      '<div><b>25 min</b><span>Livraison moyenne</span></div>';
+      chiffre(UI.icon('store', 20), list.length + '+', 'Restaurants') +
+      chiffre(UI.icon('pin', 20), String(Store.zones.length), 'Quartiers couverts') +
+      chiffre(UI.icon('clock', 20), '25 min', 'Livraison moyenne');
   });
 
   /* ---------------------------------------------------------- fragments */
