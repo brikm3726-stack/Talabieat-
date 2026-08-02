@@ -1104,6 +1104,35 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .drv-note .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
 .drv-note b{color:var(--brand);font-size:14.5px}
 
+/* ---- carte en direct du tableau de bord livreur -------------------------
+   Le fond gris est volontaire : tant que Google n'a pas répondu, le bloc a
+   déjà sa hauteur définitive. Sans lui, la page sauterait de 240 px au
+   moment où la carte arrive. */
+.drv-map{
+  height:240px;border-radius:16px;overflow:hidden;
+  background:var(--cream-2);
+}
+.drv-mapcard{margin-top:0}
+
+/* étapes de la course sous la carte : restaurant puis client */
+.drv-steps{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.drv-step{
+  display:flex;align-items:center;gap:11px;
+  padding:11px 12px;border-radius:14px;
+  background:var(--cream);border:1px solid var(--line);
+}
+.drv-step.now{background:var(--brand-soft);border-color:#F7DECF}
+.drv-step.now .grow b{color:var(--brand)}
+.drv-step .art{font-size:21px;flex:none}
+.drv-step .grow{display:flex;flex-direction:column;gap:1px;min-width:0}
+.drv-step .grow b{font-size:14px}
+.drv-step .grow .tiny{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drv-km{
+  flex:none;font-weight:800;font-size:13px;
+  padding:4px 9px;border-radius:999px;
+  background:var(--brand-soft);color:var(--brand);
+}
+
 /* bandeau des gains cumulés */
 .drv-earn{
   position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;

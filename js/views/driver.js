@@ -47,6 +47,120 @@
   Router.add('/d', async function (params, query, view) {
     view.innerHTML = '<div class="wrap page"><div class="skel" style="height:220px"></div></div>';
 
+    /* ====================================================================
+       CARTE EN DIRECT — conservée d'un rafraîchissement à l'autre
+       --------------------------------------------------------------------
+       Le tableau de bord se redessine toutes les 25 secondes. Reconstruire
+       une carte Google à chaque passage, ce serait un « chargement de carte »
+       facturé toutes les 25 secondes et par livreur — plus un clignotement à
+       l'écran. On fabrique donc ce bloc UNE fois, hors du innerHTML, et on le
+       rebranche après chaque rendu : la carte survit, seuls les repères
+       bougent.
+       ==================================================================== */
+    const boite = document.createElement('div');
+    boite.className = 'card card-p drv-panel drv-mapcard';
+    boite.innerHTML =
+      '<div class="row-between" style="margin-bottom:10px">' +
+        '<div class="h2" id="drvMapTitle">📍 Ma position</div>' +
+        '<button class="btn btn-soft btn-sm" id="drvMapFit">Recentrer</button>' +
+      '</div>' +
+      '<div class="drv-map" id="drvMap"></div>' +
+      '<div id="drvMapInfo"></div>';
+
+    const live = MapPicker.live(boite.querySelector('#drvMap'), {});
+    boite.querySelector('#drvMapFit').onclick = () => live && live.recenter();
+
+    const titre = boite.querySelector('#drvMapTitle');
+    const infos = boite.querySelector('#drvMapInfo');
+
+    /* Dernier état connu, pour redessiner la carte à chaque nouvelle position
+       sans rappeler le serveur. */
+    let dernierD = null, derniereCourse = null;
+
+    /** Repères et légende, à partir du livreur et de sa course éventuelle. */
+    function peindreCarte(d, course) {
+      if (d !== undefined) dernierD = d;
+      if (course !== undefined) derniereCourse = course;
+      d = dernierD; course = derniereCourse;
+      if (!boite.isConnected) return;
+
+      const st = LiveTrack.state;
+      /* Le téléphone d'abord : sa position n'a pas fait l'aller-retour par le
+         serveur, elle a donc quelques secondes d'avance. La base sert de
+         secours tant que le premier relevé n'est pas arrivé. */
+      const moi = st.pos ||
+        (U.hasCoords({ lat: d && d.last_lat, lng: d && d.last_lng })
+          ? { lat: +d.last_lat, lng: +d.last_lng } : null);
+
+      const pts = {};
+      if (moi) pts.driver = moi;
+
+      let resto = null, client = null;
+      if (course) {
+        if (course.restaurant && U.hasCoords(course.restaurant))
+          resto = pts.restaurant = { lat: +course.restaurant.lat, lng: +course.restaurant.lng };
+        if (U.hasCoords({ lat: course.address_lat, lng: course.address_lng }))
+          client = pts.client = { lat: +course.address_lat, lng: +course.address_lng };
+      }
+      if (live) live.update(pts);
+
+      titre.textContent = course
+        ? '🛵 Course #' + (course.code || '') + ' en direct'
+        : '📍 Ma position';
+
+      /* --- pas encore de position : dire pourquoi, et comment y remédier */
+      if (!moi) {
+        infos.innerHTML = '<div class="banner banner-warn" style="margin-top:12px">' +
+          '<div class="grow">📡 ' +
+          U.esc(st.error || 'Position inconnue — activez le partage pour apparaître sur la carte.') +
+          '</div><button class="btn btn-primary btn-sm" id="drvMapGeo">Activer</button></div>';
+        const b = infos.querySelector('#drvMapGeo');
+        if (b) b.onclick = async function () {
+          UI.busy(this, true);
+          try { await LiveTrack.pushOnce(); UI.ok('Position trouvée'); }
+          catch (e) { UI.err(e.message); }
+        };
+        return;
+      }
+
+      /* --- en course : les deux étapes, leur distance, et l'itinéraire */
+      if (course) {
+        /* L'étape en cours est mise en avant : avant le retrait c'est le
+           restaurant, une fois la commande récupérée c'est le client. Un
+           livreur qui roule ne doit pas avoir à réfléchir pour savoir où il
+           va. */
+        const encours = course.status === 'delivering' ? 'client' : 'restaurant';
+
+        const etape = (cle, icone, nom, p, adresse) => {
+          if (!p) return '';
+          const km = (U.haversine(moi.lat, moi.lng, p.lat, p.lng) * 1.3).toFixed(1);
+          return '<div class="drv-step' + (cle === encours ? ' now' : '') + '">' +
+            '<span class="art">' + icone + '</span>' +
+            '<span class="grow"><b>' + U.esc(nom) + '</b>' +
+              '<span class="tiny">' + U.esc(adresse || '') + '</span></span>' +
+            '<span class="drv-km">' + km + ' km</span>' +
+            '<a class="btn btn-dark btn-sm" target="_blank" rel="noopener" href="' +
+              U.escUrl(U.gmapsRoute(p.lat, p.lng)) + '">Y aller</a>' +
+          '</div>';
+        };
+        infos.innerHTML = '<div class="drv-steps">' +
+          etape('restaurant', '🏪',
+                (course.restaurant && course.restaurant.name) || 'Restaurant', resto,
+                course.restaurant && course.restaurant.address) +
+          etape('client', '🏠', 'Client', client, course.address_street) +
+          '</div>';
+        return;
+      }
+
+      /* --- en veille : ce que la plateforme sait de vous, et depuis quand */
+      infos.innerHTML = '<div class="tiny" style="margin-top:12px;text-align:center">' +
+        (st.running
+          ? '🟢 Position partagée' + (st.lastSent ? ' — dernier envoi ' + U.ago(st.lastSent) : '') +
+            (st.pos && st.pos.acc ? ' · précision ' + st.pos.acc + ' m' : '')
+          : '⚪ Partage arrêté — passez en ligne pour recevoir les courses proches') +
+        '</div>';
+    }
+
     async function load() {
       const d = await API.safe(() => API.getDriver(), null);
       const mine = await API.safe(() => API.orders({ scope: 'driver' }), []);
@@ -97,6 +211,9 @@
 
         carteCredit(d) +
 
+        /* La carte se glisse ici : sous le crédit, sous la disponibilité. */
+        (approved ? '<div id="drvMapSlot" style="margin-top:14px"></div>' : '') +
+
         '<div class="grid grid-stats drv-stats" style="margin-top:14px">' +
           drvStat('📅', 'Courses aujourd’hui', todayDone.length, 'Aujourd’hui') +
           drvStat('📦', 'Total livraisons', (d && d.total_deliveries) || 0, 'Livraisons effectuées') +
@@ -131,6 +248,21 @@
         '</div>' +
       '</div></div>';
 
+      /* On rebranche la carte fabriquée plus haut, puis on la réveille : elle
+         vient d'être détachée par la réécriture du tableau de bord. */
+      const slot = view.querySelector('#drvMapSlot');
+      if (slot) {
+        slot.appendChild(boite);
+        if (live) live.nudge();
+        peindreCarte(d, active[0] || null);
+      }
+
+      /* Le régime de partage découle de ce qu'on vient de charger : inutile de
+         repasser par LiveTrack.sync(), qui referait les deux mêmes requêtes. */
+      if (active.length) LiveTrack.start('course');
+      else if (approved && statut === 'available') LiveTrack.start('veille');
+      else LiveTrack.stop();
+
       bindDelivery(view, load);
 
       const rf = view.querySelector('#refresh');
@@ -140,18 +272,23 @@
       if (sw && !sw.disabled) sw.onchange = async () => {
         const r = await API.safe(() => API.saveDriver({ status: sw.checked ? 'available' : 'offline' }), null);
         if (r) UI.ok(r.status === 'available' ? 'Vous êtes disponible' : 'Vous êtes indisponible');
-        /* Passer en ligne démarre le partage de position en veille : c'est lui
-           qui fait qu'une course tombant à côté vous revient plutôt qu'à un
-           autre. Passer hors ligne l'arrête aussitôt. */
-        LiveTrack.sync();
+        /* load() rallume ou coupe le partage de position selon le nouveau
+           statut : c'est lui qui fait qu'une course tombant à côté vous
+           revient plutôt qu'à un autre. */
         load();
       };
     }
 
     await load();
     const off = API.onChange(t => { if (t === 'orders' || t === 'drivers' || t === '*') load(); });
+    /* Chaque nouvelle position redessine la carte seule, sans rappeler le
+       serveur : le repère avance en direct entre deux chargements. */
+    const offPos = LiveTrack.onChange(() => peindreCarte());
     const timer = setInterval(load, 25000);
-    return () => { off(); clearInterval(timer); };
+    return () => {
+      off(); offPos(); clearInterval(timer);
+      if (live) live.destroy();
+    };
   }, GUARD);
 
   /* ----------------------------------------------------------------------

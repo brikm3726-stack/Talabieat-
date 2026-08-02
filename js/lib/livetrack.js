@@ -31,13 +31,23 @@
   let timerId = null;         // relevé périodique (mode veille)
   let lastSent = 0;
   let lastError = null;
+  let lastPos = null;         // dernière position connue {lat, lng, acc}
   const subs = [];
 
   function announce() {
     subs.forEach(cb => { try { cb(LiveTrack.state); } catch (e) { console.error(e); } });
   }
 
+  function retenir(pos) {
+    lastPos = {
+      lat: +pos.coords.latitude.toFixed(6),
+      lng: +pos.coords.longitude.toFixed(6),
+      acc: Math.round(pos.coords.accuracy || 0)
+    };
+  }
+
   async function envoyer(pos) {
+    retenir(pos);
     lastSent = Date.now();
     lastError = null;
     await API.safe(() => API.updateMyPosition(pos.coords.latitude, pos.coords.longitude));
@@ -54,7 +64,13 @@
   const LiveTrack = {
 
     get state() {
-      return { running: mode !== null, mode: mode, error: lastError, lastSent: lastSent };
+      return {
+        running: mode !== null, mode: mode,
+        error: lastError, lastSent: lastSent,
+        /* Position telle que le téléphone la connaît — plus fraîche que celle
+           enregistrée en base, puisqu'elle n'a pas fait l'aller-retour. */
+        pos: lastPos
+      };
     },
 
     onChange(cb) {
@@ -126,6 +142,7 @@
         if (!navigator.geolocation) return rej(new Error('Géolocalisation indisponible.'));
         navigator.geolocation.getCurrentPosition(
           async pos => {
+            retenir(pos);
             lastSent = Date.now();
             lastError = null;
             const r = await API.safe(() => API.updateMyPosition(pos.coords.latitude, pos.coords.longitude));

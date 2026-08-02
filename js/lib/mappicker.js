@@ -248,7 +248,9 @@
             icon: {
               path: google.maps.SymbolPath.CIRCLE, scale: 18,
               fillColor: '#ffffff', fillOpacity: 1,
-              strokeColor: k === 'driver' ? '#12A150' : k === 'resto' ? '#FF4D2D' : '#1E6BE6',
+              /* la clé est « restaurant », pas « resto » : écrit ainsi, le
+                 repère du restaurant prenait le bleu du client */
+              strokeColor: k === 'driver' ? '#12A150' : k === 'restaurant' ? '#FF4D2D' : '#1E6BE6',
               strokeWeight: 3
             }
           });
@@ -272,6 +274,16 @@
 
       return {
         update(pts) { attendus = pts; appliquer(pts); },
+        /* À appeler quand le conteneur a été détaché puis rebranché dans la
+           page : la carte a pu perdre ses tuiles pendant le déplacement.
+           Bien moins cher qu'en recréer une — un « chargement de carte » est
+           facturé, un redimensionnement non. */
+        nudge() {
+          if (!map) return;
+          const c = map.getCenter();
+          google.maps.event.trigger(map, 'resize');
+          map.setCenter(c);
+        },
         recenter() {
           if (!map) return;
           const b = new google.maps.LatLngBounds();
