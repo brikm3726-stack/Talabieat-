@@ -101,14 +101,32 @@
       /* Sans réseau, sans clé, ou si Google met plus de 12 secondes à
          répondre, la carte ne viendra pas. Le dire vaut mieux qu'un
          rectangle gris qu'on prend pour une panne de l'application. */
+      /* Ce que voit un livreur doit tenir en deux lignes et parler de SON
+         travail. Le détail technique — quelle case cocher dans Google Cloud —
+         ne concerne que celui qui administre la plateforme : il est replié
+         derrière un lien que personne d'autre n'ouvrira. */
       onEchec: function (raison) {
         const el = boite.querySelector('#drvMap');
         if (!el) return;
+        el.classList.add('ko');
         el.innerHTML =
-          '<div class="drv-mapko">🗺️<b>La carte ne s’affiche pas</b>' +
-          '<span>' + U.esc(raison || '') + '</span>' +
-          '<span><b>Votre position est bien envoyée</b> — les courses proches ' +
-          'vous seront proposées normalement.</span></div>';
+          '<div class="drv-mapko">' +
+            '<span class="art">🗺️</span>' +
+            '<b>La carte ne s’affiche pas</b>' +
+            '<span>Votre position est bien envoyée : les courses proches vous ' +
+              'sont proposées normalement.</span>' +
+            (raison
+              ? '<button type="button" class="drv-mapwhy" id="drvMapWhy">Détails techniques</button>' +
+                '<span class="drv-mapdet" id="drvMapDet" hidden>' + U.esc(raison) + '</span>'
+              : '') +
+          '</div>';
+
+        const b = el.querySelector('#drvMapWhy');
+        if (b) b.onclick = function () {
+          const d = el.querySelector('#drvMapDet');
+          d.hidden = !d.hidden;
+          this.textContent = d.hidden ? 'Détails techniques' : 'Masquer';
+        };
       }
     });
     boite.querySelector('#drvMapFit').onclick = () => live && live.recenter();

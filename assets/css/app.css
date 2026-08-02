@@ -1165,14 +1165,29 @@ body.app-driver{
 .drv-mapcard{margin-top:0}
 
 /* carte indisponible : on dit ce qui se passe, et surtout ce qui marche
-   quand même — un rectangle gris se lit comme une panne générale */
+   quand même — un rectangle gris se lit comme une panne générale.
+   La hauteur devient libre : un message enfermé dans les 240 px de la carte
+   se retrouvait coupé en haut et en bas. */
+.drv-map.ko{height:auto}
+/* plus de carte, plus rien à recentrer */
+.drv-map.ko + .drv-mapfit{display:none}
 .drv-mapko{
-  height:100%;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:5px;text-align:center;padding:18px;
-  font-size:26px;color:var(--ink-2);
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:6px;text-align:center;padding:26px 18px;
+  color:var(--ink-2);
 }
+.drv-mapko .art{font-size:28px;line-height:1}
 .drv-mapko b{font-size:14.5px}
-.drv-mapko span{font-size:12.5px;color:var(--muted);max-width:280px}
+.drv-mapko span{font-size:12.5px;color:var(--muted);max-width:300px}
+.drv-mapwhy{
+  margin-top:4px;background:none;border:none;cursor:pointer;
+  font-size:12px;font-weight:700;color:var(--brand);
+  text-decoration:underline;text-underline-offset:3px;padding:6px;
+}
+.drv-mapdet{
+  font-size:11.5px;line-height:1.55;text-align:left;
+  background:rgba(0,0,0,.04);border-radius:12px;padding:11px 13px;
+}
 
 /* recentrage : un repère posé sur la carte, pas un bouton d'en-tête */
 .drv-mapfit{
