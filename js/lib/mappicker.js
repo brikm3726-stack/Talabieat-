@@ -61,21 +61,36 @@
   };
 
   let panne = '';                 // nom brut de la dernière erreur Google
+  let urlAAutoriser = '';         // adresse que Google demande d'autoriser
   const abonnes = [];             // cartes à prévenir quand la clé est refusée
 
   function signaler(nom) {
-    if (!nom || panne === nom) return;
+    /* « AuthFailure » est le nom générique du rappel de Google : il ne dit
+       que « refusé ». S'il arrive après un nom précis, il ne doit pas
+       l'écraser — sinon on perd la seule information utile. */
+    if (!nom) return;
+    if (panne && (nom === 'AuthFailure' || panne === nom)) return;
     panne = nom;
     abonnes.slice().forEach(cb => { try { cb(pourquoi()); } catch (e) {} });
   }
 
-  const _consoleError = console.error;
-  console.error = function () {
-    const texte = Array.prototype.join.call(arguments, ' ');
-    const m = texte.match(/Google Maps JavaScript API (?:error|warning):\s*([A-Za-z]+)/);
-    if (m) signaler(m[1]);
-    return _consoleError.apply(console, arguments);
-  };
+  /* Google n'écrit pas toujours par le même canal ni dans le même format
+     selon la version de l'API : on écoute les deux et on cherche le nom
+     d'erreur partout dans le message, pas seulement derrière un préfixe. */
+  ['error', 'warn'].forEach(canal => {
+    const original = console[canal];
+    console[canal] = function () {
+      const texte = Array.prototype.join.call(arguments, ' ');
+      if (/Google Maps/i.test(texte)) {
+        const nom = texte.match(/([A-Za-z]+MapError)/);
+        // Google indique l'adresse exacte à inscrire dans les restrictions
+        const url = texte.match(/authoriz(?:ed|é)\s*:?\s*(https?:\/\/\S+)/i);
+        if (url) urlAAutoriser = url[1];
+        if (nom) signaler(nom[1]);
+      }
+      return original.apply(console, arguments);
+    };
+  });
 
   /* Rappel documenté par Google : appelé dès que l'authentification échoue,
      quelle qu'en soit la raison. Il arrive APRÈS la création de la carte —
@@ -85,8 +100,20 @@
   /** Dernière erreur Google, expliquée en français. '' si tout va bien. */
   function pourquoi() {
     if (!panne) return '';
-    return EXPLICATIONS[panne] ||
-      ('Google a refusé d’afficher la carte (' + panne + ').');
+    const sup = urlAAutoriser ? ' Adresse à autoriser : ' + urlAAutoriser : '';
+    if (EXPLICATIONS[panne]) return EXPLICATIONS[panne] + sup;
+
+    /* Nom générique : Google a refusé sans dire pourquoi. Plutôt que de le
+       laisser deviner, on donne les trois causes possibles, dans l'ordre où
+       il faut les vérifier. */
+    if (panne === 'AuthFailure') {
+      return 'Google a refusé la clé. Trois causes possibles, à vérifier dans cet ordre ' +
+        'sur console.cloud.google.com : 1) la facturation n’est pas activée sur le projet ' +
+        '(Google l’exige même dans les quotas gratuits) ; 2) l’API « Maps JavaScript API » ' +
+        'n’est pas activée ; 3) l’adresse du site n’est pas autorisée pour cette clé — il ' +
+        'faut https://talabi.shop/* avec l’étoile finale.' + sup;
+    }
+    return 'Google a refusé d’afficher la carte (' + panne + ').' + sup;
   }
 
   /** Charge l'API Google Maps une seule fois. Résout false si c'est impossible. */
