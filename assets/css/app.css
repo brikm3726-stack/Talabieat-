@@ -2234,14 +2234,13 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 .h3d-steps .rail{position:relative;z-index:1;display:flex;flex-direction:column;gap:14px}
 /* le trait vertical qui relie les quatre pastilles */
 .h3d-steps .rail::before{
-  content:"";position:absolute;left:39px;top:26px;bottom:26px;width:2px;
+  content:"";position:absolute;left:43px;top:28px;bottom:28px;width:2px;
   background:repeating-linear-gradient(to bottom,
     rgba(255,255,255,.55) 0 6px, transparent 6px 12px);
 }
 
 .h3d-step{
-  position:relative;display:grid;
-  grid-template-columns:52px 1fr;align-items:start;gap:14px;
+  position:relative;display:flex;align-items:flex-start;gap:14px;
   background:rgba(255,255,255,.14);
   border:1px solid rgba(255,255,255,.22);
   border-radius:18px;padding:14px 16px 15px;
@@ -2254,10 +2253,12 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
   color:rgba(255,255,255,.16);pointer-events:none;
 }
 .h3d-step .ic{
-  width:52px;height:52px;border-radius:16px;
-  background:#fff;display:grid;place-items:center;font-size:25px;
-  box-shadow:0 8px 18px -8px rgba(120,40,0,.55);
+  width:54px;height:54px;border-radius:16px;flex:none;
+  background-color:#191B2E;background-repeat:no-repeat;
+  background-position:center;background-size:132%;
+  box-shadow:0 8px 20px -8px rgba(90,25,0,.6);
 }
+.h3d-step .tx{flex:1;min-width:0;padding-right:34px}
 .h3d-step .h3{font-size:15.5px;font-weight:800;color:#fff;letter-spacing:-.01em}
 .h3d-step p{margin-top:5px;font-size:12.8px;line-height:1.55;color:rgba(255,255,255,.9)}
 
@@ -2273,9 +2274,9 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
       rgba(255,255,255,.55) 0 6px, transparent 6px 12px);
   }
   .h3d-step{
-    flex:1;grid-template-columns:1fr;gap:12px;text-align:center;
-    padding:18px 16px 20px;
+    flex:1;flex-direction:column;align-items:center;gap:12px;text-align:center;
+    padding:20px 18px 22px;
   }
-  .h3d-step .ic{margin:0 auto}
+  .h3d-step .tx{padding-right:0}
   .h3d-step .num{right:12px;top:4px;font-size:38px}
 }

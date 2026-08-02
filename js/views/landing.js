@@ -108,14 +108,22 @@
         '<div id="popular">' + UI.skeletonCards(4) + '</div>' +
 
         /* -------------------------------------------- COMMENT ÇA MARCHE */
+        /* Trois étapes, pas quatre. « Le restaurant prépare » décrivait ce que
+           fait le restaurant, pas ce que fait le client : on lui demandait de
+           lire une étape où il n'a rien à faire. */
         '<div class="h3d-steps">' +
           '<div class="h2">Comment ça marche ?</div>' +
-          '<p class="lead">Quatre étapes, et votre repas est en route.</p>' +
+          '<p class="lead">Trois étapes, et votre repas est en route.</p>' +
           '<div class="rail">' +
-            step('1', '📍', 'On vous situe', 'Votre position donne les restaurants qui livrent chez vous.') +
-            step('2', '🛒', 'Composez votre panier', 'Parcourez les menus, ajoutez vos plats et vos suppléments.') +
-            step('3', '👨‍🍳', 'Le restaurant prépare', 'Vous êtes prévenu dès que la commande est acceptée, puis prête.') +
-            step('4', '🛵', 'Un livreur vous l’apporte', 'Suivez la livraison en direct et payez à la réception.') +
+            step('1', 'localisation', 'Votre position',
+                 'Autorisez votre localisation et Talabi vous montre aussitôt les ' +
+                 'restaurants les plus proches de vous.') +
+            step('2', 'panier', 'Votre panier',
+                 'Parcourez les menus, ajoutez vos plats et vos suppléments, puis ' +
+                 'validez votre commande en une seule fois.') +
+            step('3', 'livreur', 'Votre livreur',
+                 'Un livreur récupère votre commande et vous l’apporte : suivez-le ' +
+                 'en direct sur la carte et payez à la réception.') +
           '</div>' +
         '</div>' +
 
@@ -181,15 +189,22 @@
   });
 
   /* ---------------------------------------------------------- fragments */
-  /* Une étape : gros numéro fantôme en fond, pastille orange, titre, texte.
-     Les quatre sont reliées par un trait qui court derrière elles — c'est ce
-     trait qui fait lire « une suite » plutôt que « quatre cartes ». */
-  function step(n, icone, titre, texte) {
+  /* Une étape : numéro en filigrane, pastille bleu nuit, titre, une phrase.
+     Les trois sont reliées par un trait qui court derrière elles — c'est ce
+     trait qui fait lire « une suite » plutôt que « trois cartes ».
+
+     Les pictogrammes sont des images blanches sur fond bleu nuit : on les pose
+     telles quelles, leur propre fond fait la pastille. Les détourer pour les
+     mettre sur du blanc aurait demandé un second jeu de fichiers. */
+  function step(n, image, titre, phrase) {
     return '<div class="h3d-step">' +
       '<span class="num">' + n + '</span>' +
-      '<span class="ic">' + icone + '</span>' +
-      '<div class="h3">' + U.esc(titre) + '</div>' +
-      '<p>' + U.esc(texte) + '</p>' +
+      '<span class="ic" style="background-image:url(' +
+        U.escUrl(U.asset('assets/img/steps/' + image + '.png')) + ')"></span>' +
+      '<div class="tx">' +
+        '<div class="h3">' + U.esc(titre) + '</div>' +
+        '<p>' + U.esc(phrase) + '</p>' +
+      '</div>' +
     '</div>';
   }
 
