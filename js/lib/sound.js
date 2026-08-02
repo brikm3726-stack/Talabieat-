@@ -30,6 +30,11 @@
     'new-order': 'assets/sounds/nouvelle-commande.wav',   // restaurant
     'delivery':  'assets/sounds/course-disponible.m4a',   // livreur
 
+    /* --- attente : ça tourne tant qu'une recherche est en cours --- */
+    // Ping de sonar de 2,5 s, joué en boucle pendant les 30 secondes de
+    // « Chercher une course ». Il ne réclame rien : il dit que ça travaille.
+    'searching': 'assets/sounds/recherche-livreur.wav',   // livreur
+
     /* --- accusés : ça sonne une fois, pour confirmer un geste --- */
     'ordered':   'assets/sounds/commande-passee.wav',     // client : commande envoyée
     'accepted':  'assets/sounds/commande-acceptee.wav',   // restaurant : acceptée
@@ -40,7 +45,8 @@
 
   /* Les appels seuls s'interrompent. Un accusé dure une seconde et confirme
      un geste : le couper à mi-chemin parce qu'une liste s'est rafraîchie
-     n'aurait aucun sens. */
+     n'aurait aucun sens. La recherche, elle, s'arrête avec la recherche —
+     c'est l'écran livreur qui la coupe, pas le rafraîchissement d'une liste. */
   const ALERTES = ['new-order', 'delivery'];
 
   const RESTO_FOIS   = 1;    // demandé : un seul passage

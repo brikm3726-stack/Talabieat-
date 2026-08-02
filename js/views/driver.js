@@ -123,6 +123,7 @@
       if (!recherche) return;
       clearInterval(recherche.minuteur);
       recherche = null;
+      if (w.Sound) Sound.stop('searching');
       libelleBouton();
     }
 
@@ -139,6 +140,11 @@
 
       recherche = { restant: 30, occupe: false, minuteur: null };
       libelleBouton();
+
+      /* Le ping tourne pendant toute la recherche : 2,5 s de son, douze
+         passages. Il ne réclame rien, il dit que ça travaille — c'est ce qui
+         rend l'attente supportable quand on est arrêté au bord de la route. */
+      if (w.Sound) Sound.play('searching', 12);
 
       // la position d'abord, avant le premier tour d'attribution
       await LiveTrack.pushOnce().catch(() => {});

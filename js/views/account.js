@@ -52,11 +52,18 @@
                 (p.role === 'client' ? ', adresses de livraison' : '') +
                 (p.role === 'driver' ? ', moyen de transport' : '')) +
 
-          /* 2 ---- sécurité ---- */
+          /* 2 ---- mon compte ---- */
+          /* Chez le livreur, « Compte » a quitté la barre du bas : elle ne
+             garde que les écrans utilisés pendant le service. Ce qu'elle
+             ouvrait se trouve ici, juste sous les informations personnelles. */
+          porte('#/compte', 'user', 'Mon compte',
+                U.esc(p.email || '') + ' · ' + U.esc(ROLE_LABEL[p.role] || p.role)) +
+
+          /* 3 ---- sécurité ---- */
           porte('#/securite', 'lock', 'Sécurité',
                 'Modifier mon mot de passe, vérifié par email') +
 
-          /* 3 ---- sonnerie ---- */
+          /* 4 ---- sonnerie ---- */
           (sonnerie
             ? '<div class="card card-p acc-secu" style="cursor:default">' +
                 '<span class="ic">' + UI.icon(Sound.muted ? 'mute' : 'sound', 20) + '</span>' +
@@ -74,7 +81,7 @@
               '</div>'
             : '') +
 
-          /* 4 ---- l'application ---- */
+          /* 5 ---- l'application ---- */
           porte('#/apropos', 'info', 'À propos de l’application',
                 U.esc(TALABI_CONFIG.APP_NAME) + ' version ' + U.esc(TALABI_CONFIG.APP_VERSION || '1.0')) +
 
@@ -269,6 +276,70 @@
     }
 
     await paint();
+  }, { auth: true });
+
+  /* ======================================================================
+     MON COMPTE — qui je suis sur la plateforme, et comment en sortir
+     ----------------------------------------------------------------------
+     C'est le seul écran qui répond à « quel compte suis-je en train
+     d'utiliser ? ». La question paraît triviale jusqu'au jour où quelqu'un
+     tient deux comptes — un livreur qui teste, un gérant qui a aussi une
+     adresse client — et ne sait plus lequel est ouvert.
+     ====================================================================== */
+  Router.add('/compte', async function (params, query, view) {
+    const p = Store.profile || {};
+    const d = p.role === 'driver' ? (await API.safe(() => API.getDriver(), null)) : null;
+
+    const ligne = (icone, titre, valeur) =>
+      '<div class="acc-link" style="cursor:default">' +
+        '<span class="ic">' + UI.icon(icone, 18) + '</span>' +
+        '<span class="grow"><b>' + U.esc(titre) + '</b>' +
+          '<span class="tiny">' + U.esc(valeur || '—') + '</span></span></div>';
+
+    view.innerHTML = '<div class="account-page">' +
+      '<span class="acc-dots a" aria-hidden="true"></span>' +
+      '<div class="wrap-sm page">' +
+
+      entete('Mon compte') +
+
+      '<div class="card card-p acc-head">' +
+        '<div class="row" style="gap:14px">' +
+          UI.avatar(p.full_name, p.avatar_url, 72) +
+          '<div class="grow"><div class="h2">' + U.esc(p.full_name || '—') + '</div>' +
+            '<span class="tag tag-soft" style="margin-top:7px">' + UI.icon('user', 14) + ' ' +
+              U.esc(ROLE_LABEL[p.role] || p.role) + '</span></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="card card-p acc-block" style="margin-top:16px">' +
+        bloc('user', 'Identité') +
+        ligne('mail', 'Email', p.email) +
+        ligne('phone', 'Téléphone', p.phone) +
+        ligne('calendar', 'Compte créé le', p.created_at ? U.dt(p.created_at) : '') +
+        (d ? ligne('scooter', 'Statut livreur',
+                   d.validation_status === 'approved' ? 'Validé' :
+                   d.validation_status === 'rejected' ? 'Refusé' : 'En attente de validation') : '') +
+      '</div>' +
+
+      '<div class="card card-p acc-block" style="margin-top:16px">' +
+        '<a class="acc-link" href="#/profil">' +
+          '<span class="ic">' + UI.icon('pencil', 18) + '</span>' +
+          '<span class="grow"><b>Modifier mes informations</b>' +
+            '<span class="tiny">Nom, téléphone, quartier</span></span>' +
+          '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
+        '<a class="acc-link" href="#/securite">' +
+          '<span class="ic">' + UI.icon('lock', 18) + '</span>' +
+          '<span class="grow"><b>Changer mon mot de passe</b>' +
+            '<span class="tiny">Vérifié par un code reçu par email</span></span>' +
+          '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
+      '</div>' +
+
+      '<div class="acc-logout" style="margin-top:16px">' +
+        '<button class="btn btn-block btn-lg" id="logout">' +
+          UI.icon('logout', 18) + ' Se déconnecter</button></div>' +
+    '</div></div>';
+
+    view.querySelector('#logout').onclick = deconnexion;
   }, { auth: true });
 
   /* ======================================================================

@@ -1044,7 +1044,12 @@ body.role-driver .account-page .input:disabled{background:#F2F6FD}
    applications tournent sur les mêmes téléphones, et la couleur est ce qui
    dit le plus vite laquelle on a ouverte. Le orange reste au client, le
    sombre à l'administration. */
-body.role-driver{
+/* app-driver : posée en dur sur <body> par le générateur, elle vaut dès la
+   première image de l'écran d'ouverture et pour un visiteur pas encore
+   connecté. role-driver : posée par le shell, elle rattrape un livreur
+   connecté depuis une autre entrée. */
+body.role-driver,
+body.app-driver{
   --brand:#1E6BE6;
   --brand-light:#3E8BFF;
   --brand-soft:#E9F1FF;
@@ -1395,6 +1400,22 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
 /* logo dans la barre du haut */
 .brand-logo{height:34px;width:auto;border-radius:9px;display:block}
 @media(min-width:700px){ .brand-logo{height:38px} }
+
+/* ---- logo bleu dans l'espace livreur -----------------------------------
+   Le logo est un JPEG orange : il n'existe pas en bleu, et le recolorer
+   pixel par pixel demanderait un second fichier à maintenir. La rotation de
+   teinte fait le travail sans nouvel asset — le blanc du fond et le noir du
+   texte n'ont pas de teinte, ils ne bougent pas ; seul l'orange se déplace
+   vers le bleu.
+
+   La classe est posée en dur sur <body> par le générateur, et role-driver
+   par le shell : la première couvre l'écran d'ouverture, avant tout script,
+   la seconde couvre un livreur connecté depuis une autre entrée. */
+body.app-driver .brand-logo,
+body.app-driver .splash-logo,
+body.role-driver .brand-logo{
+  filter:hue-rotate(190deg) saturate(1.15);
+}
 
 /* ------------------------------------------ bouton du panneau de test */
 .tp-btn{

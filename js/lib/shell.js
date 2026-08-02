@@ -34,16 +34,20 @@
       { p: '/r/profile',     i: 'store',    l: 'Restaurant' },
       { p: '/account',       i: 'user',     l: 'Compte' }
     ],
-    /* Cinq rubriques, pas six : « Passé » ouvrait l'historique des courses,
-       qu'on atteint désormais depuis les gains cumulés du tableau de bord.
-       Une rubrique de moins, c'est 20 % de largeur en plus pour les autres —
-       sur un téléphone tenu à bout de bras, ça se voit. */
+    /* Quatre rubriques, contre six auparavant. Ne restent que les écrans
+       qu'un livreur ouvre pendant son service :
+         • « Passé » ouvrait l'historique, qu'on atteint depuis les gains
+           cumulés du tableau de bord ;
+         • « Compte » doublonnait le bouton Paramètres de la barre du haut,
+           qui mène au même écran.
+       Deux rubriques de moins, c'est la moitié d'une case de largeur rendue
+       à chacune des autres — sur un téléphone tenu à bout de bras, ça se
+       voit. */
     driver: [
       { p: '/d',             i: 'chart',    l: 'Tableau' },
       { p: '/d/available',   i: 'pin',      l: 'Courses' },
       { p: '/d/active',      i: 'scooter',  l: 'En cours' },
-      { p: '/d/credit',      i: 'wallet',   l: 'Crédit' },
-      { p: '/account',       i: 'user',     l: 'Compte' }
+      { p: '/d/credit',      i: 'wallet',   l: 'Crédit' }
     ],
     /* `c` : libellé court pour la barre du bas. Six rubriques sur 390 px font
        65 px chacune ; « Utilisateurs » et « Restaurants » s'y touchaient. */

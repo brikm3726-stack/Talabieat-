@@ -83,6 +83,12 @@ for (const a of APPS) {
   html = html.replace(/<div class="splash-sub">[^<]*<\/div>/,
                       '<div class="splash-sub">' + a.sousTitre + ' • Tizi Ouzou</div>');
 
+  /* 3 bis. Marquer l'application sur <body>, en dur dans le fichier.
+     L'écran d'ouverture s'affiche avant que le moindre script ait tourné :
+     poser cette classe depuis le JS aurait laissé voir un logo orange une
+     fraction de seconde avant qu'il ne devienne bleu. */
+  html = html.replace('<body>', '<body class="app-' + a.app + '">');
+
   // 4. Bandeau d'avertissement en tête du fichier généré
   html = html.replace('<!DOCTYPE html>',
     '<!DOCTYPE html>\n<!-- FICHIER GÉNÉRÉ — ne pas modifier à la main.\n' +
