@@ -2287,21 +2287,22 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 }
 
 /* ==========================================================================
-   ÉCRAN D'ENTRÉE EN PLEIN CADRE — applications client et livreur
+   ÉCRAN D'ENTRÉE — applications client et livreur
    --------------------------------------------------------------------------
-   L'image « entrer.jpg » est affichée telle quelle : pas de zoom, pas de
-   recadrage, pas de retouche. Elle contient déjà le nom, la promesse et le
-   livreur qui roule — le logo et le sous-titre de l'ancien écran feraient
-   doublon par-dessus, ils sont cachés.
+   L'image est affichée ENTIÈRE : jamais rognée, jamais zoomée, jamais
+   retouchée. « contain » le garantit quel que soit l'écran.
 
-   Elle est au format d'un téléphone (853 × 1844, soit 0,463) : sur un écran
-   de téléphone, « cover » la fait remplir l'écran sans rien couper. Sur un
-   écran plus large, on passe à « contain » sur fond sombre plutôt que de
-   rogner les trois quarts de l'affiche.
+   Reste le problème de tout « contain » : deux bandes vides apparaissent dès
+   que l'écran n'a pas exactement le rapport de l'image — et aucun aplat ne
+   peut convenir à la fois au crème du haut et à l'orange du bas.
 
-   Seule concession : un fondu d'une demi-seconde à l'apparition. Il ne touche
-   pas à l'image, il évite juste qu'elle surgisse d'un coup sur le blanc de
-   la page.
+   D'où deux couches. Dessous, la même image en très flou, agrandie pour
+   couvrir l'écran : elle donne aux bords la couleur exacte de l'image à cet
+   endroit-là. Dessus, l'image nette et complète. On ne perd pas un pixel de
+   la photo, et l'écran est plein de bord à bord.
+
+   L'image contient déjà le nom, la promesse et le livreur : le logo et le
+   sous-titre de l'ancien écran feraient doublon, ils sont cachés.
    ========================================================================== */
 body.app-client .splash,
 body.app-driver .splash{
@@ -2313,22 +2314,29 @@ body.app-driver .splash{
 body.app-client .splash .center,
 body.app-driver .splash .center{display:none}
 
+/* couche du dessous : remplissage flou, jamais regardé, jamais net */
 body.app-client .splash::before,
 body.app-driver .splash::before{
-  content:"";position:absolute;inset:0;
+  content:"";position:absolute;inset:-6%;
   background:url("../img/bg/entrer.jpg") center center/cover no-repeat;
+  filter:blur(34px) saturate(1.15) brightness(.92);
   animation:entrerFondu .5s ease both;
 }
-@keyframes entrerFondu{ from{opacity:0} to{opacity:1} }
 
-/* Écran plus large qu'un téléphone : l'affiche entière, sans rognage. */
-@media(min-aspect-ratio:3/5){
-  body.app-client .splash::before,
-  body.app-driver .splash::before{ background-size:contain }
+/* couche du dessus : l'image entière, intacte */
+body.app-client .splash::after,
+body.app-driver .splash::after{
+  content:"";position:absolute;inset:0;
+  background:url("../img/bg/entrer.jpg") center center/contain no-repeat;
+  animation:entrerFondu .5s ease both;
 }
+
+@keyframes entrerFondu{ from{opacity:0} to{opacity:1} }
 
 /* Panne au démarrage : le message remplace la photo, il doit rester lisible. */
 body.app-client .splash.panne::before,
-body.app-driver .splash.panne::before{display:none}
+body.app-driver .splash.panne::before,
+body.app-client .splash.panne::after,
+body.app-driver .splash.panne::after{display:none}
 body.app-client .splash.panne,
 body.app-driver .splash.panne{background:var(--brand-grad)}
