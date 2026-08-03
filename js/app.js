@@ -84,7 +84,11 @@
   }
 
   function fail(message, detail) {
-    document.getElementById('splash').innerHTML =
+    const splash = document.getElementById('splash');
+    /* L'écran d'entrée est une photo plein cadre : un message d'erreur écrit
+       par-dessus serait illisible. On retire la photo avant d'écrire. */
+    splash.classList.add('panne');
+    splash.innerHTML =
       '<div class="wrap-sm center" style="color:#fff">' +
         '<div style="font-size:44px">⚠️</div>' +
         '<div class="h2" style="margin-top:10px">' + U.esc(message) + '</div>' +
