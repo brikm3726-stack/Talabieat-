@@ -2627,3 +2627,43 @@ body.role-admin .bottomnav .nav-dot{box-shadow:0 0 0 2px #14161B}
   .bottomnav .nav-dot,
   .bottomnav .nav-badge{animation:none}
 }
+
+/* ---- barre du haut : réglages et notifications en couleur de marque -----
+   Ces deux boutons étaient gris comme le reste. En couleur de marque, ils
+   se distinguent de l'avatar voisin, qui lui est une photo — trois pastilles
+   grises côte à côte se ressemblaient trop pour qu'on vise juste du pouce.
+
+   La couleur passe par le jeton --brand : orange chez le client, bleu dans
+   l'espace livreur, sans une ligne de plus. */
+.top-actions .icon-btn{
+  color:var(--brand);
+  border-color:rgba(255,107,53,.28);
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),
+             background-color .2s ease, box-shadow .2s ease;
+}
+.top-actions .icon-btn:active{
+  transform:scale(.93);
+  background:var(--brand-soft);
+  box-shadow:0 6px 14px -8px rgba(255,107,53,.9);
+}
+body.role-driver .top-actions .icon-btn{border-color:rgba(30,107,230,.28)}
+body.role-admin .top-actions .icon-btn{border-color:#2A2E38}
+
+/* ---- assistance et déconnexion : l'orange arrive au doigt ---------------
+   Ces boutons ne changeaient qu'au survol — un état qui n'existe pas sur un
+   téléphone. Sur mobile, on appuyait sans que rien ne réponde. L'orange
+   plein est maintenant sur :active, c'est-à-dire au moment du doigt. */
+.acc-aide-btns .btn{
+  background:#fff;border:1.5px solid var(--brand);color:var(--brand);
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),
+             background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.acc-aide-btns .btn:active{
+  background:var(--brand-grad);color:#fff;transform:scale(.96);
+  box-shadow:0 10px 22px -10px rgba(255,107,53,.95);
+}
+.acc-logout .btn:active{
+  background:var(--brand-grad);color:#fff;
+  transform:scale(.985);
+  box-shadow:0 10px 24px -10px rgba(255,107,53,.9);
+}
