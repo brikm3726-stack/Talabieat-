@@ -154,6 +154,8 @@
         if (!Store.isLogged) return;
         await Store.refreshUnread();
         Shell.renderTop();
+        // le point orange de l'onglet Commandes suit le compteur non lu
+        Shell.renderNav();
 
         // annonce visuelle — et sonore — de la dernière notification reçue
         const list = await API.safe(() => API.notifications(1), []);

@@ -152,13 +152,13 @@
        Elles héritent de la couleur du texte (stroke:currentColor), donc une
        seule définition sert partout. */
     ICONS: {
-      user:     '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      user: '<path d="M20 20.4v-1.3a4.6 4.6 0 0 0-4.6-4.6H8.6A4.6 4.6 0 0 0 4 19.1v1.3"/><circle cx="12" cy="7.6" r="4"/>',
       phone:    '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
       mail:     '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>',
       lock:     '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
       pin:      '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
       headset:  '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
-      package:  '<path d="m7.5 4.3 9 5.1"/><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+      package: '<path d="M20.6 8.1v7.8a1.9 1.9 0 0 1-.95 1.65l-6.7 3.86a1.9 1.9 0 0 1-1.9 0l-6.7-3.86A1.9 1.9 0 0 1 3.4 15.9V8.1a1.9 1.9 0 0 1 .95-1.65l6.7-3.86a1.9 1.9 0 0 1 1.9 0l6.7 3.86A1.9 1.9 0 0 1 20.6 8.1Z"/><path d="m3.7 7.1 8.3 4.8 8.3-4.8"/><path d="M12 21.3v-9.4"/><path d="m7.85 4.5 8.3 4.8"/>',
       // fourchette + couteau, dessinés larges : les tracés d'origine de Lucide
       // deviennent illisibles en dessous de 24 px
       utensils: '<path d="M4 3v6a3 3 0 0 0 6 0V3"/><path d="M7 12v9"/><path d="M17.5 3c-1.6 1.1-2.5 3-2.5 5.2s.9 4.1 2.5 5.2V21"/>',
@@ -166,9 +166,7 @@
          pour « Restaurants ». Une fourchette et un couteau disent « couvert »,
          pas « endroit où manger » — et à 22 px, deux traits verticaux se
          confondent avec n'importe quel autre pictogramme fin. */
-      burger:   '<path d="M3.5 9.2c0-3 3.8-5.2 8.5-5.2s8.5 2.2 8.5 5.2"/>' +
-                '<path d="M3.5 12.6h17"/>' +
-                '<path d="M3.5 16.2h17c0 2.1-1.7 3.8-3.8 3.8H7.3c-2.1 0-3.8-1.7-3.8-3.8z"/>',
+      burger: '<path d="M3.4 9.6c0-3.1 3.8-5.4 8.6-5.4s8.6 2.3 8.6 5.4a.9.9 0 0 1-.9.9H4.3a.9.9 0 0 1-.9-.9Z"/><path d="M4.2 13.4h15.6"/><path d="M3.4 16.8h17.2v.9a3.5 3.5 0 0 1-3.5 3.5H6.9a3.5 3.5 0 0 1-3.5-3.5Z"/>',
       save:     '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/>',
       logout:   '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
       pencil:   '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
@@ -183,7 +181,7 @@
       // des notifications, juste à côté dans la barre du haut
       sound:    '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.8 5.2a9 9 0 0 1 0 13.6"/>',
       mute:     '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/>',
-      home:     '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/>',
+      home: '<path d="M3.2 10.4 12 3.6l8.8 6.8"/><path d="M5.4 9.4V19a1.6 1.6 0 0 0 1.6 1.6h10a1.6 1.6 0 0 0 1.6-1.6V9.4"/><path d="M9.6 20.6v-5.2a1.4 1.4 0 0 1 1.4-1.4h2a1.4 1.4 0 0 1 1.4 1.4v5.2"/>',
       receipt:  '<path d="M4 2v20l2.5-1.5L9 22l3-1.5L15 22l2.5-1.5L20 22V2l-2.5 1.5L15 2l-3 1.5L9 2 6.5 3.5Z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/>',
       grid:     '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
       settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
@@ -216,8 +214,7 @@
                 '<path d="M16.5 6.2c-5.9 0-8.8 3.1-10.3 4.7"/>' +
                 '<circle cx="14.6" cy="11" r="1.1" fill="currentColor" stroke="none"/>' +
                 '<circle cx="10.8" cy="15" r="1.1" fill="currentColor" stroke="none"/>',
-      cart:     '<circle cx="9.5" cy="20" r="1.6"/><circle cx="17.5" cy="20" r="1.6"/>' +
-                '<path d="M2.5 3.5h2.6l2.5 11.8a1.8 1.8 0 0 0 1.8 1.4h7.6a1.8 1.8 0 0 0 1.8-1.4L21 7H6"/>',
+      cart: '<circle cx="9.4" cy="20.2" r="1.5"/><circle cx="17.6" cy="20.2" r="1.5"/><path d="M2.6 3.4h2.2a1 1 0 0 1 1 .82l.42 2.28"/><path d="M6.22 6.5h13.9a1 1 0 0 1 .98 1.2l-1.15 5.9a2 2 0 0 1-1.96 1.6H9.2a2 2 0 0 1-1.97-1.66L6.22 6.5Z"/>',
       history:  '<path d="M3.5 12a8.5 8.5 0 1 0 2.7-6.2L3 8.5"/><path d="M3 3.5V9h5.5"/><path d="M12 7.5V12l3.3 2"/>',
       users:    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' +
                 '<path d="M22 21v-2a4 4 0 0 0-3.2-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>',

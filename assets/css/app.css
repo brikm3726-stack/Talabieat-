@@ -136,49 +136,6 @@ p{margin:0}
   display:grid;place-items:center;border:2px solid #fff;
 }
 
-/* ---------------------------------------------------------------- bottom nav */
-.bottomnav{
-  position:fixed;left:0;right:0;bottom:0;z-index:70;height:var(--nav-h);
-  background:rgba(255,255,255,.94);backdrop-filter:blur(16px);
-  border-top:1px solid var(--line);
-  display:flex;align-items:stretch;
-  padding-bottom:env(safe-area-inset-bottom);
-}
-.bottomnav a{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  font-size:10.5px;font-weight:600;color:var(--muted);position:relative;transition:.15s;
-}
-/* display:flex, sinon le SVG repose sur la ligne de base et laisse un blanc
-   sous l'icône : le libellé descendrait sous la barre */
-.bottomnav a i{font-style:normal;font-size:20px;line-height:1;display:flex}
-.bottomnav a.on{color:var(--brand)}
-.bottomnav a.on::before{
-  content:'';position:absolute;top:0;width:26px;height:3px;border-radius:0 0 4px 4px;background:var(--brand);
-}
-/* ---- barre du bas de l'application client -------------------------------
-   Le trait de l'onglet actif passe du haut de la barre au-dessous du
-   libellé, comme sur la maquette : à cet endroit il souligne le mot au lieu
-   de flotter au-dessus du pictogramme, et l'œil le rattache à la rubrique. */
-body.app-client .bottomnav a.on::before{
-  top:auto;bottom:9px;width:20px;height:3px;border-radius:2px;
-}
-body.app-client .bottomnav a{padding-bottom:8px;font-size:11px}
-body.app-client .bottomnav a i svg{width:24px;height:24px}
-
-/* ---- barre du bas de l'espace livreur ----------------------------------
-   Cinq rubriques au lieu de six : chacune gagne un cinquième de largeur. On
-   rend cette place à l'icône et au libellé plutôt que de la laisser en blanc
-   — un livreur consulte son téléphone en roulant, casque sur la tête, il n'a
-   pas le temps de viser. */
-body.role-driver{ --nav-h:70px }
-body.role-driver .bottomnav a{font-size:12px;gap:4px}
-body.role-driver .bottomnav a i svg{width:26px;height:26px}
-body.role-driver .bottomnav a.on::before{width:32px;height:3.5px}
-
-/* body est un descendant de :root : sans cette seconde remise à zéro, la
-   valeur posée sur body l'emporterait sur le --nav-h:0 du bureau et les pages
-   du livreur garderaient 70 px de vide sous une barre qui n'existe plus. */
-@media(min-width:1000px){ .bottomnav{display:none} :root,body.role-driver{--nav-h:0px} }
 
 /* min-width:0 + défilement : c'est le menu qui cède quand la place manque,
    jamais les actions de droite. */
@@ -2509,4 +2466,155 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
 @media(max-width:380px){
   .ord-bas{flex-direction:column;align-items:stretch;gap:12px}
   .ord-suivre{justify-content:center}
+}
+
+/* ==========================================================================
+   BARRE DU BAS FLOTTANTE
+   --------------------------------------------------------------------------
+   Elle ne touche plus le bord de l'écran : 14 px de marge, coins très
+   arrondis, et une ombre en trois couches — un liseré serré, une ombre
+   moyenne, une ombre large et très diffuse. C'est cet empilement qui donne
+   la profondeur ; une seule ombre, si forte soit-elle, fait un aplat gris.
+
+   Tout ce qui bouge ici ne bouge qu'en transform et opacity : ce sont les
+   deux seules propriétés que le compositeur du navigateur anime sans
+   repasser par la mise en page. Animer une largeur ou une couleur de fond
+   sur une barre qui reste à l'écran en permanence se paierait en saccades
+   sur les téléphones d'entrée de gamme, qui sont la majorité ici.
+   ========================================================================== */
+.bottomnav{
+  position:fixed;left:14px;right:14px;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  z-index:70;height:66px;padding:0 5px;
+  background:rgba(255,255,255,.86);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+          backdrop-filter:saturate(180%) blur(20px);
+  border:1px solid rgba(255,255,255,.75);
+  border-radius:26px;
+  display:flex;align-items:stretch;
+  box-shadow:
+    0 1px 2px rgba(122,62,24,.07),
+    0 8px 20px -10px rgba(122,62,24,.30),
+    0 26px 48px -22px rgba(122,62,24,.42);
+}
+
+.bottomnav a{
+  position:relative;flex:1;min-width:0;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  border-radius:20px;color:var(--muted);
+  -webkit-tap-highlight-color:transparent;
+  transition:color .25s ease;
+}
+
+/* ---- le pictogramme et sa capsule ---- */
+.bottomnav .ic{
+  position:relative;display:grid;place-items:center;
+  width:52px;height:30px;flex:none;
+}
+.bottomnav .ic svg{
+  position:relative;z-index:1;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  will-change:transform;
+}
+/* la capsule naît du centre avec un rebond très court : au-delà, le rebond
+   devient un mouvement qu'on attend au lieu d'un mouvement qu'on ressent */
+.bottomnav .cap{
+  position:absolute;inset:0;border-radius:999px;
+  background:var(--brand-soft);
+  transform:scale(.55);opacity:0;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
+  will-change:transform,opacity;
+}
+.bottomnav a.on{color:var(--brand)}
+.bottomnav a.on .cap{transform:scale(1);opacity:1}
+.bottomnav a.on .ic svg{transform:translateY(-1px) scale(1.04)}
+
+/* la lueur : une ombre portée sur la capsule, à peine visible. Elle donne
+   au pictogramme actif une assise que la couleur seule ne donne pas */
+.bottomnav a.on .cap{box-shadow:0 6px 16px -7px rgba(255,107,53,.85)}
+
+.bottomnav .lb{
+  font-size:10.5px;font-weight:650;letter-spacing:.005em;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  opacity:.68;transition:opacity .25s ease;
+}
+.bottomnav a.on .lb{opacity:1;font-weight:750}
+
+/* le trait sous le libellé de l'onglet actif */
+.bottomnav a.on::after{
+  content:"";position:absolute;left:50%;bottom:7px;
+  width:18px;height:3px;border-radius:2px;background:var(--brand);
+  transform:translateX(-50%) scaleX(0);transform-origin:center;
+  animation:navTrait .25s .05s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes navTrait{ to{ transform:translateX(-50%) scaleX(1) } }
+
+/* ---- marques : nombre pour le panier, point pour les commandes ---- */
+.bottomnav .nav-badge{
+  position:absolute;top:-3px;right:6px;z-index:2;
+  min-width:18px;height:18px;padding:0 5px;
+  border-radius:999px;background:var(--brand-grad);color:#fff;
+  font-size:10.5px;font-weight:800;line-height:18px;text-align:center;
+  box-shadow:0 0 0 2px #fff, 0 4px 10px -3px rgba(255,107,53,.9);
+  animation:navPop .32s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes navPop{ from{ transform:scale(.4);opacity:0 } to{ transform:scale(1);opacity:1 } }
+
+.bottomnav .nav-dot{
+  position:absolute;top:1px;right:11px;z-index:2;
+  width:9px;height:9px;border-radius:50%;background:var(--brand);
+  box-shadow:0 0 0 2px #fff;
+  animation:navPouls 2.4s ease-in-out infinite;
+}
+@keyframes navPouls{
+  0%,100%{ transform:scale(1);   opacity:1 }
+  50%    { transform:scale(1.28); opacity:.72 }
+}
+
+/* ---- onde au doigt ---- */
+.nav-onde{
+  position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;
+  border-radius:50%;background:var(--brand);opacity:.22;
+  pointer-events:none;
+  animation:navOnde .5s cubic-bezier(.22,1,.36,1) forwards;
+}
+@keyframes navOnde{
+  from{ transform:scale(0);   opacity:.26 }
+  to  { transform:scale(9);   opacity:0 }
+}
+
+/* ---- tablette : la barre ne s'étale pas sur toute la largeur ---- */
+@media(min-width:640px){
+  .bottomnav{
+    left:50%;right:auto;transform:translateX(-50%);
+    width:min(560px, calc(100% - 32px));
+  }
+}
+
+/* ---- espaces réservés ---- */
+/* 66 de barre + 14 de marge : la page réserve le reste dans .page */
+:root{ --nav-h:80px }
+body.role-driver{ --nav-h:84px }
+@media(min-width:1000px){ :root,body.role-driver{ --nav-h:0px } }
+body.role-driver .bottomnav{height:70px}
+body.role-driver .bottomnav .lb{font-size:11.5px}
+body.role-driver .bottomnav .ic svg{width:25px;height:25px}
+
+/* ---- console d'administration : la même barre, en sombre ---- */
+body.role-admin .bottomnav{
+  background:rgba(16,18,22,.86);
+  border-color:rgba(255,255,255,.08);
+  box-shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 26px -12px rgba(0,0,0,.8),
+             0 28px 52px -24px rgba(0,0,0,.9);
+}
+body.role-admin .bottomnav .nav-badge,
+body.role-admin .bottomnav .nav-dot{box-shadow:0 0 0 2px #14161B}
+
+/* ---- moins d'animation si le système le demande ---- */
+@media(prefers-reduced-motion:reduce){
+  .bottomnav .cap,
+  .bottomnav .ic svg{transition:none}
+  .bottomnav a.on::after{animation:none;transform:translateX(-50%)}
+  .bottomnav .nav-dot,
+  .bottomnav .nav-badge{animation:none}
 }

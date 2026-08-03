@@ -236,14 +236,51 @@
     /* --------------------------------------------------------- bottom nav */
     renderNav() {
       const nav = document.getElementById('bottomnav');
+
       nav.innerHTML = Shell.navItems().map(x => {
-        let badge = '';
-        if (x.badge === 'cart' && Store.cartCount) badge = '<span class="badge-dot">' + Store.cartCount + '</span>';
+        /* Deux marques, deux sens. Le panier compte des articles, donc un
+           nombre. Les commandes n'ont rien à compter — « il y a du nouveau »
+           se dit avec un point, et un point ne se lit pas, il se remarque. */
+        let marque = '';
+        if (x.badge === 'cart' && Store.cartCount)
+          marque = '<span class="nav-badge">' + (Store.cartCount > 99 ? '99+' : Store.cartCount) + '</span>';
+        else if (x.p === '/orders' && Store.unread)
+          marque = '<span class="nav-dot"></span>';
+
         return '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '" ' +
                'title="' + U.esc(x.l) + '">' +
-               '<i style="position:relative">' + UI.icon(x.i, 22) + badge + '</i>' +
-               '<span>' + U.esc(x.c || x.l) + '</span></a>';
+               '<span class="ic">' +
+                 '<span class="cap" aria-hidden="true"></span>' +
+                 UI.icon(x.i, 23) + marque +
+               '</span>' +
+               '<span class="lb">' + U.esc(x.c || x.l) + '</span></a>';
       }).join('');
+
+      /* --- onde au doigt, et petite vibration ---------------------------
+         L'onde part du point touché, pas du centre de l'onglet : c'est ce
+         qui la fait ressentir comme une réponse au geste plutôt que comme
+         une animation qui se déclenche. Elle est purement décorative, donc
+         retirée dès qu'elle a fini — un nœud de plus par appui, gardé, se
+         compterait en centaines au bout d'une soirée. */
+      nav.querySelectorAll('a').forEach(a => {
+        a.addEventListener('pointerdown', e => {
+          if (w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          const r = a.getBoundingClientRect();
+          const onde = document.createElement('span');
+          onde.className = 'nav-onde';
+          onde.style.left = (e.clientX - r.left) + 'px';
+          onde.style.top  = (e.clientY - r.top) + 'px';
+          a.appendChild(onde);
+          setTimeout(() => onde.remove(), 520);
+        }, { passive: true });
+
+        /* Retour haptique : 8 ms, le minimum perceptible. Ignoré par iOS,
+           qui ne l'expose pas au web — on ne le simule pas, une animation
+           de remplacement serait pire que rien. */
+        a.addEventListener('click', () => {
+          if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+        });
+      });
     },
 
     /* -------------------------------------------------------- sélecteur zone */
