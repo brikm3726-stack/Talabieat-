@@ -303,7 +303,19 @@
       return o;
     },
 
-    scrollTop() { window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' }); }
+    /* Sur téléphone, ce n'est plus le document qui défile mais #view : la
+       barre du bas ne bougeait pas d'un pixel dans le code, et pourtant
+       elle suivait le doigt — parce que le navigateur mobile fait glisser
+       toute la fenêtre quand il escamote sa barre d'adresse. Un conteneur
+       qui défile à l'intérieur d'une fenêtre figée supprime le phénomène
+       à la racine. Il faut donc remettre CE conteneur à zéro, pas la
+       fenêtre, sans quoi on changeait de page en restant au milieu de
+       l'ancienne. */
+    scrollTop() {
+      const v = document.getElementById('view');
+      if (v && v.scrollTop) v.scrollTop = 0;
+      window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    }
   };
 
   w.UI = UI;

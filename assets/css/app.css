@@ -2720,3 +2720,43 @@ html,body{overscroll-behavior-y:none}
 /* Le contenu ne passe jamais sous la barre : la hauteur reservee tient
    compte de la marge et de la zone sûre du téléphone. */
 .page{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 26px)}
+
+/* ==========================================================================
+   COQUILLE D'APPLICATION — la fenêtre ne défile plus, son contenu si
+   --------------------------------------------------------------------------
+   La barre du bas ne bougeait pas d'un pixel dans le code, et pourtant elle
+   suivait le doigt pendant le défilement. Aucune règle CSS n'était en cause :
+   c'est le navigateur mobile qui escamote sa barre d'adresse quand on fait
+   défiler le DOCUMENT, et qui fait alors glisser toute la fenêtre visible —
+   emportant avec elle ce qui y est fixé.
+
+   Aucun réglage ne l'empêche. La seule parade est de ne plus faire défiler le
+   document du tout : la fenêtre est figée à la hauteur de l'écran, et c'est
+   le contenu des pages, à l'intérieur, qui défile. La barre d'adresse ne
+   s'escamote plus, la fenêtre ne bouge plus, la barre du bas non plus.
+
+   C'est la construction de toutes les applications qui « font natif ». Elle
+   ne vaut que sur téléphone : sur un ordinateur, où rien n'escamote rien, on
+   laisse le document défiler normalement.
+   ========================================================================== */
+@media(max-width:999px){
+  html,body{
+    height:100vh;
+    height:100dvh;      /* suit la barre d'adresse là où le navigateur le sait */
+    overflow:hidden;
+  }
+  body{display:flex;flex-direction:column}
+
+  /* la barre du haut n'a plus besoin d'être collante : elle ne défile plus */
+  .topbar{position:relative;flex:none}
+
+  /* le seul élément qui défile de toute l'application */
+  #view{
+    flex:1;min-height:0;
+    overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    /* le rebond de fin de liste reste dans le conteneur au lieu de tirer la
+       page entière derrière lui */
+    overscroll-behavior:contain;
+  }
+}
