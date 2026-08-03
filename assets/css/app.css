@@ -2518,15 +2518,22 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
 }
 /* la capsule naît du centre avec un rebond très court : au-delà, le rebond
    devient un mouvement qu'on attend au lieu d'un mouvement qu'on ressent */
+/* La capsule est desormais visible sur les cinq onglets : chacun porte son
+   cadre orange. Au repos, un simple filet a 35 % — assez pour dessiner la
+   case, trop peu pour rivaliser avec l'onglet ouvert. Actif, le filet
+   passe au plein et la case se remplit. Sans cet ecart, cinq cadres
+   identiques ne diraient plus lequel est ouvert. */
 .bottomnav .cap{
   position:absolute;inset:0;border-radius:999px;
-  background:var(--brand-soft);
-  transform:scale(.55);opacity:0;
-  transition:transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
-  will-change:transform,opacity;
+  background:transparent;
+  border:1.5px solid rgba(255,107,53,.34);
+  transform:scale(.92);opacity:1;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),
+             background-color .25s ease, border-color .25s ease;
+  will-change:transform;
 }
 .bottomnav a.on{color:var(--brand)}
-.bottomnav a.on .cap{transform:scale(1);opacity:1}
+.bottomnav a.on .cap{transform:scale(1);background:var(--brand-soft);border-color:var(--brand)}
 .bottomnav a.on .ic svg{transform:translateY(-1px) scale(1.04)}
 
 /* la lueur : une ombre portée sur la capsule, à peine visible. Elle donne
