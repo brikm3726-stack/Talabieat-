@@ -1051,16 +1051,106 @@
         '<div class="oline"><span class="l">Commission prélevée</span>' +
           '<b>− ' + U.money(commissionDe(o)) + '</b></div>') +
 
+      /* L'ARGENT À AVANCER — le chiffre le plus important de cette carte.
+         Le paiement se fait à la livraison : le livreur règle le restaurant
+         au comptoir, de sa poche, et se rembourse chez le client. Accepter
+         une course de 3 000 DA avec 500 DA en poche, c'est se retrouver
+         bloqué devant la caisse. Il faut qu'il le voie avant d'accepter, pas
+         après. */
+      (isMine ? '' :
+        '<div class="drv-avance">' +
+          '<span class="ic">💵</span>' +
+          '<span class="grow"><b>À avancer au restaurant</b>' +
+            '<span class="tiny">Le client vous rembourse à la livraison</span></span>' +
+          '<b class="v">' + U.money(o.total - (o.delivery_fee || 0)) + '</b>' +
+        '</div>') +
+
       '<div class="row" style="gap:9px;margin-top:13px">' +
         (isMine
-          ? (next ? '<button class="btn btn-primary grow" data-dact="' + next[0] + '" data-id="' + U.esc(o.id) + '">' + next[1] + '</button>' : '')
+          ? '<button class="btn btn-ghost btn-sm" data-abandon="' + U.esc(o.id) + '">Problème</button>' +
+            (next ? '<button class="btn btn-primary grow" data-dact="' + next[0] + '" data-id="' + U.esc(o.id) + '">' + next[1] + '</button>' : '')
           : '<button class="btn btn-ghost btn-sm" data-skip="' + U.esc(o.id) + '">Passer</button>' +
             '<button class="btn btn-primary grow" data-claim="' + U.esc(o.id) + '">✅ Accepter la course</button>') +
       '</div>' +
     '</div>';
   }
 
+  /* ----------------------------------------------------------------------
+     RENDRE UNE COURSE QU'ON NE PEUT PAS HONORER
+
+     Restaurant fermé, plat épuisé, adresse introuvable : le livreur le
+     découvre sur place, après avoir accepté et payé sa commission. Sans
+     cette porte, il n'avait le choix qu'entre livrer l'impossible et
+     laisser la course pourrir — et dans les deux cas il y perdait.
+
+     La commission lui est rendue automatiquement : le remboursement écoute
+     les annulations depuis le fichier 13.
+     ---------------------------------------------------------------------- */
+  const MOTIFS = [
+    ['Restaurant fermé',        'Le restaurant n’est pas ouvert'],
+    ['Plat indisponible',       'Un plat de la commande n’est plus servi'],
+    ['Client injoignable',      'Personne ne répond à l’adresse'],
+    ['Adresse introuvable',     'L’adresse ne mène nulle part'],
+    ['Autre',                   'Je précise moi-même']
+  ];
+
+  function abandonSheet(orderId, onDone) {
+    let choisi = null;
+    UI.sheet({
+      title: 'Un problème sur cette course ?',
+      subtitle: 'La course sera annulée et votre commission vous sera rendue.',
+      body:
+        '<div class="stack" style="gap:8px" id="motifs">' +
+          MOTIFS.map((m, i) =>
+            '<div class="role-card" data-m="' + i + '">' +
+              '<div class="grow"><b>' + U.esc(m[0]) + '</b>' +
+                '<span class="tiny">' + U.esc(m[1]) + '</span></div>' +
+              '<div data-check style="color:var(--brand);font-weight:800"></div>' +
+            '</div>').join('') +
+        '</div>' +
+        '<div class="field" id="autreBox" hidden style="margin-top:12px">' +
+          '<label>Précisez</label>' +
+          '<input class="input" id="autre" placeholder="Ex : le restaurant a fermé plus tôt"></div>' +
+        '<div class="banner banner-warn" style="margin-top:12px;font-size:12.5px">' +
+          'Le client sera prévenu avec cette raison. Soyez précis : c’est ce ' +
+          'qu’il lira, et c’est ce que la plateforme verra.</div>',
+      footer: '<button class="btn btn-danger btn-block btn-lg" id="go" disabled>Annuler la course</button>',
+      onMount(el, api) {
+        const go = el.querySelector('#go');
+        const autreBox = el.querySelector('#autreBox');
+        el.querySelectorAll('[data-m]').forEach(c => c.onclick = function () {
+          el.querySelectorAll('[data-m]').forEach(x => {
+            x.classList.remove('on');
+            x.querySelector('[data-check]').textContent = '';
+          });
+          this.classList.add('on');
+          this.querySelector('[data-check]').textContent = '✓';
+          choisi = MOTIFS[+this.dataset.m][0];
+          autreBox.hidden = choisi !== 'Autre';
+          go.disabled = false;
+        });
+
+        go.onclick = async function () {
+          const libre = el.querySelector('#autre').value.trim();
+          const motif = choisi === 'Autre' ? libre : choisi;
+          if (!motif) return UI.err('Précisez la raison');
+          UI.busy(this, true, 'Annulation…');
+          try {
+            await API.driverAbandon(orderId, motif);
+            api.close();
+            UI.ok('Course annulée', 'Votre commission vous a été rendue.');
+            onDone && onDone();
+          } catch (e) { UI.busy(this, false); UI.err(e.message); }
+        };
+      }
+    });
+  }
+
   function bindDelivery(view, reload) {
+    view.querySelectorAll('[data-abandon]').forEach(b => b.onclick = function () {
+      abandonSheet(this.dataset.abandon, reload);
+    });
+
     view.querySelectorAll('[data-claim]').forEach(b => b.onclick = async function () {
       if (w.Sound) Sound.stop('delivery');       // le livreur a répondu : la sonnerie n'a plus lieu d'être
       UI.busy(this, true, 'Attribution…');

@@ -2667,3 +2667,20 @@ body.role-admin .top-actions .icon-btn{border-color:#2A2E38}
   transform:scale(.985);
   box-shadow:0 10px 24px -10px rgba(255,107,53,.9);
 }
+
+/* ---- montant a avancer au restaurant -------------------------------------
+   Le chiffre qui decide si un livreur peut prendre la course ou non. Le
+   paiement est a la livraison : il regle le comptoir de sa poche et se
+   rembourse chez le client. Il est donc en vert — c'est de l'argent qui
+   revient — mais bien visible : accepter une course de 3 000 DA avec 500 DA
+   en poche, c'est rester bloque devant la caisse. */
+.drv-avance{
+  display:flex;align-items:center;gap:11px;margin-top:12px;
+  padding:12px 13px;border-radius:14px;
+  background:#E9F9F0;border:1px solid #BFE9D2;
+}
+.drv-avance .ic{font-size:21px;flex:none;line-height:1}
+.drv-avance .grow{display:flex;flex-direction:column;gap:1px;min-width:0}
+.drv-avance b{font-size:13.5px;color:#0B6B3A}
+.drv-avance .tiny{color:#3E8763}
+.drv-avance .v{flex:none;font-size:17px;font-weight:850;color:#0B6B3A}

@@ -790,6 +790,12 @@
             (s.redispatch_after_s != null ? s.redispatch_after_s : 60) + '">' +
             '<div class="hint">Quand tous les livreurs ont laissé passer leur tour, un tour complet ' +
             'est relancé après ce délai. Une course n’est jamais abandonnée.</div></div>' +
+          '<div class="field"><label>Alerte « aucun livreur » (minutes)</label>' +
+            '<input class="input" name="no_driver_alert_min" type="number" min="2" max="60" step="1" value="' +
+            Math.round((s.no_driver_alert_s != null ? s.no_driver_alert_s : 600) / 60) + '">' +
+            '<div class="hint">Passé ce délai sans qu’aucun livreur n’ait pris la course, le client ' +
+            'est prévenu qu’elle cherche toujours, et vous recevez une alerte. La recherche continue : ' +
+            'on informe, on n’abandonne pas.</div></div>' +
           '<button class="btn btn-primary" type="submit">Enregistrer</button>' +
         '</form>' +
 
@@ -836,7 +842,8 @@
           driver_timeout_s: Math.max(10, +d.driver_timeout_s || 30),
           redispatch_after_s: Math.max(15, +d.redispatch_after_s || 60),
           driver_radius_km: Math.max(1, +d.driver_radius_km || 7),
-          position_max_age_s: Math.max(60, (+d.position_max_age_min || 10) * 60)
+          position_max_age_s: Math.max(60, (+d.position_max_age_min || 10) * 60),
+          no_driver_alert_s: Math.max(120, (+d.no_driver_alert_min || 10) * 60)
         }), null);
         UI.busy(btn, false);
         if (r) { Store.settings = r; UI.ok('Réglages enregistrés'); }

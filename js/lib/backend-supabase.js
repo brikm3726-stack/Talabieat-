@@ -83,7 +83,9 @@
           data: {
             full_name: d.full_name || '',
             phone: d.phone ? U.normPhone(d.phone) : '',
-            role: ['client', 'restaurant', 'driver'].indexOf(d.role) >= 0 ? d.role : 'client'
+            // 'restaurant' n'est plus un role qu'on peut choisir : l'espace
+            // gerant n'existe plus, les restaurants sont inscrits par l'admin
+            role: ['client', 'driver'].indexOf(d.role) >= 0 ? d.role : 'client'
           }
         }
       });
@@ -569,6 +571,14 @@
       return !!res.data;
     },
 
+    /** Le livreur rend une course qu'il ne peut pas honorer. Sa commission
+        lui est rendue par le serveur, pas par cet appel. */
+    async driverAbandon(id, motif) {
+      const res = await sb.rpc('driver_abandon', { p_order: id, p_motif: motif });
+      if (res.error) throw new Error(translate(res.error.message));
+      return await SB.order(id);
+    },
+
     async declineOrder(id) {
       const res = await sb.rpc('decline_order', { p_order: id });
       if (res.error) throw new Error(translate(res.error.message));
@@ -853,7 +863,7 @@
       ['commission_rate', 'driver_share', 'default_delivery_fee',
        'resto_timeout_s', 'driver_timeout_s', 'redispatch_after_s',
        'fee_near_da', 'fee_far_da', 'near_km', 'max_km', 'credit_alert_da',
-       'driver_radius_km', 'position_max_age_s']
+       'driver_radius_km', 'position_max_age_s', 'no_driver_alert_s']
         .forEach(k => { if (patch[k] !== undefined) body[k] = +patch[k]; });
       // texte libre : pas de conversion en nombre
       if (patch.payment_info !== undefined) body.payment_info = patch.payment_info;
