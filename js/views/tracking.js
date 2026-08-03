@@ -12,13 +12,18 @@
   Router.add('/orders', async function (params, query, view) {
     let tab = 'active';
 
+    /* Pas de ligne d'explication sous le titre : « Suivez vos commandes en
+       cours et consultez votre historique » disait à voix haute ce que les
+       trois onglets juste en dessous montrent déjà. */
     view.innerHTML = '<div class="orders-page"><div class="wrap-sm page">' +
       '<div class="h1">Mes commandes</div>' +
-      '<p class="sub" style="margin-top:6px">Suivez vos commandes en cours et consultez votre historique</p>' +
-      '<div class="tabs pill" style="margin:18px 0 16px">' +
-        '<button data-t="active" class="on">⏱️ En cours</button>' +
-        '<button data-t="done">✓ Terminées</button>' +
-        '<button data-t="all">🧾 Toutes</button>' +
+      /* Pictogrammes au trait plutôt qu'emoji : les emoji changent de dessin
+         d'un téléphone à l'autre et n'obéissent pas à la couleur de l'onglet
+         actif, qui reste alors le seul élément à ne pas passer en orange. */
+      '<div class="tabs pill" style="margin:16px 0 16px">' +
+        '<button data-t="active" class="on">' + UI.icon('clock', 17) + ' En cours</button>' +
+        '<button data-t="done">' + UI.icon('check', 17) + ' Terminées</button>' +
+        '<button data-t="all">' + UI.icon('receipt', 17) + ' Toutes</button>' +
       '</div>' +
       '<div id="list"><div class="skel" style="height:110px"></div></div></div></div>';
 
@@ -41,7 +46,8 @@
                 ? 'Vos commandes en cours apparaîtront ici en temps réel.'
                 : 'Vous n’avez pas encore commandé.') + '</p>' +
             '<div class="scene-cta">' +
-              '<a class="btn btn-primary btn-lg" href="#/restaurants">🛍️ Commander maintenant</a>' +
+              '<a class="btn btn-primary btn-lg" href="#/restaurants">' +
+                UI.icon('cart', 19) + ' Commander maintenant</a>' +
             '</div>' +
           '</div>';
         return;
