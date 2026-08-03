@@ -2396,3 +2396,117 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
 /* l'illustration respire davantage : c'est elle qui porte l'écran vide */
 .orders-page .empty-scene .scene-art{max-width:min(330px,80%)}
 .orders-page .empty-scene .scene-title{margin-top:6px;font-size:21px;letter-spacing:-.02em}
+
+/* ==========================================================================
+   MES COMMANDES — onglets et cartes, d'après la maquette
+   ========================================================================== */
+
+.ord-sub{margin:8px 0 18px;font-size:14px;color:var(--muted)}
+
+/* ---- onglets : un rail blanc, l'onglet actif en pastille orange pleine ---
+   Trois onglets dans un rail unique plutôt que trois pilules séparées : la
+   maquette les tient ensemble, et un rail dit « choisis-en un » là où trois
+   objets isolés disent « appuie sur ce que tu veux ». */
+.ord-tabs{
+  display:flex;align-items:stretch;gap:0;
+  background:#fff;border-radius:999px;padding:5px;
+  box-shadow:0 2px 6px rgba(196,120,74,.08), 0 14px 30px -20px rgba(196,120,74,.7);
+  overflow-x:auto;scrollbar-width:none;
+}
+.ord-tabs::-webkit-scrollbar{display:none}
+.ord-tabs button{
+  flex:1;min-width:max-content;position:relative;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 18px;border:none;background:transparent;border-radius:999px;
+  font:inherit;font-size:14px;font-weight:700;color:var(--ink);
+  cursor:pointer;white-space:nowrap;transition:.18s;
+}
+/* les filets de séparation, seulement entre deux onglets au repos */
+.ord-tabs button + button::before{
+  content:"";position:absolute;left:0;top:9px;bottom:9px;width:1px;
+  background:var(--line);
+}
+.ord-tabs button.on{
+  background:var(--brand-grad);color:#fff;
+  box-shadow:0 8px 20px -8px rgba(255,107,53,.95);
+}
+.ord-tabs button.on::before,
+.ord-tabs button.on + button::before{background:transparent}
+
+/* ---- la carte d'une commande ---- */
+.ord-list{display:flex;flex-direction:column;gap:16px;margin-top:20px}
+.ord-card{
+  position:relative;overflow:hidden;cursor:pointer;
+  background:#fff;border-radius:22px;padding:18px 18px 16px;
+  box-shadow:0 2px 6px rgba(196,120,74,.07), 0 18px 40px -26px rgba(196,120,74,.85);
+  transition:transform .25s cubic-bezier(.22,1,.36,1);
+}
+.ord-card:active{transform:scale(.985)}
+
+/* le coin replié orange, en haut à droite */
+.ord-card .coin{
+  position:absolute;top:0;right:0;width:74px;height:74px;pointer-events:none;
+  background:var(--brand-grad);
+  border-bottom-left-radius:74px;
+  opacity:.92;
+}
+/* le sac en filigrane, sous le coin */
+.ord-card .filigrane{
+  position:absolute;top:52px;right:18px;color:var(--brand);opacity:.09;
+  pointer-events:none;line-height:0;
+}
+
+.ord-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;position:relative;z-index:1}
+.ord-code{
+  background:var(--brand-soft);color:var(--brand);
+  padding:7px 13px;border-radius:999px;
+  font-weight:800;font-size:13.5px;letter-spacing:.01em;
+}
+.ord-etat{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--brand-soft);color:var(--brand);
+  padding:7px 13px;border-radius:999px;font-weight:750;font-size:13.5px;
+}
+/* l'âge se cale à droite, sous le coin orange : il y reste lisible */
+.ord-age{
+  margin-left:auto;color:var(--brand);font-size:13px;font-weight:650;
+  padding-right:2px;
+}
+
+.ord-resto{
+  position:relative;z-index:1;margin-top:14px;
+  font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--ink);
+}
+.ord-meta{
+  position:relative;z-index:1;margin-top:5px;
+  font-size:14px;color:var(--ink-2);display:flex;align-items:center;
+}
+.ord-meta .pt{
+  width:6px;height:6px;border-radius:50%;background:var(--brand);
+  margin:0 9px;flex:none;
+}
+
+.ord-bas{
+  position:relative;z-index:1;margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;
+}
+.ord-bas .quand{
+  display:flex;align-items:center;gap:7px;flex:1;min-width:0;
+  font-size:13.5px;font-weight:650;color:var(--ink-2);
+}
+.ord-bas .quand svg{color:var(--brand);flex:none}
+.ord-bas .quand .sep{width:1px;height:16px;background:var(--line);margin:0 4px;flex:none}
+
+.ord-suivre{
+  flex:none;gap:8px;border-radius:14px;padding:13px 20px;
+  font-size:15px;font-weight:800;
+  box-shadow:0 10px 24px -10px rgba(255,107,53,1);
+}
+
+/* Écran étroit : la date et l'heure passent au-dessus du bouton plutôt que
+   de se serrer contre lui jusqu'à se couper. */
+@media(max-width:380px){
+  .ord-bas{flex-direction:column;align-items:stretch;gap:12px}
+  .ord-suivre{justify-content:center}
+}

@@ -6,15 +6,61 @@
 
   const ACTIVE = ['pending', 'accepted', 'preparing', 'ready', 'driver_assigned', 'delivering'];
 
+  /* ----------------------------------------------------------------------
+     La carte d'une commande, telle que la maquette la dessine.
+
+     Elle ne réutilise pas Cmp.orderCard : cette fonction sert aussi au
+     restaurant et à l'administration, où la même commande se lit tout
+     autrement — on y cherche un client et une action, pas un suivi. Les
+     faire cohabiter dans un seul gabarit aurait donné une carte qui ne
+     convient nulle part.
+     ---------------------------------------------------------------------- */
+  function carte(o) {
+    const d = new Date(o.created_at);
+    const jour = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' });
+    const heure = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+    return '<article class="ord-card" data-order="' + U.esc(o.id) + '">' +
+      '<span class="coin" aria-hidden="true"></span>' +
+      '<span class="filigrane" aria-hidden="true">' + UI.icon('package', 74) + '</span>' +
+
+      '<div class="ord-top">' +
+        '<span class="ord-code">#' + U.esc(o.code) + '</span>' +
+        '<span class="ord-etat">' + U.statusIcon(o.status) + ' ' +
+          U.esc(U.statusLabel(o.status)) + '</span>' +
+        '<span class="ord-age">' + U.esc(U.ago(o.created_at)) + '</span>' +
+      '</div>' +
+
+      '<div class="ord-resto">' + U.esc(o.restaurant ? o.restaurant.name : '') + '</div>' +
+      '<div class="ord-meta">' +
+        (o.items ? o.items.length : 0) + ' article(s)' +
+        '<span class="pt"></span>' + U.money(o.total) +
+      '</div>' +
+
+      '<div class="ord-bas">' +
+        '<span class="quand">' +
+          UI.icon('calendar', 16) + ' ' + U.esc(jour) +
+          '<span class="sep"></span>' +
+          UI.icon('clock', 16) + ' ' + U.esc(heure) +
+        '</span>' +
+        '<span class="btn btn-primary ord-suivre">Suivre ' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
+            'stroke-linecap="round" stroke-linejoin="round" width="17" height="17">' +
+            '<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg></span>' +
+      '</div>' +
+    '</article>';
+  }
+
   /* ======================================================================
      HISTORIQUE DES COMMANDES
      ====================================================================== */
   Router.add('/orders', async function (params, query, view) {
     let tab = 'active';
 
-    /* Pas de ligne d'explication sous le titre : « Suivez vos commandes en
-       cours et consultez votre historique » disait à voix haute ce que les
-       trois onglets juste en dessous montrent déjà. */
+    /* Le titre de la maquette porte un petit trait orange sous « Mes ». Il
+       n'est pas repris : c'est le seul élément de la page demandé en moins.
+       La ligne d'explication, elle, reste — c'est bien « la sous-ligne » du
+       titre qui devait sauter, pas la phrase. */
     view.innerHTML = '<div class="orders-page">' +
       /* Les dessins en filigrane de la maquette. Ils sont posés là et non en
          image de fond : à cette taille et cette opacité, une image serait un
@@ -28,13 +74,14 @@
       '</span>' +
       '<div class="wrap-sm page">' +
       '<div class="h1">Mes commandes</div>' +
+      '<p class="sub ord-sub">Suivez vos commandes en cours et consultez votre historique</p>' +
       /* Pictogrammes au trait plutôt qu'emoji : les emoji changent de dessin
          d'un téléphone à l'autre et n'obéissent pas à la couleur de l'onglet
          actif, qui reste alors le seul élément à ne pas passer en orange. */
-      '<div class="tabs pill" style="margin:16px 0 16px">' +
-        '<button data-t="active" class="on">' + UI.icon('clock', 17) + ' En cours</button>' +
-        '<button data-t="done">' + UI.icon('check', 17) + ' Terminées</button>' +
-        '<button data-t="all">' + UI.icon('receipt', 17) + ' Toutes</button>' +
+      '<div class="ord-tabs">' +
+        '<button data-t="active" class="on">' + UI.icon('clock', 18) + ' En cours</button>' +
+        '<button data-t="done">' + UI.icon('check', 18) + ' Terminées</button>' +
+        '<button data-t="all">' + UI.icon('receipt', 18) + ' Toutes</button>' +
       '</div>' +
       '<div id="list"><div class="skel" style="height:110px"></div></div></div></div>';
 
@@ -64,13 +111,7 @@
         return;
       }
 
-      list.innerHTML = rows.map(o => Cmp.orderCard(o, {
-        footer: '<div class="divider"></div>' +
-          '<div class="row-between">' +
-            '<span class="tiny">' + U.dt(o.created_at) + '</span>' +
-            '<span class="btn btn-ghost btn-sm">Suivre →</span>' +
-          '</div>'
-      })).join('');
+      list.innerHTML = '<div class="ord-list">' + rows.map(carte).join('') + '</div>';
 
       list.querySelectorAll('[data-order]').forEach(el =>
         el.onclick = () => Router.go('/order/' + el.dataset.order));
