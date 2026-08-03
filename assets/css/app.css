@@ -2016,20 +2016,6 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
    dans une page uniformément blanche.
    ========================================================================== */
 
-/* ---- barre du haut sur deux rangées (application client, téléphone) ----
-   Sur une seule rangée, « Mon quartier » et trois pastilles se disputaient
-   390 px : le nom du quartier finissait tronqué à deux lettres. */
-@media(max-width:999px){
-  body.app-client .topbar-in{
-    height:auto;flex-wrap:wrap;padding:10px 0 12px;gap:10px 12px;
-  }
-  body.app-client .topbar-in .brand{order:1}
-  body.app-client .topbar-in .brand-side{order:2;margin-left:auto}
-  /* la rangée se coupe ici : ce trait invisible occupe toute la largeur */
-  body.app-client .topbar-in::after{content:"";flex-basis:100%;order:3;height:0}
-  body.app-client .topbar-in .zone-pick{order:4;max-width:56%}
-  body.app-client .topbar-in .top-actions{order:5;margin-left:auto}
-}
 
 .brand-mark3d{
   width:36px;height:36px;border-radius:12px;flex:none;
@@ -2356,3 +2342,13 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
   font-size:13.5px;font-weight:700;
 }
 .acc-aide-btns .btn svg{flex:none}
+
+/* ---- bandeau « Livraison rapide » ---------------------------------------
+   Image fournie composée, texte compris. On lui donne sa largeur et sa
+   hauteur d'origine dans le HTML pour que la place soit réservée avant même
+   qu'elle arrive : sans ça, la page saute de deux centimètres au moment du
+   chargement, juste sous le pouce. */
+.h3d-banner{
+  display:block;width:100%;height:auto;margin-top:22px;
+  border-radius:20px;
+}

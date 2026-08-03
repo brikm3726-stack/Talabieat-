@@ -172,8 +172,13 @@
 
       bar.innerHTML =
         '<div class="wrap topbar-in">' +
-          '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : App.accueil) + '" ' +
-            'title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' + marque + '</a>' +
+          /* Application client : pas de marque dans la barre. L'écran
+             d'ouverture vient de l'afficher en grand, et une pastille seule
+             au-dessus du quartier faisait une rangée pour un seul bouton.
+             La maison de la barre du bas ramène à l'accueil. */
+          (App.est('client') ? '' :
+            '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : App.accueil) + '" ' +
+              'title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' + marque + '</a>') +
 
           /* Plus de liste de quartiers à dérouler : la barre annonce la wilaya
              où l'on se trouve, que le téléphone connaît déjà. Un appui la

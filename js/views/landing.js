@@ -90,14 +90,13 @@
            pour arriver au même endroit. */
 
         /* -------------------------------------------------------- PROMESSE */
-        '<div class="h3d-promo">' +
-          '<div class="tx">' +
-            '<span class="ic">⚡</span>' +
-            '<div class="h2">Livraison rapide<br><span class="accent">à votre porte</span></div>' +
-            '<p>Fraîcheur garantie, où que vous soyez.</p>' +
-          '</div>' +
-          '<span class="scoot" aria-hidden="true"></span>' +
-        '</div>' +
+        /* Le bandeau fourni, tel quel. Le texte y est déjà composé — le
+           reconstruire en HTML par-dessus l'aurait doublé. Il part donc en
+           alt : lu par les lecteurs d'écran, et affiché si l'image manque. */
+        '<img class="h3d-banner" src="' + U.escUrl(U.asset('assets/img/bg/moto.jpg')) + '" ' +
+          'width="1693" height="586" loading="lazy" ' +
+          'alt="Livraison rapide à votre porte — fraîcheur garantie, où que vous soyez. ' +
+          'Rapide, frais, fiable.">' +
 
         /* ------------------------------------------------ RESTAURANTS */
         '<div class="section-head">' +
