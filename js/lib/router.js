@@ -111,17 +111,22 @@
          document : sans effet, et sans casse. */
       const hote = document.getElementById('view');
 
-      /* Fondu enchaîné plutôt que remplacement sec.
-         L'ancienne page était effacée d'un coup, puis la nouvelle apparaissait :
-         entre les deux, un vide blanc d'une fraction de seconde, et l'impression
-         que l'écran « saute ». On la sort du flux le temps qu'elle s'efface, et
-         les deux se croisent — c'est ce croisement qui donne l'impression de
-         fluidité, pas la durée. */
+      /* LA PAGE SORTANTE PART TOUT DE SUITE.
+
+         Elle restait 260 ms de plus, hors du flux, pour se croiser avec la
+         nouvelle. Ce croisement fonctionnait tant que le document entier
+         défilait. Depuis que c'est #view qui défile, « hors du flux » veut
+         dire posée sur toute la hauteur visible du conteneur : pendant un
+         quart de seconde, l'ancienne page recouvrait la nouvelle. On
+         appuyait sur Compte et on voyait Mes commandes — et en navigant vite,
+         deux pages se superposaient pendant que le conteneur changeait de
+         hauteur sous le doigt.
+
+         Le fondu d'entrée de la nouvelle page suffit à éviter le à-coup. Un
+         croisement qui montre la mauvaise page coûte plus cher qu'il ne
+         rapporte. */
       const sortante = hote.firstElementChild;
-      if (sortante) {
-        sortante.classList.add('view-out');
-        setTimeout(() => { try { sortante.remove(); } catch (e) {} }, 260);
-      }
+      if (sortante) { try { sortante.remove(); } catch (e) {} }
 
       const view = document.createElement('div');
       view.className = 'view-in fade-in';

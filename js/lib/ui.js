@@ -313,7 +313,7 @@
        l'ancienne. */
     scrollTop() {
       const v = document.getElementById('view');
-      if (v && v.scrollTop) v.scrollTop = 0;
+      if (v) v.scrollTop = 0;
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     }
   };

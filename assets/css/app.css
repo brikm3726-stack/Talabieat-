@@ -1293,11 +1293,8 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
 .fade-in{animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
-/* la page sortante quitte le flux : les deux se croisent au lieu de se pousser */
-.view-out{
-  position:absolute;inset:0;pointer-events:none;
-  animation:fadeOut .24s ease forwards;
-}
+/* .view-out n'existe plus : la page sortante est retiree immediatement.
+   Hors du flux dans un conteneur qui defile, elle recouvrait la nouvelle. */
 @keyframes fadeOut{to{opacity:0;transform:translateY(-8px)}}
 
 /* Rafraîchissement d'une liste sans changer de page : elle s'estompe au lieu
@@ -1306,7 +1303,7 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
 .en-chargement{opacity:.42;transition:opacity .2s ease;pointer-events:none}
 
 @media(prefers-reduced-motion:reduce){
-  .fade-in,.view-out{animation-duration:.01ms}
+  .fade-in{animation-duration:.01ms}
 }
 
 .role-card{
