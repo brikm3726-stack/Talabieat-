@@ -10,14 +10,14 @@
   const NAV = {
     client: [
       { p: '/',              i: 'home',     l: 'Accueil' },
-      { p: '/restaurants',   i: 'utensils', l: 'Restaurants' },
+      { p: '/restaurants',   i: 'burger',   l: 'Restaurants' },
       { p: '/cart',          i: 'cart',     l: 'Panier', badge: 'cart' },
       { p: '/orders',        i: 'package',  l: 'Commandes' },
       { p: '/account',       i: 'user',     l: 'Compte' }
     ],
     guest: [
       { p: '/',              i: 'home',     l: 'Accueil' },
-      { p: '/restaurants',   i: 'utensils', l: 'Restaurants' },
+      { p: '/restaurants',   i: 'burger',   l: 'Restaurants' },
       { p: '/cart',          i: 'cart',     l: 'Panier', badge: 'cart' },
       { p: '/login',         i: 'user',     l: 'Connexion' }
     ],
@@ -182,12 +182,9 @@
             '<button class="zone-pick" id="zoneBtn" title="Actualiser ma position">' +
               UI.pin(15) + ' <span>' + U.esc(Store.wilayaName()) + '</span></button>' : '') +
 
-          /* Le bouton en bout de première rangée sur la maquette : il mène aux
-             commandes, la seule chose qu'un client vient revoir sans détour. */
-          (App.est('client') && Store.isLogged
-            ? '<a class="brand-side" href="#/orders" title="Mes commandes">' +
-                UI.icon('receipt', 20) + '</a>'
-            : '') +
+          /* Un bouton « Mes commandes » occupait le bout de la première
+             rangée. Il doublonnait l'onglet du même nom dans la barre du
+             bas, à deux centimètres du pouce. */
 
           '<nav class="deskmenu">' +
             items.filter(x => x.p !== '/account' && x.p !== '/login')

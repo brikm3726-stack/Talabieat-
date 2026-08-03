@@ -33,37 +33,22 @@
         '<span class="acc-dots b" aria-hidden="true"></span>' +
         '<div class="wrap-sm page">' +
 
-        /* ---- en-tête profil ---- */
-        '<div class="card card-p acc-head">' +
-          '<div class="row" style="gap:14px">' +
-            UI.avatar(p.full_name, p.avatar_url, 72) +
-            '<div class="grow"><div class="h2">' + U.esc(p.full_name || '—') + '</div>' +
-              '<div class="tiny">' + U.esc(p.email || '') + '</div>' +
-              '<span class="tag tag-soft" style="margin-top:7px">' + UI.icon('user', 14) + ' ' +
-                U.esc(ROLE_LABEL[p.role] || p.role) + '</span></div>' +
-          '</div>' +
-        '</div>' +
+        /* Pas de carte de profil en tête. Le nom, l'adresse et la photo
+           s'affichaient à quelqu'un qui les connaît déjà, et exposaient son
+           identité à qui regarde par-dessus son épaule. Ils sont dans
+           « Mon compte », c'est-à-dire à un geste, volontaire. */
 
-        '<div class="stack acc-reglages" style="gap:10px;margin-top:16px">' +
+        '<div class="stack acc-reglages" style="gap:10px">' +
 
-          /* 1 ---- informations personnelles ---- */
-          porte('#/profil', 'user', 'Informations personnelles',
-                'Nom, téléphone, quartier' +
-                (p.role === 'client' ? ', adresses de livraison' : '') +
-                (p.role === 'driver' ? ', moyen de transport' : '')) +
-
-          /* 2 ---- mon compte ---- */
-          /* Chez le livreur, « Compte » a quitté la barre du bas : elle ne
-             garde que les écrans utilisés pendant le service. Ce qu'elle
-             ouvrait se trouve ici, juste sous les informations personnelles. */
+          /* 1 ---- mon compte ---- */
           porte('#/compte', 'user', 'Mon compte',
-                U.esc(p.email || '') + ' · ' + U.esc(ROLE_LABEL[p.role] || p.role)) +
+                'Vos informations personnelles et votre identité') +
 
-          /* 3 ---- sécurité ---- */
+          /* 2 ---- sécurité ---- */
           porte('#/securite', 'lock', 'Sécurité',
                 'Modifier mon mot de passe, vérifié par email') +
 
-          /* 4 ---- sonnerie ---- */
+          /* ---- sonnerie ---- */
           (sonnerie
             ? '<div class="card card-p acc-secu" style="cursor:default">' +
                 '<span class="ic">' + UI.icon(Sound.muted ? 'mute' : 'sound', 20) + '</span>' +
@@ -81,28 +66,30 @@
               '</div>'
             : '') +
 
-          /* 5 ---- l'application ---- */
+          /* 3 ---- assistance ---- */
+          /* Les deux contacts tenaient chacun une ligne pleine, avec chevron :
+             autant de place qu'un réglage, pour un numéro qu'on appelle deux
+             fois par an. Ils passent en deux boutons courts, côte à côte. */
+          '<div class="card card-p acc-secu acc-aide" style="cursor:default">' +
+            '<span class="ic">' + UI.icon('headset', 20) + '</span>' +
+            '<span class="grow"><b>Assistance</b>' +
+              '<span class="tiny">Une question, un problème sur une commande</span></span>' +
+          '</div>' +
+          '<div class="acc-aide-btns">' +
+            // le tel: ne supporte pas les espaces du numéro affiché
+            '<a class="btn btn-soft btn-sm" href="tel:' +
+              U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')) + '">' +
+              UI.icon('phone', 16) + ' Nous appeler</a>' +
+            (TALABI_CONFIG.SUPPORT_EMAIL
+              ? '<a class="btn btn-soft btn-sm" href="mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL) + '">' +
+                  UI.icon('mail', 16) + ' Nous écrire</a>'
+              : '') +
+          '</div>' +
+
+          /* 4 ---- l'application ---- */
           porte('#/apropos', 'info', 'À propos de l’application',
                 U.esc(TALABI_CONFIG.APP_NAME) + ' version ' + U.esc(TALABI_CONFIG.APP_VERSION || '1.0')) +
 
-        '</div>' +
-
-        /* ---- assistance ---- */
-        '<div class="card card-p acc-block" style="margin-top:16px">' +
-          bloc('headset', 'Assistance') +
-          // le tel: ne supporte pas les espaces du numéro affiché
-          '<a class="acc-link" href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')) + '">' +
-            '<span class="ic">' + UI.icon('phone', 18) + '</span>' +
-            '<span class="grow"><b>Nous appeler</b>' +
-              '<span class="tiny">' + U.esc(TALABI_CONFIG.SUPPORT_PHONE) + '</span></span>' +
-            '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
-          (TALABI_CONFIG.SUPPORT_EMAIL
-            ? '<a class="acc-link" href="mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL) + '">' +
-                '<span class="ic">' + UI.icon('mail', 18) + '</span>' +
-                '<span class="grow"><b>Nous écrire</b>' +
-                  '<span class="tiny">' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL) + '</span></span>' +
-                '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>'
-            : '') +
         '</div>' +
 
         '<div class="acc-logout" style="margin-top:16px">' +
@@ -321,11 +308,17 @@
                    d.validation_status === 'rejected' ? 'Refusé' : 'En attente de validation') : '') +
       '</div>' +
 
+      /* « Informations personnelles » a quitté la liste des réglages pour
+         venir ici : c'est le même sujet que l'identité affichée au-dessus, et
+         la liste des réglages n'a pas à contenir deux portes vers le même
+         propriétaire. */
       '<div class="card card-p acc-block" style="margin-top:16px">' +
         '<a class="acc-link" href="#/profil">' +
           '<span class="ic">' + UI.icon('pencil', 18) + '</span>' +
-          '<span class="grow"><b>Modifier mes informations</b>' +
-            '<span class="tiny">Nom, téléphone, quartier</span></span>' +
+          '<span class="grow"><b>Informations personnelles</b>' +
+            '<span class="tiny">Nom, téléphone, quartier' +
+              (p.role === 'client' ? ', adresses de livraison' : '') +
+              (p.role === 'driver' ? ', moyen de transport' : '') + '</span></span>' +
           '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
         '<a class="acc-link" href="#/securite">' +
           '<span class="ic">' + UI.icon('lock', 18) + '</span>' +

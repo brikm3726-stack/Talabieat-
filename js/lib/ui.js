@@ -162,6 +162,13 @@
       // fourchette + couteau, dessinés larges : les tracés d'origine de Lucide
       // deviennent illisibles en dessous de 24 px
       utensils: '<path d="M4 3v6a3 3 0 0 0 6 0V3"/><path d="M7 12v9"/><path d="M17.5 3c-1.6 1.1-2.5 3-2.5 5.2s.9 4.1 2.5 5.2V21"/>',
+      /* Le pain, la garniture, le pain : c'est le pictogramme de la maquette
+         pour « Restaurants ». Une fourchette et un couteau disent « couvert »,
+         pas « endroit où manger » — et à 22 px, deux traits verticaux se
+         confondent avec n'importe quel autre pictogramme fin. */
+      burger:   '<path d="M3.5 9.2c0-3 3.8-5.2 8.5-5.2s8.5 2.2 8.5 5.2"/>' +
+                '<path d="M3.5 12.6h17"/>' +
+                '<path d="M3.5 16.2h17c0 2.1-1.7 3.8-3.8 3.8H7.3c-2.1 0-3.8-1.7-3.8-3.8z"/>',
       save:     '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/>',
       logout:   '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
       pencil:   '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
