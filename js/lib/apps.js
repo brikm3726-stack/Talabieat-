@@ -69,7 +69,16 @@
     lien(id, hash) {
       const d = DEFS[id];
       if (!d) return '#/';
-      return (w.TALABI_BASE || '') + d.chemin + (hash ? '#' + hash : '');
+
+      /* Un serveur web sait qu'un dossier veut dire son index.html. Un fichier
+         ouvert depuis le disque, non : le navigateur affiche le contenu du
+         dossier — « Index of C:\Users\… ». On nomme donc le fichier
+         explicitement dans ce cas, pour que la plateforme s'ouvre aussi bien
+         depuis un double-clic que depuis talabi.shop. En ligne on garde
+         l'adresse courte : c'est celle qu'on écrit sur une carte de visite. */
+      const fichier = (w.location && w.location.protocol === 'file:') ? 'index.html' : '';
+
+      return (w.TALABI_BASE || '') + d.chemin + fichier + (hash ? '#' + hash : '');
     },
 
     /** L'application qui correspond à un rôle */
