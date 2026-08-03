@@ -97,8 +97,14 @@
   Router.add('/a/restaurants', async function (params, query, view) {
     let filter = '', tous = [];
 
+    /* C'est ici qu'un restaurant entre sur la plateforme : personne d'autre
+       ne peut le faire depuis la disparition de l'espace gérant. Le bouton
+       d'ajout est donc la première chose de la page, pas une action cachée
+       en bas de liste. */
     view.innerHTML = page(
-      head('Restaurants', 'Validez les inscriptions et gérez les fiches') +
+      head('Restaurants', 'Inscrivez les restaurants et tenez leurs fiches et leurs cartes') +
+      '<a class="btn btn-primary" href="#/a/resto/nouveau" style="margin-bottom:16px">' +
+        UI.icon('plus', 17) + ' Ajouter un restaurant</a>' +
       '<div id="filtres"></div>' +
       '<div id="list"><div class="skel" style="height:120px"></div></div>');
 
@@ -156,14 +162,21 @@
             (r.reject_reason ? '<div class="adm-line danger">Motif : ' + U.esc(r.reject_reason) + '</div>' : '') +
             '</div>' +
             '<div class="adm-acts">' +
+              /* Les deux actions du quotidien d'abord : tenir la carte et
+                 corriger la fiche. Valider et refuser ne servent plus qu'aux
+                 rares fiches héritées de l'ancien parcours d'inscription. */
+              '<a class="btn btn-primary btn-sm" href="#/a/resto/' + U.esc(r.id) + '/menu">' +
+                UI.icon('grid', 15) + ' Carte (' + (r.menu_count != null ? r.menu_count : '…') + ')</a>' +
+              '<a class="btn btn-soft btn-sm" href="#/a/resto/' + U.esc(r.id) + '">' +
+                UI.icon('pencil', 15) + ' Fiche</a>' +
+              '<button class="btn btn-ghost btn-sm" data-pos="' + U.esc(r.id) + '">' +
+                UI.icon('pin', 15) + ' Position</button>' +
+              '<a class="btn btn-ghost btn-sm" href="#/resto/' + U.esc(r.id) + '">' +
+                UI.icon('eye', 15) + ' Aperçu client</a>' +
               (r.status !== 'approved' ? '<button class="btn btn-ok btn-sm" data-ok="' + U.esc(r.id) + '">' +
                 UI.icon('check', 15) + ' Valider</button>' : '') +
               (r.status !== 'rejected' ? '<button class="btn btn-danger btn-sm" data-no="' + U.esc(r.id) + '">' +
                 UI.icon('warn', 15) + ' Refuser</button>' : '') +
-              '<button class="btn btn-ghost btn-sm" data-pos="' + U.esc(r.id) + '">' +
-                UI.icon('pin', 15) + ' Position</button>' +
-              '<a class="btn btn-primary btn-sm" href="#/resto/' + U.esc(r.id) + '">' +
-                UI.icon('eye', 15) + ' Voir la fiche</a>' +
             '</div>' +
           '</div>' +
         '</div>').join('') + '</div>';

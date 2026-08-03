@@ -1,10 +1,19 @@
 /* ==========================================================================
-   ESPACE RESTAURANT — tableau de bord, commandes, menu, profil
+   FICHES RESTAURANT ET CARTES — tenues par l'administrateur
+   --------------------------------------------------------------------------
+   Il n'y a plus de compte restaurant ni d'application Talabi Resto. Les
+   restaurants sont inscrits et tenus à jour ici, par l'administrateur.
+
+   Ce fichier était l'espace du gérant. Son formulaire de fiche et son
+   éditeur de plats sont conservés tels quels — ils sont éprouvés, c'est
+   avec eux qu'a été saisie toute la carte de Melyza. Seuls changent qui y
+   accède et d'où vient le restaurant : d'un identifiant dans l'adresse
+   plutôt que du compte connecté.
    ========================================================================== */
 (function (w) {
   'use strict';
 
-  const GUARD = { auth: true, roles: ['restaurant'] };
+  const GUARD = { auth: true, roles: ['admin'] };
   const LIVE = ['pending', 'accepted', 'preparing', 'ready', 'driver_assigned', 'delivering'];
 
   /* ------------------------------------------------------------- gabarit
@@ -33,7 +42,7 @@
     const sw = view.querySelector('#openSw');
     if (!sw) return;
     sw.onchange = async () => {
-      const r = await API.safe(() => API.saveRestaurant({ is_open: sw.checked }), null);
+      const r = await API.safe(() => API.saveRestaurant({ is_open: sw.checked }, rest.id), null);
       if (r) { rest.is_open = r.is_open; UI.ok(r.is_open ? 'Restaurant ouvert' : 'Restaurant fermé'); reload(); }
     };
   }
@@ -106,162 +115,10 @@
   /* ======================================================================
      TABLEAU DE BORD
      ====================================================================== */
-  Router.add('/r', async function (params, query, view) {
-    view.innerHTML = '<div class="wrap page"><div class="skel" style="height:200px"></div></div>';
-
-    const rest = await API.safe(() => API.myRestaurant(), null);
-    if (!rest) { view.innerHTML = '<div class="wrap-sm page">' + gate(null) + '</div>'; return; }
-
-    async function load() {
-      const orders = await API.safe(() => API.orders({ scope: 'restaurant' }), []);
-      const delivered = orders.filter(o => o.status === 'delivered');
-      const live = orders.filter(o => LIVE.indexOf(o.status) >= 0);
-      const today = orders.filter(o => sameDay(o.created_at, new Date()));
-      const revenue = delivered.reduce((s, o) => s + o.subtotal, 0);
-
-      // top produits
-      const tally = {};
-      delivered.forEach(o => (o.items || []).forEach(i => {
-        tally[i.name] = (tally[i.name] || 0) + i.quantity;
-      }));
-      const top = Object.keys(tally).map(k => ({ name: k, n: tally[k] }))
-        .sort((a, b) => b.n - a.n).slice(0, 5);
-
-      /* Séries réelles des 7 derniers jours : rien n'est inventé pour faire
-         joli, une courbe plate signifie qu'il n'y a pas eu de commandes. */
-      const serieCmd = last7(orders);
-      const serieCA  = last7(delivered, o => o.subtotal);
-      const maxCA    = Math.max.apply(null, serieCA) || 1;
-      const JOURS    = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-      const nomJour  = i => {
-        const d = new Date(); d.setDate(d.getDate() - (6 - i));
-        return JOURS[(d.getDay() + 6) % 7];
-      };
-      const caSemaine = serieCA.reduce((s, x) => s + x, 0);
-
-      view.innerHTML = '<div class="resto-page"><div class="wrap page">' +
-        gate(rest) +
-
-        rsHead('home', rest.name, ['Tableau de bord'], rest) +
-
-        '<div class="rs-stats">' +
-          rsStat('calendar', 'Commandes aujourd’hui', today.length, '', serieCmd) +
-          rsStat('flame', 'En cours', live.length, '', serieCmd, 'info') +
-          rsStat('check', 'Terminées', delivered.length, '', serieCmd, 'ok') +
-          rsStat('wallet', 'Chiffre d’affaires', U.money(revenue), '', serieCA, 'gold') +
-        '</div>' +
-
-        '<div class="rs-cols">' +
-          /* ---- commandes en cours ---- */
-          '<div class="card card-p">' +
-            '<div class="row-between" style="margin-bottom:14px">' +
-              '<div class="h2">Commandes en cours</div>' +
-              '<a class="link" href="#/r/orders">Tout voir →</a></div>' +
-            (live.length
-              ? '<div class="stack">' + live.slice(0, 5).map(o => orderCard(o)).join('') + '</div>'
-              : UI.empty('😴', 'Aucune commande en cours',
-                  'Les nouvelles commandes apparaîtront ici automatiquement.')) +
-          '</div>' +
-
-          '<div class="stack">' +
-            /* ---- chiffre d'affaires de la semaine ---- */
-            '<div class="card card-p">' +
-              '<div class="h3">Chiffre d’affaires <span class="tiny">(7 derniers jours)</span></div>' +
-              '<div class="rs-big">' + U.money(caSemaine) + '</div>' +
-              '<div class="rs-bars">' + serieCA.map((v, i) =>
-                '<div class="b"><span style="height:' +
-                  Math.max(3, Math.round((v / maxCA) * 100)) + '%" title="' + U.money(v) + '"></span>' +
-                  '<i>' + nomJour(i) + '</i></div>').join('') + '</div>' +
-            '</div>' +
-
-            /* ---- meilleurs produits ---- */
-            '<div class="card card-p">' +
-              '<div class="h3" style="margin-bottom:12px">Meilleurs produits</div>' +
-              (top.length
-                ? '<div class="stack" style="gap:12px">' + top.map(t =>
-                    '<div class="rs-prod"><div class="row-between">' +
-                      '<b>' + U.esc(t.name) + '</b>' +
-                      '<span class="tiny">' + t.n + ' vendus</span></div>' +
-                      '<span class="bar"><i style="width:' +
-                        Math.round((t.n / top[0].n) * 100) + '%"></i></span></div>').join('') + '</div>'
-                : '<div class="tiny">Pas encore de ventes.</div>') +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-      '</div></div>';
-
-      bindOrderActions(view, load);
-      bindOpen(view, rest, load);
-    }
-
-    await load();
-    const off = API.onChange(t => { if (t === 'orders' || t === '*') load(); });
-    return off;
-  }, GUARD);
 
   /* ======================================================================
      COMMANDES
      ====================================================================== */
-  Router.add('/r/orders', async function (params, query, view) {
-    let tab = 'new';
-    const rest = await API.safe(() => API.myRestaurant(), null);
-    if (!rest) { view.innerHTML = '<div class="wrap-sm page">' + gate(null) + '</div>'; return; }
-
-    const MAP = {
-      new: o => o.status === 'pending',
-      progress: o => o.status === 'accepted' || o.status === 'preparing',
-      ready: o => ['ready', 'driver_assigned', 'delivering'].indexOf(o.status) >= 0,
-      done: o => ['delivered', 'rejected', 'cancelled'].indexOf(o.status) >= 0
-    };
-    const ONGLETS = [
-      ['new', 'chef', 'Nouvelles'], ['progress', 'flame', 'En préparation'],
-      ['ready', 'bike', 'Prêtes / en livraison'], ['done', 'clock', 'Historique']
-    ];
-
-    view.innerHTML = '<div class="resto-page"><div class="wrap page">' +
-      rsHead('receipt', 'Commandes', ['Tableau de bord', 'Commandes'], rest) +
-      '<div class="rs-stats" id="stats"></div>' +
-      '<div class="rs-tabs" id="tabs"></div>' +
-      '<div class="card card-p" style="border-top-left-radius:0;border-top-right-radius:0">' +
-        '<div id="list"><div class="skel" style="height:120px"></div></div></div>' +
-    '</div></div>';
-
-    const list = view.querySelector('#list');
-    bindOpen(view, rest, () => load());
-
-    async function load() {
-      const all = await API.safe(() => API.orders({ scope: 'restaurant' }), []);
-      const n = k => all.filter(MAP[k]).length;
-      const finiesJour = all.filter(o => o.status === 'delivered' && sameDay(o.delivered_at || o.created_at, new Date()));
-
-      view.querySelector('#stats').innerHTML =
-        rsStat('receipt', 'Nouvelles', n('new')) +
-        rsStat('chef', 'En préparation', n('progress'), '', null, 'gold') +
-        rsStat('bike', 'En livraison', n('ready'), '', null, 'info') +
-        rsStat('check', 'Terminées aujourd’hui', finiesJour.length, '', null, 'ok');
-
-      view.querySelector('#tabs').innerHTML = ONGLETS.map(([k, ic, l]) =>
-        '<button data-t="' + k + '" class="' + (tab === k ? 'on' : '') + '">' +
-          UI.icon(ic, 17) + '<span>' + U.esc(l) + '</span>' +
-          (n(k) ? '<b>' + n(k) + '</b>' : '') + '</button>').join('');
-      view.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tab = b.dataset.t; load(); });
-
-      const rows = all.filter(MAP[tab]);
-      list.innerHTML = rows.length
-        ? '<div class="stack">' + rows.map(o => orderCard(o, true)).join('') + '</div>'
-        : UI.empty(UI.icon('inbox', 40), 'Aucune commande',
-            all.length
-              ? 'Rien dans cette catégorie pour le moment.'
-              : 'Ce compte gère « ' + rest.name +' ». Une commande passée dans un autre ' +
-                'restaurant arrive chez son propre gérant, pas ici.');
-
-      bindOrderActions(view, load);
-    }
-
-    await load();
-    const off = API.onChange(t => { if (t === 'orders' || t === '*') load(); });
-    return off;
-  }, GUARD);
 
   /* -------------------------------------------------------- carte commande */
   function orderCard(o, full) {
@@ -338,12 +195,15 @@
   /* ======================================================================
      MENU
      ====================================================================== */
-  Router.add('/r/menu', async function (params, query, view) {
-    const rest = await API.safe(() => API.myRestaurant(), null);
-    if (!rest) { view.innerHTML = '<div class="wrap-sm page">' + gate(null) + '</div>'; return; }
+  Router.add('/a/resto/:id/menu', async function (params, query, view) {
+    const rest = await API.safe(() => API.restaurant(params.id), null);
+    if (!rest) { view.innerHTML = '<div class="wrap-sm page">' +
+      UI.empty(UI.icon('store', 40), 'Restaurant introuvable', 'Cette fiche a peut-être été supprimée.',
+               '<a class="btn btn-primary" href="#/a/restaurants">Retour aux restaurants</a>') +
+      '</div>'; return; }
 
     view.innerHTML = '<div class="resto-page"><div class="wrap page">' +
-      rsHead('grid', 'Mon menu', ['Tableau de bord', 'Menu'], rest) +
+      rsHead('grid', 'Carte — ' + rest.name, ['Restaurants', rest.name, 'Carte'], rest) +
       '<div class="rs-menubar">' +
         '<div id="menuNav" class="menu-tabs chips" hidden></div>' +
         '<button class="btn btn-primary" id="add">' + UI.icon('plus', 16) + ' Ajouter un plat</button>' +
@@ -377,7 +237,7 @@
       paintStats(items);
       if (!items.length) {
         nav.hidden = true;
-        list.innerHTML = UI.empty('🍕', 'Votre menu est vide', 'Ajoutez votre premier plat pour commencer à vendre.',
+        list.innerHTML = UI.empty('🍕', 'Carte vide', 'Ajoutez le premier plat de ce restaurant.',
           '<button class="btn btn-primary" id="add2">+ Ajouter un plat</button>');
         const a2 = list.querySelector('#add2');
         if (a2) a2.onclick = () => itemSheet(null, load);
@@ -665,15 +525,19 @@
   /* ======================================================================
      PROFIL DU RESTAURANT
      ====================================================================== */
-  Router.add('/r/profile', async function (params, query, view) {
-    const rest = await API.safe(() => API.myRestaurant(), null);
+  Router.add('/a/resto/:id', async function (params, query, view) {
+    /* « nouveau » n'est pas un identifiant : c'est le formulaire vide. */
+    const rest = params.id === 'nouveau'
+      ? null
+      : await API.safe(() => API.restaurant(params.id), null);
     const r = rest || {};
     const selectedCats = r.categories || [];
 
     view.innerHTML = '<div class="resto-page"><div class="wrap-sm page">' +
-      rsHead('settings', rest ? 'Ma fiche restaurant' : 'Créer mon restaurant',
-        ['Tableau de bord', 'Restaurant', 'Ma fiche restaurant'], rest) +
+      rsHead('settings', rest ? 'Fiche — ' + rest.name : 'Nouveau restaurant',
+        ['Restaurants', rest ? rest.name : 'Nouveau'], rest) +
       '<p class="sub" style="margin:-10px 0 16px">Ces informations sont visibles par les clients.</p>' +
+      '<a class="link" href="#/a/restaurants" style="display:inline-block;margin-bottom:12px">← Tous les restaurants</a>' +
       (rest ? gate(rest) : '') +
 
       '<form id="rf" class="card card-p stack" novalidate>' +
@@ -778,9 +642,9 @@
       const d = UI.formData(this);
       if (!d.name || d.name.length < 2) return UI.err('Indiquez le nom du restaurant');
       if (!d.address || d.address.length < 5) return UI.err('Indiquez une adresse complète');
-      if (!d.zone_id) return UI.err('Choisissez votre quartier');
+      if (!d.zone_id) return UI.err('Choisissez le quartier');
       if (!U.isPhoneDZ(d.phone)) return UI.err('Numéro de téléphone invalide');
-      if (!pos) return UI.err('Position manquante', 'Placez votre restaurant sur la carte.');
+      if (!pos) return UI.err('Position manquante', 'Placez le restaurant sur la carte.');
 
       d.lat = pos.lat; d.lng = pos.lng;
       d.categories = chosen;
@@ -788,11 +652,10 @@
 
       UI.busy(btn, true, 'Enregistrement…');
       try {
-        await API.saveRestaurant(d);
-        await Store.refreshProfile();
+        await API.saveRestaurant(d, rest ? rest.id : null);
         UI.ok(rest ? 'Fiche mise à jour' : 'Restaurant créé',
-              rest ? '' : 'Votre restaurant est maintenant visible des clients.');
-        Router.go('/r');
+              rest ? '' : 'Il est maintenant visible des clients.');
+        Router.go('/a/restaurants');
       } catch (err) { UI.busy(btn, false); UI.err(err.message); }
     };
   }, GUARD);

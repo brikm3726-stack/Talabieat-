@@ -4,7 +4,6 @@
    Un seul code, quatre portes d'entrée :
 
      /Talabieat-/            client      commander
-     /Talabieat-/resto/      restaurant  recevoir et préparer
      /Talabieat-/livreur/    driver      livrer
      /Talabieat-/admin/      admin       surveiller
 
@@ -28,15 +27,6 @@
       accueil: '/',
       chemin: '',                 // depuis la racine
       publique: true              // on peut regarder sans compte
-    },
-    restaurant: {
-      role: 'restaurant',
-      nom: 'Talabi Resto',
-      titre: 'Espace restaurant',
-      sousTitre: 'Recevez vos commandes et gérez votre carte.',
-      accueil: '/r',
-      chemin: 'resto/',
-      publique: false
     },
     driver: {
       role: 'driver',
@@ -62,7 +52,7 @@
 
   const App = Object.assign({}, DEFS[courante], {
 
-    /** Identifiant de l'application ouverte : client | restaurant | driver | admin */
+    /** Identifiant de l'application ouverte : client | driver | admin */
     id: courante,
 
     /** L'application ouverte est-elle celle-ci ? */

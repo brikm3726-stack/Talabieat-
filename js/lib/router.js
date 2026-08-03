@@ -156,7 +156,6 @@
     /** Page d'accueil correspondant au rôle */
     homeFor(role) {
       switch (role) {
-        case 'restaurant': return '/r';
         case 'driver':     return '/d';
         case 'admin':      return '/a';
         default:           return '/';

@@ -102,7 +102,11 @@
 
     /* --------------------------------------------------- suivi de commande */
     timeline(order) {
-      const flow = ['pending', 'accepted', 'preparing', 'ready', 'driver_assigned', 'delivering', 'delivered'];
+      /* Quatre étapes, plus sept. « En attente », « acceptée » et « en
+         préparation » supposaient un écran au restaurant : elles ne se
+         produisent plus, et les laisser dans la frise aurait affiché trois
+         jalons que la commande ne franchit jamais. */
+      const flow = ['ready', 'driver_assigned', 'delivering', 'delivered'];
       if (order.status === 'rejected' || order.status === 'cancelled') {
         return '<div class="banner banner-danger">' + U.statusIcon(order.status) + ' ' +
                U.esc(U.statusLabel(order.status)) +

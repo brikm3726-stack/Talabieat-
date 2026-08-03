@@ -15,7 +15,6 @@
   const ROLE_IMG = 'assets/img/roles/';   // passé à U.asset() au moment de l'affichage
   const ROLES = [
     { v: 'client',     i: '🍔', img: ROLE_IMG + 'client.jpg',     t: 'Client',     d: 'Commander des repas et me faire livrer' },
-    { v: 'restaurant', i: '🏪', img: ROLE_IMG + 'restaurant.jpg', t: 'Restaurant', d: 'Vendre mes plats sur la plateforme' },
     { v: 'driver',     i: '🛵', img: ROLE_IMG + 'driver.jpg',     t: 'Livreur',    d: 'Livrer des commandes et gagner de l’argent' }
   ];
 
@@ -31,7 +30,7 @@
   /* Dans un espace professionnel, celui qui n'a rien à y faire doit repartir
      avec une adresse en main, pas avec une porte fermée. */
   function liensVersLesAutresApplications() {
-    const autres = ['client', 'restaurant', 'driver']
+    const autres = ['client', 'driver']
       .filter(id => !App.est(id))
       .map(id => '<a class="tiny" style="color:var(--muted);font-weight:650" ' +
                  'href="' + App.lien(id) + '">' + U.esc(App.def(id).nom) + ' →</a>');
@@ -237,9 +236,6 @@
       '</div>');
 
     const notes = {
-      restaurant: '<div class="banner banner-info">🏪 Après l’inscription, complétez votre fiche — ' +
-        'nom, adresse, position sur la carte, horaires — puis montez votre carte. ' +
-        '<b>Votre restaurant est visible des clients dès que la fiche est enregistrée.</b></div>',
       driver:     '<div class="banner banner-warn">🛵 Votre compte livreur est vérifié par un administrateur ' +
         'avant de pouvoir accepter des courses. <b>Comptez 24 h.</b></div>'
     };
@@ -283,7 +279,7 @@
         /* Un client entre tout de suite. Un restaurant ou un livreur doit
            savoir, avant d'aller plus loin, que rien n'est encore actif : une
            simple notification passerait inaperçue. */
-        if (role === 'restaurant' || role === 'driver') {
+        if (role === 'driver') {
           UI.busy(btn, false);
           return pendingScreen(view, role);
         }
@@ -330,7 +326,7 @@
     if (!Store.isLogged) return Router.go('/login', true);
 
     const p = Store.profile || {};
-    const pro = p.role === 'restaurant' || p.role === 'driver';
+    const pro = p.role === 'driver';
 
     view.innerHTML = shell('Bienvenue ' + (p.full_name || '') + ' !',
       'Encore deux informations et c’est terminé',
@@ -338,9 +334,7 @@
         '<div class="banner banner-info">' +
           (p.role === 'driver'
             ? '🛵 Votre quartier détermine les courses que vous verrez.'
-            : p.role === 'restaurant'
-              ? '🏪 Votre téléphone sert aux livreurs et à vos clients.'
-              : '🏠 Votre téléphone sert au livreur pour vous joindre à l’arrivée.') +
+            : '🏠 Votre téléphone sert au livreur pour vous joindre à l’arrivée.') +
         '</div>' +
 
         '<form id="f" class="stack" novalidate>' +
@@ -502,7 +496,7 @@
         await API.verifySignupCode(d.email, code, d);
         await Store.refreshProfile();
         if (d.zone_id && Store.zoneId !== d.zone_id) Store.setZone(d.zone_id);
-        if (role === 'restaurant' || role === 'driver') return pendingScreen(view, role);
+        if (role === 'driver') return pendingScreen(view, role);
         UI.ok('Compte confirmé !', 'Bienvenue sur ' + TALABI_CONFIG.APP_NAME);
         Router.go('/', true);
       } catch (err) {
@@ -524,15 +518,10 @@
   }
 
   /* ----------------------------------------------------------------------
-     Écran de fin d'inscription pour un restaurant ou un livreur.
-     Aucun compte professionnel n'est actif sans validation d'un administrateur.
+     Écran de fin d'inscription pour un livreur.
+     Aucun compte livreur n'est actif sans validation d'un administrateur.
      ---------------------------------------------------------------------- */
   function pendingScreen(view, role) {
-    /* Un restaurant est en ligne dès qu'il a rempli sa fiche : plus rien à
-       attendre, on l'envoie directement au travail. Un livreur, lui, reste
-       validé à la main — il manipulera l'argent des clients. */
-    if (role === 'restaurant') return Router.go('/r/profile', true);
-
     view.innerHTML = shell(
       'Compte créé — en attente de validation',
       'Vous ne pouvez pas encore accepter de courses',

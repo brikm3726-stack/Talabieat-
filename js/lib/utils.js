@@ -225,11 +225,13 @@
       pending:         { label: 'Commande envoyée',    short: 'En attente',   icon: '📨', tag: 'tag-warn' },
       accepted:        { label: 'Acceptée par le restaurant', short: 'Acceptée', icon: '✅', tag: 'tag-info' },
       preparing:       { label: 'Préparation en cours', short: 'En préparation', icon: '👨‍🍳', tag: 'tag-info' },
-      ready:           { label: 'Commande prête',       short: 'Prête',        icon: '🛍️', tag: 'tag-info' },
-      driver_assigned: { label: 'Livreur trouvé',       short: 'Livreur assigné', icon: '🛵', tag: 'tag-info' },
+      /* « prête » ne veut plus dire « le restaurant a fini » : le restaurant
+         n'a plus d'écran. Ça veut dire « la course cherche un livreur ». */
+      ready:           { label: 'Recherche d’un livreur', short: 'En recherche', icon: '🔎', tag: 'tag-warn' },
+      driver_assigned: { label: 'Livreur en route vers le restaurant', short: 'Livreur trouvé', icon: '🛵', tag: 'tag-info' },
       delivering:      { label: 'En cours de livraison', short: 'En livraison', icon: '🚀', tag: 'tag-info' },
       delivered:       { label: 'Livrée',               short: 'Livrée',       icon: '🎉', tag: 'tag-ok' },
-      rejected:        { label: 'Refusée par le restaurant', short: 'Refusée', icon: '⛔', tag: 'tag-danger' },
+      rejected:        { label: 'Commande refusée',      short: 'Refusée',      icon: '⛔', tag: 'tag-danger' },
       cancelled:       { label: 'Annulée',              short: 'Annulée',      icon: '🚫', tag: 'tag-danger' }
     },
 

@@ -1,10 +1,10 @@
 /* ==========================================================================
-   GÉNÉRATEUR DES APPLICATIONS resto/ livreur/ admin/
+   GÉNÉRATEUR DES APPLICATIONS livreur/ admin/
 
-   Les quatre applications partagent le même code. Seule leur page d'entrée
+   Les trois applications partagent le même code. Seule leur page d'entrée
    diffère : le nom déclaré, la couleur, le manifeste, la profondeur des
    chemins. Écrire ces pages à la main serait s'exposer à ce qu'elles divergent
-   — on corrigerait index.html en oubliant resto/index.html.
+   — on corrigerait index.html en oubliant livreur/index.html.
 
    Ce script les fabrique à partir de index.html, qui reste la seule source.
 
@@ -21,15 +21,6 @@ const path = require('path');
 const RACINE = path.join(__dirname, '..');
 
 const APPS = [
-  {
-    dossier: 'resto',
-    app: 'restaurant',
-    nom: 'Talabi Resto',
-    court: 'Resto',
-    description: 'Recevez vos commandes Talabi, gérez votre carte et suivez votre chiffre d’affaires.',
-    couleur: '#1E6BE6',              // bleu : l'espace professionnel du restaurant
-    sousTitre: 'Espace restaurant'
-  },
   {
     dossier: 'livreur',
     app: 'driver',
@@ -121,13 +112,13 @@ for (const a of APPS) {
                    JSON.stringify(manifeste, null, 2) + '\n');
 
   // ---- service worker : un fichier par application, sinon les portées se
-  //      chevauchent et une seule des quatre serait installable
+  //      chevauchent et une seule des trois serait installable
   fs.writeFileSync(path.join(dossier, 'sw.js'),
     '/* Service worker de ' + a.nom + '.\n' +
     '   Le vrai travail est dans ../sw.js : ce fichier ne fait que dire à quelle\n' +
     '   profondeur il se trouve, pour que les chemins mis en cache soient justes.\n' +
     '   Sa portée est ce dossier, ce qui rend cette application installable\n' +
-    '   séparément des trois autres. */\n' +
+    '   séparément des deux autres. */\n' +
     "self.RACINE = '../';\n" +
     "self.APPLICATION = '" + a.dossier + "';\n" +
     "importScripts('../sw.js');\n");
@@ -135,5 +126,5 @@ for (const a of APPS) {
   console.log('✓ ' + a.dossier + '/  (' + a.nom + ')');
 }
 
-console.log('\nTerminé. Les quatre applications partagent le même code ; seules');
+console.log('\nTerminé. Les trois applications partagent le même code ; seules');
 console.log('leurs pages d’entrée diffèrent.');

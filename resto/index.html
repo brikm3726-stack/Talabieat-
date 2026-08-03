@@ -1,95 +1,15 @@
 <!DOCTYPE html>
-<!-- FICHIER GÉNÉRÉ — ne pas modifier à la main.
-     Source : index.html à la racine, puis « node tools/generer-applications.js » -->
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
-<meta name="theme-color" content="#1E6BE6">
-<meta name="description" content="Recevez vos commandes Talabi, gérez votre carte et suivez votre chiffre d’affaires.">
-<title>Talabi Resto</title>
-
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛵</text></svg>">
-
-<!-- Application installable sur téléphone -->
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="../assets/img/icons/apple-touch-icon.png">
-<!-- iOS ignore le manifeste : ces trois balises sont le seul moyen de lui dire
-     d'ouvrir Talabi en plein écran, sans la barre d'adresse de Safari -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Talabi Resto">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/app.css">
-</head>
-<body class="app-restaurant">
-
-<!-- écran de démarrage -->
-<div class="splash" id="splash">
-  <div class="center">
-    <img src="../assets/img/logo.jpg" alt="Talabi" class="splash-logo">
-    <div class="splash-sub">Espace restaurant • Tizi Ouzou</div>
-  </div>
-</div>
-
-<!-- barre latérale (espace restaurant, sur grand écran) -->
-<aside class="sidenav" id="sidenav" hidden></aside>
-
-<!-- barre supérieure -->
-<header class="topbar" id="topbar"></header>
-
-<!-- contenu des pages -->
-<main id="view"></main>
-
-<!-- navigation mobile -->
-<nav class="bottomnav" id="bottomnav"></nav>
-
-<!-- conteneurs dynamiques -->
-<div class="toasts" id="toasts"></div>
-<div id="modal-root"></div>
-
-<!-- Supabase JS : base de données, comptes et temps réel -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-
-<!-- Quelle application ouvre-t-on, et à quelle profondeur ?
-     Les trois autres (resto/, livreur/, admin/) déclarent la même chose avec
-     leurs propres valeurs. Tout le reste du code est identique. -->
-<script>
-  window.TALABI_APP  = 'restaurant';
-  window.TALABI_BASE = '../';
-</script>
-
-<!-- Noyau -->
-<script src="../config.js"></script>
-<script src="../js/lib/apps.js"></script>
-<script src="../js/lib/utils.js"></script>
-<script src="../js/lib/ui.js"></script>
-<script src="../js/lib/backend-supabase.js"></script>
-<script src="../js/lib/api.js"></script>
-<script src="../js/lib/store.js"></script>
-<script src="../js/lib/router.js"></script>
-<script src="../js/lib/shell.js"></script>
-<script src="../js/lib/components.js"></script>
-<script src="../js/lib/mappicker.js"></script>
-<script src="../js/lib/livetrack.js"></script>
-<script src="../js/lib/sound.js"></script>
-<script src="../js/lib/install.js"></script>
-
-<!-- Vues -->
-<script src="../js/views/landing.js"></script>
-<script src="../js/views/auth.js"></script>
-<script src="../js/views/client.js"></script>
-<script src="../js/views/checkout.js"></script>
-<script src="../js/views/tracking.js"></script>
-<script src="../js/views/restaurant.js"></script>
-<script src="../js/views/driver.js"></script>
-<script src="../js/views/admin.js"></script>
-<script src="../js/views/account.js"></script>
-
-<!-- Démarrage -->
-<script src="../js/app.js"></script>
-</body>
-</html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Talabi</title>
+<!-- L'espace restaurant n'existe plus : les restaurants sont inscrits et
+     tenus par l'administrateur. Cette page reste pour que les applications
+     deja installees aboutissent quelque part plutot que sur une erreur. -->
+<meta http-equiv="refresh" content="0; url=../">
+<link rel="canonical" href="https://talabi.shop/">
+</head><body style="font-family:system-ui;padding:40px;text-align:center">
+<p>L'espace restaurant a été retiré.</p>
+<p><a href="../">Ouvrir Talabi</a></p>
+<script>location.replace("../");</script>
+</body></html>

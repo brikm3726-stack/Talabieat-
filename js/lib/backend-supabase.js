@@ -309,19 +309,34 @@
       return rows && rows.length ? decorate(rows[0]) : null;
     },
 
-    async saveRestaurant(data) {
+    /**
+     * Enregistre une fiche restaurant.
+     * @param {object} data
+     * @param {string} [id]  fiche à modifier. Absent : on en crée une.
+     *
+     * Depuis la disparition de l'espace restaurant, c'est l'administrateur
+     * qui tient les fiches — et une fiche qu'il crée n'appartient à personne
+     * (owner_id reste nul). L'ancien comportement, « ma fiche à moi »,
+     * subsiste quand aucun identifiant n'est donné : il ne coûte rien et
+     * garde en état les rares comptes gérants déjà existants.
+     */
+    async saveRestaurant(data, id) {
       const body = {};
       ['name', 'description', 'logo_url', 'cover_url', 'address', 'zone_id', 'phone', 'lat', 'lng',
        'opens_at', 'closes_at', 'is_open', 'delivery_fee', 'min_order', 'prep_time_min']
         .forEach(k => { if (data[k] !== undefined) body[k] = data[k]; });
       body.updated_at = new Date().toISOString();
 
-      const existing = await SB.myRestaurant();
+      const existing = id ? { id: id } : await SB.myRestaurant();
       let saved;
       if (existing) {
         saved = unwrap(await sb.from('restaurants').update(body).eq('id', existing.id).select().single());
       } else {
-        body.owner_id = currentUser.id;
+        /* Une fiche créée par un administrateur n'a pas de propriétaire ; une
+           fiche créée par un gérant lui appartient. Le rôle du compte connecté
+           tranche, personne n'a à le préciser. */
+        const p = await SB.getProfile();
+        if (!p || p.role !== 'admin') body.owner_id = currentUser.id;
         saved = unwrap(await sb.from('restaurants').insert(body).select().single());
       }
 
@@ -484,7 +499,17 @@
       }, totals)).select().single());
 
       unwrap(await sb.from('order_items').insert(lines.map(l => Object.assign({ order_id: order.id }, l))));
-      return order;
+
+      /* La commande n'est offerte aux livreurs QU'APRÈS l'écriture de ses
+         lignes. Le passage en « prête » déclenche la recherche d'un livreur
+         côté serveur ; si on l'écrivait dès l'insertion, un livreur proche
+         pourrait recevoir la course dans la seconde et ouvrir une commande
+         encore vide de plats. Deux écritures au lieu d'une, pour que ce
+         qu'il voit soit toujours complet. */
+      const prete = await sb.from('orders')
+        .update({ status: 'ready' }).eq('id', order.id).select(ORDER_SELECT).single();
+      if (prete.error) { console.warn(prete.error.message); return order; }
+      return prete.data;
     },
 
     async orders(filter) {
@@ -620,9 +645,19 @@
     },
 
     async adminRestaurants(status) {
-      let q = sb.from('restaurants').select('*, zone:zones(*), owner:profiles!restaurants_owner_id_fkey(*), restaurant_categories(category_id)');
+      /* menu_items(count) : le nombre de plats est la première chose qu'on
+         veut savoir d'une fiche depuis que la carte est tenue ici. Une fiche
+         sans plat est en ligne mais ne peut rien vendre — autant que ça se
+         voie dans la liste plutôt qu'après avoir ouvert la carte. */
+      let q = sb.from('restaurants').select(
+        '*, zone:zones(*), owner:profiles!restaurants_owner_id_fkey(*), ' +
+        'restaurant_categories(category_id), menu_items(count)');
       if (status) q = q.eq('status', status);
-      return unwrap(await q.order('created_at', { ascending: false })).map(decorate);
+      return unwrap(await q.order('created_at', { ascending: false })).map(r => {
+        const d = decorate(r);
+        d.menu_count = (r.menu_items && r.menu_items[0] && r.menu_items[0].count) || 0;
+        return d;
+      });
     },
 
     async adminDrivers(status) {

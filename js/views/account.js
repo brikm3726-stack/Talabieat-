@@ -25,7 +25,7 @@
     /* Seuls ceux qu'on appelle entendent une sonnerie : le client, lui, n'a
        rien à couper. Et si le module audio n'a pas pu se charger, la ligne
        disparaît plutôt que de faire tomber la page entière. */
-    const sonnerie = !!w.Sound && (p.role === 'restaurant' || p.role === 'driver');
+    const sonnerie = !!w.Sound && p.role === 'driver';
 
     function paint() {
       view.innerHTML = '<div class="account-page">' +
@@ -56,9 +56,7 @@
                   '<span class="tiny">' +
                     (Sound.muted
                       ? 'Coupée — vous ne serez plus averti par un son'
-                      : (p.role === 'driver'
-                          ? 'Vous êtes averti à chaque course disponible'
-                          : 'Vous êtes averti à chaque nouvelle commande')) +
+                      : 'Vous êtes averti à chaque course disponible') +
                   '</span></span>' +
                 '<label class="switch"><input type="checkbox" id="son"' +
                   (Sound.muted ? '' : ' checked') + '>' +

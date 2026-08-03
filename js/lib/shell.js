@@ -27,13 +27,6 @@
       { p: '/login',         i: 'user',     l: 'Connexion' },
       { p: '/signup',        i: 'plus',     l: 'Créer un compte' }
     ],
-    restaurant: [
-      { p: '/r',             i: 'chart',    l: 'Tableau' },
-      { p: '/r/orders',      i: 'receipt',  l: 'Commandes' },
-      { p: '/r/menu',        i: 'pizza',    l: 'Menu' },
-      { p: '/r/profile',     i: 'store',    l: 'Restaurant' },
-      { p: '/account',       i: 'user',     l: 'Compte' }
-    ],
     /* Quatre rubriques, contre six auparavant. Ne restent que les écrans
        qu'un livreur ouvre pendant son service :
          • « Passé » ouvrait l'historique, qu'on atteint depuis les gains
@@ -97,44 +90,16 @@
        Navigation verticale de l'espace restaurant, sur grand écran seulement.
        Sur mobile la barre du bas reste la seule navigation : une colonne fixe
        mangerait la moitié de l'écran. */
+    /* La barre latérale était la navigation du gérant sur grand écran. Sans
+       espace restaurant, elle n'a plus personne à servir : on la vide et on
+       la cache, plutôt que de garder un menu qui pointe vers des pages
+       supprimées. */
     renderSide() {
       const side = document.getElementById('sidenav');
       if (!side) return;
-      const on = Store.isLogged && Store.role === 'restaurant';
-      side.hidden = !on;
-      document.body.classList.toggle('has-side', on);
-      if (!on) { side.innerHTML = ''; return; }
-
-      const rest = Store.profile && Store.profile.restaurant;
-      side.innerHTML =
-        '<a class="side-brand" href="#/r">' +
-          (rest && rest.logo_url
-            ? '<img src="' + U.escUrl(rest.logo_url) + '" alt="">'
-            : '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="">') +
-        '</a>' +
-        '<nav class="side-nav">' +
-          NAV.restaurant.filter(x => x.p !== '/account').map(x =>
-            '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '">' +
-              '<span class="ic">' + UI.icon(x.i, 20) + '</span>' +
-              '<span>' + U.esc(x.l) + '</span></a>').join('') +
-        '</nav>' +
-        '<div class="side-foot">' +
-          '<a href="#/account" class="' + (Shell.isActive('/account') ? 'on' : '') + '" title="Mon compte">' +
-            '<span class="ic">' + UI.icon('user', 20) + '</span><span>Compte</span></a>' +
-          '<button id="sideOut" title="Se déconnecter">' +
-            '<span class="ic">' + UI.icon('logout', 20) + '</span>' +
-            '<span>Quitter</span></button>' +
-        '</div>';
-
-      const out = side.querySelector('#sideOut');
-      if (out) out.onclick = async () => {
-        if (!(await UI.confirm('Se déconnecter ?', 'Vous devrez vous reconnecter pour gérer votre restaurant.',
-              'Déconnexion', true))) return;
-        await API.signOut();
-        await Store.refreshProfile();
-        UI.ok('À bientôt !');
-        Router.go('/', true);
-      };
+      side.hidden = true;
+      side.innerHTML = '';
+      document.body.classList.remove('has-side');
     },
 
     /* ------------------------------------------------------------ topbar */
@@ -382,7 +347,6 @@
   function targetFor(orderId, type) {
     if (Store.role === 'driver')
       return type === 'delivery_available' ? '/d/available' : '/d/active';
-    if (Store.role === 'restaurant') return '/r/orders';
     if (Store.role === 'admin') return '/a/orders';
     return '/order/' + orderId;
   }

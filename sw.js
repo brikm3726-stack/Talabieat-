@@ -17,7 +17,7 @@
 
 /* Changer ce numéro à chaque mise en ligne : c'est lui qui déclenche le
    remplacement de l'ancien cache par le nouveau. */
-const VERSION = 'talabi-v60';
+const VERSION = 'talabi-v61';
 
 /* Quatre applications partagent ce fichier (client à la racine, resto/,
    livreur/, admin/). Chacune a son propre service worker de trois lignes qui

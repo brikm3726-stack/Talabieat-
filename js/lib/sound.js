@@ -148,9 +148,9 @@
        ================================================================== */
     async watchOrders() {
       if (!w.Store || !Store.isLogged) return Sound.stopAlerts();
-      if (Store.role === 'restaurant')
-        await scan('new-order', { scope: 'restaurant', status: ['pending'] }, RESTO_FOIS);
-      else if (Store.role === 'driver')
+      /* La sonnerie « nouvelle commande » appelait le gérant. Sans espace
+         restaurant, seul le livreur est encore appelé. */
+      if (Store.role === 'driver')
         await scan('delivery', { scope: 'available' }, LIVREUR_MAX);
       else
         Sound.stopAlerts();   // et non stopAll : le client vient peut-être de
