@@ -2336,6 +2336,7 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
 /* le titre de la maquette : franc, serré, sans ligne d'explication dessous */
 .orders-page .h1{
   font-size:clamp(26px,7.4vw,34px);font-weight:850;letter-spacing:-.035em;
+.orders-page .h1 .accent{color:var(--brand)}
 }
 
 /* onglets : pastille blanche posée, sans trait de contour */

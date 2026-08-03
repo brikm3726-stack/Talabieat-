@@ -73,7 +73,7 @@
         '<i style="bottom:6%;right:-4%">' + UI.icon('utensils', 115) + '</i>' +
       '</span>' +
       '<div class="wrap-sm page">' +
-      '<div class="h1">Mes commandes</div>' +
+      '<div class="h1">Mes <span class="accent">commandes</span></div>' +
       '<p class="sub ord-sub">Suivez vos commandes en cours et consultez votre historique</p>' +
       /* Pictogrammes au trait plutôt qu'emoji : les emoji changent de dessin
          d'un téléphone à l'autre et n'obéissent pas à la couleur de l'onglet
