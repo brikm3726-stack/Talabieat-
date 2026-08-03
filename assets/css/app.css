@@ -2289,24 +2289,23 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 /* ==========================================================================
    ÉCRAN D'ENTRÉE EN PLEIN CADRE — applications client et livreur
    --------------------------------------------------------------------------
-   L'image « entrer.jpg » contient déjà tout : le nom, la promesse, le
-   livreur qui roule. Le logo et le sous-titre de l'ancien écran feraient
-   doublon par-dessus — on les cache.
+   L'image « entrer.jpg » est affichée telle quelle : pas de zoom, pas de
+   recadrage, pas de retouche. Elle contient déjà le nom, la promesse et le
+   livreur qui roule — le logo et le sous-titre de l'ancien écran feraient
+   doublon par-dessus, ils sont cachés.
 
-   Le mouvement fait tout le travail. Une photo fixe pendant cinq secondes se
-   lit comme un chargement bloqué ; la même photo qui avance lentement se lit
-   comme une scène. Trois gestes se superposent :
+   Elle est au format d'un téléphone (853 × 1844, soit 0,463) : sur un écran
+   de téléphone, « cover » la fait remplir l'écran sans rien couper. Sur un
+   écran plus large, on passe à « contain » sur fond sombre plutôt que de
+   rogner les trois quarts de l'affiche.
 
-     • un fondu depuis le noir, qui ouvre le plan ;
-     • une poussée avant très lente — on suit le livreur ;
-     • un voile sombre qui se lève, comme une exposition qui se règle.
-
-   Rien ne clignote et rien ne rebondit : à cette durée, la moindre secousse
-   se remarque et fatigue dès la troisième ouverture.
+   Seule concession : un fondu d'une demi-seconde à l'apparition. Il ne touche
+   pas à l'image, il évite juste qu'elle surgisse d'un coup sur le blanc de
+   la page.
    ========================================================================== */
 body.app-client .splash,
 body.app-driver .splash{
-  background:#100C09;                 /* le noir d'où le plan s'ouvre */
+  background:#100C09;
   overflow:hidden;
 }
 
@@ -2317,45 +2316,19 @@ body.app-driver .splash .center{display:none}
 body.app-client .splash::before,
 body.app-driver .splash::before{
   content:"";position:absolute;inset:0;
-  background:url("../img/bg/entrer.jpg") center/cover no-repeat;
-  transform-origin:50% 62%;           /* le point de fuite de la rue */
-  animation:entrerScene 5.4s cubic-bezier(.25,.9,.35,1) both;
+  background:url("../img/bg/entrer.jpg") center center/cover no-repeat;
+  animation:entrerFondu .5s ease both;
 }
+@keyframes entrerFondu{ from{opacity:0} to{opacity:1} }
 
-/* Un voile chaud en bas, pour que la vague orange de l'image se fonde dans
-   le bord de l'écran au lieu de s'arrêter net sur les téléphones plus
-   larges que l'image. */
-body.app-client .splash::after,
-body.app-driver .splash::after{
-  content:"";position:absolute;left:0;right:0;bottom:0;height:22%;
-  background:linear-gradient(to bottom,transparent,rgba(255,107,53,.55));
-  pointer-events:none;
-  animation:entrerVoile 5.4s ease both;
-}
-
-@keyframes entrerScene{
-  0%   { transform:scale(1.005); opacity:0; filter:brightness(.55) saturate(.85) }
-  16%  { opacity:1;              filter:brightness(1) saturate(1) }
-  100% { transform:scale(1.085); opacity:1; filter:brightness(1) saturate(1) }
-}
-@keyframes entrerVoile{
-  0%   { opacity:0 }
-  30%  { opacity:1 }
-  100% { opacity:1 }
+/* Écran plus large qu'un téléphone : l'affiche entière, sans rognage. */
+@media(min-aspect-ratio:3/5){
+  body.app-client .splash::before,
+  body.app-driver .splash::before{ background-size:contain }
 }
 
 /* Panne au démarrage : le message remplace la photo, il doit rester lisible. */
 body.app-client .splash.panne::before,
-body.app-driver .splash.panne::before,
-body.app-client .splash.panne::after,
-body.app-driver .splash.panne::after{display:none}
+body.app-driver .splash.panne::before{display:none}
 body.app-client .splash.panne,
 body.app-driver .splash.panne{background:var(--brand-grad)}
-
-/* Certains demandent explicitement moins d'animation au système : on garde le
-   fondu, on retire le mouvement. */
-@media(prefers-reduced-motion:reduce){
-  body.app-client .splash::before,
-  body.app-driver .splash::before{ animation:entrerFondu .7s ease both }
-  @keyframes entrerFondu{ from{opacity:0} to{opacity:1} }
-}
