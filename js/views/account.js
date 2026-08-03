@@ -90,6 +90,28 @@
           porte('#/apropos', 'info', 'À propos de l’application',
                 U.esc(TALABI_CONFIG.APP_NAME) + ' version ' + U.esc(TALABI_CONFIG.APP_VERSION || '1.0')) +
 
+          /* 5 ---- confidentialité ---- */
+          /* Ces deux-là vivaient dans « À propos ». Personne ne cherche la
+             politique de confidentialité derrière un écran qui parle de
+             numéro de version — et le Play Store exige qu'elle soit
+             atteignable. Chacune a donc sa ligne, au même rang que les
+             autres réglages. */
+          '<a class="card card-p acc-secu" href="' +
+              U.escUrl(U.asset('confidentialite.html')) + '" target="_blank" rel="noopener">' +
+            '<span class="ic">' + UI.icon('lock', 20) + '</span>' +
+            '<span class="grow"><b>Politique de confidentialité</b>' +
+              '<span class="tiny">Quelles données, pourquoi, et comment les effacer</span></span>' +
+            '<span class="acc-chev">' + UI.icon('chevron', 20) + '</span></a>' +
+
+          /* 6 ---- signalement ---- */
+          '<a class="card card-p acc-secu" href="mailto:' +
+              U.esc(TALABI_CONFIG.SUPPORT_EMAIL || '') +
+              '?subject=' + encodeURIComponent('Talabi — signalement') + '">' +
+            '<span class="ic">' + UI.icon('warn', 20) + '</span>' +
+            '<span class="grow"><b>Signaler un problème</b>' +
+              '<span class="tiny">Décrivez ce que vous avez vu, on répond sous 7 jours</span></span>' +
+            '<span class="acc-chev">' + UI.icon('chevron', 20) + '</span></a>' +
+
         '</div>' +
 
         '<div class="acc-logout" style="margin-top:16px">' +
@@ -351,18 +373,10 @@
           U.esc(TALABI_CONFIG.APP_TAGLINE) + '<br>Tizi Ouzou, Algérie.</p>' +
       '</div>' +
 
-      '<div class="card card-p acc-block" style="margin-top:16px">' +
-        '<a class="acc-link" href="' + U.asset('confidentialite.html') + '" target="_blank" rel="noopener">' +
-          '<span class="ic">' + UI.icon('lock', 18) + '</span>' +
-          '<span class="grow"><b>Politique de confidentialité</b>' +
-            '<span class="tiny">Quelles données, pourquoi, et comment les effacer</span></span>' +
-          '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
-        '<a class="acc-link" href="mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL || '') + '">' +
-          '<span class="ic">' + UI.icon('mail', 18) + '</span>' +
-          '<span class="grow"><b>Signaler un problème</b>' +
-            '<span class="tiny">Décrivez ce que vous avez vu, on répond sous 7 jours</span></span>' +
-          '<span class="acc-chev">' + UI.icon('chevron', 18) + '</span></a>' +
-      '</div>' +
+      /* La confidentialité et le signalement ont quitté cet écran pour la
+         liste des réglages, où on les voit sans avoir à ouvrir « À propos ».
+         Il ne reste ici que ce qui répond vraiment à « quelle application
+         est-ce, et quelle version ». */
 
       '<div class="tiny center" style="margin-top:18px">© ' + new Date().getFullYear() + ' ' +
         U.esc(TALABI_CONFIG.APP_NAME) + '</div>' +
