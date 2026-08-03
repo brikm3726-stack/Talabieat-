@@ -15,7 +15,18 @@
     /* Pas de ligne d'explication sous le titre : « Suivez vos commandes en
        cours et consultez votre historique » disait à voix haute ce que les
        trois onglets juste en dessous montrent déjà. */
-    view.innerHTML = '<div class="orders-page"><div class="wrap-sm page">' +
+    view.innerHTML = '<div class="orders-page">' +
+      /* Les dessins en filigrane de la maquette. Ils sont posés là et non en
+         image de fond : à cette taille et cette opacité, une image serait un
+         fichier à charger pour quelque chose qu'on ne regarde jamais
+         vraiment — alors que ces pictogrammes sont déjà dans la page. */
+      '<span class="ord-decor" aria-hidden="true">' +
+        '<i style="top:6%;left:-4%">'   + UI.icon('burger', 120) + '</i>' +
+        '<i style="top:2%;right:-6%">'  + UI.icon('pizza', 130)  + '</i>' +
+        '<i style="bottom:16%;left:-5%">' + UI.icon('cart', 110)  + '</i>' +
+        '<i style="bottom:6%;right:-4%">' + UI.icon('utensils', 115) + '</i>' +
+      '</span>' +
+      '<div class="wrap-sm page">' +
       '<div class="h1">Mes commandes</div>' +
       /* Pictogrammes au trait plutôt qu'emoji : les emoji changent de dessin
          d'un téléphone à l'autre et n'obéissent pas à la couleur de l'onglet

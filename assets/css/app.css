@@ -1305,12 +1305,6 @@ body.app-driver{
     radial-gradient(620px 340px at 50% 26%, rgba(255,138,90,.10), transparent 62%),
     linear-gradient(160deg,#FFFDFB 0%, var(--bg) 100%);
 }
-.orders-page{
-  background:
-    radial-gradient(560px 320px at 96% 4%, rgba(255,138,90,.10), transparent 60%),
-    radial-gradient(480px 300px at 2% 98%, rgba(255,138,90,.08), transparent 58%);
-  min-height:calc(100vh - 60px);
-}
 
 .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-lg);background:#fff}
 table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
@@ -2352,3 +2346,53 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
   display:block;width:100%;height:auto;margin-top:22px;
   border-radius:20px;
 }
+
+/* ==========================================================================
+   MES COMMANDES — fond crème et filigranes, d'après la maquette
+   --------------------------------------------------------------------------
+   La page était blanche avec deux halos ; la maquette est un crème franc
+   parcouru de dessins de nourriture très pâles. La différence n'est pas
+   décorative : sur un écran blanc, une page vide de commandes ressemble à
+   une page qui n'a pas fini de charger. Un fond tenu dit qu'il n'y a rien à
+   attendre, c'est simplement vide.
+   ========================================================================== */
+.orders-page{
+  position:relative;overflow:hidden;
+  min-height:calc(100vh - 60px);
+  background:
+    radial-gradient(620px 340px at 96% 2%, rgba(255,138,90,.16), transparent 62%),
+    radial-gradient(520px 320px at 0% 96%, rgba(255,138,90,.13), transparent 60%),
+    #FDF5EE;
+}
+.orders-page .page{position:relative;z-index:1}
+
+/* les filigranes : posés derrière, jamais cliquables, jamais lus */
+.ord-decor{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ord-decor i{
+  position:absolute;display:block;color:var(--brand);opacity:.055;
+  transform:rotate(-8deg);
+}
+.ord-decor i:nth-child(2){transform:rotate(12deg)}
+.ord-decor i:nth-child(3){transform:rotate(6deg)}
+.ord-decor i:nth-child(4){transform:rotate(-14deg)}
+
+/* le titre de la maquette : franc, serré, sans ligne d'explication dessous */
+.orders-page .h1{
+  font-size:clamp(26px,7.4vw,34px);font-weight:850;letter-spacing:-.035em;
+}
+
+/* onglets : pastille blanche posée, sans trait de contour */
+.orders-page .tabs.pill button.on{
+  border:none;
+  box-shadow:0 2px 5px rgba(196,120,74,.10), 0 10px 22px -12px rgba(255,107,53,.55);
+}
+
+/* le bouton d'appel : coins larges et ombre colorée, comme sur la maquette */
+.orders-page .btn-primary{
+  border-radius:16px;
+  box-shadow:0 12px 28px -12px rgba(255,107,53,.95);
+}
+
+/* l'illustration respire davantage : c'est elle qui porte l'écran vide */
+.orders-page .empty-scene .scene-art{max-width:min(330px,80%)}
+.orders-page .empty-scene .scene-title{margin-top:6px;font-size:21px;letter-spacing:-.02em}
