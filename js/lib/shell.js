@@ -199,34 +199,48 @@
     },
 
     /* --------------------------------------------------------- bottom nav */
+    /* ------------------------------------------------------- barre du bas
+       CE QUI SUIT EST ÉCRIT UNE FOIS, PUIS PLUS JAMAIS RECONSTRUIT.
+
+       L'ancienne version réécrivait `nav.innerHTML` à chaque appel — et
+       elle est appelée depuis sept endroits, dont chaque évènement du
+       serveur et chaque changement de panier. Conséquence, invisible mais
+       constante : on appuyait sur un onglet, un rafraîchissement passait
+       entre l'appui et le relâchement, et le lien qu'on tenait n'existait
+       plus. Le clic partait dans le vide. C'est ce qu'on ressentait comme
+       « le bouton a du retard » ou « ça ouvre la mauvaise page ».
+
+       Les liens sont donc créés une seule fois, à la première ouverture et
+       à chaque changement de rôle. Ensuite on ne touche plus qu'à ce qui
+       change vraiment : l'onglet actif, le compteur du panier, le point des
+       commandes. Aucun nœud n'est détruit sous le doigt.
+       -------------------------------------------------------------------- */
     renderNav() {
       const nav = document.getElementById('bottomnav');
+      if (!nav) return;
+      const items = Shell.navItems();
 
-      nav.innerHTML = Shell.navItems().map(x => {
-        /* Deux marques, deux sens. Le panier compte des articles, donc un
-           nombre. Les commandes n'ont rien à compter — « il y a du nouveau »
-           se dit avec un point, et un point ne se lit pas, il se remarque. */
-        let marque = '';
-        if (x.badge === 'cart' && Store.cartCount)
-          marque = '<span class="nav-badge">' + (Store.cartCount > 99 ? '99+' : Store.cartCount) + '</span>';
-        else if (x.p === '/orders' && Store.unread)
-          marque = '<span class="nav-dot"></span>';
+      /* La signature ne change que si les rubriques elles-mêmes changent —
+         c'est-à-dire à la connexion, à la déconnexion, au changement de
+         rôle. Pas à chaque commande qui arrive. */
+      const signature = items.map(x => x.p).join('|');
+      if (nav.dataset.signature === signature) return Shell.majNav(items);
 
-        return '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '" ' +
-               'title="' + U.esc(x.l) + '">' +
-               '<span class="ic">' +
-                 '<span class="cap" aria-hidden="true"></span>' +
-                 UI.icon(x.i, 23) + marque +
-               '</span>' +
-               '<span class="lb">' + U.esc(x.c || x.l) + '</span></a>';
-      }).join('');
+      nav.innerHTML = items.map(x =>
+        '<a href="#' + x.p + '" title="' + U.esc(x.l) + '">' +
+          '<span class="ic">' +
+            '<span class="cap" aria-hidden="true"></span>' +
+            UI.icon(x.i, 23) +
+            '<span class="marque"></span>' +
+          '</span>' +
+          '<span class="lb">' + U.esc(x.c || x.l) + '</span></a>').join('');
+      nav.dataset.signature = signature;
 
       /* --- onde au doigt, et petite vibration ---------------------------
          L'onde part du point touché, pas du centre de l'onglet : c'est ce
          qui la fait ressentir comme une réponse au geste plutôt que comme
          une animation qui se déclenche. Elle est purement décorative, donc
-         retirée dès qu'elle a fini — un nœud de plus par appui, gardé, se
-         compterait en centaines au bout d'une soirée. */
+         retirée dès qu'elle a fini. */
       nav.querySelectorAll('a').forEach(a => {
         a.addEventListener('pointerdown', e => {
           if (w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -240,11 +254,43 @@
         }, { passive: true });
 
         /* Retour haptique : 8 ms, le minimum perceptible. Ignoré par iOS,
-           qui ne l'expose pas au web — on ne le simule pas, une animation
-           de remplacement serait pire que rien. */
+           qui ne l'expose pas au web — on ne le simule pas. */
         a.addEventListener('click', () => {
           if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
         });
+      });
+
+      Shell.majNav(items);
+    },
+
+    /** Met à jour ce qui change, sans rien recréer. */
+    majNav(items) {
+      const nav = document.getElementById('bottomnav');
+      if (!nav) return;
+      (items || Shell.navItems()).forEach((x, i) => {
+        const a = nav.children[i];
+        if (!a) return;
+        a.classList.toggle('on', Shell.isActive(x.p));
+
+        /* Deux marques, deux sens. Le panier compte des articles, donc un
+           nombre. Les commandes n'ont rien à compter — « il y a du nouveau »
+           se dit avec un point, et un point ne se lit pas, il se remarque. */
+        const m = a.querySelector('.marque');
+        if (!m) return;
+        let cls = '', txt = '';
+        if (x.badge === 'cart' && Store.cartCount) {
+          cls = 'nav-badge';
+          txt = Store.cartCount > 99 ? '99+' : String(Store.cartCount);
+        } else if (x.p === '/orders' && Store.unread) {
+          cls = 'nav-dot';
+        }
+        /* On n'écrit que si ça a changé : réécrire une pastille identique
+           relancerait son animation d'apparition à chaque rafraîchissement,
+           soit un clignotement toutes les quelques secondes. */
+        if (m.dataset.etat === cls + ':' + txt) return;
+        m.dataset.etat = cls + ':' + txt;
+        m.className = 'marque ' + cls;
+        m.textContent = txt;
       });
     },
 

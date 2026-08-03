@@ -2559,6 +2559,8 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
 @keyframes navTrait{ to{ transform:translateX(-50%) scaleX(1) } }
 
 /* ---- marques : nombre pour le panier, point pour les commandes ---- */
+.bottomnav .marque{position:absolute;z-index:2;pointer-events:none}
+.bottomnav .marque:empty:not(.nav-dot){display:none}
 .bottomnav .nav-badge{
   position:absolute;top:-3px;right:6px;z-index:2;
   min-width:18px;height:18px;padding:0 5px;
@@ -2684,3 +2686,37 @@ body.role-admin .top-actions .icon-btn{border-color:#2A2E38}
 .drv-avance b{font-size:13.5px;color:#0B6B3A}
 .drv-avance .tiny{color:#3E8763}
 .drv-avance .v{flex:none;font-size:17px;font-weight:850;color:#0B6B3A}
+
+/* ---- la barre du bas ne bouge plus au défilement -------------------------
+   Elle était déjà en position fixe, et pourtant elle flottait pendant le
+   défilement. Deux causes, toutes deux propres au téléphone :
+
+   1. Le navigateur repeint un élément fixe à chaque image du défilement,
+      dans la même couche que la page. En le promouvant sur sa propre
+      couche — translateZ(0) — le compositeur le laisse en place au lieu de
+      le redessiner en retard sur le doigt. C'est ce décalage d'une ou deux
+      images qu'on lisait comme « la barre suit ».
+
+   2. Le rebond de fin de page. En tirant au-delà du contenu, iOS et Android
+      déplacent tout le document, barre fixe comprise. `overscroll-behavior`
+      supprime ce rebond : la page s'arrête là où elle finit.
+
+   contain:layout paint achève le travail : ce qui se passe dans la barre ne
+   peut plus provoquer un recalcul de la page, et l'inverse non plus. */
+.bottomnav{
+  transform:translateZ(0);
+  -webkit-backface-visibility:hidden;
+          backface-visibility:hidden;
+  contain:layout paint;
+}
+/* la barre est centrée par transform sur tablette : la promotion de couche
+   doit s'ajouter à ce centrage, pas l'écraser */
+@media(min-width:640px){
+  .bottomnav{transform:translateX(-50%) translateZ(0)}
+}
+
+html,body{overscroll-behavior-y:none}
+
+/* Le contenu ne passe jamais sous la barre : la hauteur reservee tient
+   compte de la marge et de la zone sûre du téléphone. */
+.page{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 26px)}
