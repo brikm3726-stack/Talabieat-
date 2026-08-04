@@ -1031,7 +1031,11 @@
         restaurant: resto(), client: chez(), driver: moi(),
         chemin: o.status === 'delivering'
           ? ['driver', 'client']
-          : ['driver', 'restaurant', 'client']
+          : ['driver', 'restaurant', 'client'],
+        noms: {
+          restaurant: o.restaurant && o.restaurant.name,
+          client: o.client_name || (o.client && o.client.full_name) || 'Client'
+        }
       }),
 
       fetch: async () => {

@@ -33,8 +33,17 @@
   const CITY = { lat: 36.7118, lng: 4.0458 };
   const NOMINATIM = 'https://nominatim.openstreetmap.org';
 
-  const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-  const LEAFLET_JS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  /* Leaflet est DANS le dépôt, et le CDN ne sert plus que de secours.
+     Il arrivait d'unpkg.com : une carte qui dépend d'un domaine étranger est
+     une carte qui ne s'affiche pas quand ce domaine est lent, filtré ou
+     simplement injoignable — ce qui arrive ici, et laisse le client devant un
+     rectangle vide au moment où il attend son repas. Servi depuis notre
+     propre domaine, il est aussi mis en cache par le service worker : la
+     carte s'ouvre alors même sans réseau, sur les tuiles déjà vues. */
+  const LEAFLET_CSS = U.asset('assets/vendor/leaflet/leaflet.css');
+  const LEAFLET_JS  = U.asset('assets/vendor/leaflet/leaflet.js');
+  const LEAFLET_CSS_SECOURS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  const LEAFLET_JS_SECOURS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 
   const TUILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
   // La licence OpenStreetMap impose de citer la source sur toute carte
@@ -43,31 +52,57 @@
 
   let promesse = null;
 
-  /** Charge Leaflet une seule fois. Résout false si c'est impossible. */
+  function feuilleDeStyle(href) {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = href;
+    css.setAttribute('data-leaflet', '');
+    document.head.appendChild(css);
+  }
+
+  /**
+   * Charge Leaflet. Résout false si c'est impossible.
+   *
+   * Le fichier local d'abord, le CDN ensuite : deux chances valent mieux
+   * qu'une, et la seconde ne coûte rien tant que la première suffit.
+   *
+   * Un échec n'est PAS mémorisé. La promesse était gardée telle quelle : une
+   * seule tentative ratée au démarrage — le temps que le réseau du téléphone
+   * se réveille — condamnait toutes les cartes de la session, y compris
+   * celle du suivi ouverte dix minutes plus tard avec une connexion revenue.
+   */
   function chargerLeaflet() {
     if (w.L && w.L.map) return Promise.resolve(true);
     if (promesse) return promesse;
 
     promesse = new Promise(resolve => {
-      const fini = ok => { clearTimeout(minuteur); resolve(ok); };
+      let fait = false;
+      const fini = ok => {
+        if (fait) return;
+        fait = true;
+        clearTimeout(minuteur);
+        if (!ok) promesse = null;        // on pourra réessayer plus tard
+        resolve(ok);
+      };
       // au-delà de 12 s, on considère que la carte ne viendra pas : le mode
       // dégradé vaut mieux qu'une attente sans fin
       const minuteur = setTimeout(() => fini(false), 12000);
 
-      if (!document.querySelector('link[data-leaflet]')) {
-        const css = document.createElement('link');
-        css.rel = 'stylesheet';
-        css.href = LEAFLET_CSS;
-        css.setAttribute('data-leaflet', '');
-        document.head.appendChild(css);
-      }
+      if (!document.querySelector('link[data-leaflet]')) feuilleDeStyle(LEAFLET_CSS);
 
-      const s = document.createElement('script');
-      s.src = LEAFLET_JS;
-      s.async = true;
-      s.onload  = () => fini(!!(w.L && w.L.map));
-      s.onerror = () => fini(false);
-      document.head.appendChild(s);
+      const charger = (src, secours) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        s.onload = () => fini(!!(w.L && w.L.map));
+        s.onerror = () => {
+          if (!secours) return fini(false);
+          feuilleDeStyle(LEAFLET_CSS_SECOURS);
+          charger(secours, null);
+        };
+        document.head.appendChild(s);
+      };
+      charger(LEAFLET_JS, LEAFLET_JS_SECOURS);
     });
     return promesse;
   }
@@ -262,7 +297,9 @@
       };
 
       let map = null, markers = {}, attendus = points, premier = true, mort = false;
-      let trace = null;
+      /* Les trois traits du trajet : le tronçon en cours, les pointillés qui
+         filent dessus, et le tronçon d'après. */
+      const voies = { encours: null, flux: null, apres: null };
       /* Dès que le doigt déplace la carte, on arrête de la recadrer : quelqu'un
          qui regarde le quartier d'à côté ne veut pas être ramené de force
          toutes les quinze secondes. Le bouton de recentrage rend la main. */
@@ -270,13 +307,24 @@
 
       const defs = {
         restaurant: ['🏪', 'lm-resto', 'Restaurant'],
-        client:     ['🏠', 'lm-client', 'Vous'],
+        client:     ['🏠', 'lm-client', 'Client'],
         driver:     ['🛵', 'lm-driver', 'Livreur']
       };
 
-      const repere = (emoji, cls) => L.divIcon({
+      /* Le nom à côté du repère, pas seulement au survol : sur un téléphone il
+         n'y a pas de survol, et trois épingles sans étiquette obligent à
+         deviner laquelle est le restaurant. La seconde ligne — l'enseigne, le
+         nom du client — vient de l'appelant quand il la connaît. */
+      const repere = (emoji, cls, titre, sous) => L.divIcon({
         className: '', iconSize: [38, 38], iconAnchor: [19, 19],
-        html: '<div class="lm-pin ' + (cls || '') + '">' + emoji + '</div>'
+        html: '<div class="lm-pin ' + (cls || '') + '"><span>' + emoji + '</span></div>' +
+          /* Pas d'étiquette sans nom à écrire : « Livreur » posé à côté d'un
+             scooter n'apprend rien, et trois étiquettes sur une petite carte
+             se recouvrent. L'appelant décide qui mérite la sienne. */
+          (sous
+            ? '<span class="lm-tag"><b>' + U.esc(titre || '') + '</b>' +
+              U.esc(sous) + '</span>'
+            : '')
       });
 
       function appliquer(pts) {
@@ -293,24 +341,53 @@
           bornes.push(ll);
           if (markers[k]) markers[k].setLatLng(ll);
           else markers[k] = L.marker(ll, {
-            icon: repere(defs[k][0], defs[k][1]), title: defs[k][2]
+            icon: repere(defs[k][0], defs[k][1], defs[k][2],
+                         pts && pts.noms && pts.noms[k]),
+            title: defs[k][2],
+            /* Le livreur passe devant : c'est lui qu'on suit, et une épingle
+               fixe ne doit pas le recouvrir quand il arrive à destination. */
+            zIndexOffset: k === 'driver' ? 1000 : 0
           }).addTo(map);
         });
 
-        /* Le chemin parcouru : un trait pointillé qui relie les repères dans
-           l'ordre où on les visite. À vol d'oiseau, faute d'un service
-           d'itinéraire — il ne prétend pas dire par où passer, seulement dans
-           quel sens ça va. C'est ce qui fait lire « il monte vers le
-           restaurant » plutôt que « trois épingles sur une carte ». */
-        const chemin = (pts && pts.chemin || []).map(k => markers[k])
+        /* LA MISSION EN DEUX TRONÇONS
+           -------------------------------------------------------------------
+           Le trajet n'est pas une ligne, c'est une suite : le livreur va
+           d'abord au restaurant, ensuite chez le client. Un seul trait de la
+           même couleur laissait croire qu'il venait droit sur le client, et
+           rendait incompréhensible le moment où il s'en éloigne.
+
+           Le tronçon EN COURS est plein et orange, avec des pointillés blancs
+           qui filent dessus dans le sens de la marche — c'est ce qui se lit
+           comme « en direct » sans écrire le mot. Le tronçon D'APRÈS est
+           sombre et discret : il existe, il n'est pas commencé.
+
+           À vol d'oiseau, faute d'un service d'itinéraire : le trait ne
+           prétend pas dire par où passer, seulement dans quel sens ça va. */
+        const etapes = (pts && pts.chemin || []).map(k => markers[k])
           .filter(Boolean).map(m => m.getLatLng());
-        if (chemin.length > 1) {
-          if (trace) trace.setLatLngs(chemin);
-          else trace = L.polyline(chemin, {
-            color: '#FF4D2D', weight: 4, opacity: .75,
-            dashArray: '2 9', lineCap: 'round'
-          }).addTo(map);
-        } else if (trace) { map.removeLayer(trace); trace = null; }
+
+        const pose = (garde, coords, style) => {
+          if (coords.length < 2) {
+            if (voies[garde]) { map.removeLayer(voies[garde]); voies[garde] = null; }
+            return;
+          }
+          if (voies[garde]) voies[garde].setLatLngs(coords);
+          else voies[garde] = L.polyline(coords, style).addTo(map);
+        };
+
+        pose('encours', etapes.slice(0, 2), {
+          color: '#FF4D2D', weight: 7, opacity: .9,
+          lineCap: 'round', lineJoin: 'round'
+        });
+        pose('flux', etapes.slice(0, 2), {
+          color: '#fff', weight: 3, opacity: .95,
+          lineCap: 'round', dashArray: '2 14', className: 'lm-flux'
+        });
+        pose('apres', etapes.slice(1), {
+          color: '#2A1A2E', weight: 5, opacity: .38,
+          lineCap: 'round', lineJoin: 'round', dashArray: '9 10'
+        });
 
         if (!bornes.length) { map.setView([CITY.lat, CITY.lng], 13); return; }
 
@@ -335,27 +412,47 @@
         }
       }
 
+      /* Toute panne passe par ici : une carte qui échoue en silence est la
+         pire des pannes, parce qu'on la prend pour une application cassée. */
+      const echec = raison => { if (opts && opts.onEchec) opts.onEchec(raison); };
+
       chargerLeaflet().then(ok => {
         if (mort) return;
-        if (!ok) {
-          if (opts && opts.onEchec)
-            opts.onEchec('La carte n’a pas pu être téléchargée — vérifiez votre connexion.');
-          return;
-        }
-        map = L.map(container, Object.assign({
-          zoomControl: true, attributionControl: true
-        }, fige ? {
-          dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
-          touchZoom: false, boxZoom: false, keyboard: false,
-          zoomControl: false, tap: false
-        } : null));
+        if (!ok)
+          return echec('Le moteur de carte n’a pas pu être chargé.');
 
-        L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT }).addTo(map);
-        /* Le doigt reprend la main : à partir de là, la carte ne se recadre
-           plus toute seule. */
-        if (suit) map.on('dragstart', () => { libre = true; });
-        appliquer(attendus);
-        setTimeout(() => map.invalidateSize(), 260);
+        try {
+          map = L.map(container, Object.assign({
+            zoomControl: true, attributionControl: true
+          }, fige ? {
+            dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+            touchZoom: false, boxZoom: false, keyboard: false,
+            zoomControl: false, tap: false
+          } : null));
+
+          const tuiles = L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT });
+
+          /* Le moteur peut très bien se charger et les tuiles ne jamais
+             arriver : filtrage, coupure, quota. On voyait alors un rectangle
+             gris sans explication. Quelques échecs de suite sans une seule
+             tuile reçue, et on le dit. */
+          let rates = 0, recues = 0;
+          tuiles.on('tileload', () => { recues++; });
+          tuiles.on('tileerror', () => {
+            if (++rates >= 6 && !recues)
+              echec('Le fond de carte ne répond pas — vérifiez votre connexion.');
+          });
+          tuiles.addTo(map);
+
+          /* Le doigt reprend la main : à partir de là, la carte ne se recadre
+             plus toute seule. */
+          if (suit) map.on('dragstart', () => { libre = true; });
+          appliquer(attendus);
+          setTimeout(() => { if (map) map.invalidateSize(); }, 260);
+        } catch (e) {
+          console.error(e);
+          echec(e.message || 'La carte n’a pas pu être construite.');
+        }
       });
 
       return {
@@ -373,7 +470,8 @@
         destroy() {
           mort = true;
           try { if (map) map.remove(); } catch (e) {}
-          markers = {}; map = null; trace = null;
+          markers = {}; map = null;
+          voies.encours = voies.flux = voies.apres = null;
         }
       };
     },

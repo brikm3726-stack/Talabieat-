@@ -17,7 +17,7 @@
 
 /* Changer ce numéro à chaque mise en ligne : c'est lui qui déclenche le
    remplacement de l'ancien cache par le nouveau. */
-const VERSION = 'talabi-v77';
+const VERSION = 'talabi-v78';
 
 /* Quatre applications partagent ce fichier (client à la racine, resto/,
    livreur/, admin/). Chacune a son propre service worker de trois lignes qui
@@ -38,6 +38,10 @@ const A_PRECHARGER = [
   './manifest.webmanifest',
   R + 'config.js',
   R + 'assets/css/app.css',
+  /* Le moteur de carte est chez nous : mis en cache, il ouvre le suivi même
+     sans réseau, sur les tuiles déjà vues. */
+  R + 'assets/vendor/leaflet/leaflet.css',
+  R + 'assets/vendor/leaflet/leaflet.js',
   R + 'assets/img/logo.jpg',
   // premiere image vue a l'ouverture : elle ne doit jamais attendre le reseau
   R + 'assets/img/bg/entrer.jpg',

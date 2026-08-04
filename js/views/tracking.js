@@ -375,7 +375,14 @@
            s'éloigne parfois de chez lui. */
         chemin: o.status === 'delivering'
           ? ['driver', 'client']
-          : ['driver', 'restaurant', 'client']
+          : ['driver', 'restaurant', 'client'],
+        /* Les deux repères fixes portent leur nom. Le livreur, non : le
+           scooter qui bat se reconnaît seul, et la feuille du bas le nomme
+           déjà juste en dessous. */
+        noms: {
+          restaurant: o.restaurant && o.restaurant.name,
+          client: 'Chez vous'
+        }
       }),
 
       /* Le statut est relu en même temps que la position : c'est lui qui fait
