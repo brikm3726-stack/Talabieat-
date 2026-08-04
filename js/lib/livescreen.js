@@ -210,6 +210,52 @@
       '</div>';
     },
 
+    /**
+     * LA LIGNE DE MISSION — d'après la maquette « 35 ».
+     *
+     * Le trajet raconté de haut en bas, dans l'ordre où il se déroule : le
+     * ruban est orange sur le tronçon en cours, sombre sur celui qui reste, et
+     * chaque brin porte ce qu'il coûte — « 1,2 km · 4 min ».
+     *
+     * C'est la réponse au vrai besoin : quand ça traîne, le client ne veut pas
+     * une carte, il veut savoir OÙ en est son livreur et COMBIEN il reste. Et
+     * comme elle est dessinée en HTML, elle ne dépend d'aucune tuile ni
+     * d'aucun moteur de carte : elle s'affiche toujours, y compris là où la
+     * carte renonce. C'est la partie de l'écran qui ne peut pas tomber.
+     *
+     * etapes : [{ ic, t, s, ici, fait, vers:{ on, txt } }]
+     *   ic/t/s  pictogramme, titre, précision
+     *   ici     l'étape où l'on se trouve — mise en avant
+     *   fait    déjà franchie
+     *   vers    le brin qui descend vers l'étape suivante
+     */
+    ligne(etapes) {
+      return '<div class="lv-ligne">' + etapes.map((e, i) => {
+        const dernier = i === etapes.length - 1;
+        const cls = 'lv-etape' + (e.ici ? ' ici' : '') + (e.fait ? ' fait' : '');
+        return '<div class="' + cls + '">' +
+            '<span class="lv-rond">' + (e.ic || '') + '</span>' +
+            '<span class="lv-tx"><b>' + U.esc(e.t || '') + '</b>' +
+              (e.s ? '<small>' + U.esc(e.s) + '</small>' : '') + '</span>' +
+          '</div>' +
+          (!dernier && e.vers
+            ? '<div class="lv-brin' + (e.vers.on ? ' on' : '') + '">' +
+                '<i></i>' + (e.vers.txt ? '<span>' + U.esc(e.vers.txt) + '</span>' : '') +
+              '</div>'
+            : '');
+      }).join('') + '</div>';
+    },
+
+    /**
+     * L'heure d'arrivée, pas seulement les minutes restantes. « 47 min » se
+     * périme dans la tête de celui qui le lit : dix minutes plus tard, il ne
+     * sait plus si c'était 47 depuis le début. « Vers 20:45 » reste vrai.
+     */
+    heureArrivee(min) {
+      if (!min || min <= 0) return '';
+      return 'arrivée vers ' + U.time(Date.now() + min * 60000);
+    },
+
     /** Un rappel encadré, sous la personne : l'argent à préparer, une consigne. */
     note(icone, html) {
       return '<div class="lv-note"><span class="ic">' + icone + '</span>' +

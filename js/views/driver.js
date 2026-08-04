@@ -1084,6 +1084,32 @@
         const t = LiveScreen.trajet(moi(), cible);
         const st = LiveTrack.state;
 
+        /* La même ligne de mission que celle du client, vue de l'autre côté :
+           il voit sa course entière et non seulement l'étape en cours — ce qui
+           reste après le restaurant compte pour décider s'il accepte un détour
+           ou s'il fait le plein. Et comme elle est en HTML, elle tient même là
+           où la carte renonce, ce qui arrive au fond d'une cave d'immeuble. */
+        const nomResto = (o.restaurant && o.restaurant.name) || 'Restaurant';
+        const nomClient = o.client_name || (o.client && o.client.full_name) || 'Client';
+        const restoClient = LiveScreen.trajet(resto(), chez());
+        const total = (t ? t.min : 0) + (versClient ? 0 : (restoClient ? restoClient.min : 0));
+
+        const ligne = versClient
+          ? LiveScreen.ligne([
+              { ic: '🏪', t: nomResto, s: 'Commande récupérée', fait: true,
+                vers: { on: false, txt: '' } },
+              { ic: '🛵', t: 'Vous', s: 'en route vers le client', ici: true,
+                vers: { on: true, txt: t ? t.texte : '' } },
+              { ic: '🏠', t: nomClient, s: LiveScreen.heureArrivee(total) }
+            ])
+          : LiveScreen.ligne([
+              { ic: '🛵', t: 'Vous', s: 'en route vers le restaurant', ici: true,
+                vers: { on: true, txt: t ? t.texte : '' } },
+              { ic: '🏪', t: nomResto, s: 'récupérez la commande',
+                vers: { on: false, txt: restoClient ? restoClient.texte : '' } },
+              { ic: '🏠', t: nomClient, s: LiveScreen.heureArrivee(total) }
+            ]);
+
         return LiveScreen.grab() +
           LiveScreen.eta(
             versClient ? 'Chez le client' : 'Au restaurant',
@@ -1091,6 +1117,7 @@
             t ? t.texte : (st.error ? 'activez la localisation' : 'recherche du signal')
           ) +
           LiveScreen.progress(ETAPES, versClient ? 2 : 1) +
+          ligne +
 
           /* Avant le retrait, l'interlocuteur est le restaurant ; après, c'est
              le client. Afficher les deux mettrait le livreur devant un choix

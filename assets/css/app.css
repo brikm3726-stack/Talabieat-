@@ -816,6 +816,54 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .lv-steps{display:flex;justify-content:space-between;gap:6px;font-size:10.5px;font-weight:600;color:var(--muted)}
 .lv-steps span.on{color:var(--brand);font-weight:800}
 
+/* ---- LA LIGNE DE MISSION, d'après la maquette « 35 » ----
+   Le trajet de haut en bas, dans l'ordre où il se déroule. Ruban orange sur le
+   tronçon en cours, sombre sur celui qui reste — les deux couleurs de la
+   maquette, et le même sens de lecture.
+
+   Elle est en HTML, pas sur la carte : c'est délibéré. Quand les tuiles ne
+   viennent pas, c'est elle qui répond aux deux seules questions qu'on se pose
+   en attendant son repas — où en est-il, et combien de temps encore. La partie
+   de l'écran qui ne peut pas tomber. */
+.lv-ligne{margin-top:16px}
+
+.lv-etape{display:flex;align-items:center;gap:11px}
+.lv-rond{
+  width:34px;height:34px;flex:none;border-radius:50%;
+  display:grid;place-items:center;font-size:16px;
+  background:var(--bg);color:var(--ink);
+  box-shadow:inset 0 0 0 2px var(--cream-line);
+}
+.lv-etape .lv-tx{min-width:0;line-height:1.25}
+.lv-etape .lv-tx b{display:block;font-size:13.5px;font-weight:700;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lv-etape .lv-tx small{font-size:11.5px;font-weight:600;color:var(--muted)}
+
+/* L'étape où l'on se trouve : pastille pleine, comme le repère de la carte. */
+.lv-etape.ici .lv-rond{
+  background:radial-gradient(120% 120% at 32% 24%,#FFC182,#F97316 58%,#E8600A);
+  color:#fff;box-shadow:0 4px 12px -4px rgba(233,96,10,.7);
+}
+.lv-etape.ici .lv-tx b{color:var(--brand)}
+/* Franchie : elle s'efface sans disparaître — on doit pouvoir vérifier d'où
+   l'on vient, pas la relire. */
+.lv-etape.fait .lv-rond{background:#2A1A2E;color:#fff;box-shadow:none}
+.lv-etape.fait .lv-tx b{color:var(--muted);font-weight:650}
+
+/* Le brin entre deux étapes : le ruban, et ce qu'il coûte écrit à côté. */
+.lv-brin{display:flex;align-items:center;gap:11px;min-height:34px}
+.lv-brin i{
+  width:34px;flex:none;align-self:stretch;
+  background:linear-gradient(#2A1A2E,#2A1A2E) center/6px 100% no-repeat;
+  opacity:.3;border-radius:3px;
+}
+.lv-brin.on i{
+  background-image:linear-gradient(#F97316,#FF4D2D);
+  opacity:1;
+}
+.lv-brin span{font-size:11.5px;font-weight:700;color:var(--muted)}
+.lv-brin.on span{color:var(--brand)}
+
 /* ---- la personne d'en face ---- */
 .lv-who{
   display:flex;align-items:center;gap:12px;margin-top:18px;

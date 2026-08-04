@@ -436,9 +436,38 @@
           titre = 'Votre livreur';
         }
 
+        /* LA LIGNE DE MISSION — où il est, et ce qui reste après.
+           Avant le retrait, le livreur est au-dessus du restaurant : il y va.
+           Après, il est entre le restaurant et chez vous. L'ordre de lecture
+           est celui du temps, ce qui évite d'avoir à se demander pourquoi le
+           livreur s'éloigne. */
+        const nomResto = (o.restaurant && o.restaurant.name) || 'Restaurant';
+        const totalMin = o.status === 'delivering'
+          ? (versClient ? versClient.min : 0)
+          : ((versResto ? versResto.min : 0) + (restoClient ? restoClient.min : 0));
+
+        const ligne = o.status === 'delivering'
+          ? LiveScreen.ligne([
+              /* Le tronçon déjà parcouru reste sombre : l'orange désigne
+                 toujours ce qui se fait maintenant, jamais ce qui est fini. */
+              { ic: '🏪', t: nomResto, s: 'Commande récupérée', fait: true,
+                vers: { on: false, txt: '' } },
+              { ic: '🛵', t: 'Votre livreur', s: pos ? 'en route vers vous' : 'position en attente',
+                ici: true, vers: { on: true, txt: versClient ? versClient.texte : '' } },
+              { ic: '🏠', t: 'Chez vous', s: LiveScreen.heureArrivee(totalMin) }
+            ])
+          : LiveScreen.ligne([
+              { ic: '🛵', t: 'Votre livreur', s: pos ? 'en route vers le restaurant' : 'position en attente',
+                ici: true, vers: { on: true, txt: versResto ? versResto.texte : '' } },
+              { ic: '🏪', t: nomResto, s: 'il récupère votre commande',
+                vers: { on: false, txt: restoClient ? restoClient.texte : '' } },
+              { ic: '🏠', t: 'Chez vous', s: LiveScreen.heureArrivee(totalMin) }
+            ]);
+
         return LiveScreen.grab() +
           LiveScreen.eta(titre, valeur, apres) +
           LiveScreen.progress(ETAPES, idx) +
+          ligne +
           LiveScreen.person({
             name: (o.driver && o.driver.full_name) || 'Votre livreur',
             /* Ni note ni véhicule : la plateforme ne les connaît pas. Un
