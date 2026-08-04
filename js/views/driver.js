@@ -988,6 +988,130 @@
   }, GUARD);
 
   /* ======================================================================
+     COURSE EN DIRECT — PLEIN ÉCRAN (livreur)
+     ----------------------------------------------------------------------
+     Le même écran que celui du client, vu de l'autre côté. Il en a plus
+     besoin que lui : le client attend assis, le livreur roule. Sa carte de
+     course vivait dans une page qui défile, entre le détail des gains et le
+     bouton « Problème » — pour savoir où aller, il devait faire défiler d'une
+     main au feu rouge.
+
+     Ici, trois choses et rien d'autre : où je vais, qui je livre, et le geste
+     du moment. Le reste — les gains, la commission, le détail — reste sur la
+     page « Ma livraison », qu'on lit à l'arrêt.
+     ====================================================================== */
+  Router.add('/d/live/:id', async function (params, query, view) {
+    const encours = o => ['driver_assigned', 'delivering'].indexOf(o.status) >= 0;
+
+    let o = await API.safe(() => API.order(params.id), null);
+    if (!o) return Router.go('/d/active', true);
+    if (!encours(o)) return Router.go('/d/active', true);
+
+    /* Le partage démarre avec l'écran : ouvrir son suivi sans envoyer sa
+       position, c'est regarder une carte où l'on n'apparaît pas. */
+    LiveTrack.start('course');
+    LiveTrack.pushOnce().catch(() => {});
+
+    const ETAPES = ['Acceptée', 'Au resto', 'Chez le client', 'Livrée'];
+
+    const resto  = () => o.restaurant && U.hasCoords(o.restaurant)
+      ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null;
+    const chez   = () => U.hasCoords({ lat: o.address_lat, lng: o.address_lng })
+      ? { lat: +o.address_lat, lng: +o.address_lng } : null;
+    /* Sa propre position vient du téléphone, pas de la base : elle n'a pas
+       fait l'aller-retour par le serveur, elle a donc quelques secondes
+       d'avance — et c'est lui qui bouge. */
+    const moi    = () => LiveTrack.state.pos;
+
+    const ecran = LiveScreen.open(view, {
+      code: '#' + (o.code || ''),
+      back: '/d/active',
+
+      points: () => ({ restaurant: resto(), client: chez(), driver: moi() }),
+
+      fetch: async () => {
+        const frais = await API.safe(() => API.order(params.id), null);
+        if (frais) o = frais;
+        /* Course terminée ou reprise par un autre : on ne laisse pas un
+           livreur devant une carte qui ne le concerne plus. */
+        if (!encours(o)) Router.go('/d/active', true);
+      },
+
+      sheet: () => {
+        /* La commande est récupérée : il roule vers le client. Sinon il roule
+           encore vers le restaurant. */
+        const versClient = o.status === 'delivering';
+        const cible = versClient ? chez() : resto();
+        const t = LiveScreen.trajet(moi(), cible);
+        const st = LiveTrack.state;
+
+        return LiveScreen.grab() +
+          LiveScreen.eta(
+            versClient ? 'Chez le client' : 'Au restaurant',
+            t ? t.min + ' min' : (st.pos ? '—' : 'Position…'),
+            t ? t.texte : (st.error ? 'activez la localisation' : 'recherche du signal')
+          ) +
+          LiveScreen.progress(ETAPES, versClient ? 2 : 1) +
+
+          /* Avant le retrait, l'interlocuteur est le restaurant ; après, c'est
+             le client. Afficher les deux mettrait le livreur devant un choix
+             qu'il n'a pas à faire en roulant. */
+          (versClient
+            ? LiveScreen.person({
+                name: o.client_name || (o.client && o.client.full_name) || 'Client',
+                meta: U.esc(o.address_street || '') +
+                      (o.zone ? ' · ' + U.esc(o.zone.name) : ''),
+                phone: o.client_phone,
+                route: chez() ? U.gmapsRoute(o.address_lat, o.address_lng) : null
+              })
+            : LiveScreen.person({
+                name: (o.restaurant && o.restaurant.name) || 'Restaurant',
+                meta: U.esc((o.restaurant && o.restaurant.address) || ''),
+                phone: o.restaurant && o.restaurant.phone,
+                route: resto() ? U.gmapsRoute(o.restaurant.lat, o.restaurant.lng) : null
+              })) +
+
+          /* L'argent, dans le sens où il circule à cet instant : au restaurant
+             il avance de sa poche, chez le client il se rembourse. Le même
+             chiffre, mais pas le même geste — et se tromper de sens coûte une
+             course entière. */
+          (versClient
+            ? LiveScreen.note(UI.icon('wallet', 18),
+                'Encaissez <b>' + U.esc(U.money(o.total)) + '</b> en espèces')
+            : LiveScreen.note(UI.icon('wallet', 18),
+                'À avancer au restaurant : <b>' +
+                U.esc(U.money(o.total - (o.delivery_fee || 0))) + '</b>')) +
+
+          (o.note ? LiveScreen.note('📝', U.esc(o.note)) : '') +
+
+          LiveScreen.action(
+            versClient ? '✅ Commande livrée' : '🚀 J’ai récupéré la commande',
+            'data-dact="' + (versClient ? 'delivered' : 'delivering') + '" ' +
+            'data-id="' + U.esc(o.id) + '"');
+      },
+
+      /* Le bouton de l'écran délègue au même code que la page « Ma
+         livraison » : confirmation avant « livrée », son, arrêt du partage.
+         Deux chemins pour changer un statut, c'est un jour où l'un des deux
+         oublie d'arrêter le GPS. */
+      bind: sheet => {
+        bindDelivery(sheet, async () => {
+          const frais = await API.safe(() => API.order(params.id), null);
+          if (frais) o = frais;
+          if (!encours(o)) return Router.go('/d/active');
+          ecran.repaint();
+        });
+      }
+    });
+
+    /* Chaque relevé GPS redessine la feuille : les mètres qui restent
+       diminuent pendant qu'il roule, sans attendre le tour de 12 secondes. */
+    const offTrack = LiveTrack.onChange(() => ecran.repaint());
+    const off = API.onChange(t => { if (t === 'orders' || t === '*') ecran.repaint(); });
+    return () => { off(); offTrack(); ecran.destroy(); };
+  }, GUARD);
+
+  /* ======================================================================
      CARTE DE COURSE
      ====================================================================== */
   function deliveryCard(o, isMine) {
@@ -1064,6 +1188,14 @@
             '<span class="tiny">Le client vous rembourse à la livraison</span></span>' +
           '<b class="v">' + U.money(o.total - (o.delivery_fee || 0)) + '</b>' +
         '</div>') +
+
+      /* La course en direct, avant les boutons : c'est là qu'on va quand on
+         remonte sur le scooter. Le détail au-dessus se lit à l'arrêt, une
+         fois ; cet écran-là s'ouvre à chaque carrefour. */
+      (isMine
+        ? '<a class="btn btn-dark btn-block" style="margin-top:13px" href="#/d/live/' +
+            U.esc(o.id) + '">' + UI.icon('navigation', 18) + ' Suivre en plein écran</a>'
+        : '') +
 
       '<div class="row" style="gap:9px;margin-top:13px">' +
         (isMine

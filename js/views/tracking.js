@@ -184,7 +184,14 @@
                 '<div class="row" style="gap:8px;margin-top:8px">' +
                   '<span class="tag tag-ok" id="liveTag">🔴 Suivi en direct</span>' +
                   '<button class="btn btn-ghost btn-sm" id="recenter" style="margin-left:auto">Recentrer</button>' +
-                '</div>'
+                '</div>' +
+                /* Cette page dit tout de la commande : les plats, l'adresse,
+                   le total. Suivre un livreur qui roule demande l'inverse —
+                   une carte et trois chiffres. D'où la porte vers l'écran
+                   plein écran, au lieu d'agrandir celle-ci. */
+                '<a class="btn btn-primary btn-block" style="margin-top:10px" ' +
+                  'href="#/live/' + U.esc(o.id) + '">' + UI.icon('navigation', 18) +
+                  ' Suivre en plein écran</a>'
               : '') +
           '</div>' : '') +
 
@@ -328,6 +335,98 @@
 
     return () => { off(); clearInterval(guard); stopLive(); };
   }, { auth: true });
+
+  /* ======================================================================
+     SUIVI EN DIRECT — PLEIN ÉCRAN (client)
+     ----------------------------------------------------------------------
+     Le suivi tenait dans une carte de 200 px au milieu d'une page qui
+     défile : pour voir où en était son livreur, le client faisait défiler,
+     et la carte remontait hors de l'écran dès qu'il touchait autre chose.
+     Or c'est l'écran qu'on rouvre toutes les deux minutes en attendant son
+     repas. Il occupe donc tout, et ne dit que quatre choses : dans combien
+     de temps, où l'on en est, qui apporte, combien préparer.
+     ====================================================================== */
+  Router.add('/live/:id', async function (params, query, view) {
+    let o = await API.safe(() => API.order(params.id), null);
+    if (!o) return Router.go('/orders', true);
+
+    /* Un suivi n'existe qu'entre l'attribution et la livraison. Avant, il n'y
+       a rien à suivre ; après, il n'y a plus rien à voir — et une carte vide
+       plein écran, sans retour possible vers le détail, est un piège. */
+    const suivable = o => ['driver_assigned', 'delivering'].indexOf(o.status) >= 0;
+    if (!suivable(o)) return Router.go('/order/' + params.id, true);
+
+    const client = { lat: o.address_lat, lng: o.address_lng };
+    let pos = null;                       // dernière position connue du livreur
+
+    const ETAPES = ['Prête', 'Livreur assigné', 'En livraison', 'Livrée'];
+
+    const ecran = LiveScreen.open(view, {
+      code: '#' + (o.code || ''),
+      back: '/order/' + params.id,
+
+      points: () => ({
+        restaurant: o.restaurant && U.hasCoords(o.restaurant)
+          ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null,
+        client: U.hasCoords(client) ? client : null,
+        driver: pos
+      }),
+
+      /* Le statut est relu en même temps que la position : c'est lui qui fait
+         basculer « passe au restaurant » en « arrive chez vous », et qui
+         ferme l'écran quand la course se termine. */
+      fetch: async () => {
+        const frais = await API.safe(() => API.order(params.id), null);
+        if (frais) o = frais;
+        pos = await API.safe(() => API.driverPosition(params.id), null);
+        if (!suivable(o)) Router.go('/order/' + params.id, true);
+      },
+
+      sheet: () => {
+        const idx = { driver_assigned: 1, delivering: 2, delivered: 3 }[o.status] || 1;
+
+        /* Avant le retrait, le livreur doit d'abord passer au restaurant :
+           annoncer la seule distance qui le sépare du client donnerait un
+           chiffre deux fois trop optimiste. */
+        const versResto = LiveScreen.trajet(pos, o.restaurant);
+        const restoClient = LiveScreen.trajet(o.restaurant, client);
+        const versClient = LiveScreen.trajet(pos, client);
+
+        let valeur = '—', apres = '', titre = 'Arrivée estimée';
+        if (o.status === 'delivering' && versClient) {
+          valeur = versClient.min + ' min';
+          apres = versClient.texte;
+        } else if (versResto && restoClient) {
+          valeur = (versResto.min + restoClient.min) + ' min';
+          apres = 'passe au restaurant d’abord';
+        } else if (!pos) {
+          valeur = 'En route';
+          apres = 'position pas encore partagée';
+          titre = 'Votre livreur';
+        }
+
+        return LiveScreen.grab() +
+          LiveScreen.eta(titre, valeur, apres) +
+          LiveScreen.progress(ETAPES, idx) +
+          LiveScreen.person({
+            name: (o.driver && o.driver.full_name) || 'Votre livreur',
+            /* Ni note ni véhicule : la plateforme ne les connaît pas. Un
+               « ★ 4.9 » inventé se retournerait contre nous le jour où le
+               client comparerait. Ce qu'on sait vraiment, c'est la
+               fraîcheur du signal — et c'est ce qui l'intéresse ici. */
+            meta: pos
+              ? '🛵 Livreur · signal ' + U.esc(U.ago(pos.at))
+              : '🛵 Livreur · en attente du signal',
+            phone: o.driver && o.driver.phone
+          }) +
+          LiveScreen.note(UI.icon('wallet', 18),
+            'Préparez <b>' + U.esc(U.money(o.total)) + '</b> en espèces');
+      }
+    });
+
+    const off = API.onChange(t => { if (t === 'orders' || t === '*') ecran.repaint(); });
+    return () => { off(); ecran.destroy(); };
+  }, { auth: true, roles: ['client'] });
 
   /* ------------------------------------------------------------ helpers */
   function etaText(o) {
