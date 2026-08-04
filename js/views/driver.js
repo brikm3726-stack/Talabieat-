@@ -1071,21 +1071,24 @@
           chez: UI.icon('home', 15)
         };
 
-        return versClient
-          ? LiveScreen.plan([
-              { p: resto(), ic: IC.resto, t: nomResto, s: 'commande récupérée',
-                fait: true, vers: { on: false, txt: '' } },
-              { p: moi(), ic: IC.moi, t: 'Vous', ici: true,
-                vers: { on: true, txt: t ? t.texte : '' } },
-              { p: chez(), ic: IC.chez, t: nomClient }
-            ], opts)
-          : LiveScreen.plan([
-              { p: moi(), ic: IC.moi, t: 'Vous', ici: true,
-                vers: { on: true, txt: t ? t.texte : '' } },
-              { p: resto(), ic: IC.resto, t: nomResto, s: 'récupérez la commande',
-                vers: { on: false, txt: rc ? rc.texte : '' } },
-              { p: chez(), ic: IC.chez, t: nomClient }
-            ], opts);
+        return {
+          opts: opts,
+          etapes: versClient
+            ? [
+                { p: resto(), ic: IC.resto, t: nomResto, s: 'commande récupérée',
+                  fait: true, vers: { on: false, txt: '' } },
+                { p: moi(), ic: IC.moi, t: 'Vous', ici: true,
+                  vers: { on: true, txt: t ? t.texte : '' } },
+                { p: chez(), ic: IC.chez, t: nomClient }
+              ]
+            : [
+                { p: moi(), ic: IC.moi, t: 'Vous', ici: true,
+                  vers: { on: true, txt: t ? t.texte : '' } },
+                { p: resto(), ic: IC.resto, t: nomResto, s: 'récupérez la commande',
+                  vers: { on: false, txt: rc ? rc.texte : '' } },
+                { p: chez(), ic: IC.chez, t: nomClient }
+              ]
+        };
       },
 
       /* Chez le livreur, la carte vide a presque toujours la même cause : le

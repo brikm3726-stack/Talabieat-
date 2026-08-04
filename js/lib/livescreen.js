@@ -28,7 +28,7 @@
      *   back    adresse du bouton retour (par défaut : page précédente)
      *   points  () => { restaurant, client, driver } — les repères de la carte
      *   sheet   () => HTML de la feuille du bas, redessinée à chaque tour
-     *   plan    () => HTML du plan de fond, sous la carte (voir LiveScreen.plan)
+     *   plan    () => { etapes, opts } — le plan de fond, sous la carte
      *   bind    (feuille) => void — branche les boutons après chaque dessin
      *   etat    () => HTML | '' — ce qui manque, posé sur la carte
      *   bindEtat(bandeau) => void — branche le bouton du bandeau, s'il y en a
@@ -133,9 +133,13 @@
         sheet.innerHTML = (cfg.sheet && cfg.sheet()) || '';
         if (cfg.bind) cfg.bind(sheet);
 
-        /* Le plan du fond se redessine avec le reste : le livreur y avance à
-           chaque relevé, comme sur la carte. */
-        if (cfg.plan && fond) fond.innerHTML = cfg.plan() || '';
+        /* Le plan du fond suit le même rythme, mais il n'est pas reconstruit :
+           on ne déplace que ce qui a bougé, pour que le livreur glisse au lieu
+           de se téléporter d'un relevé à l'autre. */
+        if (cfg.plan && fond) {
+          const p = cfg.plan();
+          if (p) LiveScreen.planMaj(fond, p.etapes || [], p.opts);
+        }
 
         const etat = cfg.etat && cfg.etat();
         etatEl.innerHTML = etat || '';
@@ -251,14 +255,20 @@
      *          recouvre le bas de l'écran, et un livreur dessiné dessous
      *          n'existe pas
      */
-    plan(etapes, opts) {
+    /**
+     * Les positions, en centièmes du cadre. Séparé du dessin parce qu'on en a
+     * besoin deux fois : pour construire le plan, et pour y faire GLISSER le
+     * livreur sans le reconstruire — un élément recréé n'a pas de mouvement,
+     * il apparaît déjà arrivé.
+     */
+    planGeo(etapes, opts) {
       opts = opts || {};
-      /* Repère de dessin, en centièmes du cadre. Les marges gardent les
-         épingles et leurs étiquettes à l'écart des bords, et `bas` retire du
-         bas la part que la feuille recouvre — les deux axes ont donc leurs
-         propres limites : partager la même rognait la moitié droite du plan. */
-      const MINX = 16, MAXX = 84;
-      const MINY = 16, MAXY = 100 - 16 - (+opts.bas || 0);
+      /* Les marges gardent les épingles et leurs étiquettes à l'écart des
+         bords, et `bas` retire du bas la part que la feuille recouvre — les
+         deux axes ont donc leurs propres limites : partager la même rognait la
+         moitié droite du plan. */
+      const MINX = 10, MAXX = 90;
+      const MINY = 12, MAXY = 100 - 12 - (+opts.bas || 0);
       const connus = etapes.filter(e => e.p && U.hasCoords(e.p));
 
       let xy;
@@ -318,13 +328,34 @@
         }
       }
 
-      /* Le coude : on part à l'horizontale jusqu'à mi-chemin, on descend, puis
-         on repart à l'horizontale. Deux angles, arrondis par le tracé. */
-      const coude = (a, b) => {
-        const mx = (a.x + b.x) / 2;
-        return 'M' + a.x + ',' + a.y + ' L' + mx + ',' + a.y +
-               ' L' + mx + ',' + b.y + ' L' + b.x + ',' + b.y;
-      };
+      return xy;
+    },
+
+    /**
+     * La structure du plan, résumée. Deux plans de même signature ont les mêmes
+     * éléments dans le même ordre : on peut alors se contenter de bouger ce qui
+     * a bougé. Dès qu'elle change — une position qui apparaît, une étape
+     * franchie — il faut reconstruire.
+     */
+    planSig(etapes) {
+      return etapes.map(e =>
+        (e.p && U.hasCoords(e.p) ? '1' : '0') + (e.ici ? 'i' : '') + (e.fait ? 'f' : '') +
+        (e.vers ? (e.vers.on ? '>' : '-') + (e.vers.txt ? 'k' : '') : '')
+      ).join('|');
+    },
+
+    /* Le coude : on part à l'horizontale jusqu'à mi-chemin, on descend, puis on
+       repart à l'horizontale. Deux angles, arrondis par le tracé. */
+    planCoude(a, b) {
+      const mx = (a.x + b.x) / 2;
+      return 'M' + a.x + ',' + a.y + ' L' + mx + ',' + a.y +
+             ' L' + mx + ',' + b.y + ' L' + b.x + ',' + b.y;
+    },
+
+    plan(etapes, opts) {
+      opts = opts || {};
+      const xy = LiveScreen.planGeo(etapes, opts);
+      const coude = LiveScreen.planCoude;
 
       let routes = '', pins = '', kms = '';
       etapes.forEach((e, i) => {
@@ -356,11 +387,66 @@
             (e.s ? '<span>' + U.esc(e.s) + '</span>' : '') + '</b></span>';
       });
 
-      return '<div class="lv-plan' + (opts.plein ? ' plein' : '') + '">' +
+      return '<div class="lv-plan' + (opts.plein ? ' plein' : '') +
+        '" data-sig="' + U.esc(LiveScreen.planSig(etapes)) + '">' +
         '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
           routes +
         '</svg>' + kms + pins +
       '</div>';
+    },
+
+    /**
+     * LE LIVREUR GLISSE AU LIEU DE SAUTER.
+     *
+     * Redessiner le plan à chaque relevé remplaçait l'épingle par une neuve,
+     * déjà arrivée : le scooter se téléportait toutes les quinze secondes, ce
+     * qui ne ressemble pas à quelqu'un qui roule. Ici on garde les mêmes
+     * éléments et on ne change que leur position — la transition CSS fait le
+     * reste, et le mouvement se voit.
+     *
+     * On ne reconstruit que si la structure a changé (voir planSig) : une
+     * position qui apparaît, une étape franchie. Le tracé, lui, suit d'un coup :
+     * une route ne se déplace pas, c'est le scooter qu'on regarde avancer.
+     */
+    planMaj(hote, etapes, opts) {
+      if (!hote) return;
+      opts = opts || {};
+      const racine = hote.querySelector('.lv-plan');
+      if (!racine || racine.dataset.sig !== LiveScreen.planSig(etapes)) {
+        hote.innerHTML = LiveScreen.plan(etapes, opts);
+        return;
+      }
+
+      const xy = LiveScreen.planGeo(etapes, opts);
+      const pins = racine.querySelectorAll('.lv-pp');
+      const traces = racine.querySelectorAll('path');
+      const kms = racine.querySelectorAll('.lv-pkm');
+      let ip = 0, it = 0, ik = 0;
+
+      etapes.forEach((e, i) => {
+        const a = xy[i], b = xy[i + 1];
+        if (a && b && e.vers) {
+          const d = LiveScreen.planCoude(a, b);
+          if (traces[it]) traces[it].setAttribute('d', d);
+          it++;
+          if (e.vers.on) { if (traces[it]) traces[it].setAttribute('d', d); it++; }
+          if (e.vers.txt && kms[ik]) {
+            const el = kms[ik];
+            el.textContent = e.vers.txt;
+            el.style.left = ((a.x + b.x) / 2).toFixed(1) + '%';
+            el.style.top = ((a.y + b.y) / 2).toFixed(1) + '%';
+          }
+          if (e.vers.txt) ik++;
+        }
+        if (!a) return;
+        const el = pins[ip++];
+        if (!el) return;
+        el.style.left = a.x.toFixed(1) + '%';
+        el.style.top = a.y.toFixed(1) + '%';
+        /* L'étiquette change de côté en cours de route si le repère traverse le
+           milieu du cadre — sinon elle finit par sortir par le bord. */
+        el.classList.toggle('gauche', a.x > 55);
+      });
     },
 
     /**

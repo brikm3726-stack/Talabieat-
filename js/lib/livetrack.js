@@ -20,10 +20,19 @@
 (function (w) {
   'use strict';
 
-  /* Un envoi toutes les 15 s en course, toutes les 60 s en veille. Le second
-     est volontairement lâche : c'est le compromis entre une attribution juste
-     et la batterie d'un téléphone qui reste allumé toute la soirée. */
-  const CADENCE = { course: 15000, veille: 60000 };
+  /* Un envoi toutes les 8 s en course, toutes les 60 s en veille.
+
+     En course, c'était 15 s. Le client regardait alors une moto qui avançait
+     par bonds d'un quart de minute — assez pour douter que le suivi soit
+     vraiment en direct, et rappeler pour demander où en est sa commande. Huit
+     secondes coûtent deux fois plus de relevés sur la durée d'une course, soit
+     quelques dizaines d'octets : sans commune mesure avec le service rendu au
+     moment où quelqu'un attend son repas.
+
+     La veille reste volontairement lâche : personne ne regarde ces positions,
+     elles ne servent qu'à trouver le livreur le plus proche quand une commande
+     tombe — et ce téléphone doit tenir toute la soirée. */
+  const CADENCE = { course: 8000, veille: 60000 };
   const ACTIVE  = ['driver_assigned', 'delivering'];
 
   let mode = null;            // null | 'course' | 'veille'

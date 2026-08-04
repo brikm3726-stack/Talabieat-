@@ -870,8 +870,8 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   fill:none;stroke-linecap:round;stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
 }
-.lv-route{stroke:#2A1A2E;stroke-width:6;opacity:.32;stroke-dasharray:9 10}
-.lv-route.on{stroke:#FF4D2D;stroke-width:8;opacity:1;stroke-dasharray:none}
+.lv-route{stroke:#2A1A2E;stroke-width:7;opacity:.32;stroke-dasharray:10 11}
+.lv-route.on{stroke:#FF4D2D;stroke-width:10;opacity:1;stroke-dasharray:none}
 /* Les pointillés blancs filent vers la destination : « en direct » sans
    écrire le mot. */
 .lv-route-flux{
@@ -882,28 +882,34 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 /* ---- les épingles du plan ---- */
 .lv-pp{
   position:absolute;transform:translate(-50%,-50%);
-  display:flex;align-items:center;gap:6px;white-space:nowrap;
+  display:flex;align-items:center;gap:7px;white-space:nowrap;
+  /* Le repère GLISSE d'une position à l'autre. Les relevés arrivent toutes les
+     quelques secondes : sans cette transition le scooter se téléporte, ce qui
+     ne ressemble pas à quelqu'un qui roule. La durée est un peu plus longue que
+     l'intervalle des relevés, pour que le mouvement ne s'arrête jamais tout à
+     fait — on lit « il avance », pas « il a sauté ». */
+  transition:left 3.4s linear,top 3.4s linear;
 }
 /* Dans la moitié droite, l'étiquette passe à gauche de l'épingle, sinon elle
    sort du cadre et se fait couper. */
 .lv-pp.gauche{flex-direction:row-reverse}
 .lv-pp i{
-  width:28px;height:28px;flex:none;font-size:14px;font-style:normal;
-  border-radius:50% 50% 50% 4px;transform:rotate(-45deg);
+  width:36px;height:36px;flex:none;font-size:17px;font-style:normal;
+  border-radius:50% 50% 50% 5px;transform:rotate(-45deg);
   display:grid;place-items:center;
   background:linear-gradient(140deg,#3A2B40,#1B1220);color:#fff;
-  box-shadow:0 5px 12px -4px rgba(16,24,40,.55);
+  box-shadow:0 6px 15px -5px rgba(16,24,40,.6);
 }
 /* La goutte penche de 45° : son contenu se redresse d'autant, sinon
    l'emoji est couché. */
 .lv-pp i em{font-style:normal;line-height:1;display:block;transform:rotate(45deg)}
 .lv-pp b{
-  background:rgba(255,255,255,.96);padding:3px 7px;border-radius:8px;
-  font-size:10.5px;font-weight:800;color:var(--ink);
-  box-shadow:0 3px 8px -3px rgba(16,24,40,.3);
+  background:rgba(255,255,255,.96);padding:4px 9px;border-radius:9px;
+  font-size:12px;font-weight:800;color:var(--ink);
+  box-shadow:0 3px 9px -3px rgba(16,24,40,.32);
 }
 /* Ce qui s'est passé à cette étape, sous son nom. */
-.lv-pp b span{display:block;font-size:9.5px;font-weight:700;color:var(--muted)}
+.lv-pp b span{display:block;font-size:10.5px;font-weight:700;color:var(--muted)}
 /* Le livreur : le seul qui bouge, donc un cercle qui bat et non une goutte. */
 .lv-pp.ici i{
   border-radius:50%;transform:none;
@@ -922,10 +928,11 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 /* Ce que coûte le tronçon, posé au milieu de celui-ci. */
 .lv-pkm{
   position:absolute;transform:translate(-50%,-50%);
-  padding:2px 7px;border-radius:7px;white-space:nowrap;
+  padding:3px 8px;border-radius:8px;white-space:nowrap;
   background:rgba(255,255,255,.94);
-  font-size:10px;font-weight:800;color:var(--muted);
-  box-shadow:0 2px 6px -2px rgba(16,24,40,.3);
+  font-size:11px;font-weight:800;color:var(--muted);
+  box-shadow:0 2px 7px -2px rgba(16,24,40,.3);
+  transition:left 3.4s linear,top 3.4s linear;
 }
 .lv-pkm.on{color:var(--brand)}
 

@@ -389,6 +389,12 @@
       code: '#' + (o.code || ''),
       back: '/order/' + params.id,
 
+      /* Six secondes au lieu de douze. Le livreur envoie sa position toutes les
+         huit : à douze, on en manquait une sur deux et la moto avançait par
+         bonds irréguliers. C'est une requête légère, et c'est le seul écran de
+         l'application dont on attend qu'il bouge tout seul. */
+      every: 6000,
+
       points: () => ({
         restaurant: resto(),
         client: U.hasCoords(client) ? client : null,
@@ -447,23 +453,26 @@
           chez: UI.icon('home', 15)
         };
 
-        return o.status === 'delivering'
-          ? LiveScreen.plan([
-              /* Le tronçon déjà parcouru reste sombre : l'orange désigne
-                 toujours ce qui se fait maintenant, jamais ce qui est fini. */
-              { p: r, ic: IC.resto, t: nomResto, s: 'commande récupérée',
-                fait: true, vers: { on: false, txt: '' } },
-              { p: moi, ic: IC.moi, t: 'Votre livreur', ici: true,
-                vers: { on: true, txt: reste ? reste.texte : '' } },
-              { p: cible, ic: IC.chez, t: 'Chez vous' }
-            ], opts)
-          : LiveScreen.plan([
-              { p: moi, ic: IC.moi, t: 'Votre livreur', ici: true,
-                vers: { on: true, txt: versR ? versR.texte : '' } },
-              { p: r, ic: IC.resto, t: nomResto, s: 'il prend votre commande',
-                vers: { on: false, txt: rc ? rc.texte : '' } },
-              { p: cible, ic: IC.chez, t: 'Chez vous' }
-            ], opts);
+        return {
+          opts: opts,
+          etapes: o.status === 'delivering'
+            ? [
+                /* Le tronçon déjà parcouru reste sombre : l'orange désigne
+                   toujours ce qui se fait maintenant, jamais ce qui est fini. */
+                { p: r, ic: IC.resto, t: nomResto, s: 'commande récupérée',
+                  fait: true, vers: { on: false, txt: '' } },
+                { p: moi, ic: IC.moi, t: 'Votre livreur', ici: true,
+                  vers: { on: true, txt: reste ? reste.texte : '' } },
+                { p: cible, ic: IC.chez, t: 'Chez vous' }
+              ]
+            : [
+                { p: moi, ic: IC.moi, t: 'Votre livreur', ici: true,
+                  vers: { on: true, txt: versR ? versR.texte : '' } },
+                { p: r, ic: IC.resto, t: nomResto, s: 'il prend votre commande',
+                  vers: { on: false, txt: rc ? rc.texte : '' } },
+                { p: cible, ic: IC.chez, t: 'Chez vous' }
+              ]
+        };
       },
 
       /* Trois raisons pour qu'une carte reste vide, et chacune se répare
