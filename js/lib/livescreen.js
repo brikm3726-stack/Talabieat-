@@ -352,6 +352,22 @@
              ' L' + mx + ',' + b.y + ' L' + b.x + ',' + b.y;
     },
 
+    /**
+     * Deux étapes au même endroit — à quarante mètres près.
+     *
+     * Au moment du retrait, le livreur EST au restaurant. Son repère est écarté
+     * de quelques unités pour rester visible, et on obtenait entre les deux un
+     * moignon en pointillés qui se lit comme un défaut d'affichage, pas comme un
+     * trajet. Le test porte sur les vraies coordonnées et non sur l'écart à
+     * l'écran : celui-ci dépend de l'échelle du plan, qui change à chaque
+     * relevé, et le moignon apparaissait ou non selon le zoom.
+     */
+    planMemeLieu(e1, e2) {
+      if (!e1 || !e2 || !e1.p || !e2.p) return false;
+      if (!U.hasCoords(e1.p) || !U.hasCoords(e2.p)) return false;
+      return U.haversine(+e1.p.lat, +e1.p.lng, +e2.p.lat, +e2.p.lng) < 0.04;
+    },
+
     plan(etapes, opts) {
       opts = opts || {};
       const xy = LiveScreen.planGeo(etapes, opts);
@@ -361,7 +377,10 @@
       etapes.forEach((e, i) => {
         const a = xy[i], b = xy[i + 1];
         if (a && b && e.vers) {
-          const d = coude(a, b);
+          /* Tracé vide quand les deux étapes sont au même endroit : il garde sa
+             place dans le dessin — les mises à jour comptent les tracés dans
+             l'ordre, il ne doit jamais en manquer un. */
+          const d = LiveScreen.planMemeLieu(e, etapes[i + 1]) ? '' : coude(a, b);
           /* Le halo passe AVANT le ruban : en SVG le dernier tracé recouvre les
              précédents, et un halo par-dessus troublerait la couleur pleine. */
           if (e.vers.on) routes += '<path class="lv-halo" d="' + d + '"/>';
@@ -421,7 +440,8 @@
       etapes.forEach((e, i) => {
         const a = xy[i], b = xy[i + 1];
         if (a && b && e.vers) {
-          const d = LiveScreen.planCoude(a, b);
+          const d = LiveScreen.planMemeLieu(e, etapes[i + 1])
+            ? '' : LiveScreen.planCoude(a, b);
           /* Même ordre qu'au dessin — halo puis ruban — sinon on écrirait le
              tracé de l'un dans l'autre. */
           if (e.vers.on) { if (traces[it]) traces[it].setAttribute('d', d); it++; }

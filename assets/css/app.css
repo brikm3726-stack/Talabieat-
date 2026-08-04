@@ -853,11 +853,15 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
      Deux tailles de rues : les grandes avenues, et les rues secondaires plus
      étroites et plus pâles. Sans cette hiérarchie, la trame est mécanique. */
+  /* Les rues secondaires étaient à six pixels et à demi-transparence : à cette
+     finesse, chaque bord tombe entre deux pixels et la trame entière vibre —
+     on croit l'image floue alors que c'est le motif qui est trop fin. Bandes
+     plus larges, moins nombreuses, franchement blanches. */
   background-image:
-    repeating-linear-gradient(0deg,transparent 0 96px,rgba(255,255,255,.95) 96px 110px),
-    repeating-linear-gradient(90deg,transparent 0 108px,rgba(255,255,255,.95) 108px 122px),
-    repeating-linear-gradient(0deg,transparent 0 34px,rgba(255,255,255,.5) 34px 40px),
-    repeating-linear-gradient(90deg,transparent 0 38px,rgba(255,255,255,.5) 38px 44px);
+    repeating-linear-gradient(0deg,transparent 0 96px,rgba(255,255,255,.96) 96px 112px),
+    repeating-linear-gradient(90deg,transparent 0 108px,rgba(255,255,255,.96) 108px 124px),
+    repeating-linear-gradient(0deg,transparent 0 44px,rgba(255,255,255,.62) 44px 52px),
+    repeating-linear-gradient(90deg,transparent 0 48px,rgba(255,255,255,.62) 48px 56px);
 }
 /* En fond d'écran : plus de cadre, plus de coins arrondis, toute la place. */
 .lv-plan.plein{height:100%;margin:0;border-radius:0}
@@ -880,12 +884,14 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
    mouvement du livreur suffit à dire le sens ; un ruban qui clignote en plus
    ferait deux choses qui bougent pour une seule information. */
 .lv-route.on{stroke:#F5372B;stroke-width:11}
-/* Ce qui reste après : présent, en retrait, jamais confondu avec la suite
-   immédiate du trajet. */
-.lv-route{stroke:#2A1A2E;stroke-width:7;opacity:.3;stroke-dasharray:10 11}
-/* Le halo sous le ruban : c'est lui qui le décolle du plan. Sans, le trait
-   paraît collé au papier. */
-.lv-halo{stroke:rgba(245,55,43,.2);stroke-width:22}
+/* Ce qui reste après : des points nets plutôt qu'un tiret large et pâle. Un
+   tracé translucide et diffus se lisait comme une bavure, pas comme une
+   intention. */
+.lv-route{stroke:#2A1A2E;stroke-width:6;opacity:.42;stroke-dasharray:1 9}
+/* Le halo décolle le ruban du plan — mais serré. À vingt-deux pixels pour un
+   ruban de onze, ce n'était plus une ombre, c'était un flou : le trait
+   paraissait dédoublé et sale. */
+.lv-halo{stroke:rgba(245,55,43,.13);stroke-width:15;stroke-linecap:butt}
 
 /* ---- les repères du plan ----
    Les lieux sont des CARTES BLANCHES posées sur le plan, pas des gouttes : une
@@ -893,7 +899,13 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
    sur le papier. Pour un restaurant, l'objet vaut mieux — c'est un endroit où
    l'on entre, pas une coordonnée. */
 .lv-pp{
-  position:absolute;transform:translate(-50%,-50%);
+  position:absolute;
+  /* CENTRÉ PAR MARGES ENTIÈRES, PAS PAR translate(-50%,-50%).
+     Un décalage de la moitié d'un élément de 46 px tombe sur un demi-pixel : le
+     navigateur rend alors le repère entre deux pixels et tout devient flou —
+     le carré sombre, le contour, et surtout le pictogramme au trait. Des marges
+     en nombres entiers replacent le dessin sur la grille de l'écran. */
+  width:46px;height:46px;margin:-23px 0 0 -23px;
   display:grid;place-items:center;
   /* Le repère GLISSE d'une position à l'autre. Les relevés arrivent toutes les
      huit secondes : sans cette transition le scooter se téléporte, ce qui ne
@@ -924,7 +936,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
    Lui n'est pas un lieu : c'est quelqu'un qui roule, et le seul élément vivant
    de l'écran. D'où le disque plein, et les deux ondes qui s'en échappent : le
    signe universel d'une position qui s'actualise. */
-.lv-pp.ici{z-index:2}
+.lv-pp.ici{z-index:2;width:44px;height:44px;margin:-22px 0 0 -22px}
 .lv-pp.ici i{
   width:44px;height:44px;padding:0;border-radius:50%;
   background:#F5372B;color:#fff;
