@@ -204,19 +204,62 @@
     },
 
     /**
+     * LA TIMELINE — six étapes, de l'acceptation à la porte.
+     *
+     * Les statuts de la base n'en comptent que quatre entre l'acceptation et la
+     * livraison : le reste se déduit, et se déduit honnêtement.
+     *
+     *   Commande acceptée    ← accepted_at
+     *   Restaurant prêt      ← ready_at
+     *   Commande récupérée   ← delivering_at
+     *   En route             ← récupérée, et le livreur a quitté le restaurant
+     *   Arrivé chez le client← il est à moins de cent cinquante mètres
+     *   Livrée               ← delivered_at
+     *
+     * Les deux étapes déduites le sont par la géométrie, pas par un minuteur :
+     * « en route » quand il s'est éloigné du restaurant, « arrivé » quand il est
+     * à la porte. Rien n'est inventé — ce sont les positions réelles qui le
+     * disent, et c'est plus juste qu'un statut que personne n'irait cocher en
+     * conduisant.
+     *
+     * etapes : [{ t, quand, fait, ici }]
+     */
+    timeline(etapes) {
+      return '<div class="lv-tl">' + etapes.map((e, i) => {
+        const cls = 'lv-tl-e' + (e.fait ? ' fait' : '') + (e.ici ? ' ici' : '');
+        return '<div class="' + cls + '" style="animation-delay:' +
+            (i * 60) + 'ms">' +
+            '<span class="lv-tl-p"></span>' +
+            '<span class="lv-tl-t">' + U.esc(e.t) + '</span>' +
+            (e.quand ? '<span class="lv-tl-h">' + U.esc(e.quand) + '</span>' : '') +
+          '</div>';
+      }).join('') + '</div>';
+    },
+
+    /**
      * La personne d'en face : le livreur pour le client, le client pour le
      * livreur. Le téléphone est un bouton, pas un numéro à recopier — on
      * l'appelle en roulant, ou avec un sac dans l'autre main.
      *
      * `meta` est du HTML (une ligne peut porter une icône ou du gras) : c'est
      * à l'appelant d'échapper ce qui vient de la base. `name` est échappé ici.
+     * `photo` remplace les initiales quand le livreur en a une ; `sms` ajoute le
+     * bouton message à côté de l'appel.
      */
     person(p) {
       p = p || {};
       return '<div class="lv-who">' +
-        '<span class="lv-ini">' + U.esc(U.initials(p.name || '')) + '</span>' +
+        /* La photo si elle existe, les initiales sinon — jamais une silhouette
+           grise, qui donne l'impression d'un compte vide. */
+        '<span class="lv-ini"' +
+          (p.photo ? ' style="background-image:url(' + U.escUrl(p.photo) + ')"' : '') + '>' +
+          (p.photo ? '' : U.esc(U.initials(p.name || ''))) + '</span>' +
         '<div class="grow"><div class="n">' + U.esc(p.name || '') + '</div>' +
           (p.meta ? '<div class="m">' + p.meta + '</div>' : '') + '</div>' +
+        (p.sms
+          ? '<a class="lv-msg" href="sms:' + U.esc(p.sms) + '" title="Message" ' +
+              'aria-label="Envoyer un message">' + UI.icon('mail', 20) + '</a>'
+          : '') +
         (p.phone
           ? '<a class="lv-call" href="tel:' + U.esc(p.phone) + '" title="Appeler" ' +
               'aria-label="Appeler ' + U.esc(p.name || '') + '">' + UI.icon('phone', 21) + '</a>'
@@ -392,10 +435,16 @@
            rien apprendre. Le plan ne répond qu'à « où », la feuille à
            « combien ». */
         pins += '<span class="lv-pp' + (e.ici ? ' ici' : '') +
-          (e.fait ? ' fait' : '') + '" style="left:' + a.x.toFixed(1) +
+          (e.fait ? ' fait' : '') + (e.logo ? ' logo' : '') +
+          '" style="left:' + a.x.toFixed(1) +
           '%;top:' + a.y.toFixed(1) + '%" title="' + U.esc(e.t || '') + '">' +
           (e.ici ? '<u></u><u></u>' : '') +
-          '<i><em>' + (e.ic || '') + '</em></i></span>';
+          /* L'enseigne du restaurant quand elle existe, le pictogramme sinon :
+             le plan de secours doit raconter la même chose que la carte, sans
+             quoi passer de l'un à l'autre déroute. */
+          '<i>' + (e.logo
+            ? '<em style="background-image:url(' + U.escUrl(e.logo) + ')"></em>'
+            : '<em>' + (e.ic || '') + '</em>') + '</i></span>';
       });
 
       return '<div class="lv-plan' + (opts.plein ? ' plein' : '') +
@@ -464,6 +513,26 @@
     heureArrivee(min) {
       if (!min || min <= 0) return '';
       return 'arrivée vers ' + U.time(Date.now() + min * 60000);
+    },
+
+    /**
+     * LES CHIFFRES, en petites cases.
+     *
+     * Récupération, temps restant, distance : trois valeurs qu'on lit d'un coup
+     * d'œil et qu'on compare entre elles. En lignes de texte, il faut les
+     * chercher ; en cases alignées, elles se lisent ensemble.
+     *
+     * Une case vide n'est pas affichée : mieux vaut deux chiffres qu'on a que
+     * trois dont un tiret.
+     *
+     * cases : [{ k, v }]
+     */
+    chiffres(cases) {
+      const utiles = (cases || []).filter(c => c && c.v);
+      if (!utiles.length) return '';
+      return '<div class="lv-num">' + utiles.map(c =>
+        '<div><span class="k">' + U.esc(c.k) + '</span>' +
+        '<b>' + U.esc(c.v) + '</b></div>').join('') + '</div>';
     },
 
     /** Un rappel encadré, sous la personne : l'argent à préparer, une consigne. */

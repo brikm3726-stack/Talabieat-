@@ -297,6 +297,8 @@
       };
 
       let map = null, markers = {}, attendus = points, premier = true, mort = false;
+      /* Le cap du livreur, et la position depuis laquelle il a été calculé. */
+      let cap = 0, capDe = null;
       /* Les trois traits du trajet : le tronçon en cours, les pointillés qui
          filent dessus, et le tronçon d'après. */
       const voies = { encours: null, flux: null, apres: null };
@@ -310,21 +312,30 @@
          à sa façon — le repère changeait d'allure d'un appareil à l'autre, et
          paraissait plat sur certains Android. */
       const defs = {
-        restaurant: [UI.icon('utensils', 17), 'lm-resto', 'Restaurant'],
+        restaurant: [UI.icon('dome', 18), 'lm-resto', 'Restaurant'],
         client:     [UI.icon('home', 17),     'lm-client', 'Client'],
         driver:     [UI.icon('scooter', 18),  'lm-driver', 'Livreur']
       };
 
-      /* Le nom à côté du repère, pas seulement au survol : sur un téléphone il
-         n'y a pas de survol, et trois épingles sans étiquette obligent à
-         deviner laquelle est le restaurant. La seconde ligne — l'enseigne, le
-         nom du client — vient de l'appelant quand il la connaît. */
-      const repere = (emoji, cls, titre, sous) => L.divIcon({
-        className: '', iconSize: [38, 38], iconAnchor: [19, 19],
-        html: '<div class="lm-pin ' + (cls || '') + '"><span>' + emoji + '</span></div>' +
-          /* Pas d'étiquette sans nom à écrire : « Livreur » posé à côté d'un
-             scooter n'apprend rien, et trois étiquettes sur une petite carte
-             se recouvrent. L'appelant décide qui mérite la sienne. */
+      /**
+       * Un repère de carte.
+       *
+       * `logo` : l'enseigne du restaurant, à la place du pictogramme. Un rond
+       * générique dit « il y a un restaurant ici » ; le logo dit LEQUEL — et
+       * c'est la seule chose que le client cherche sur cette carte, puisqu'il
+       * sait déjà où il habite. Le cercle blanc et son ombre détachent
+       * l'enseigne du fond, quelle que soit la couleur du logo.
+       *
+       * L'étiquette n'apparaît que si l'appelant fournit un nom : « Livreur »
+       * posé à côté d'un scooter n'apprend rien, et trois étiquettes sur une
+       * petite carte se recouvrent.
+       */
+      const repere = (icone, cls, titre, sous, logo) => L.divIcon({
+        className: '', iconSize: [44, 44], iconAnchor: [22, 22],
+        html: '<div class="lm-pin ' + (cls || '') + (logo ? ' lm-logo' : '') + '"' +
+            (logo ? ' style="background-image:url(' + U.escUrl(logo) + ')"' : '') + '>' +
+            (logo ? '' : '<span>' + icone + '</span>') +
+          '</div>' +
           (sous
             ? '<span class="lm-tag"><b>' + U.esc(titre || '') + '</b>' +
               U.esc(sous) + '</span>'
@@ -346,13 +357,51 @@
           if (markers[k]) markers[k].setLatLng(ll);
           else markers[k] = L.marker(ll, {
             icon: repere(defs[k][0], defs[k][1], defs[k][2],
-                         pts && pts.noms && pts.noms[k]),
+                         pts && pts.noms && pts.noms[k],
+                         pts && pts.logos && pts.logos[k]),
             title: defs[k][2],
             /* Le livreur passe devant : c'est lui qu'on suit, et une épingle
                fixe ne doit pas le recouvrir quand il arrive à destination. */
             zIndexOffset: k === 'driver' ? 1000 : 0
           }).addTo(map);
         });
+
+        /* LE SCOOTER TOURNE VERS LÀ OÙ IL VA.
+           Une icône qui glisse latéralement en regardant toujours à droite ne
+           ressemble à rien ; orientée, elle raconte le virage qu'il vient de
+           prendre. Le cap se déduit de deux positions successives — aucun
+           téléphone ne nous donne la direction, mais le déplacement la dit.
+           Sous quinze mètres on garde le cap précédent : à l'arrêt, le bruit
+           du GPS ferait tourner le scooter sur lui-même. */
+        const d = pts && pts.driver;
+        if (d && U.hasCoords(d)) {
+          if (capDe && U.haversine(+capDe.lat, +capDe.lng, +d.lat, +d.lng) > 0.015) {
+            cap = Math.atan2(
+              (+d.lng - +capDe.lng) * Math.cos((+d.lat + +capDe.lat) / 2 * Math.PI / 180),
+              (+d.lat - +capDe.lat)
+            ) * 180 / Math.PI;
+            capDe = { lat: +d.lat, lng: +d.lng };
+          } else if (!capDe) {
+            capDe = { lat: +d.lat, lng: +d.lng };
+          }
+          const el = markers.driver && markers.driver.getElement();
+          const pin = el && el.querySelector('.lm-pin');
+          if (pin) pin.style.setProperty('--cap', cap.toFixed(0) + 'deg');
+        }
+
+        /* LE CLIENT S'ANIME QUAND LE LIVREUR APPROCHE.
+           À trois cents mètres, le repère de la maison se met à battre : c'est
+           le moment d'aller ouvrir. Rien d'autre sur l'écran ne dit « c'est
+           maintenant » — les minutes restantes descendent trop lentement pour
+           qu'on les surveille. */
+        const cl = pts && pts.client;
+        const maison = markers.client && markers.client.getElement();
+        if (maison) {
+          const proche = d && cl && U.hasCoords(d) && U.hasCoords(cl) &&
+            U.haversine(+d.lat, +d.lng, +cl.lat, +cl.lng) < 0.3;
+          const pin = maison.querySelector('.lm-pin');
+          if (pin) pin.classList.toggle('proche', !!proche);
+        }
 
         /* LA MISSION EN DEUX TRONÇONS
            -------------------------------------------------------------------

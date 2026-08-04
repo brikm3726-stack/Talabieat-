@@ -931,6 +931,9 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   display:grid;place-items:center;font-style:normal;
 }
 .lv-pp i em svg{width:20px;height:20px}
+/* Le plan de secours porte la même enseigne que la carte : passer de l'un à
+   l'autre ne doit pas changer ce qu'on reconnaît. */
+.lv-pp.logo i em{background:#fff center/cover no-repeat;border-radius:9px}
 
 /* LE LIVREUR — un disque rouge et ses ondes.
    Lui n'est pas un lieu : c'est quelqu'un qui roule, et le seul élément vivant
@@ -967,15 +970,101 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   .lv-pp.ici u{animation:none;opacity:.3}
 }
 
+/* ---- LA TIMELINE — six étapes, de l'acceptation à la porte ----
+   Horizontale et non verticale : six étapes empilées mangeraient la feuille
+   entière, et le trajet se lit de gauche à droite comme le temps.
+
+   Chaque étape entre en fondu décalé de soixante millisecondes sur la
+   précédente. Ce n'est pas de la décoration : le décalage fait lire une SUITE.
+   Tout apparaître d'un coup donnerait six cases indépendantes. */
+.lv-tl{
+  display:flex;gap:0;margin-top:16px;
+  padding-top:2px;overflow-x:auto;scrollbar-width:none;
+}
+.lv-tl::-webkit-scrollbar{display:none}
+.lv-tl-e{
+  flex:1;min-width:52px;position:relative;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  text-align:center;
+  animation:lvTlEntre .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes lvTlEntre{
+  from{opacity:0;transform:translateY(7px) scale(.96)}
+  to  {opacity:1;transform:none}
+}
+
+/* Le trait qui relie les pastilles court DERRIÈRE elles : c'est lui qui fait
+   une frise plutôt qu'une rangée de points. */
+.lv-tl-e::before{
+  content:'';position:absolute;top:6px;left:0;right:50%;height:3px;
+  background:var(--cream-line);border-radius:2px;
+}
+.lv-tl-e::after{
+  content:'';position:absolute;top:6px;left:50%;right:0;height:3px;
+  background:var(--cream-line);border-radius:2px;
+}
+.lv-tl-e:first-child::before,.lv-tl-e:last-child::after{display:none}
+.lv-tl-e.fait::before,.lv-tl-e.fait::after,
+.lv-tl-e.ici::before{background:var(--brand)}
+
+.lv-tl-p{
+  position:relative;z-index:1;
+  width:15px;height:15px;border-radius:50%;flex:none;
+  background:#fff;box-shadow:inset 0 0 0 3px var(--cream-line);
+  transition:box-shadow .3s ease,background .3s ease;
+}
+.lv-tl-e.fait .lv-tl-p{background:var(--brand);box-shadow:inset 0 0 0 3px var(--brand)}
+
+/* L'ÉTAPE EN COURS bat, et elle seule. Une frise où tout clignote ne dit plus
+   où l'on en est ; un seul point qui pulse attire l'œil au bon endroit. */
+.lv-tl-e.ici .lv-tl-p{
+  background:var(--brand);box-shadow:inset 0 0 0 3px var(--brand);
+  animation:lvTlBat 1.6s ease-in-out infinite;
+}
+@keyframes lvTlBat{
+  0%,100%{box-shadow:inset 0 0 0 3px var(--brand),0 0 0 0 rgba(255,77,45,.5)}
+  60%{box-shadow:inset 0 0 0 3px var(--brand),0 0 0 9px rgba(255,77,45,0)}
+}
+
+.lv-tl-t{font-size:9.5px;font-weight:700;color:var(--muted);line-height:1.2}
+.lv-tl-e.fait .lv-tl-t{color:var(--ink)}
+.lv-tl-e.ici .lv-tl-t{color:var(--brand);font-weight:800}
+.lv-tl-h{font-size:9px;font-weight:700;color:var(--muted);opacity:.75}
+
+/* ---- LES CHIFFRES, en petites cases ----
+   Récupération, temps restant, distance : trois valeurs qu'on compare entre
+   elles. En lignes de texte il faut les chercher ; alignées, elles se lisent
+   ensemble. */
+.lv-num{
+  display:flex;gap:8px;margin-top:14px;
+}
+.lv-num > div{
+  flex:1;min-width:0;padding:9px 10px;border-radius:14px;
+  background:var(--bg);text-align:center;
+}
+.lv-num .k{
+  display:block;font-size:9px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);
+}
+.lv-num b{
+  display:block;font-size:14.5px;font-weight:800;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
 /* ---- la personne d'en face ---- */
 .lv-who{
   display:flex;align-items:center;gap:12px;margin-top:18px;
   padding:13px;border-radius:20px;background:var(--bg);
 }
+/* La photo du livreur, ou ses initiales — jamais une silhouette grise, qui
+   donne l'impression d'un compte vide. Le liseré blanc la détache du fond
+   crème de la carte. */
 .lv-ini{
-  width:46px;height:46px;flex:none;border-radius:50%;
-  background:#2A1A2E;color:#fff;display:grid;place-items:center;
+  width:48px;height:48px;flex:none;border-radius:50%;
+  background:#2A1A2E center/cover no-repeat;color:#fff;
+  display:grid;place-items:center;
   font-size:15px;font-weight:800;
+  box-shadow:0 0 0 2.5px #fff,0 5px 14px -5px rgba(16,24,40,.5);
 }
 .lv-who .n{font-size:15px;font-weight:700}
 .lv-who .m{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--muted);margin-top:1px}
@@ -984,13 +1073,18 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
    roulant, ou avec un sac dans l'autre main. Vert parce que c'est la couleur
    du décrochage sur tous les téléphones du monde — ici elle désigne un
    geste, elle n'annonce pas une réussite. */
-.lv-call,.lv-nav{
+.lv-call,.lv-nav,.lv-msg{
   flex:none;width:44px;height:44px;border-radius:15px;
   display:grid;place-items:center;
+  transition:transform .16s cubic-bezier(.22,1,.36,1),box-shadow .16s ease;
 }
 .lv-call{background:#12B76A;color:#fff;box-shadow:0 8px 18px -8px rgba(18,183,106,.8)}
-.lv-nav{background:#fff;border:1px solid var(--line);color:#3A404D}
-.lv-call:active,.lv-nav:active{transform:scale(.95)}
+.lv-nav,.lv-msg{background:#fff;border:1px solid var(--line);color:#3A404D}
+/* Le message est le geste secondaire : même taille pour le pouce, moins de
+   poids visuel. Deux boutons pleins se disputeraient l'attention. */
+.lv-msg{box-shadow:0 3px 10px -4px rgba(16,24,40,.25)}
+.lv-call:active,.lv-nav:active,.lv-msg:active{transform:scale(.93)}
+.lv-who .et{color:#F5A623;font-weight:800}
 
 /* ---- le rappel encadré ---- */
 .lv-note{
@@ -2285,36 +2379,64 @@ body.role-driver .brand-logo{
 
 /* ------------------------------------------------ carte de suivi en direct */
 .live-map{height:240px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:#F2EDE5}
-/* ---- les repères, d'après la maquette « 34 » ----
-   Des gouttes pleines et non des ronds blancs bordés : sur un fond de carte
-   chargé, un rond blanc se confond avec un bâtiment. La pointe désigne
-   l'endroit exact, ce qu'un cercle ne fait pas. */
+/* ---- les repères de la carte ----
+   Un disque blanc et son ombre douce : c'est ce qui détache un repère d'un fond
+   de carte chargé, sans lui imposer une couleur. Le restaurant y met son
+   enseigne, les deux autres un pictogramme. */
 .lm-pin{
-  width:38px;height:38px;font-size:18px;
-  border-radius:50% 50% 50% 4px;transform:rotate(-45deg);
+  width:44px;height:44px;font-size:19px;
+  border-radius:50%;
   display:grid;place-items:center;
   background:#fff;color:#fff;
-  box-shadow:0 6px 14px -4px rgba(16,24,40,.5);
+  box-shadow:0 8px 20px -6px rgba(16,24,40,.42),0 2px 5px rgba(16,24,40,.14);
 }
-/* Le pictogramme se redresse : c'est la goutte qui penche, pas son contenu. */
-.lm-pin > span{transform:rotate(45deg);line-height:1}
+.lm-pin > span{line-height:0}
 
-.lm-resto{background:linear-gradient(140deg,#FF7A4D,#F04E23)}
+/* LE LOGO DU RESTAURANT, à la place d'un pictogramme.
+   Un rond générique dit « il y a un restaurant ici ». Le logo dit LEQUEL — et
+   c'est la seule chose que le client cherche sur cette carte, puisqu'il sait
+   déjà où il habite. Le fond blanc et le contour clair l'isolent : beaucoup
+   d'enseignes sont fournies sur fond blanc ou noir, et se noieraient dans la
+   carte sans cette bordure. */
+.lm-logo{
+  background-color:#fff;background-size:cover;background-position:center;
+  border:3px solid #fff;
+  box-shadow:0 10px 24px -7px rgba(16,24,40,.5),0 2px 6px rgba(16,24,40,.16);
+}
+/* Sans logo, le pictogramme sur pastille pleine — jamais un cercle vide. */
+.lm-resto:not(.lm-logo){background:linear-gradient(140deg,#FF7A4D,#F04E23)}
 .lm-client{background:linear-gradient(140deg,#3A2B40,#1B1220)}
 
-/* Le livreur est le seul qui bouge : il reste un cercle — une goutte à pointe
-   ne veut rien dire pour quelqu'un qui roule — et il bat pour qu'on le
-   distingue au premier regard des deux repères fixes. */
+/* LE LIVREUR — pastille orange, qui bat et qui tourne.
+   Le cap vient de deux positions successives (voir mappicker.js) : une icône
+   qui glisse latéralement en regardant toujours à droite ne ressemble à rien,
+   orientée elle raconte le virage qu'il vient de prendre. La rotation est
+   amortie sur une seconde, sinon le scooter pivote d'un coup sec. */
 .lm-driver{
-  border-radius:50%;transform:none;
   background:radial-gradient(120% 120% at 32% 24%,#FFC182,#F97316 58%,#E8600A);
   animation:lmPulse 2s infinite;
 }
-.lm-driver > span{transform:none}
+.lm-driver > span{
+  transform:rotate(var(--cap,0deg));
+  transition:transform 1s ease-out;
+}
 @keyframes lmPulse{
-  0%{box-shadow:0 0 0 0 rgba(249,115,22,.55), 0 6px 14px -4px rgba(16,24,40,.5)}
-  70%{box-shadow:0 0 0 16px rgba(249,115,22,0), 0 6px 14px -4px rgba(16,24,40,.5)}
-  100%{box-shadow:0 0 0 0 rgba(249,115,22,0), 0 6px 14px -4px rgba(16,24,40,.5)}
+  0%{box-shadow:0 0 0 0 rgba(249,115,22,.5),0 8px 20px -6px rgba(16,24,40,.42)}
+  70%{box-shadow:0 0 0 18px rgba(249,115,22,0),0 8px 20px -6px rgba(16,24,40,.42)}
+  100%{box-shadow:0 0 0 0 rgba(249,115,22,0),0 8px 20px -6px rgba(16,24,40,.42)}
+}
+
+/* À trois cents mètres, la maison se met à battre : c'est le moment d'aller
+   ouvrir. Rien d'autre sur l'écran ne dit « c'est maintenant » — les minutes
+   restantes descendent trop lentement pour qu'on les surveille. */
+.lm-client.proche{animation:lmProche 1.5s ease-in-out infinite}
+@keyframes lmProche{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(27,18,32,.4),0 8px 20px -6px rgba(16,24,40,.42)}
+  50%{transform:scale(1.12);box-shadow:0 0 0 14px rgba(27,18,32,0),0 8px 20px -6px rgba(16,24,40,.42)}
+}
+@media(prefers-reduced-motion:reduce){
+  .lm-driver,.lm-client.proche{animation:none}
+  .lm-driver > span{transition:none}
 }
 
 /* ---- l'étiquette posée à côté du repère ----

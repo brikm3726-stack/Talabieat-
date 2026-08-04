@@ -1041,7 +1041,10 @@
         noms: {
           restaurant: o.restaurant && o.restaurant.name,
           client: o.client_name || (o.client && o.client.full_name) || 'Client'
-        }
+        },
+        /* L'enseigne du restaurant plutot qu'un pictogramme : le livreur
+           reconnait la facade avant de lire le nom. */
+        logos: { restaurant: o.restaurant && o.restaurant.logo_url }
       }),
 
       fetch: async () => {
@@ -1065,6 +1068,7 @@
         const opts = { plein: true, bas: 34 };
         /* Le jeu de pictogrammes de l'application, pas des emojis : identiques
            sur tous les téléphones, et 🏪 désigne un magasin, pas un restaurant. */
+        const logoResto = o.restaurant && o.restaurant.logo_url;
         const IC = {
           resto: UI.icon('dome', 20),
           moi: UI.icon('scooter', 20),
@@ -1075,7 +1079,7 @@
           opts: opts,
           etapes: versClient
             ? [
-                { p: resto(), ic: IC.resto, t: nomResto, s: 'commande récupérée',
+                { p: resto(), ic: IC.resto, logo: logoResto, t: nomResto, s: 'commande récupérée',
                   fait: true, vers: { on: false, txt: '' } },
                 { p: moi(), ic: IC.moi, t: 'Vous', ici: true,
                   vers: { on: true, txt: t ? t.texte : '' } },
@@ -1084,7 +1088,7 @@
             : [
                 { p: moi(), ic: IC.moi, t: 'Vous', ici: true,
                   vers: { on: true, txt: t ? t.texte : '' } },
-                { p: resto(), ic: IC.resto, t: nomResto, s: 'récupérez la commande',
+                { p: resto(), ic: IC.resto, logo: logoResto, t: nomResto, s: 'récupérez la commande',
                   vers: { on: false, txt: rc ? rc.texte : '' } },
                 { p: chez(), ic: IC.chez, t: nomClient }
               ]

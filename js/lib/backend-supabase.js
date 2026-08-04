@@ -884,7 +884,12 @@
   const ORDER_SELECT =
     '*, restaurant:restaurants(id,name,address,phone,logo_url,zone_id,prep_time_min,lat,lng), ' +
     'client:profiles!orders_client_id_fkey(id,full_name,phone), ' +
-    'driver:profiles!orders_driver_id_fkey(id,full_name,phone), ' +
+    /* Le livreur avec sa photo, son véhicule et sa note : l'écran de suivi les
+       affiche, et ils existent déjà en base — profiles.avatar_url d'un côté,
+       drivers.vehicle / rating de l'autre. Les inventer aurait été absurde ;
+       les afficher sans les demander, impossible. */
+    'driver:profiles!orders_driver_id_fkey(id,full_name,phone,avatar_url,' +
+      'driver:drivers(vehicle,plate,rating,rating_count)), ' +
     'zone:zones(*), items:order_items(*)';
 
   function decorate(r) {

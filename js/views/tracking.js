@@ -411,7 +411,12 @@
         noms: {
           restaurant: o.restaurant && o.restaurant.name,
           client: 'Chez vous'
-        }
+        },
+        /* L'enseigne à la place du pictogramme : c'est la seule chose que le
+           client cherche sur cette carte, puisqu'il sait déjà où il habite.
+           Sans logo en base, le repère reprend son pictogramme — jamais un
+           cercle vide. */
+        logos: { restaurant: o.restaurant && o.restaurant.logo_url }
       }),
 
       /* Le statut est relu en même temps que la position : c'est lui qui fait
@@ -447,6 +452,7 @@
         /* Des pictogrammes du jeu de l'application, pas des emojis : 🏪 est un
            magasin et non un restaurant, et chaque téléphone dessine les emojis
            à sa façon — le repère changeait d'allure d'un appareil à l'autre. */
+        const logoResto = o.restaurant && o.restaurant.logo_url;
         const IC = {
           resto: UI.icon('dome', 20),
           moi: UI.icon('scooter', 20),
@@ -459,7 +465,7 @@
             ? [
                 /* Le tronçon déjà parcouru reste sombre : l'orange désigne
                    toujours ce qui se fait maintenant, jamais ce qui est fini. */
-                { p: r, ic: IC.resto, t: nomResto, s: 'commande récupérée',
+                { p: r, ic: IC.resto, logo: logoResto, t: nomResto, s: 'commande récupérée',
                   fait: true, vers: { on: false, txt: '' } },
                 { p: moi, ic: IC.moi, t: 'Votre livreur', ici: true,
                   vers: { on: true, txt: reste ? reste.texte : '' } },
@@ -468,7 +474,7 @@
             : [
                 { p: moi, ic: IC.moi, t: 'Votre livreur', ici: true,
                   vers: { on: true, txt: versR ? versR.texte : '' } },
-                { p: r, ic: IC.resto, t: nomResto, s: 'il prend votre commande',
+                { p: r, ic: IC.resto, logo: logoResto, t: nomResto, s: 'il prend votre commande',
                   vers: { on: false, txt: rc ? rc.texte : '' } },
                 { p: cible, ic: IC.chez, t: 'Chez vous' }
               ]
@@ -525,6 +531,18 @@
           ? (versClient ? versClient.min : 0)
           : ((versResto ? versResto.min : 0) + (restoClient ? restoClient.min : 0));
 
+        /* Le livreur tel que la base le connaît : sa fiche est imbriquée dans
+           son profil (voir ORDER_SELECT). Rien n'est inventé — ce qui manque ne
+           s'affiche pas. */
+        const liv = o.driver || {};
+        const fiche = liv.driver || {};
+        const VEHIC = { moto: 'Scooter', voiture: 'Voiture', velo: 'Vélo', autre: 'Véhicule' };
+        const meta = [
+          fiche.rating ? '<span class="et">★</span>' + U.esc((+fiche.rating).toFixed(1)) : '',
+          fiche.vehicle ? U.esc(VEHIC[fiche.vehicle] || 'Véhicule') : '',
+          pos ? 'signal ' + U.esc(U.ago(pos.at)) : 'en attente du signal'
+        ].filter(Boolean).join(' · ');
+
         return LiveScreen.grab() +
           /* L'heure d'arrivée rejoint la ligne du haut : « 47 min » se périme
              dans la tête de celui qui le lit, « vers 20:45 » reste vrai. Les
@@ -533,21 +551,71 @@
           LiveScreen.eta(titre, valeur,
             [apres, LiveScreen.heureArrivee(totalMin)].filter(Boolean).join(' · ')) +
           LiveScreen.progress(ETAPES, idx) +
+          LiveScreen.timeline(jalons(depuis)) +
+          LiveScreen.chiffres([
+            { k: 'Récupérée', v: o.delivering_at ? U.time(o.delivering_at) : '' },
+            { k: 'Restant', v: totalMin ? totalMin + ' min' : '' },
+            { k: 'Distance', v: distanceRestante(depuis) }
+          ]) +
           LiveScreen.person({
-            name: (o.driver && o.driver.full_name) || 'Votre livreur',
-            /* Ni note ni véhicule : la plateforme ne les connaît pas. Un
-               « ★ 4.9 » inventé se retournerait contre nous le jour où le
-               client comparerait. Ce qu'on sait vraiment, c'est la
-               fraîcheur du signal — et c'est ce qui l'intéresse ici. */
-            meta: pos
-              ? '🛵 Livreur · signal ' + U.esc(U.ago(pos.at))
-              : '🛵 Livreur · en attente du signal',
-            phone: o.driver && o.driver.phone
+            name: liv.full_name || 'Votre livreur',
+            photo: liv.avatar_url,
+            meta: meta,
+            phone: liv.phone,
+            sms: liv.phone
           }) +
           LiveScreen.note(UI.icon('wallet', 18),
             'Préparez <b>' + U.esc(U.money(o.total)) + '</b> en espèces');
       }
     });
+
+    /* ------------------------------------------------------ les six jalons
+       Quatre statuts en base, six étapes à l'écran : les deux qui manquent se
+       déduisent de la géométrie, pas d'un minuteur. « En route » quand le
+       livreur s'est éloigné du restaurant, « arrivé » quand il est à la porte.
+       C'est plus juste qu'un statut que personne n'irait cocher en conduisant,
+       et ça n'invente rien : ce sont les positions réelles qui le disent. */
+    function jalons(depuis) {
+      const km = (a, b) => (a && b && U.hasCoords(a) && U.hasCoords(b))
+        ? U.haversine(+a.lat, +a.lng, +b.lat, +b.lng) : null;
+      const dResto = km(depuis, o.restaurant);
+      const dClient = km(depuis, client);
+      const pris = !!o.delivering_at || o.status === 'delivering' || o.status === 'delivered';
+      const enRoute = pris && dResto !== null && dResto > 0.15;
+      const arrive = pris && dClient !== null && dClient < 0.15;
+      const livre = o.status === 'delivered';
+
+      const faits = [
+        !!o.accepted_at || ['accepted', 'preparing', 'ready', 'driver_assigned', 'delivering', 'delivered'].indexOf(o.status) >= 0,
+        !!o.ready_at || ['ready', 'driver_assigned', 'delivering', 'delivered'].indexOf(o.status) >= 0,
+        pris, enRoute, arrive, livre
+      ];
+      const libelles = ['Commande acceptée', 'Restaurant prêt', 'Commande récupérée',
+                        'En route', 'Arrivé chez vous', 'Livrée'];
+      const heures = [o.accepted_at, o.ready_at, o.delivering_at, null, null, o.delivered_at];
+
+      /* L'étape en cours est la première non franchie : c'est elle qui bat. */
+      const encours = faits.indexOf(false);
+      return libelles.map((t, i) => ({
+        t: t,
+        quand: heures[i] ? U.time(heures[i]) : '',
+        fait: faits[i],
+        ici: i === encours
+      }));
+    }
+
+    /* La distance qui reste vraiment à couvrir : avant le retrait, elle passe
+       par le restaurant. Annoncer la seule distance à vol d'oiseau jusqu'au
+       client donnerait un chiffre deux fois trop optimiste. */
+    function distanceRestante(depuis) {
+      const a = LiveScreen.trajet(depuis, client);
+      if (o.status === 'delivering') return a ? a.texte.replace(' restants', '') : '';
+      const r1 = LiveScreen.trajet(depuis, o.restaurant);
+      const r2 = LiveScreen.trajet(o.restaurant, client);
+      if (!r1 || !r2) return a ? a.texte.replace(' restants', '') : '';
+      const t = r1.km + r2.km;
+      return t < 1 ? Math.round(t * 1000) + ' m' : t.toFixed(1) + ' km';
+    }
 
     const off = API.onChange(t => { if (t === 'orders' || t === '*') ecran.repaint(); });
     return () => { off(); ecran.destroy(); };
