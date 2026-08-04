@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EDE4DA;font-family:Inter,system-ui,sans-serif;color:#12141A}
+a{color:#FF4D2D;text-decoration:none}
+a:hover{color:#E03A1B}
+*{box-sizing:border-box}
+@keyframes tlPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.55}}
+@keyframes tlFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-7px) rotate(-1.5deg)}}
+@keyframes tlSheen{0%{transform:translateX(-120%)}60%,100%{transform:translateX(220%)}}
+@keyframes tlRide{0%{transform:translateX(0)}50%{transform:translateX(5px)}100%{transform:translateX(0)}}
+@keyframes tlTrait{from{transform:translateX(-50%) scaleX(0)}to{transform:translateX(-50%) scaleX(1)}}
+@keyframes tlRise{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes tlSheet{from{transform:translateY(64px)}to{transform:translateY(0)}}
+</style></helmet>
+
+<section style="padding:44px 46px 40px;border-bottom:1px solid rgba(0,0,0,.08)" id="t2">
+<div style="display:flex;align-items:baseline;gap:10px;margin:0 0 8px">
+<a href="#t2" style="font:800 10px ui-monospace,Menlo,monospace;padding:4px 8px;background:#2A1A2E;color:#fff;border-radius:5px;letter-spacing:.04em">2</a>
+<span style="font:700 14px Sora,sans-serif;color:#12141A">La suite du parcours — valider, puis suivre</span>
+</div>
+<p style="margin:0 0 30px;max-width:760px;font:400 13.5px/1.65 Inter,sans-serif;color:rgba(18,20,26,.6);text-wrap:pretty">Les deux écrans qui manquaient entre <a href="#1f" style="font:700 11px ui-monospace,Menlo,monospace;padding:2px 6px;background:rgba(0,0,0,.08);color:#12141A;border-radius:4px;text-decoration:none">1f</a> et la livraison. Le suivi passe en carte plein écran : c'est l'écran qu'on garde ouvert, il ne doit rien demander d'autre que de regarder.</p>
+
+<div style="display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start">
+
+<!-- ======================================================== 2a SUIVI DIRECT -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="2a">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#2a" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">2a</a>Suivi en direct</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;position:relative;background:#EFE7DC;font-family:Inter,sans-serif;color:#12141A;overflow:hidden">
+
+  <div style="position:absolute;inset:0;background:#E8DFD2;background-image:linear-gradient(0deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),linear-gradient(0deg,rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:132px 132px,132px 132px,44px 44px,44px 44px"></div>
+  <div style="position:absolute;left:-40px;top:120px;width:210px;height:150px;border-radius:18px;background:rgba(160,190,150,.28)"></div>
+  <div style="position:absolute;right:-30px;top:400px;width:170px;height:120px;border-radius:18px;background:rgba(150,175,200,.25)"></div>
+  <div style="position:absolute;left:0;right:0;top:236px;height:26px;background:rgba(255,255,255,.9)"></div>
+  <div style="position:absolute;top:0;bottom:0;left:196px;width:26px;background:rgba(255,255,255,.9)"></div>
+
+  <svg viewBox="0 0 402 874" style="position:absolute;inset:0;width:100%;height:100%" fill="none">
+    <path d="M112 208 L209 208 L209 452 L296 452 L296 604" stroke="#FF4D2D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".22"/>
+    <path d="M112 208 L209 208 L209 452" stroke="#FF4D2D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+
+  <div style="position:absolute;left:88px;top:184px;width:48px;height:48px;border-radius:16px;background:#fff;border:1px solid #EBE3D9;display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(0,0,0,.3)">
+    <img src="../assets/img/restaurants/melyza-logo.jpg" alt="" style="width:34px;height:34px;object-fit:contain;border-radius:11px">
+  </div>
+
+  <div style="position:absolute;left:186px;top:428px">
+    <span style="position:absolute;left:-14px;top:-14px;width:76px;height:76px;border-radius:50%;background:rgba(255,77,45,.16);animation:tlPulse 2.2s ease-in-out infinite"></span>
+    <span style="position:relative;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#FF4D2D;color:#fff;box-shadow:0 10px 22px -8px rgba(255,77,45,.9)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="2.8"/><circle cx="18.5" cy="17.5" r="2.8"/><path d="M8.3 17.5h6.4"/><path d="M5.5 14.7v-2.2a1.8 1.8 0 0 1 1.8-1.8h4.4"/><path d="m17.6 14.6-1.9-7.4"/><path d="M13.9 6.6h3.4"/></svg></span>
+  </div>
+
+  <div style="position:absolute;left:274px;top:576px;display:flex;flex-direction:column;align-items:center;gap:4px">
+    <span style="width:44px;height:44px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:#2A1A2E;display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(0,0,0,.45)"><span style="transform:rotate(45deg);color:#fff;display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 10.4 12 3.6l8.8 6.8"/><path d="M5.4 9.4V19a1.6 1.6 0 0 0 1.6 1.6h10a1.6 1.6 0 0 0 1.6-1.6V9.4"/></svg></span></span>
+    <span style="padding:3px 8px;border-radius:7px;background:#fff;font:700 10.5px Inter,sans-serif;box-shadow:0 3px 8px -3px rgba(0,0,0,.3)">Chez vous</span>
+  </div>
+
+  <div style="position:absolute;top:60px;left:16px;right:16px;display:flex;align-items:center;gap:10px">
+    <span style="width:42px;height:42px;border-radius:15px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);display:grid;place-items:center;box-shadow:0 4px 12px -4px rgba(0,0,0,.25)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+    <span style="display:inline-flex;align-items:center;gap:7px;padding:11px 14px;border-radius:15px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);font:800 12px ui-monospace,Menlo,monospace;box-shadow:0 4px 12px -4px rgba(0,0,0,.25)"><span style="width:7px;height:7px;border-radius:50%;background:#F04438;animation:tlPulse 1.4s ease-in-out infinite"></span>#TLB-4821</span>
+    <span style="margin-left:auto;width:42px;height:42px;border-radius:15px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);display:grid;place-items:center;box-shadow:0 4px 12px -4px rgba(0,0,0,.25)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 4.4 4.9 10.2a.8.8 0 0 0-.1 1.5l6.4 2.6a.8.8 0 0 1 .4.4l2.6 6.4a.8.8 0 0 0 1.5-.1Z"/></svg></span>
+  </div>
+
+  <div style="position:absolute;left:16px;right:16px;bottom:22px;background:#fff;border-radius:28px;padding:18px 18px 20px;box-shadow:0 -6px 20px -10px rgba(0,0,0,.18),0 24px 50px -20px rgba(0,0,0,.4)">
+    <div style="display:grid;place-items:center;margin:-8px 0 12px"><span style="width:44px;height:5px;border-radius:3px;background:#E7DACB"></span></div>
+
+    <div style="font:600 11px Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#9A8B7E">Arrivée estimée</div>
+    <div style="display:flex;align-items:flex-end;gap:9px;margin-top:2px">
+      <span style="font:800 40px Sora,sans-serif;letter-spacing:-.04em;line-height:1">8 min</span>
+      <span style="font:600 13px Inter,sans-serif;color:#7A8291;padding-bottom:6px">· 800 m restants</span>
+    </div>
+
+    <div style="display:flex;gap:6px;margin:16px 0 8px">
+      <span style="flex:1;height:5px;border-radius:3px;background:#FF4D2D"></span>
+      <span style="flex:1;height:5px;border-radius:3px;background:#FF4D2D"></span>
+      <span style="flex:1;height:5px;border-radius:3px;background:#FF4D2D"></span>
+      <span style="flex:1;height:5px;border-radius:3px;background:#F1E7DC"></span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font:600 10.5px Inter,sans-serif;color:#7A8291">
+      <span>Prête</span><span>Livreur assigné</span><span style="color:#FF4D2D;font-weight:800">En livraison</span><span>Livrée</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-top:18px;padding:13px;border-radius:20px;background:#F7EDE4">
+      <span style="width:46px;height:46px;flex:none;border-radius:50%;background:#2A1A2E;color:#fff;display:grid;place-items:center;font:800 15px Sora,sans-serif">KA</span>
+      <div style="flex:1;min-width:0">
+        <div style="font:700 15px Sora,sans-serif">Karim A.</div>
+        <div style="display:flex;align-items:center;gap:5px;font:500 12px Inter,sans-serif;color:#7A8291;margin-top:1px"><span style="color:#F5A623">★</span>4.9 · Scooter · 0661 …</div>
+      </div>
+      <span style="flex:none;width:44px;height:44px;border-radius:15px;background:#12B76A;display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(18,183,106,.8)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span>
+      <span style="flex:none;width:44px;height:44px;border-radius:15px;background:#fff;border:1px solid #EBE3D9;display:grid;place-items:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#3A404D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:9px;margin-top:11px;padding:12px 13px;border-radius:16px;background:#FFF6ED;border:1px solid #F3DFC6">
+      <span style="width:32px;height:32px;flex:none;border-radius:11px;background:#fff;color:#E03A1B;display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H5a2 2 0 0 1-2-2Z"/><circle cx="17" cy="14" r="1"/></svg></span>
+      <span style="flex:1;font:600 12.5px/1.4 Inter,sans-serif;color:#7A6A5C">Préparez <b style="color:#12141A">{{ totalTxt }}</b> en espèces</span>
+    </div>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">La carte occupe l'écran, la feuille tient le reste : minutes restantes, les 4 étapes de <code style="font-size:11px">Cmp.timeline</code>, le livreur joignable en un tap, et le montant à préparer. Le fond de carte est une esquisse — à remplacer par la vraie carte de <code style="font-size:11px">mappicker.js</code>.</p>
+</div>
+
+<!-- ===================================================== 2b VALIDER COMMANDE -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="2b">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#2b" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">2b</a>Valider la commande</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="flex:none;height:56px"></div>
+  <div style="flex:none;display:flex;align-items:center;gap:12px;padding:2px 16px 14px">
+    <span style="width:40px;height:40px;flex:none;border-radius:14px;background:#fff;border:1px solid #EBE3D9;display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+    <div style="flex:1"><div style="font:800 24px Sora,sans-serif;letter-spacing:-.035em">Où livrer ?</div><div style="font:500 12.5px Inter,sans-serif;color:#7A8291">Dernière étape · Melyza Food</div></div>
+  </div>
+
+  <div style="flex:1;overflow:hidden;padding:0 16px 150px">
+    <div style="border-radius:22px;background:#fff;border:1px solid #EBE3D9;overflow:hidden">
+      <div style="position:relative;height:158px;background:#E8DFD2;background-image:linear-gradient(0deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),linear-gradient(0deg,rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:110px 110px,110px 110px,38px 38px,38px 38px">
+        <div style="position:absolute;left:0;right:0;top:92px;height:22px;background:rgba(255,255,255,.9)"></div>
+        <div style="position:absolute;top:0;bottom:0;left:132px;width:22px;background:rgba(255,255,255,.9)"></div>
+        <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center">
+          <span style="position:absolute;width:74px;height:74px;border-radius:50%;background:rgba(255,77,45,.15);animation:tlPulse 2.4s ease-in-out infinite"></span>
+          <span style="position:relative;width:40px;height:40px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:#FF4D2D;display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(255,77,45,.9)"><span style="width:12px;height:12px;border-radius:50%;background:#fff"></span></span>
+        </div>
+        <span style="position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:13px;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);font:700 12px Inter,sans-serif;box-shadow:0 4px 12px -4px rgba(0,0,0,.25)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF4D2D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 4.4 4.9 10.2a.8.8 0 0 0-.1 1.5l6.4 2.6a.8.8 0 0 1 .4.4l2.6 6.4a.8.8 0 0 0 1.5-.1Z"/></svg>Ma position</span>
+      </div>
+      <div style="padding:14px 15px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="width:34px;height:34px;flex:none;border-radius:11px;background:#FFF1ED;color:#FF4D2D;display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
+          <div style="flex:1;min-width:0">
+            <div style="font:700 14.5px Sora,sans-serif">Cité 20 Logements, Bt B</div>
+            <div style="font:500 12.5px Inter,sans-serif;color:#7A8291;margin-top:2px">Nouvelle Ville · 2,4 km du restaurant</div>
+          </div>
+          <span style="flex:none;padding:7px 12px;border-radius:11px;background:#F7EDE4;font:700 12px Inter,sans-serif;color:#3A404D">Changer</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:15px;border-radius:22px;background:#fff;border:1px solid #EBE3D9">
+      <div style="font:800 13px Sora,sans-serif;letter-spacing:.02em">Aider le livreur à vous trouver</div>
+      <div style="margin-top:10px;padding:12px 13px;border-radius:14px;background:#F7EDE4;font:500 13.5px/1.45 Inter,sans-serif;color:#3A404D">3<sup>e</sup> étage, porte à droite. Sonner deux fois.</div>
+      <div style="display:flex;gap:7px;margin-top:9px">
+        <span style="padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #EBE3D9;font:600 11.5px Inter,sans-serif;color:#3A404D">Laisser à la porte</span>
+        <span style="padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #EBE3D9;font:600 11.5px Inter,sans-serif;color:#3A404D">M'appeler en arrivant</span>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:15px;border-radius:22px;background:#fff;border:1px solid #EBE3D9">
+      <div style="display:flex;align-items:center;gap:11px">
+        <span style="width:34px;height:34px;flex:none;border-radius:11px;background:#F7EDE4;color:#3A404D;display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span>
+        <div style="flex:1;min-width:0"><div style="font:700 14px Sora,sans-serif">0770 12 34 56</div><div style="font:500 11.5px Inter,sans-serif;color:#7A8291;margin-top:1px">Modifiable dans 23 jours</div></div>
+        <span style="flex:none;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:#E7F8F0;color:#067647;font:800 11px Inter,sans-serif"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.6 4.6 4.6L19 7.4"/></svg>Vérifié</span>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:15px;border-radius:22px;background:#fff;border:1px solid #EBE3D9">
+      <div style="font:800 13px Sora,sans-serif;letter-spacing:.02em">Paiement</div>
+      <div style="display:flex;align-items:center;gap:11px;margin-top:10px;padding:12px 13px;border-radius:16px;border:1.5px solid #FF4D2D;background:#FFF6F3">
+        <span style="width:21px;height:21px;flex:none;border-radius:50%;border:2px solid #FF4D2D;display:grid;place-items:center"><span style="width:11px;height:11px;border-radius:50%;background:#FF4D2D"></span></span>
+        <span style="flex:1;font:600 14px Inter,sans-serif">Espèces à la réception</span>
+        <span style="font:800 14px Sora,sans-serif;color:#FF4D2D">{{ totalTxt }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;margin-top:8px;padding:12px 13px;border-radius:16px;border:1px solid #EBE3D9;opacity:.5">
+        <span style="width:21px;height:21px;flex:none;border-radius:50%;border:2px solid #EBE3D9"></span>
+        <span style="flex:1;font:600 14px Inter,sans-serif">Carte Edahabia / CIB</span>
+        <span style="padding:4px 9px;border-radius:7px;background:#F7EDE4;font:700 10.5px Inter,sans-serif;color:#7A8291">Bientôt</span>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:16px;border-radius:22px;background:#fff;border:1px solid #EBE3D9">
+      <div style="display:flex;align-items:center;justify-content:space-between;font:500 13.5px Inter,sans-serif;color:#3A404D"><span style="color:#7A8291">{{ cartCount }} articles</span><span>{{ subtotalTxt }}</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;font:500 13.5px Inter,sans-serif;color:#3A404D;margin-top:9px"><span style="color:#7A8291">Livraison · 2,4 km</span><span>200 DA</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;font:500 13.5px Inter,sans-serif;color:#0F9D58;margin-top:9px"><span>Première commande</span><span>− 150 DA</span></div>
+      <div style="height:1px;background:#F1E7DC;margin:13px 0"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:800 16px Sora,sans-serif">Total</span><span style="font:800 19px Sora,sans-serif;color:#FF4D2D">{{ totalTxt }}</span></div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px 30px;background:linear-gradient(180deg,rgba(247,237,228,0),#F7EDE4 26%)">
+    <div style="display:flex;align-items:center;gap:7px;justify-content:center;margin-bottom:10px;font:500 11.5px Inter,sans-serif;color:#7A8291"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Melyza Food répond sous 5 minutes</div>
+    <span style="display:flex;align-items:center;justify-content:center;gap:10px;padding:17px 20px;border-radius:20px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 15.5px Inter,sans-serif;cursor:pointer;box-shadow:0 14px 30px -12px rgba(255,77,45,.85)">Commander · {{ totalTxt }}<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12h15"/><path d="m13.2 5.4 6.6 6.6-6.6 6.6"/></svg></span>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">Un seul écran au lieu d'un formulaire : la position d'abord, la note ensuite, le paiement et le total. Le verrou de 30 jours sur le téléphone (trigger PostgreSQL) est annoncé sous le numéro, plutôt que découvert au moment de le modifier.</p>
+</div>
+
+</div>
+
+<p style="margin:26px 0 0;font:400 12px/1.6 Inter,sans-serif;color:rgba(0,0,0,.5)">À essayer ensuite : « branche la vraie carte de mappicker.js dans <a href="#2a" style="font:700 11px ui-monospace,Menlo,monospace;padding:2px 6px;background:rgba(0,0,0,.08);color:#12141A;border-radius:4px;text-decoration:none">2a</a> » · « la même refonte pour l'espace livreur » · « l'écran de confirmation après la commande »</p>
+</section>
+
+<section style="padding:44px 46px 40px;border-bottom:1px solid rgba(0,0,0,.08)" id="t1">
+<div style="display:flex;align-items:baseline;gap:10px;margin:0 0 8px">
+<a href="#t1" style="font:800 10px ui-monospace,Menlo,monospace;padding:4px 8px;background:#2A1A2E;color:#fff;border-radius:5px;letter-spacing:.04em">1</a>
+<span style="font:700 14px Sora,sans-serif;color:#12141A">Talabi — refonte de l'espace client</span>
+</div>
+<p style="margin:0 0 30px;max-width:760px;font:400 13.5px/1.65 Inter,sans-serif;color:rgba(18,20,26,.6);text-wrap:pretty">Même marque : orange <b style="color:#FF4D2D">#FF4D2D</b>, fond crème, barre flottante en verre. Ce qui change : la page d'accueil ne raconte plus l'application, elle sert à commander. Titres en Sora, corps en Inter, arabe en Cairo. La référence de gauche est l'accueil d'aujourd'hui, recréé depuis <code style="font-size:12px">landing.js</code> et <code style="font-size:12px">app.css</code>.</p>
+
+<div style="display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start">
+
+<!-- ============================================ RÉFÉRENCE : ACCUEIL ACTUEL -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="1a">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#1a" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">1a</a>Référence — l'accueil actuel</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="flex:none;height:56px"></div>
+  <div style="flex:none;display:flex;align-items:center;gap:12px;height:60px;padding:0 16px;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid #EBE3D9">
+    <button style="display:flex;align-items:center;gap:6px;background:#F7EDE4;border:1px solid #EBE3D9;border-radius:999px;padding:7px 12px;font:600 13px Inter,sans-serif;color:#12141A">
+      <span style="display:inline-flex;color:#FF4D2D"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>Tizi Ouzou</button>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+      <span style="width:40px;height:40px;border-radius:12px;border:1px solid #EBE3D9;background:#fff;display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h8.2"/><path d="M17.8 7.5H20"/><circle cx="15" cy="7.5" r="2.4"/><path d="M4 16.5h2.2"/><path d="M11.8 16.5H20"/><circle cx="9" cy="16.5" r="2.4"/></svg></span>
+      <span style="position:relative;width:40px;height:40px;border-radius:12px;border:1px solid #EBE3D9;background:#fff;display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.6 9.4a5.6 5.6 0 1 0-11.2 0c0 4.7-2 6.4-2.5 6.9a.6.6 0 0 0 .42 1.02h15.36a.6.6 0 0 0 .42-1.02c-.5-.5-2.5-2.2-2.5-6.9Z"/><path d="M10.2 20a2.1 2.1 0 0 0 3.6 0"/></svg><span style="position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 11px Inter,sans-serif;line-height:19px;text-align:center">3</span></span>
+      <span style="width:38px;height:38px;border-radius:50%;background:#12141A;color:#fff;display:grid;place-items:center;font:800 14px Inter,sans-serif">BK</span>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;padding-bottom:96px">
+    <div style="position:relative;overflow:hidden;background:linear-gradient(160deg,#FFF6EE 0%,#FDECDD 58%,#FFF3E9 100%);padding:26px 16px 46px">
+      <div style="max-width:225px">
+        <h1 style="font:900 33px/1.05 Inter,sans-serif;letter-spacing:-.03em;margin:0">Vos plats préférés,<br><span style="color:#FF4D2D">livrés chez vous</span></h1>
+        <p style="margin:12px 0 0;font:400 13.5px/1.55 Inter,sans-serif;color:#7A8291">Les meilleurs restaurants de Tizi Ouzou livrés chez vous en quelques minutes. Paiement à la livraison.</p>
+      </div>
+      <span style="position:absolute;right:-14px;top:34px;width:186px;height:180px;border-radius:50%;background:url(assets/img/bg/hero-food.jpg) center/cover no-repeat;-webkit-mask-image:radial-gradient(closest-side,#000 62%,transparent 100%);mask-image:radial-gradient(closest-side,#000 62%,transparent 100%)"></span>
+    </div>
+    <div style="padding:0 16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-top:-24px;position:relative;z-index:3;background:#fff;border-radius:18px;padding:8px 8px 8px 14px;box-shadow:0 2px 6px rgba(196,120,74,.07),0 18px 38px -22px rgba(196,120,74,.55)">
+        <span style="display:flex;color:#12141A"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+        <span style="flex:1;font:400 14.5px Inter,sans-serif;color:#9AA0AC">Ex : The Twelve<span style="color:#12141A">|</span></span>
+        <span style="flex:none;border-radius:14px;padding:12px 17px;font:700 14px Inter,sans-serif;color:#fff;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);box-shadow:0 8px 20px -8px rgba(255,77,45,.75)">Rechercher</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:16px">
+        <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #EBE3D9;border-radius:16px;padding:11px 9px"><span style="width:34px;height:34px;flex:none;border-radius:11px;background:#FFF1ED;color:#FF4D2D;display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v6a3 3 0 0 0 6 0V3"/><path d="M7 12v9"/><path d="M17.5 3c-1.6 1.1-2.5 3-2.5 5.2s.9 4.1 2.5 5.2V21"/></svg></span><span style="font:700 12px/1.3 Inter,sans-serif">Choisis ton restaurant</span><span style="color:#7A8291"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
+        <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #EBE3D9;border-radius:16px;padding:11px 9px"><span style="width:34px;height:34px;flex:none;border-radius:11px;background:#FFF1ED;color:#FF4D2D;display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="20.2" r="1.5"/><circle cx="17.6" cy="20.2" r="1.5"/><path d="M2.6 3.4h2.2a1 1 0 0 1 1 .82l.42 2.28"/><path d="M6.22 6.5h13.9a1 1 0 0 1 .98 1.2l-1.15 5.9a2 2 0 0 1-1.96 1.6H9.2a2 2 0 0 1-1.97-1.66L6.22 6.5Z"/></svg></span><span style="font:700 12px/1.3 Inter,sans-serif">Commander maintenant</span><span style="color:#7A8291"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
+        <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #EBE3D9;border-radius:16px;padding:11px 9px"><span style="width:34px;height:34px;flex:none;border-radius:11px;background:#FFF1ED;color:#FF4D2D;display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="2.8"/><circle cx="18.5" cy="17.5" r="2.8"/><path d="M8.3 17.5h6.4"/><path d="M5.5 14.7v-2.2a1.8 1.8 0 0 1 1.8-1.8h4.4"/><path d="m17.6 14.6-1.9-7.4"/><path d="M13.9 6.6h3.4"/></svg></span><span style="font:700 12px/1.3 Inter,sans-serif">Le livreur t'attend</span><span style="color:#7A8291"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:16px;border-radius:20px;padding:16px 8px;color:#fff;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);box-shadow:0 16px 34px -20px rgba(255,107,53,.9)">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center"><span style="width:38px;height:38px;border-radius:50%;margin-bottom:5px;background:rgba(255,255,255,.22);display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 2-5h14l2 5"/><path d="M3 8h18"/><path d="M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><path d="M9 21v-6h6v6"/></svg></span><b style="font:850 19px Inter,sans-serif;letter-spacing:-.02em">5+</b><span style="font-size:11.5px;opacity:.92">Restaurants</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;border-left:1px solid rgba(255,255,255,.28)"><span style="width:38px;height:38px;border-radius:50%;margin-bottom:5px;background:rgba(255,255,255,.22);display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span><b style="font:850 19px Inter,sans-serif;letter-spacing:-.02em">14</b><span style="font-size:11.5px;opacity:.92">Quartiers couverts</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;border-left:1px solid rgba(255,255,255,.28)"><span style="width:38px;height:38px;border-radius:50%;margin-bottom:5px;background:rgba(255,255,255,.22);display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><b style="font:850 19px Inter,sans-serif;letter-spacing:-.02em">25 min</b><span style="font-size:11.5px;opacity:.92">Livraison moyenne</span></div>
+      </div>
+      <img src="../assets/img/bg/moto.jpg" alt="Livraison rapide à votre porte" style="width:100%;border-radius:20px;margin-top:18px">
+      <div style="display:flex;align-items:center;gap:12px;margin:22px 0 12px">
+        <span style="width:40px;height:40px;border-radius:13px;flex:none;display:grid;place-items:center;color:#fff;background:radial-gradient(120% 120% at 32% 24%,#FFB067,#F97316 62%,#E8600A);box-shadow:0 6px 14px -6px rgba(232,96,10,.75)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="m9.2 14.4-1.7 6.1 4.5-2.6 4.5 2.6-1.7-6.1"/></svg></span>
+        <div style="flex:1"><div style="font:750 20px Inter,sans-serif;letter-spacing:-.02em">Restaurants populaires</div><div style="font:400 13.5px Inter,sans-serif;color:#7A8291">Livraison à Tizi Ouzou</div></div>
+        <span style="flex:none;display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:999px;border:1.5px solid #FF4D2D;color:#FF4D2D;font:800 13.5px Inter,sans-serif;background:#fff">Tout voir <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12h15"/><path d="m13.2 5.4 6.6 6.6-6.6 6.6"/></svg></span>
+      </div>
+      <article style="position:relative;background:#fff;border:2px solid #FF4D2D;border-radius:24px;box-shadow:0 18px 40px -22px rgba(249,115,22,.55),0 0 0 5px rgba(249,115,22,.07);overflow:hidden">
+        <div style="position:relative;aspect-ratio:20/9;min-height:150px;overflow:hidden;background:linear-gradient(105deg,#FFF8F2 0%,#FFF2E6 46%,#FFE9D8 100%)">
+          <div style="position:absolute;inset:0 0 0 40%;background:url(assets/img/restaurants/melyza-cover.jpg) center/cover no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent,#000 42%);mask-image:linear-gradient(90deg,transparent,#000 42%)"></div>
+          <div style="position:absolute;top:-18%;bottom:-18%;left:38%;width:26%;border-radius:50%;border:2.5px solid rgba(249,115,22,.55)"></div>
+          <div style="position:absolute;left:0;top:0;bottom:0;width:46%;display:grid;place-items:center;padding:34px 12px 14px"><img src="../assets/img/restaurants/melyza-logo.jpg" alt="" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:18px;background:#fff;padding:6px;box-shadow:0 6px 18px -8px rgba(17,24,39,.3)"></div>
+          <span style="position:absolute;top:12px;left:12px;display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.94);font:800 13px Inter,sans-serif;box-shadow:0 3px 10px -3px rgba(17,24,39,.22)"><span style="color:#F5A623;font-size:14px">★</span> 4.8</span>
+          <span style="position:absolute;top:12px;right:12px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.94);font:800 13px Inter,sans-serif;color:#0F9D58;box-shadow:0 3px 10px -3px rgba(17,24,39,.22)">Ouvert</span>
+        </div>
+        <div style="position:relative;z-index:2;margin-top:-16px;display:flex;align-items:center;gap:12px;padding:14px 16px 15px;background:#fff;border-radius:22px 22px 0 0">
+          <div style="flex:1;min-width:0">
+            <div style="font:800 16.5px Inter,sans-serif">Melyza Food</div>
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:6px;font:600 13px Inter,sans-serif;color:#7A8291">
+              <span style="display:inline-flex;align-items:center;gap:5px"><span style="color:#F5A623">★</span> <b style="color:#12141A;font-weight:800">4.8</b> <i style="font-style:normal;opacity:.65">(126)</i></span>
+              <span style="width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.4"></span>
+              <span style="display:inline-flex;align-items:center;gap:5px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="opacity:.75"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>25 min</span>
+              <span style="width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.4"></span>
+              <span style="display:inline-flex;align-items:center;gap:5px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="opacity:.75"><circle cx="5.5" cy="17.5" r="2.8"/><circle cx="18.5" cy="17.5" r="2.8"/><path d="M8.3 17.5h6.4"/><path d="M5.5 14.7v-2.2a1.8 1.8 0 0 1 1.8-1.8h4.4"/><path d="m17.6 14.6-1.9-7.4"/><path d="M13.9 6.6h3.4"/></svg>dès 200 DA</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;margin-top:6px;font:600 12.5px Inter,sans-serif;color:#7A8291"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF4D2D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Nouvelle Ville</div>
+          </div>
+          <span style="flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;background:radial-gradient(120% 120% at 32% 24%,#FFA654,#F97316 62%,#EA6A0A);box-shadow:0 8px 18px -8px rgba(234,106,10,.8)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12h15"/><path d="m13.2 5.4 6.6 6.6-6.6 6.6"/></svg></span>
+        </div>
+      </article>
+    </div>
+  </div>
+  <div style="position:absolute;left:14px;right:14px;bottom:22px;height:66px;padding:0 5px;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(20px);border:1px solid rgba(255,255,255,.75);border-radius:26px;display:flex;align-items:stretch;box-shadow:0 1px 2px rgba(122,62,24,.07),0 8px 20px -10px rgba(122,62,24,.3),0 26px 48px -22px rgba(122,62,24,.42)">
+    <div style="position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#FF4D2D"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;background:#FFF1ED;border:1.5px solid #FF4D2D;box-shadow:0 6px 16px -7px rgba(255,107,53,.85)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.2 10.4 12 3.6l8.8 6.8"/><path d="M5.4 9.4V19a1.6 1.6 0 0 0 1.6 1.6h10a1.6 1.6 0 0 0 1.6-1.6V9.4"/><path d="M9.6 20.6v-5.2a1.4 1.4 0 0 1 1.4-1.4h2a1.4 1.4 0 0 1 1.4 1.4v5.2"/></svg></span><span style="font:750 10.5px Inter,sans-serif">Accueil</span><span style="position:absolute;left:50%;bottom:7px;width:18px;height:3px;border-radius:2px;background:#FF4D2D;transform:translateX(-50%)"></span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.4 9.6c0-3.1 3.8-5.4 8.6-5.4s8.6 2.3 8.6 5.4a.9.9 0 0 1-.9.9H4.3a.9.9 0 0 1-.9-.9Z"/><path d="M4.2 13.4h15.6"/><path d="M3.4 16.8h17.2v.9a3.5 3.5 0 0 1-3.5 3.5H6.9a3.5 3.5 0 0 1-3.5-3.5Z"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Restaurants</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><circle cx="9.4" cy="20.2" r="1.5"/><circle cx="17.6" cy="20.2" r="1.5"/><path d="M2.6 3.4h2.2a1 1 0 0 1 1 .82l.42 2.28"/><path d="M6.22 6.5h13.9a1 1 0 0 1 .98 1.2l-1.15 5.9a2 2 0 0 1-1.96 1.6H9.2a2 2 0 0 1-1.97-1.66L6.22 6.5Z"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Panier</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20.6 8.1v7.8a1.9 1.9 0 0 1-.95 1.65l-6.7 3.86a1.9 1.9 0 0 1-1.9 0l-6.7-3.86A1.9 1.9 0 0 1 3.4 15.9V8.1a1.9 1.9 0 0 1 .95-1.65l6.7-3.86a1.9 1.9 0 0 1 1.9 0l6.7 3.86A1.9 1.9 0 0 1 20.6 8.1Z"/><path d="m3.7 7.1 8.3 4.8 8.3-4.8"/><path d="M12 21.3v-9.4"/></svg><span style="position:absolute;top:1px;right:11px;width:9px;height:9px;border-radius:50%;background:#FF4D2D;box-shadow:0 0 0 2px #fff"></span></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Commandes</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20 20.4v-1.3a4.6 4.6 0 0 0-4.6-4.6H8.6A4.6 4.6 0 0 0 4 19.1v1.3"/><circle cx="12" cy="7.6" r="4"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Compte</span></div>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">Six blocs avant le premier restaurant : héro, recherche, trois raccourcis, chiffres, bandeau publicitaire, titre de section. On fait défiler l'écran entier avant de voir ce qu'on est venu chercher.</p>
+</div>
+
+<!-- ============================================================ 1b ACCUEIL -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="1b">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#1b" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">1b</a>Accueil — commander d'abord</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="flex:none;height:56px"></div>
+  <div style="flex:none;display:flex;align-items:center;gap:10px;padding:2px 16px 12px">
+    <div style="flex:1;min-width:0">
+      <div style="font:600 11.5px Inter,sans-serif;color:#9A8B7E;letter-spacing:.06em;text-transform:uppercase">Livrer à</div>
+      <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+        <span style="display:inline-flex;color:#FF4D2D"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
+        <span style="font:700 17px Sora,sans-serif;letter-spacing:-.02em">Nouvelle Ville</span>
+        <span style="display:inline-flex;color:#12141A;opacity:.4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </div>
+    </div>
+    <span style="position:relative;width:42px;height:42px;border-radius:14px;background:#fff;border:1px solid #EBE3D9;display:grid;place-items:center;box-shadow:0 1px 2px rgba(16,24,40,.06)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.6 9.4a5.6 5.6 0 1 0-11.2 0c0 4.7-2 6.4-2.5 6.9a.6.6 0 0 0 .42 1.02h15.36a.6.6 0 0 0 .42-1.02c-.5-.5-2.5-2.2-2.5-6.9Z"/><path d="M10.2 20a2.1 2.1 0 0 0 3.6 0"/></svg><span style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#FF4D2D;box-shadow:0 0 0 2.5px #F7EDE4"></span></span>
+    <span style="width:42px;height:42px;border-radius:50%;background:#2A1A2E;color:#fff;display:grid;place-items:center;font:800 14px Sora,sans-serif;letter-spacing:.02em">BK</span>
+  </div>
+
+  <div style="flex:1;overflow:hidden;padding:0 0 100px">
+    <div style="padding:0 16px">
+      <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #EBE3D9;border-radius:18px;padding:13px 15px;box-shadow:0 2px 6px rgba(196,120,74,.06),0 14px 30px -24px rgba(196,120,74,.5)">
+        <span style="display:flex;color:#12141A;opacity:.55"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+        <span style="flex:1;font:500 14.5px Inter,sans-serif;color:#9AA0AC">Tacos, pizza, Melyza…</span>
+        <span style="width:1px;height:20px;background:#EBE3D9"></span>
+        <span style="display:flex;color:#FF4D2D"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h8.2"/><path d="M17.8 7.5H20"/><circle cx="15" cy="7.5" r="2.4"/><path d="M4 16.5h2.2"/><path d="M11.8 16.5H20"/><circle cx="9" cy="16.5" r="2.4"/></svg></span>
+      </div>
+
+      <div style="position:relative;overflow:hidden;margin-top:14px;border-radius:24px;padding:16px 17px;background:linear-gradient(128deg,#2A1A2E 0%,#3A2130 52%,#4A2226 100%);color:#fff;box-shadow:0 20px 40px -26px rgba(42,26,46,.9)">
+        <span style="position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,138,90,.16) 50%,transparent 70%);animation:tlSheen 4.5s ease-in-out infinite"></span>
+        <div style="position:relative;display:flex;align-items:center;gap:13px">
+          <span style="width:46px;height:46px;flex:none;border-radius:15px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#FFB183;animation:tlRide 2.2s ease-in-out infinite"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="2.8"/><circle cx="18.5" cy="17.5" r="2.8"/><path d="M8.3 17.5h6.4"/><path d="M5.5 14.7v-2.2a1.8 1.8 0 0 1 1.8-1.8h4.4"/><path d="m17.6 14.6-1.9-7.4"/><path d="M13.9 6.6h3.4"/></svg></span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#4ADE80;animation:tlPulse 1.8s ease-in-out infinite"></span><span style="font:600 11px Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.7)">En route</span></div>
+            <div style="font:700 15.5px Sora,sans-serif;letter-spacing:-.01em;margin-top:3px">Karim arrive dans 8 min</div>
+            <div style="font:400 12.5px Inter,sans-serif;color:rgba(255,255,255,.62);margin-top:2px">Melyza Food · 3 articles · 1 850 DA</div>
+          </div>
+          <span style="flex:none;width:38px;height:38px;border-radius:50%;background:#FF4D2D;display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(255,77,45,.9)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+        </div>
+        <div style="position:relative;display:flex;gap:5px;margin-top:14px">
+          <span style="flex:1;height:4px;border-radius:2px;background:#FF8A5A"></span>
+          <span style="flex:1;height:4px;border-radius:2px;background:#FF8A5A"></span>
+          <span style="flex:1;height:4px;border-radius:2px;background:#FF8A5A"></span>
+          <span style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.18)"></span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:11px;overflow:hidden;padding:20px 16px 4px">
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:#2A1A2E;color:#fff;display:grid;place-items:center;font:800 13px Sora,sans-serif;box-shadow:0 10px 20px -12px rgba(42,26,46,.8)">Tout</div>
+        <span style="font:700 11.5px Inter,sans-serif;color:#2A1A2E">Tout</span>
+      </div>
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:url(assets/img/categories/tacos.jpg) center/cover no-repeat;border:2px solid #FF4D2D;box-shadow:0 0 0 3px rgba(255,77,45,.16),0 10px 22px -12px rgba(255,77,45,.6)"></div>
+        <span style="font:700 11.5px Inter,sans-serif;color:#FF4D2D">Tacos</span>
+      </div>
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:url(assets/img/categories/pizza.jpg) center/cover no-repeat;border:2px solid #EBE3D9"></div>
+        <span style="font:600 11.5px Inter,sans-serif;color:#7A8291">Pizza</span>
+      </div>
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:url(assets/img/categories/burger.jpg) center/cover no-repeat;border:2px solid #EBE3D9"></div>
+        <span style="font:600 11.5px Inter,sans-serif;color:#7A8291">Burger</span>
+      </div>
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:url(assets/img/categories/traditionnel.jpg) center/cover no-repeat;border:2px solid #EBE3D9"></div>
+        <span style="font:600 11.5px Inter,sans-serif;color:#7A8291">Tradi.</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;padding:18px 16px 12px">
+      <div style="flex:1"><div style="font:800 21px Sora,sans-serif;letter-spacing:-.03em">Ouverts près de vous</div><div style="font:500 12.5px Inter,sans-serif;color:#7A8291;margin-top:2px">5 restaurants livrent à Nouvelle Ville</div></div>
+      <span style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #EBE3D9;font:700 12.5px Inter,sans-serif;color:#2A1A2E">Tout voir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;padding:0 16px">
+      <article style="display:flex;gap:13px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 26px -22px rgba(122,62,24,.5)">
+        <div style="position:relative;width:104px;height:104px;flex:none;border-radius:17px;background:url(assets/img/restaurants/melyza-cover.jpg) center/cover no-repeat;overflow:hidden">
+          <img src="../assets/img/restaurants/melyza-logo.jpg" alt="" style="position:absolute;left:7px;bottom:7px;width:34px;height:34px;object-fit:contain;border-radius:11px;background:#fff;padding:3px;box-shadow:0 4px 10px -4px rgba(17,24,39,.5)">
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;padding:3px 4px 3px 0">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0;font:700 16px Sora,sans-serif;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Melyza Food</div>
+            <span style="flex:none;display:inline-flex;align-items:center;gap:4px;font:800 12.5px Inter,sans-serif"><span style="color:#F5A623">★</span>4.8</span>
+          </div>
+          <div style="font:500 12.5px Inter,sans-serif;color:#7A8291;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tacos · Burger · Sandwich</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:auto">
+            <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:9px;background:#FFF1ED;color:#E03A1B;font:700 12px Inter,sans-serif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>20–30 min</span>
+            <span style="font:600 12px Inter,sans-serif;color:#7A8291">200 DA</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;font:700 11.5px Inter,sans-serif;color:#0F9D58"><span style="width:6px;height:6px;border-radius:50%;background:#12B76A"></span>Ouvert</span>
+          </div>
+        </div>
+      </article>
+
+      <article style="display:flex;gap:13px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 26px -22px rgba(122,62,24,.5)">
+        <div style="position:relative;width:104px;height:104px;flex:none;border-radius:17px;background:url(assets/img/restaurants/twelve-cover.jpg) center/cover no-repeat;overflow:hidden">
+          <img src="../assets/img/restaurants/twelve-logo.jpg" alt="" style="position:absolute;left:7px;bottom:7px;width:34px;height:34px;object-fit:contain;border-radius:11px;background:#fff;padding:3px;box-shadow:0 4px 10px -4px rgba(17,24,39,.5)">
+          <span style="position:absolute;top:7px;left:7px;padding:4px 8px;border-radius:8px;background:#FF4D2D;color:#fff;font:800 10px Inter,sans-serif;letter-spacing:.04em">-20%</span>
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;padding:3px 4px 3px 0">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0;font:700 16px Sora,sans-serif;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">The Twelve</div>
+            <span style="flex:none;display:inline-flex;align-items:center;gap:4px;font:800 12.5px Inter,sans-serif"><span style="color:#F5A623">★</span>4.6</span>
+          </div>
+          <div style="font:500 12.5px Inter,sans-serif;color:#7A8291;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Pizza · Pâtes · Dessert</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:auto">
+            <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:9px;background:#FFF1ED;color:#E03A1B;font:700 12px Inter,sans-serif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>30–40 min</span>
+            <span style="font:600 12px Inter,sans-serif;color:#7A8291">250 DA</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;font:700 11.5px Inter,sans-serif;color:#0F9D58"><span style="width:6px;height:6px;border-radius:50%;background:#12B76A"></span>Ouvert</span>
+          </div>
+        </div>
+      </article>
+
+      <article style="display:flex;gap:13px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 26px -22px rgba(122,62,24,.5)">
+        <div style="position:relative;width:104px;height:104px;flex:none;border-radius:17px;background:url(assets/img/restaurants/ambassade-cover.jpg) center/cover no-repeat;overflow:hidden">
+          <img src="../assets/img/restaurants/ambassade-logo.jpg" alt="" style="position:absolute;left:7px;bottom:7px;width:34px;height:34px;object-fit:contain;border-radius:11px;background:#fff;padding:3px;box-shadow:0 4px 10px -4px rgba(17,24,39,.5)">
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;padding:3px 4px 3px 0">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0;font:700 16px Sora,sans-serif;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">L'Ambassade</div>
+            <span style="flex:none;display:inline-flex;align-items:center;gap:4px;font:800 12.5px Inter,sans-serif"><span style="color:#F5A623">★</span>4.9</span>
+          </div>
+          <div style="font:500 12.5px Inter,sans-serif;color:#7A8291;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Traditionnel · Grillades</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:auto">
+            <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:9px;background:#F7EDE4;color:#7A8291;font:700 12px Inter,sans-serif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Ouvre à 18 h</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;font:700 11.5px Inter,sans-serif;color:#B4212B"><span style="width:6px;height:6px;border-radius:50%;background:#F04438"></span>Fermé</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:14px;right:14px;bottom:22px;height:66px;padding:0 5px;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(20px);border:1px solid rgba(255,255,255,.75);border-radius:26px;display:flex;align-items:stretch;box-shadow:0 1px 2px rgba(122,62,24,.07),0 8px 20px -10px rgba(122,62,24,.3),0 26px 48px -22px rgba(122,62,24,.42)">
+    <div style="position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#FF4D2D"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;background:#FFF1ED;border:1.5px solid #FF4D2D;box-shadow:0 6px 16px -7px rgba(255,107,53,.85)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.2 10.4 12 3.6l8.8 6.8"/><path d="M5.4 9.4V19a1.6 1.6 0 0 0 1.6 1.6h10a1.6 1.6 0 0 0 1.6-1.6V9.4"/><path d="M9.6 20.6v-5.2a1.4 1.4 0 0 1 1.4-1.4h2a1.4 1.4 0 0 1 1.4 1.4v5.2"/></svg></span><span style="font:750 10.5px Inter,sans-serif">Accueil</span><span style="position:absolute;left:50%;bottom:7px;width:18px;height:3px;border-radius:2px;background:#FF4D2D;transform:translateX(-50%);animation:tlTrait .3s .05s cubic-bezier(.34,1.56,.64,1) both"></span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.4 9.6c0-3.1 3.8-5.4 8.6-5.4s8.6 2.3 8.6 5.4a.9.9 0 0 1-.9.9H4.3a.9.9 0 0 1-.9-.9Z"/><path d="M4.2 13.4h15.6"/><path d="M3.4 16.8h17.2v.9a3.5 3.5 0 0 1-3.5 3.5H6.9a3.5 3.5 0 0 1-3.5-3.5Z"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Restaurants</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><circle cx="9.4" cy="20.2" r="1.5"/><circle cx="17.6" cy="20.2" r="1.5"/><path d="M2.6 3.4h2.2a1 1 0 0 1 1 .82l.42 2.28"/><path d="M6.22 6.5h13.9a1 1 0 0 1 .98 1.2l-1.15 5.9a2 2 0 0 1-1.96 1.6H9.2a2 2 0 0 1-1.97-1.66L6.22 6.5Z"/></svg><span style="position:absolute;top:-3px;right:6px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 10.5px Inter,sans-serif;line-height:18px;text-align:center;box-shadow:0 0 0 2px #fff">{{ cartCount }}</span></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Panier</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20.6 8.1v7.8a1.9 1.9 0 0 1-.95 1.65l-6.7 3.86a1.9 1.9 0 0 1-1.9 0l-6.7-3.86A1.9 1.9 0 0 1 3.4 15.9V8.1a1.9 1.9 0 0 1 .95-1.65l6.7-3.86a1.9 1.9 0 0 1 1.9 0l6.7 3.86A1.9 1.9 0 0 1 20.6 8.1Z"/><path d="m3.7 7.1 8.3 4.8 8.3-4.8"/><path d="M12 21.3v-9.4"/></svg><span style="position:absolute;top:1px;right:11px;width:9px;height:9px;border-radius:50%;background:#FF4D2D;box-shadow:0 0 0 2px #fff;animation:tlPulse 2.4s ease-in-out infinite"></span></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Commandes</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20 20.4v-1.3a4.6 4.6 0 0 0-4.6-4.6H8.6A4.6 4.6 0 0 0 4 19.1v1.3"/><circle cx="12" cy="7.6" r="4"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Compte</span></div>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">L'adresse remplace le titre publicitaire. La commande en cours passe devant tout le reste. Le premier restaurant est visible sans défiler, et sa carte fait 126 px au lieu de 250.</p>
+</div>
+
+<!-- ================================================= 1c RESTAURANTS / RECHERCHE -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="1c">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#1c" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">1c</a>Restaurants &amp; recherche</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="flex:none;height:56px"></div>
+  <div style="flex:none;padding:2px 16px 12px;background:#F7EDE4">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="flex:1"><div style="font:800 25px Sora,sans-serif;letter-spacing:-.035em">Restaurants</div><div style="font:500 12.5px Inter,sans-serif;color:#7A8291;margin-top:1px">14 quartiers · paiement à la réception</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:13px;background:#fff;border:1.5px solid #FF4D2D;border-radius:16px;padding:12px 14px;box-shadow:0 0 0 4px rgba(255,77,45,.1)">
+      <span style="display:flex;color:#FF4D2D"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+      <span style="flex:1;font:600 14.5px Inter,sans-serif">tacos<span style="opacity:.35">|</span></span>
+      <span style="width:22px;height:22px;border-radius:50%;background:#F7EDE4;display:grid;place-items:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7A8291" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+    </div>
+    <div style="display:flex;gap:7px;margin-top:12px">
+      <span style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:#2A1A2E;color:#fff;font:700 13px Inter,sans-serif">Restaurants <span style="opacity:.55">3</span></span>
+      <span style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:#fff;border:1px solid #EBE3D9;color:#7A8291;font:600 13px Inter,sans-serif">Plats <span style="opacity:.6">17</span></span>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow:hidden;padding:0 0 100px">
+    <div style="display:flex;gap:8px;overflow:hidden;padding:2px 16px 14px">
+      <span style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;background:#FFF1ED;border:1.5px solid #FF4D2D;color:#E03A1B;font:700 12.5px Inter,sans-serif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.6 4.6 4.6L19 7.4"/></svg>Ouverts</span>
+      <span style="flex:none;padding:8px 13px;border-radius:999px;background:#fff;border:1px solid #EBE3D9;color:#3A404D;font:600 12.5px Inter,sans-serif">Moins de 30 min</span>
+      <span style="flex:none;padding:8px 13px;border-radius:999px;background:#fff;border:1px solid #EBE3D9;color:#3A404D;font:600 12.5px Inter,sans-serif">★ 4,5 et +</span>
+      <span style="flex:none;padding:8px 13px;border-radius:999px;background:#fff;border:1px solid #EBE3D9;color:#3A404D;font:600 12.5px Inter,sans-serif">Promo</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;padding:0 16px">
+      <article style="display:flex;gap:13px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 26px -22px rgba(122,62,24,.5)">
+        <div style="position:relative;width:104px;height:104px;flex:none;border-radius:17px;background:url(assets/img/restaurants/melyza-cover.jpg) center/cover no-repeat;overflow:hidden">
+          <img src="../assets/img/restaurants/melyza-logo.jpg" alt="" style="position:absolute;left:7px;bottom:7px;width:34px;height:34px;object-fit:contain;border-radius:11px;background:#fff;padding:3px;box-shadow:0 4px 10px -4px rgba(17,24,39,.5)">
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;padding:3px 4px 3px 0">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0;font:700 16px Sora,sans-serif;letter-spacing:-.02em">Melyza Food</div>
+            <span style="flex:none;display:inline-flex;align-items:center;gap:4px;font:800 12.5px Inter,sans-serif"><span style="color:#F5A623">★</span>4.8</span>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:5px;align-self:flex-start;margin-top:5px;padding:4px 8px;border-radius:8px;background:#FFF1ED;color:#E03A1B;font:700 11.5px Inter,sans-serif"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v6a3 3 0 0 0 6 0V3"/><path d="M7 12v9"/><path d="M17.5 3c-1.6 1.1-2.5 3-2.5 5.2s.9 4.1 2.5 5.2V21"/></svg>Tacos XL · dès 650 DA</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:auto">
+            <span style="font:700 12px Inter,sans-serif;color:#3A404D">20–30 min</span>
+            <span style="width:3px;height:3px;border-radius:50%;background:#7A8291"></span>
+            <span style="font:600 12px Inter,sans-serif;color:#7A8291">200 DA</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;font:700 11.5px Inter,sans-serif;color:#0F9D58"><span style="width:6px;height:6px;border-radius:50%;background:#12B76A"></span>Ouvert</span>
+          </div>
+        </div>
+      </article>
+
+      <article style="display:flex;gap:13px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 26px -22px rgba(122,62,24,.5)">
+        <div style="position:relative;width:104px;height:104px;flex:none;border-radius:17px;background:url(assets/img/restaurants/sadoudi-cover.jpg) center/cover no-repeat;overflow:hidden">
+          <img src="../assets/img/restaurants/sadoudi-logo.jpg" alt="" style="position:absolute;left:7px;bottom:7px;width:34px;height:34px;object-fit:contain;border-radius:11px;background:#fff;padding:3px;box-shadow:0 4px 10px -4px rgba(17,24,39,.5)">
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;padding:3px 4px 3px 0">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0;font:700 16px Sora,sans-serif;letter-spacing:-.02em">Sadoudi</div>
+            <span style="flex:none;display:inline-flex;align-items:center;gap:4px;font:800 12.5px Inter,sans-serif"><span style="color:#F5A623">★</span>4.5</span>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:5px;align-self:flex-start;margin-top:5px;padding:4px 8px;border-radius:8px;background:#FFF1ED;color:#E03A1B;font:700 11.5px Inter,sans-serif"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v6a3 3 0 0 0 6 0V3"/><path d="M7 12v9"/><path d="M17.5 3c-1.6 1.1-2.5 3-2.5 5.2s.9 4.1 2.5 5.2V21"/></svg>Tacos poulet · dès 550 DA</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:auto">
+            <span style="font:700 12px Inter,sans-serif;color:#3A404D">25–35 min</span>
+            <span style="width:3px;height:3px;border-radius:50%;background:#7A8291"></span>
+            <span style="font:600 12px Inter,sans-serif;color:#7A8291">200 DA</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;font:700 11.5px Inter,sans-serif;color:#0F9D58"><span style="width:6px;height:6px;border-radius:50%;background:#12B76A"></span>Ouvert</span>
+          </div>
+        </div>
+      </article>
+
+      <article style="display:flex;gap:13px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 26px -22px rgba(122,62,24,.5)">
+        <div style="position:relative;width:104px;height:104px;flex:none;border-radius:17px;background:url(assets/img/restaurants/atelier-cover.jpg) center/cover no-repeat;overflow:hidden">
+          <img src="../assets/img/restaurants/atelier-logo.jpg" alt="" style="position:absolute;left:7px;bottom:7px;width:34px;height:34px;object-fit:contain;border-radius:11px;background:#fff;padding:3px;box-shadow:0 4px 10px -4px rgba(17,24,39,.5)">
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;padding:3px 4px 3px 0">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0;font:700 16px Sora,sans-serif;letter-spacing:-.02em">L'Atelier</div>
+            <span style="flex:none;display:inline-flex;align-items:center;gap:4px;font:800 12.5px Inter,sans-serif"><span style="color:#F5A623">★</span>4.7</span>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:5px;align-self:flex-start;margin-top:5px;padding:4px 8px;border-radius:8px;background:#FFF1ED;color:#E03A1B;font:700 11.5px Inter,sans-serif"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v6a3 3 0 0 0 6 0V3"/><path d="M7 12v9"/><path d="M17.5 3c-1.6 1.1-2.5 3-2.5 5.2s.9 4.1 2.5 5.2V21"/></svg>Tacos mixte · dès 700 DA</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:auto">
+            <span style="font:700 12px Inter,sans-serif;color:#3A404D">30–40 min</span>
+            <span style="width:3px;height:3px;border-radius:50%;background:#7A8291"></span>
+            <span style="font:600 12px Inter,sans-serif;color:#7A8291">250 DA</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;font:700 11.5px Inter,sans-serif;color:#0F9D58"><span style="width:6px;height:6px;border-radius:50%;background:#12B76A"></span>Ouvert</span>
+          </div>
+        </div>
+      </article>
+
+      <div style="display:flex;align-items:center;gap:11px;padding:14px;border-radius:20px;background:#FFF6ED;border:1px dashed #E7C9A9">
+        <span style="width:36px;height:36px;flex:none;border-radius:12px;background:#fff;display:grid;place-items:center;color:#FF4D2D"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4.5"/><path d="M12 8.2h.01"/></svg></span>
+        <p style="margin:0;font:500 12.5px/1.5 Inter,sans-serif;color:#7A6A5C">« tacos » trouve aussi les plats. Basculez sur <b style="color:#12141A">Plats</b> pour voir les 17 résultats, prix compris.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:14px;right:14px;bottom:22px;height:66px;padding:0 5px;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(20px);border:1px solid rgba(255,255,255,.75);border-radius:26px;display:flex;align-items:stretch;box-shadow:0 1px 2px rgba(122,62,24,.07),0 8px 20px -10px rgba(122,62,24,.3),0 26px 48px -22px rgba(122,62,24,.42)">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.2 10.4 12 3.6l8.8 6.8"/><path d="M5.4 9.4V19a1.6 1.6 0 0 0 1.6 1.6h10a1.6 1.6 0 0 0 1.6-1.6V9.4"/><path d="M9.6 20.6v-5.2a1.4 1.4 0 0 1 1.4-1.4h2a1.4 1.4 0 0 1 1.4 1.4v5.2"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Accueil</span></div>
+    <div style="position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#FF4D2D"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;background:#FFF1ED;border:1.5px solid #FF4D2D;box-shadow:0 6px 16px -7px rgba(255,107,53,.85)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.4 9.6c0-3.1 3.8-5.4 8.6-5.4s8.6 2.3 8.6 5.4a.9.9 0 0 1-.9.9H4.3a.9.9 0 0 1-.9-.9Z"/><path d="M4.2 13.4h15.6"/><path d="M3.4 16.8h17.2v.9a3.5 3.5 0 0 1-3.5 3.5H6.9a3.5 3.5 0 0 1-3.5-3.5Z"/></svg></span><span style="font:750 10.5px Inter,sans-serif">Restaurants</span><span style="position:absolute;left:50%;bottom:7px;width:18px;height:3px;border-radius:2px;background:#FF4D2D;transform:translateX(-50%)"></span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><circle cx="9.4" cy="20.2" r="1.5"/><circle cx="17.6" cy="20.2" r="1.5"/><path d="M2.6 3.4h2.2a1 1 0 0 1 1 .82l.42 2.28"/><path d="M6.22 6.5h13.9a1 1 0 0 1 .98 1.2l-1.15 5.9a2 2 0 0 1-1.96 1.6H9.2a2 2 0 0 1-1.97-1.66L6.22 6.5Z"/></svg><span style="position:absolute;top:-3px;right:6px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 10.5px Inter,sans-serif;line-height:18px;text-align:center;box-shadow:0 0 0 2px #fff">{{ cartCount }}</span></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Panier</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20.6 8.1v7.8a1.9 1.9 0 0 1-.95 1.65l-6.7 3.86a1.9 1.9 0 0 1-1.9 0l-6.7-3.86A1.9 1.9 0 0 1 3.4 15.9V8.1a1.9 1.9 0 0 1 .95-1.65l6.7-3.86a1.9 1.9 0 0 1 1.9 0l6.7 3.86A1.9 1.9 0 0 1 20.6 8.1Z"/><path d="m3.7 7.1 8.3 4.8 8.3-4.8"/><path d="M12 21.3v-9.4"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Commandes</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20 20.4v-1.3a4.6 4.6 0 0 0-4.6-4.6H8.6A4.6 4.6 0 0 0 4 19.1v1.3"/><circle cx="12" cy="7.6" r="4"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Compte</span></div>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">La recherche porte déjà sur les plats dans le code : la carte le dit maintenant à voix haute (« Tacos XL · dès 650 DA ») au lieu de le cacher dans une ligne grise.</p>
+</div>
+
+<!-- ============================================== 1d FICHE RESTAURANT + MENU -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="1d">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#1d" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">1d</a>Fiche restaurant &amp; menu</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="position:relative;flex:none;height:210px;background:url(assets/img/restaurants/melyza-cover.jpg) center/cover no-repeat">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,10,8,.5) 0%,transparent 34%,rgba(20,10,8,.35) 100%)"></div>
+    <div style="position:absolute;top:60px;left:16px;right:16px;display:flex;align-items:center;gap:10px">
+      <span style="width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+      <span style="margin-left:auto;width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.4S4.4 15.6 4.4 10.3A4.3 4.3 0 0 1 12 7.5a4.3 4.3 0 0 1 7.6 2.8c0 5.3-7.6 10.1-7.6 10.1Z"/></svg></span>
+      <span style="width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow:hidden;padding:0 0 104px;margin-top:-34px">
+    <div style="padding:0 16px">
+      <div style="background:#fff;border:1px solid #EBE3D9;border-radius:24px;padding:15px;box-shadow:0 1px 3px rgba(16,24,40,.06),0 22px 44px -30px rgba(122,62,24,.7)">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <img src="../assets/img/restaurants/melyza-logo.jpg" alt="" style="width:56px;height:56px;flex:none;object-fit:contain;border-radius:18px;background:#fff;padding:4px;border:1px solid #EBE3D9">
+          <div style="flex:1;min-width:0">
+            <div style="font:800 21px Sora,sans-serif;letter-spacing:-.03em">Melyza Food</div>
+            <div style="font:500 12.5px Inter,sans-serif;color:#7A8291;margin-top:3px">Tacos · Burger · Sandwich · Nouvelle Ville</div>
+          </div>
+          <span style="flex:none;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;background:#E7F8F0;color:#067647;font:800 11.5px Inter,sans-serif">Ouvert</span>
+        </div>
+        <div style="display:flex;gap:9px;margin-top:14px">
+          <div style="flex:1;text-align:center;padding:10px 4px;border-radius:14px;background:#F7EDE4"><div style="font:800 15px Sora,sans-serif;color:#12141A">4.8</div><div style="font:600 10.5px Inter,sans-serif;color:#7A8291;margin-top:1px">126 avis</div></div>
+          <div style="flex:1;text-align:center;padding:10px 4px;border-radius:14px;background:#F7EDE4"><div style="font:800 15px Sora,sans-serif;color:#12141A">25 min</div><div style="font:600 10.5px Inter,sans-serif;color:#7A8291;margin-top:1px">préparation</div></div>
+          <div style="flex:1;text-align:center;padding:10px 4px;border-radius:14px;background:#F7EDE4"><div style="font:800 15px Sora,sans-serif;color:#12141A">200 DA</div><div style="font:600 10.5px Inter,sans-serif;color:#7A8291;margin-top:1px">livraison</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="position:sticky;top:0;z-index:20;display:flex;gap:8px;overflow:hidden;padding:16px 16px 12px;background:linear-gradient(180deg,#F7EDE4 70%,rgba(247,237,228,0))">
+      <span style="flex:none;display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;background:#2A1A2E;color:#fff;font:700 13px Inter,sans-serif"><span style="width:20px;height:20px;border-radius:50%;background:url(assets/img/categories/tacos.jpg) center/cover no-repeat"></span>Tacos<span style="padding:1px 7px;border-radius:999px;background:rgba(255,255,255,.22);font-size:11px">8</span></span>
+      <span style="flex:none;display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;background:#fff;border:1px solid #EBE3D9;color:#3A404D;font:600 13px Inter,sans-serif"><span style="width:20px;height:20px;border-radius:50%;background:url(assets/img/categories/burger.jpg) center/cover no-repeat"></span>Burger<span style="padding:1px 7px;border-radius:999px;background:#F7EDE4;color:#7A8291;font-size:11px">6</span></span>
+      <span style="flex:none;display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;background:#fff;border:1px solid #EBE3D9;color:#3A404D;font:600 13px Inter,sans-serif"><span style="width:20px;height:20px;border-radius:50%;background:url(assets/img/categories/boisson.jpg) center/cover no-repeat"></span>Boissons</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:11px;padding:0 16px">
+      <div style="display:flex;gap:13px;padding:12px;background:#fff;border:1.5px solid #FF4D2D;border-radius:20px;box-shadow:0 12px 26px -20px rgba(255,77,45,.55)">
+        <div style="width:92px;height:92px;flex:none;border-radius:16px;background:url(assets/img/categories/tacos.jpg) center/cover no-repeat"></div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:6px"><span style="padding:3px 7px;border-radius:7px;background:#FFF1ED;color:#E03A1B;font:800 9.5px Inter,sans-serif;letter-spacing:.06em">LE PLUS COMMANDÉ</span></div>
+          <div style="font:700 15.5px Sora,sans-serif;letter-spacing:-.01em;margin-top:5px">Tacos Poulet</div>
+          <div style="font:400 12.5px/1.4 Inter,sans-serif;color:#7A8291;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Galette, poulet mariné, frites, sauce fromagère maison.</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:auto;padding-top:7px">
+            <span style="font:800 15px Sora,sans-serif;color:#FF4D2D"><span style="font:600 11px Inter,sans-serif;color:#7A8291">dès </span>650 DA</span>
+            <span style="width:36px;height:36px;border-radius:13px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(255,77,45,.85)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:13px;padding:12px;background:#fff;border:1px solid #EBE3D9;border-radius:20px">
+        <div style="width:92px;height:92px;flex:none;border-radius:16px;background:url(assets/img/categories/sandwich.jpg) center/cover no-repeat"></div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+          <div style="font:700 15.5px Sora,sans-serif;letter-spacing:-.01em">Tacos Viande hachée</div>
+          <div style="font:400 12.5px/1.4 Inter,sans-serif;color:#7A8291;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Viande hachée fraîche, cheddar, sauce algérienne.</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:auto;padding-top:7px">
+            <span style="font:800 15px Sora,sans-serif;color:#FF4D2D"><span style="font:600 11px Inter,sans-serif;color:#7A8291">dès </span>750 DA</span>
+            <span style="width:36px;height:36px;border-radius:13px;background:#FFF1ED;display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FF4D2D" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:13px;padding:12px;background:#fff;border:1px solid #EBE3D9;border-radius:20px;opacity:.55">
+        <div style="width:92px;height:92px;flex:none;border-radius:16px;background:url(assets/img/categories/burger.jpg) center/cover no-repeat;filter:grayscale(.9)"></div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+          <div style="font:700 15.5px Sora,sans-serif;letter-spacing:-.01em">Tacos Mixte</div>
+          <div style="font:400 12.5px/1.4 Inter,sans-serif;color:#7A8291;margin-top:3px">Poulet et viande hachée.</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:auto;padding-top:7px">
+            <span style="font:800 15px Sora,sans-serif;color:#7A8291">900 DA</span>
+            <span style="padding:6px 11px;border-radius:999px;background:#F7EDE4;color:#7A8291;font:700 11.5px Inter,sans-serif">Épuisé</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:14px;right:14px;bottom:22px;height:62px;padding:0 8px 0 18px;background:#2A1A2E;border-radius:24px;display:flex;align-items:center;gap:12px;box-shadow:0 18px 38px -18px rgba(42,26,46,.85)">
+    <div style="flex:1;min-width:0"><div style="font:800 14.5px Sora,sans-serif;color:#fff">{{ cartCount }} articles</div><div style="font:500 11.5px Inter,sans-serif;color:rgba(255,255,255,.55)">Melyza Food</div></div>
+    <span style="flex:none;display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:18px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 13.5px Inter,sans-serif;box-shadow:0 8px 20px -8px rgba(255,77,45,.9)">Voir le panier · {{ subtotalTxt }}</span>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">Note, délai et frais de livraison deviennent trois chiffres lisibles au lieu d'une ligne d'émojis. Les onglets de catégorie restent collants ; la barre panier reprend le violet foncé.</p>
+</div>
+
+<!-- ================================================= 1e FICHE PLAT (feuille) -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="1e">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#1e" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">1e</a>Fiche plat — formats &amp; suppléments <span style="color:#FF4D2D;font-weight:600">interactif</span></div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="position:absolute;inset:0;background:url(assets/img/restaurants/melyza-cover.jpg) center/cover no-repeat;filter:blur(2px) brightness(.8)"></div>
+  <div style="position:absolute;inset:0;background:rgba(20,10,8,.5)"></div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:30px 30px 0 0;box-shadow:0 -20px 50px -20px rgba(0,0,0,.4);animation:tlSheet .42s cubic-bezier(.22,1,.36,1) both;display:flex;flex-direction:column;max-height:88%">
+    <div style="flex:none;padding:12px 0 0;display:grid;place-items:center"><span style="width:44px;height:5px;border-radius:3px;background:#E7DACB"></span></div>
+    <div style="flex:1;overflow:hidden;padding:14px 18px 4px">
+      <div style="height:150px;border-radius:20px;background:url(assets/img/categories/tacos.jpg) center/cover no-repeat"></div>
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-top:14px">
+        <div style="flex:1"><div style="font:800 22px Sora,sans-serif;letter-spacing:-.03em">Tacos Poulet</div><p style="margin:5px 0 0;font:400 13px/1.5 Inter,sans-serif;color:#7A8291;text-wrap:pretty">Galette grillée, poulet mariné, frites maison, sauce fromagère. Servi chaud.</p></div>
+      </div>
+
+      <div style="font:800 13px Sora,sans-serif;letter-spacing:.02em;margin-top:18px">Choisissez votre format</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:9px">
+        <div onClick="{{ pickSolo }}" style="display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:16px;cursor:pointer;border:1.5px solid {{ f0line }};background:{{ f0bg }}">
+          <span style="width:21px;height:21px;flex:none;border-radius:50%;display:grid;place-items:center;border:2px solid {{ f0line }}"><span style="width:11px;height:11px;border-radius:50%;background:{{ f0dot }}"></span></span>
+          <span style="flex:1;font:600 14.5px Inter,sans-serif">Solo</span>
+          <b style="font:800 14.5px Sora,sans-serif;color:#FF4D2D">650 DA</b>
+        </div>
+        <div onClick="{{ pickMenu }}" style="display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:16px;cursor:pointer;border:1.5px solid {{ f1line }};background:{{ f1bg }}">
+          <span style="width:21px;height:21px;flex:none;border-radius:50%;display:grid;place-items:center;border:2px solid {{ f1line }}"><span style="width:11px;height:11px;border-radius:50%;background:{{ f1dot }}"></span></span>
+          <span style="flex:1;font:600 14.5px Inter,sans-serif">Menu <span style="font:500 12px Inter,sans-serif;color:#7A8291">+ frites + boisson</span></span>
+          <b style="font:800 14.5px Sora,sans-serif;color:#FF4D2D">950 DA</b>
+        </div>
+        <div onClick="{{ pickMega }}" style="display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:16px;cursor:pointer;border:1.5px solid {{ f2line }};background:{{ f2bg }}">
+          <span style="width:21px;height:21px;flex:none;border-radius:50%;display:grid;place-items:center;border:2px solid {{ f2line }}"><span style="width:11px;height:11px;border-radius:50%;background:{{ f2dot }}"></span></span>
+          <span style="flex:1;font:600 14.5px Inter,sans-serif">Méga</span>
+          <b style="font:800 14.5px Sora,sans-serif;color:#FF4D2D">1 250 DA</b>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:20px"><span style="font:800 13px Sora,sans-serif;letter-spacing:.02em">Suppléments</span><span style="font:500 11.5px Inter,sans-serif;color:#7A8291">facultatif</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:9px">
+        <div onClick="{{ toggleFromage }}" style="display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:16px;cursor:pointer;border:1.5px solid {{ oFromageLine }};background:{{ oFromageBg }}">
+          <span style="width:21px;height:21px;flex:none;border-radius:7px;display:grid;place-items:center;border:2px solid {{ oFromageLine }};background:{{ oFromageFill }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ oFromageMark }}"><path d="m5 12.6 4.6 4.6L19 7.4"/></svg></span>
+          <span style="flex:1;font:600 14.5px Inter,sans-serif">Fromage supplémentaire</span>
+          <b style="font:700 13.5px Sora,sans-serif;color:#3A404D">+ 100 DA</b>
+        </div>
+        <div onClick="{{ toggleFrites }}" style="display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:16px;cursor:pointer;border:1.5px solid {{ oFritesLine }};background:{{ oFritesBg }}">
+          <span style="width:21px;height:21px;flex:none;border-radius:7px;display:grid;place-items:center;border:2px solid {{ oFritesLine }};background:{{ oFritesFill }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ oFritesMark }}"><path d="m5 12.6 4.6 4.6L19 7.4"/></svg></span>
+          <span style="flex:1;font:600 14.5px Inter,sans-serif">Grande portion de frites</span>
+          <b style="font:700 13.5px Sora,sans-serif;color:#3A404D">+ 150 DA</b>
+        </div>
+        <div onClick="{{ toggleSauce }}" style="display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:16px;cursor:pointer;border:1.5px solid {{ oSauceLine }};background:{{ oSauceBg }}">
+          <span style="width:21px;height:21px;flex:none;border-radius:7px;display:grid;place-items:center;border:2px solid {{ oSauceLine }};background:{{ oSauceFill }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ oSauceMark }}"><path d="m5 12.6 4.6 4.6L19 7.4"/></svg></span>
+          <span style="flex:1;font:600 14.5px Inter,sans-serif">Sauce algérienne</span>
+          <b style="font:700 13.5px Inter,sans-serif;color:#0F9D58">Offert</b>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:none;padding:14px 18px 22px;border-top:1px solid #F1E7DC;background:#fff;border-radius:0 0 30px 30px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="flex:none;display:flex;align-items:center;gap:4px;background:#F7EDE4;border-radius:16px;padding:5px">
+          <span onClick="{{ decDish }}" style="width:36px;height:36px;border-radius:12px;background:#fff;display:grid;place-items:center;cursor:pointer;font:800 19px Inter,sans-serif;color:#3A404D;box-shadow:0 1px 2px rgba(16,24,40,.08)">−</span>
+          <b style="min-width:26px;text-align:center;font:800 16px Sora,sans-serif">{{ dishQty }}</b>
+          <span onClick="{{ incDish }}" style="width:36px;height:36px;border-radius:12px;background:#fff;display:grid;place-items:center;cursor:pointer;font:800 19px Inter,sans-serif;color:#3A404D;box-shadow:0 1px 2px rgba(16,24,40,.08)">+</span>
+        </div>
+        <span style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 18px;border-radius:18px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 15px Inter,sans-serif;cursor:pointer;box-shadow:0 10px 24px -10px rgba(255,77,45,.85)">Ajouter · {{ dishTotalTxt }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">Cliquable : changez de format, cochez des suppléments, réglez la quantité — le bouton recalcule. Les radios système sont remplacées par des lignes tapables de 46 px.</p>
+</div>
+
+<!-- ============================================================== 1f PANIER -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="1f">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#1f" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">1f</a>Panier <span style="color:#FF4D2D;font-weight:600">interactif</span></div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="flex:none;height:56px"></div>
+  <div style="flex:none;display:flex;align-items:center;gap:12px;padding:2px 16px 14px">
+    <span style="width:40px;height:40px;flex:none;border-radius:14px;background:#fff;border:1px solid #EBE3D9;display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+    <div style="flex:1"><div style="font:800 24px Sora,sans-serif;letter-spacing:-.035em">Mon panier</div><div style="font:500 12.5px Inter,sans-serif;color:#7A8291">Melyza Food · Nouvelle Ville</div></div>
+    <span style="font:700 12.5px Inter,sans-serif;color:#F04438">Vider</span>
+  </div>
+
+  <div style="flex:1;overflow:hidden;padding:0 16px 190px">
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <div style="display:flex;gap:12px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:20px">
+        <div style="width:74px;height:74px;flex:none;border-radius:15px;background:url(assets/img/categories/tacos.jpg) center/cover no-repeat"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px"><span style="font:700 14.5px Sora,sans-serif">Tacos Poulet</span><span style="padding:2px 7px;border-radius:6px;background:#F7EDE4;color:#7A8291;font:700 10.5px Inter,sans-serif">Menu</span></div>
+          <div style="font:500 11.5px Inter,sans-serif;color:#7A8291;margin-top:3px">+ Fromage, Sauce algérienne</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+            <span style="font:800 14.5px Sora,sans-serif;color:#FF4D2D">{{ line1Txt }}</span>
+            <span style="display:flex;align-items:center;gap:4px;background:#F7EDE4;border-radius:13px;padding:4px">
+              <span onClick="{{ dec1 }}" style="width:29px;height:29px;border-radius:10px;background:#fff;display:grid;place-items:center;cursor:pointer;font:800 16px Inter,sans-serif;color:#3A404D">−</span>
+              <b style="min-width:20px;text-align:center;font:800 14px Sora,sans-serif">{{ qty1 }}</b>
+              <span onClick="{{ inc1 }}" style="width:29px;height:29px;border-radius:10px;background:#fff;display:grid;place-items:center;cursor:pointer;font:800 16px Inter,sans-serif;color:#3A404D">+</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:20px">
+        <div style="width:74px;height:74px;flex:none;border-radius:15px;background:url(assets/img/categories/pizza.jpg) center/cover no-repeat"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px"><span style="font:700 14.5px Sora,sans-serif">Pizza Margherita</span><span style="padding:2px 7px;border-radius:6px;background:#F7EDE4;color:#7A8291;font:700 10.5px Inter,sans-serif">Medium</span></div>
+          <div style="font:500 11.5px Inter,sans-serif;color:#7A8291;margin-top:3px">Sans supplément</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+            <span style="font:800 14.5px Sora,sans-serif;color:#FF4D2D">{{ line2Txt }}</span>
+            <span style="display:flex;align-items:center;gap:4px;background:#F7EDE4;border-radius:13px;padding:4px">
+              <span onClick="{{ dec2 }}" style="width:29px;height:29px;border-radius:10px;background:#fff;display:grid;place-items:center;cursor:pointer;font:800 16px Inter,sans-serif;color:#3A404D">−</span>
+              <b style="min-width:20px;text-align:center;font:800 14px Sora,sans-serif">{{ qty2 }}</b>
+              <span onClick="{{ inc2 }}" style="width:29px;height:29px;border-radius:10px;background:#fff;display:grid;place-items:center;cursor:pointer;font:800 16px Inter,sans-serif;color:#3A404D">+</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:13px 14px;border-radius:18px;background:#fff;border:1px dashed #E7DACB">
+      <span style="width:34px;height:34px;flex:none;border-radius:11px;background:#FFF1ED;color:#FF4D2D;display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
+      <span style="flex:1;font:600 13.5px Inter,sans-serif">Ajouter d'autres plats</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A8291" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+    </div>
+
+    <div style="margin-top:14px;padding:16px;border-radius:22px;background:#fff;border:1px solid #EBE3D9">
+      <div style="display:flex;align-items:center;justify-content:space-between;font:500 13.5px Inter,sans-serif;color:#3A404D"><span style="color:#7A8291">Sous-total</span><span>{{ subtotalTxt }}</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;font:500 13.5px Inter,sans-serif;color:#3A404D;margin-top:9px"><span style="color:#7A8291">Livraison · 2,4 km</span><span>200 DA</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;font:500 13.5px Inter,sans-serif;color:#0F9D58;margin-top:9px"><span>Première commande</span><span>− 150 DA</span></div>
+      <div style="height:1px;background:#F1E7DC;margin:13px 0"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:800 16px Sora,sans-serif">Total</span><span style="font:800 19px Sora,sans-serif;color:#FF4D2D">{{ totalTxt }}</span></div>
+      <div style="display:flex;align-items:center;gap:7px;margin-top:11px;padding:9px 11px;border-radius:12px;background:#F7EDE4;font:600 11.5px Inter,sans-serif;color:#7A6A5C"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7A6A5C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H5a2 2 0 0 1-2-2Z"/><circle cx="17" cy="14" r="1"/></svg>Vous payez en espèces à la réception</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px 30px;background:linear-gradient(180deg,rgba(247,237,228,0),#F7EDE4 26%)">
+    <span style="display:flex;align-items:center;justify-content:center;gap:10px;padding:17px 20px;border-radius:20px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 15.5px Inter,sans-serif;cursor:pointer;box-shadow:0 14px 30px -12px rgba(255,77,45,.85)">Continuer · {{ totalTxt }}<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12h15"/><path d="m13.2 5.4 6.6 6.6-6.6 6.6"/></svg></span>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">Cliquable : les quantités recalculent le total. La distance et le mode de paiement sont écrits noir sur blanc — deux questions que le client se posait avant de valider.</p>
+</div>
+
+<!-- ========================================================== 1g COMMANDES -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="1g">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#1g" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">1g</a>Mes commandes &amp; compte</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="flex:none;height:56px"></div>
+  <div style="flex:1;overflow:hidden;padding:0 0 100px">
+    <div style="padding:2px 16px 0">
+      <div style="display:flex;align-items:center;gap:13px;padding:15px;border-radius:24px;background:linear-gradient(128deg,#2A1A2E 0%,#3A2130 55%,#4A2226 100%);color:#fff;box-shadow:0 20px 40px -26px rgba(42,26,46,.9)">
+        <span style="width:52px;height:52px;flex:none;border-radius:18px;background:rgba(255,255,255,.14);display:grid;place-items:center;font:800 17px Sora,sans-serif">BK</span>
+        <div style="flex:1;min-width:0">
+          <div style="font:700 17px Sora,sans-serif;letter-spacing:-.02em">Brahim K.</div>
+          <div style="font:500 12.5px Inter,sans-serif;color:rgba(255,255,255,.6);margin-top:2px">0770 12 34 56 · Nouvelle Ville</div>
+        </div>
+        <span style="flex:none;padding:8px 13px;border-radius:999px;background:rgba(255,255,255,.14);font:700 12px Inter,sans-serif">Modifier</span>
+      </div>
+      <div style="display:flex;gap:9px;margin-top:11px">
+        <div style="flex:1;padding:13px 12px;border-radius:18px;background:#fff;border:1px solid #EBE3D9"><div style="font:800 19px Sora,sans-serif">14</div><div style="font:600 11px Inter,sans-serif;color:#7A8291;margin-top:1px">commandes</div></div>
+        <div style="flex:1;padding:13px 12px;border-radius:18px;background:#fff;border:1px solid #EBE3D9"><div style="font:800 19px Sora,sans-serif">3</div><div style="font:600 11px Inter,sans-serif;color:#7A8291;margin-top:1px">favoris</div></div>
+        <div style="flex:1;padding:13px 12px;border-radius:18px;background:#fff;border:1px solid #EBE3D9"><div style="font:800 19px Sora,sans-serif;color:#FF4D2D">2</div><div style="font:600 11px Inter,sans-serif;color:#7A8291;margin-top:1px">adresses</div></div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 16px 11px">
+      <span style="font:800 19px Sora,sans-serif;letter-spacing:-.03em">Mes commandes</span>
+      <span style="font:700 12.5px Inter,sans-serif;color:#FF4D2D">Tout l'historique</span>
+    </div>
+
+    <div style="padding:0 16px">
+      <div style="padding:15px;border-radius:22px;background:#fff;border:1.5px solid #FF4D2D;box-shadow:0 14px 30px -22px rgba(255,77,45,.6)">
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="padding:4px 9px;border-radius:8px;background:#2A1A2E;color:#fff;font:800 11px ui-monospace,Menlo,monospace">#TLB-4821</span>
+          <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;background:#FFF1ED;color:#E03A1B;font:800 11px Inter,sans-serif"><span style="width:6px;height:6px;border-radius:50%;background:#FF4D2D;animation:tlPulse 1.6s ease-in-out infinite"></span>En livraison</span>
+          <span style="margin-left:auto;font:600 11.5px Inter,sans-serif;color:#7A8291">il y a 12 min</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;margin-top:13px">
+          <img src="../assets/img/restaurants/melyza-logo.jpg" alt="" style="width:42px;height:42px;flex:none;object-fit:contain;border-radius:14px;background:#fff;border:1px solid #EBE3D9;padding:3px">
+          <div style="flex:1;min-width:0"><div style="font:700 14.5px Sora,sans-serif">Melyza Food</div><div style="font:500 12px Inter,sans-serif;color:#7A8291;margin-top:1px">3 articles · 1 850 DA</div></div>
+        </div>
+        <div style="display:flex;gap:6px;margin:14px 0 10px">
+          <span style="flex:1;height:5px;border-radius:3px;background:#FF4D2D"></span>
+          <span style="flex:1;height:5px;border-radius:3px;background:#FF4D2D"></span>
+          <span style="flex:1;height:5px;border-radius:3px;background:#FF4D2D"></span>
+          <span style="flex:1;height:5px;border-radius:3px;background:#F1E7DC"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="flex:1;font:600 12.5px Inter,sans-serif;color:#3A404D">Karim est à 800 m — 8 min</span>
+          <span style="padding:9px 14px;border-radius:14px;background:#2A1A2E;color:#fff;font:800 12.5px Inter,sans-serif">Suivre</span>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;margin-top:11px;border-radius:22px;background:#fff;border:1px solid #EBE3D9">
+        <img src="../assets/img/restaurants/twelve-logo.jpg" alt="" style="width:42px;height:42px;flex:none;object-fit:contain;border-radius:14px;background:#fff;border:1px solid #EBE3D9;padding:3px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px"><span style="font:700 14.5px Sora,sans-serif">The Twelve</span><span style="display:inline-flex;align-items:center;gap:4px;font:700 11px Inter,sans-serif;color:#067647"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.6 4.6 4.6L19 7.4"/></svg>Livrée</span></div>
+          <div style="font:500 12px Inter,sans-serif;color:#7A8291;margin-top:2px">2 août · 2 articles · 1 400 DA</div>
+        </div>
+        <span style="flex:none;padding:9px 13px;border-radius:13px;background:#FFF1ED;color:#E03A1B;font:800 12px Inter,sans-serif">Recommander</span>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;margin-top:11px;border-radius:22px;background:#fff;border:1px solid #EBE3D9">
+        <img src="../assets/img/restaurants/sadoudi-logo.jpg" alt="" style="width:42px;height:42px;flex:none;object-fit:contain;border-radius:14px;background:#fff;border:1px solid #EBE3D9;padding:3px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px"><span style="font:700 14.5px Sora,sans-serif">Sadoudi</span><span style="display:inline-flex;align-items:center;gap:4px;font:700 11px Inter,sans-serif;color:#067647"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.6 4.6 4.6L19 7.4"/></svg>Livrée</span></div>
+          <div style="font:500 12px Inter,sans-serif;color:#7A8291;margin-top:2px">28 juillet · 1 article · 750 DA</div>
+        </div>
+        <span style="flex:none;padding:9px 13px;border-radius:13px;background:#FFF1ED;color:#E03A1B;font:800 12px Inter,sans-serif">Recommander</span>
+      </div>
+
+      <div style="margin-top:22px;border-radius:22px;background:#fff;border:1px solid #EBE3D9;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:12px;padding:15px;border-bottom:1px solid #F1E7DC"><span style="width:34px;height:34px;flex:none;border-radius:11px;background:#F7EDE4;display:grid;place-items:center;color:#3A404D"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span><span style="flex:1;font:600 14px Inter,sans-serif">Mes adresses</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A8291" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:15px;border-bottom:1px solid #F1E7DC"><span style="width:34px;height:34px;flex:none;border-radius:11px;background:#F7EDE4;display:grid;place-items:center;color:#3A404D"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.6 9.4a5.6 5.6 0 1 0-11.2 0c0 4.7-2 6.4-2.5 6.9a.6.6 0 0 0 .42 1.02h15.36a.6.6 0 0 0 .42-1.02c-.5-.5-2.5-2.2-2.5-6.9Z"/><path d="M10.2 20a2.1 2.1 0 0 0 3.6 0"/></svg></span><span style="flex:1;font:600 14px Inter,sans-serif">Notifications</span><span style="width:44px;height:26px;border-radius:999px;background:#FF4D2D;position:relative;flex:none"><span style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></span></span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:15px"><span style="width:34px;height:34px;flex:none;border-radius:11px;background:#F7EDE4;display:grid;place-items:center;color:#3A404D"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4.5"/><path d="M12 8.2h.01"/></svg></span><span style="flex:1;font:600 14px Inter,sans-serif">Langue</span><span style="font:700 13px Inter,sans-serif;color:#7A8291">Français · العربية</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A8291" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:14px;right:14px;bottom:22px;height:66px;padding:0 5px;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(20px);border:1px solid rgba(255,255,255,.75);border-radius:26px;display:flex;align-items:stretch;box-shadow:0 1px 2px rgba(122,62,24,.07),0 8px 20px -10px rgba(122,62,24,.3),0 26px 48px -22px rgba(122,62,24,.42)">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.2 10.4 12 3.6l8.8 6.8"/><path d="M5.4 9.4V19a1.6 1.6 0 0 0 1.6 1.6h10a1.6 1.6 0 0 0 1.6-1.6V9.4"/><path d="M9.6 20.6v-5.2a1.4 1.4 0 0 1 1.4-1.4h2a1.4 1.4 0 0 1 1.4 1.4v5.2"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Accueil</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.4 9.6c0-3.1 3.8-5.4 8.6-5.4s8.6 2.3 8.6 5.4a.9.9 0 0 1-.9.9H4.3a.9.9 0 0 1-.9-.9Z"/><path d="M4.2 13.4h15.6"/><path d="M3.4 16.8h17.2v.9a3.5 3.5 0 0 1-3.5 3.5H6.9a3.5 3.5 0 0 1-3.5-3.5Z"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Restaurants</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><circle cx="9.4" cy="20.2" r="1.5"/><circle cx="17.6" cy="20.2" r="1.5"/><path d="M2.6 3.4h2.2a1 1 0 0 1 1 .82l.42 2.28"/><path d="M6.22 6.5h13.9a1 1 0 0 1 .98 1.2l-1.15 5.9a2 2 0 0 1-1.96 1.6H9.2a2 2 0 0 1-1.97-1.66L6.22 6.5Z"/></svg><span style="position:absolute;top:-3px;right:6px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 10.5px Inter,sans-serif;line-height:18px;text-align:center;box-shadow:0 0 0 2px #fff">{{ cartCount }}</span></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Panier</span></div>
+    <div style="position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#FF4D2D"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;background:#FFF1ED;border:1.5px solid #FF4D2D;box-shadow:0 6px 16px -7px rgba(255,107,53,.85)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20.6 8.1v7.8a1.9 1.9 0 0 1-.95 1.65l-6.7 3.86a1.9 1.9 0 0 1-1.9 0l-6.7-3.86A1.9 1.9 0 0 1 3.4 15.9V8.1a1.9 1.9 0 0 1 .95-1.65l6.7-3.86a1.9 1.9 0 0 1 1.9 0l6.7 3.86A1.9 1.9 0 0 1 20.6 8.1Z"/><path d="m3.7 7.1 8.3 4.8 8.3-4.8"/><path d="M12 21.3v-9.4"/></svg></span><span style="font:750 10.5px Inter,sans-serif">Commandes</span><span style="position:absolute;left:50%;bottom:7px;width:18px;height:3px;border-radius:2px;background:#FF4D2D;transform:translateX(-50%)"></span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20 20.4v-1.3a4.6 4.6 0 0 0-4.6-4.6H8.6A4.6 4.6 0 0 0 4 19.1v1.3"/><circle cx="12" cy="7.6" r="4"/></svg></span><span style="font:650 10.5px Inter,sans-serif;opacity:.68">Compte</span></div>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">Compte et commandes sur un seul écran : la commande en cours en haut, « Recommander » sur chaque commande passée, les réglages en bas.</p>
+</div>
+
+<!-- ========================================================= 1h ACCUEIL AR -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="1h">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#1h" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">1h</a>Accueil en arabe (RTL)</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div dir="rtl" lang="ar" style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Cairo,Inter,sans-serif;color:#12141A">
+  <div style="flex:none;height:56px"></div>
+  <div style="flex:none;display:flex;align-items:center;gap:10px;padding:2px 16px 12px">
+    <div style="flex:1;min-width:0">
+      <div style="font:600 11.5px Cairo,sans-serif;color:#9A8B7E;letter-spacing:.02em">التوصيل إلى</div>
+      <div style="display:flex;align-items:center;gap:5px;margin-top:1px">
+        <span style="display:inline-flex;color:#FF4D2D"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
+        <span style="font:700 17px Cairo,sans-serif">المدينة الجديدة</span>
+        <span style="display:inline-flex;color:#12141A;opacity:.4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </div>
+    </div>
+    <span style="position:relative;width:42px;height:42px;border-radius:14px;background:#fff;border:1px solid #EBE3D9;display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17.6 9.4a5.6 5.6 0 1 0-11.2 0c0 4.7-2 6.4-2.5 6.9a.6.6 0 0 0 .42 1.02h15.36a.6.6 0 0 0 .42-1.02c-.5-.5-2.5-2.2-2.5-6.9Z"/><path d="M10.2 20a2.1 2.1 0 0 0 3.6 0"/></svg><span style="position:absolute;top:-4px;left:-4px;width:10px;height:10px;border-radius:50%;background:#FF4D2D;box-shadow:0 0 0 2.5px #F7EDE4"></span></span>
+    <span style="width:42px;height:42px;border-radius:50%;background:#2A1A2E;color:#fff;display:grid;place-items:center;font:800 14px Cairo,sans-serif">ب.ك</span>
+  </div>
+
+  <div style="flex:1;overflow:hidden;padding:0 0 100px">
+    <div style="padding:0 16px">
+      <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #EBE3D9;border-radius:18px;padding:13px 15px;box-shadow:0 2px 6px rgba(196,120,74,.06),0 14px 30px -24px rgba(196,120,74,.5)">
+        <span style="display:flex;color:#12141A;opacity:.55"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+        <span style="flex:1;font:500 14.5px Cairo,sans-serif;color:#9AA0AC">طاكوس، بيتزا، مليزا…</span>
+        <span style="width:1px;height:20px;background:#EBE3D9"></span>
+        <span style="display:flex;color:#FF4D2D"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h8.2"/><path d="M17.8 7.5H20"/><circle cx="15" cy="7.5" r="2.4"/><path d="M4 16.5h2.2"/><path d="M11.8 16.5H20"/><circle cx="9" cy="16.5" r="2.4"/></svg></span>
+      </div>
+
+      <div style="position:relative;overflow:hidden;margin-top:14px;border-radius:24px;padding:16px 17px;background:linear-gradient(232deg,#2A1A2E 0%,#3A2130 52%,#4A2226 100%);color:#fff;box-shadow:0 20px 40px -26px rgba(42,26,46,.9)">
+        <div style="display:flex;align-items:center;gap:13px">
+          <span style="width:46px;height:46px;flex:none;border-radius:15px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#FFB183;transform:scaleX(-1);animation:tlRide 2.2s ease-in-out infinite"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="2.8"/><circle cx="18.5" cy="17.5" r="2.8"/><path d="M8.3 17.5h6.4"/><path d="M5.5 14.7v-2.2a1.8 1.8 0 0 1 1.8-1.8h4.4"/><path d="m17.6 14.6-1.9-7.4"/><path d="M13.9 6.6h3.4"/></svg></span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#4ADE80;animation:tlPulse 1.8s ease-in-out infinite"></span><span style="font:600 11px Cairo,sans-serif;color:rgba(255,255,255,.7)">في الطريق</span></div>
+            <div style="font:700 15.5px Cairo,sans-serif;margin-top:2px">كريم يصل بعد 8 دقائق</div>
+            <div style="font:400 12.5px Cairo,sans-serif;color:rgba(255,255,255,.62);margin-top:1px">مليزا فود · 3 أطباق · 1 850 دج</div>
+          </div>
+          <span style="flex:none;width:38px;height:38px;border-radius:50%;background:#FF4D2D;display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(255,77,45,.9)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+        </div>
+        <div style="display:flex;gap:5px;margin-top:14px">
+          <span style="flex:1;height:4px;border-radius:2px;background:#FF8A5A"></span>
+          <span style="flex:1;height:4px;border-radius:2px;background:#FF8A5A"></span>
+          <span style="flex:1;height:4px;border-radius:2px;background:#FF8A5A"></span>
+          <span style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.18)"></span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:11px;overflow:hidden;padding:20px 16px 4px">
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:#2A1A2E;color:#fff;display:grid;place-items:center;font:800 13px Cairo,sans-serif">الكل</div>
+        <span style="font:700 11.5px Cairo,sans-serif;color:#2A1A2E">الكل</span>
+      </div>
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:url(assets/img/categories/tacos.jpg) center/cover no-repeat;border:2px solid #FF4D2D;box-shadow:0 0 0 3px rgba(255,77,45,.16)"></div>
+        <span style="font:700 11.5px Cairo,sans-serif;color:#FF4D2D">طاكوس</span>
+      </div>
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:url(assets/img/categories/pizza.jpg) center/cover no-repeat;border:2px solid #EBE3D9"></div>
+        <span style="font:600 11.5px Cairo,sans-serif;color:#7A8291">بيتزا</span>
+      </div>
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:url(assets/img/categories/burger.jpg) center/cover no-repeat;border:2px solid #EBE3D9"></div>
+        <span style="font:600 11.5px Cairo,sans-serif;color:#7A8291">برغر</span>
+      </div>
+      <div style="flex:none;width:70px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:70px;height:70px;border-radius:24px;background:url(assets/img/categories/traditionnel.jpg) center/cover no-repeat;border:2px solid #EBE3D9"></div>
+        <span style="font:600 11.5px Cairo,sans-serif;color:#7A8291">تقليدي</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;padding:18px 16px 12px">
+      <div style="flex:1"><div style="font:800 20px Cairo,sans-serif">مطاعم مفتوحة قريبة منك</div><div style="font:500 12.5px Cairo,sans-serif;color:#7A8291">5 مطاعم توصل إلى المدينة الجديدة</div></div>
+      <span style="flex:none;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #EBE3D9;font:700 12.5px Cairo,sans-serif;color:#2A1A2E">الكل <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;padding:0 16px">
+      <article style="display:flex;gap:13px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 26px -22px rgba(122,62,24,.5)">
+        <div style="position:relative;width:104px;height:104px;flex:none;border-radius:17px;background:url(assets/img/restaurants/melyza-cover.jpg) center/cover no-repeat;overflow:hidden">
+          <img src="../assets/img/restaurants/melyza-logo.jpg" alt="" style="position:absolute;right:7px;bottom:7px;width:34px;height:34px;object-fit:contain;border-radius:11px;background:#fff;padding:3px">
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;padding:3px 0 3px 4px">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0;font:700 16px Cairo,sans-serif">مليزا فود</div>
+            <span style="flex:none;display:inline-flex;align-items:center;gap:4px;font:800 12.5px Cairo,sans-serif"><span style="color:#F5A623">★</span>4.8</span>
+          </div>
+          <div style="font:500 12.5px Cairo,sans-serif;color:#7A8291;margin-top:2px">طاكوس · برغر · ساندويتش</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:auto">
+            <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:9px;background:#FFF1ED;color:#E03A1B;font:700 12px Cairo,sans-serif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>20–30 د</span>
+            <span style="font:600 12px Cairo,sans-serif;color:#7A8291">200 دج</span>
+            <span style="margin-right:auto;display:inline-flex;align-items:center;gap:4px;font:700 11.5px Cairo,sans-serif;color:#0F9D58"><span style="width:6px;height:6px;border-radius:50%;background:#12B76A"></span>مفتوح</span>
+          </div>
+        </div>
+      </article>
+
+      <article style="display:flex;gap:13px;padding:11px;background:#fff;border:1px solid #EBE3D9;border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 12px 26px -22px rgba(122,62,24,.5)">
+        <div style="position:relative;width:104px;height:104px;flex:none;border-radius:17px;background:url(assets/img/restaurants/twelve-cover.jpg) center/cover no-repeat;overflow:hidden">
+          <img src="../assets/img/restaurants/twelve-logo.jpg" alt="" style="position:absolute;right:7px;bottom:7px;width:34px;height:34px;object-fit:contain;border-radius:11px;background:#fff;padding:3px">
+          <span style="position:absolute;top:7px;right:7px;padding:4px 8px;border-radius:8px;background:#FF4D2D;color:#fff;font:800 10px Cairo,sans-serif">20%-</span>
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;padding:3px 0 3px 4px">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0;font:700 16px Cairo,sans-serif">ذي تويلف</div>
+            <span style="flex:none;display:inline-flex;align-items:center;gap:4px;font:800 12.5px Cairo,sans-serif"><span style="color:#F5A623">★</span>4.6</span>
+          </div>
+          <div style="font:500 12.5px Cairo,sans-serif;color:#7A8291;margin-top:2px">بيتزا · معكرونة · حلويات</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:auto">
+            <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:9px;background:#FFF1ED;color:#E03A1B;font:700 12px Cairo,sans-serif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>30–40 د</span>
+            <span style="font:600 12px Cairo,sans-serif;color:#7A8291">250 دج</span>
+            <span style="margin-right:auto;display:inline-flex;align-items:center;gap:4px;font:700 11.5px Cairo,sans-serif;color:#0F9D58"><span style="width:6px;height:6px;border-radius:50%;background:#12B76A"></span>مفتوح</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:14px;right:14px;bottom:22px;height:66px;padding:0 5px;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(20px);border:1px solid rgba(255,255,255,.75);border-radius:26px;display:flex;align-items:stretch;box-shadow:0 1px 2px rgba(122,62,24,.07),0 8px 20px -10px rgba(122,62,24,.3),0 26px 48px -22px rgba(122,62,24,.42)">
+    <div style="position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#FF4D2D"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;background:#FFF1ED;border:1.5px solid #FF4D2D"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.2 10.4 12 3.6l8.8 6.8"/><path d="M5.4 9.4V19a1.6 1.6 0 0 0 1.6 1.6h10a1.6 1.6 0 0 0 1.6-1.6V9.4"/><path d="M9.6 20.6v-5.2a1.4 1.4 0 0 1 1.4-1.4h2a1.4 1.4 0 0 1 1.4 1.4v5.2"/></svg></span><span style="font:750 10.5px Cairo,sans-serif">الرئيسية</span><span style="position:absolute;left:50%;bottom:7px;width:18px;height:3px;border-radius:2px;background:#FF4D2D;transform:translateX(-50%)"></span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M3.4 9.6c0-3.1 3.8-5.4 8.6-5.4s8.6 2.3 8.6 5.4a.9.9 0 0 1-.9.9H4.3a.9.9 0 0 1-.9-.9Z"/><path d="M4.2 13.4h15.6"/><path d="M3.4 16.8h17.2v.9a3.5 3.5 0 0 1-3.5 3.5H6.9a3.5 3.5 0 0 1-3.5-3.5Z"/></svg></span><span style="font:650 10.5px Cairo,sans-serif;opacity:.68">المطاعم</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><circle cx="9.4" cy="20.2" r="1.5"/><circle cx="17.6" cy="20.2" r="1.5"/><path d="M2.6 3.4h2.2a1 1 0 0 1 1 .82l.42 2.28"/><path d="M6.22 6.5h13.9a1 1 0 0 1 .98 1.2l-1.15 5.9a2 2 0 0 1-1.96 1.6H9.2a2 2 0 0 1-1.97-1.66L6.22 6.5Z"/></svg><span style="position:absolute;top:-3px;left:6px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 10.5px Cairo,sans-serif;line-height:18px;text-align:center;box-shadow:0 0 0 2px #fff">{{ cartCount }}</span></span><span style="font:650 10.5px Cairo,sans-serif;opacity:.68">السلة</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20.6 8.1v7.8a1.9 1.9 0 0 1-.95 1.65l-6.7 3.86a1.9 1.9 0 0 1-1.9 0l-6.7-3.86A1.9 1.9 0 0 1 3.4 15.9V8.1a1.9 1.9 0 0 1 .95-1.65l6.7-3.86a1.9 1.9 0 0 1 1.9 0l6.7 3.86A1.9 1.9 0 0 1 20.6 8.1Z"/><path d="m3.7 7.1 8.3 4.8 8.3-4.8"/><path d="M12 21.3v-9.4"/></svg><span style="position:absolute;top:1px;left:11px;width:9px;height:9px;border-radius:50%;background:#FF4D2D;box-shadow:0 0 0 2px #fff;animation:tlPulse 2.4s ease-in-out infinite"></span></span><span style="font:650 10.5px Cairo,sans-serif;opacity:.68">طلباتي</span></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#7A8291"><span style="position:relative;display:grid;place-items:center;width:52px;height:30px"><span style="position:absolute;inset:0;border-radius:999px;border:1.5px solid rgba(255,107,53,.34);transform:scale(.92)"></span><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="position:relative"><path d="M20 20.4v-1.3a4.6 4.6 0 0 0-4.6-4.6H8.6A4.6 4.6 0 0 0 4 19.1v1.3"/><circle cx="12" cy="7.6" r="4"/></svg></span><span style="font:650 10.5px Cairo,sans-serif;opacity:.68">حسابي</span></div>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">Même écran retourné : Cairo pour l'arabe, chevrons et pastilles inversés, chiffres et prix en latin — ce que lisent les clients de Tizi Ouzou.</p>
+</div>
+
+</div>
+
+<p style="margin:26px 0 0;font:400 12px/1.6 Inter,sans-serif;color:rgba(0,0,0,.5)">À essayer ensuite : « le suivi de commande en plein écran avec la carte » · « la même refonte pour l'espace livreur » · « d'autres directions pour l'accueil »</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:1100}}">
+class Component extends DCLogic {
+  state = { fmt: 1, fromage: true, frites: false, sauce: true, dishQty: 1, q1: 1, q2: 2 };
+
+  money(n) {
+    return n.toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, ' ') + ' DA';
+  }
+
+  renderVals() {
+    const s = this.state;
+    const fmtPrice = [650, 950, 1250][s.fmt];
+    const extra = (s.fromage ? 100 : 0) + (s.frites ? 150 : 0);
+    const dishTotal = (fmtPrice + extra) * s.dishQty;
+
+    // panier : Tacos Menu + fromage = 1050, Pizza Medium = 700
+    const line1 = 1050 * s.q1;
+    const line2 = 700 * s.q2;
+    const subtotal = line1 + line2;
+    const total = subtotal + 200 - 150;
+
+    const sel = (on) => ({
+      line: on ? '#FF4D2D' : '#EBE3D9',
+      bg: on ? '#FFF6F3' : '#fff',
+      dot: on ? '#FF4D2D' : 'transparent',
+      fill: on ? '#FF4D2D' : '#fff',
+      mark: on ? '1' : '0'
+    });
+    const f0 = sel(s.fmt === 0), f1 = sel(s.fmt === 1), f2 = sel(s.fmt === 2);
+    const oF = sel(s.fromage), oP = sel(s.frites), oS = sel(s.sauce);
+
+    return {
+      cartCount: s.q1 + s.q2,
+      subtotalTxt: this.money(subtotal),
+      totalTxt: this.money(total),
+      line1Txt: this.money(line1),
+      line2Txt: this.money(line2),
+      qty1: s.q1, qty2: s.q2,
+      dishQty: s.dishQty,
+      dishTotalTxt: this.money(dishTotal),
+
+      f0line: f0.line, f0bg: f0.bg, f0dot: f0.dot,
+      f1line: f1.line, f1bg: f1.bg, f1dot: f1.dot,
+      f2line: f2.line, f2bg: f2.bg, f2dot: f2.dot,
+
+      oFromageLine: oF.line, oFromageBg: oF.bg, oFromageFill: oF.fill, oFromageMark: oF.mark,
+      oFritesLine: oP.line, oFritesBg: oP.bg, oFritesFill: oP.fill, oFritesMark: oP.mark,
+      oSauceLine: oS.line, oSauceBg: oS.bg, oSauceFill: oS.fill, oSauceMark: oS.mark,
+
+      pickSolo: () => this.setState({ fmt: 0 }),
+      pickMenu: () => this.setState({ fmt: 1 }),
+      pickMega: () => this.setState({ fmt: 2 }),
+      toggleFromage: () => this.setState(p => ({ fromage: !p.fromage })),
+      toggleFrites: () => this.setState(p => ({ frites: !p.frites })),
+      toggleSauce: () => this.setState(p => ({ sauce: !p.sauce })),
+      incDish: () => this.setState(p => ({ dishQty: Math.min(30, p.dishQty + 1) })),
+      decDish: () => this.setState(p => ({ dishQty: Math.max(1, p.dishQty - 1) })),
+      inc1: () => this.setState(p => ({ q1: Math.min(30, p.q1 + 1) })),
+      dec1: () => this.setState(p => ({ q1: Math.max(1, p.q1 - 1) })),
+      inc2: () => this.setState(p => ({ q2: Math.min(30, p.q2 + 1) })),
+      dec2: () => this.setState(p => ({ q2: Math.max(1, p.q2 - 1) }))
+    };
+  }
+}
+</script>
+</body>
+</html>
