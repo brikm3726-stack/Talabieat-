@@ -147,7 +147,9 @@
       const hasPos = U.hasCoords({ lat: o.address_lat, lng: o.address_lng });
       const isLive = !!o.driver && ['driver_assigned', 'delivering'].indexOf(o.status) >= 0;
 
-      view.innerHTML = '<div class="wrap-sm page">' +
+      /* suivi-page : c'est par cette classe que la page reprend l'orange de
+         Talabi là où le vert de validation n'a rien à dire (voir app.css). */
+      view.innerHTML = '<div class="wrap-sm page suivi-page">' +
 
         '<div class="row" style="margin-bottom:14px">' +
           '<button class="icon-btn" id="back">←</button>' +

@@ -640,16 +640,48 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .tl-step:last-child{padding-bottom:0}
 .tl-step::before{content:'';position:absolute;left:15px;top:32px;bottom:0;width:2px;background:var(--line)}
 .tl-step:last-child::before{display:none}
-.tl-step.done::before{background:var(--ok)}
+/* Le vert de la frise partait de nulle part : c'était la seule couleur de la
+   page à ne pas être celle de Talabi. Les jalons franchis prennent donc la
+   teinte de la capsule de position — même rond bombé, même coche blanche.
+
+   Reste à distinguer « fait » de « en cours », maintenant que les deux sont
+   orange : le jalon franchi est PLEIN, celui en cours est CREUX avec un
+   anneau épais qui bat. Plein = c'est derrière nous, creux = ça se passe
+   maintenant. La forme porte l'information, pas la couleur. */
+.tl-step.done::before{background:linear-gradient(#F97316,#FDBA74)}
 .tl-dot{
   width:32px;height:32px;border-radius:50%;flex:none;display:grid;place-items:center;
   background:var(--bg);color:var(--muted);border:2px solid var(--line);font-size:14px;z-index:2;
 }
-.tl-step.done .tl-dot{background:var(--ok);border-color:var(--ok);color:#fff}
-.tl-step.active .tl-dot{background:var(--brand);border-color:var(--brand);color:#fff;animation:pulse 1.8s infinite}
+.tl-step.done .tl-dot{
+  background:radial-gradient(120% 120% at 32% 24%,#FFC182,#F97316 58%,#E8600A);
+  border-color:transparent;color:#fff;font-weight:800;
+  box-shadow:inset 0 1.5px 2px rgba(255,255,255,.6),0 3px 9px rgba(233,96,10,.4);
+}
+.tl-step.active .tl-dot{
+  background:#fff;border:3px solid var(--brand);color:var(--brand);
+  animation:pulse 1.8s infinite;
+}
 .tl-txt b{font-size:14.5px;font-weight:700}
 .tl-txt span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,77,45,.55)}70%{box-shadow:0 0 0 12px rgba(255,77,45,0)}100%{box-shadow:0 0 0 0 rgba(255,77,45,0)}}
+
+/* ---- le reste du vert de la page de suivi -------------------------------
+   La frise seule en orange laissait trois verts autour d'elle : le gros
+   bouton « J'ai bien reçu ma commande », la pastille « Suivi en direct » et
+   le bandeau de remerciement. Une page ne peut pas avoir deux couleurs de
+   réussite.
+
+   Surchargé sur .suivi-page et non sur .btn-ok lui-même : le vert de
+   validation garde tout son sens là où il sert à trancher — l'administrateur
+   qui approuve un dossier, le restaurant qui accepte une commande. Ici,
+   personne ne tranche : le client constate. */
+.suivi-page .btn-ok{
+  background:linear-gradient(135deg,#FB923C,#F97316 52%,#E8600A);
+  box-shadow:0 10px 22px -10px rgba(233,96,10,.75);
+}
+.suivi-page .tag-ok{background:#FFF1E4;color:#C2560A}
+.suivi-page .banner-ok{background:#FFF1E4;color:#9A4409}
 
 /* ---------------------------------------------------------------- order card */
 .order-card{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:15px;box-shadow:var(--sh-1)}
