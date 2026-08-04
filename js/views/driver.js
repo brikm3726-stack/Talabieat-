@@ -14,7 +14,7 @@
   /** En-tête de page : pastille orange, titre, sous-titre. */
   function drvHead(icone, titre, sous) {
     return '<div class="drv-title">' +
-      '<span class="ic">' + icone + '</span>' +
+      '<span class="ic">' + UI.icon(icone, 26) + '</span>' +
       '<div><div class="h1">' + U.esc(titre) + '</div>' +
         '<div class="sub">' + U.esc(sous) + '</div></div>' +
     '</div>';
@@ -519,7 +519,7 @@
 
     view.innerHTML = '<div class="driver-page"><div class="wrap page">' +
       '<div class="card card-p drv-panel">' +
-        drvHead('💳', 'Mon portefeuille', 'Commission prélevée à chaque course acceptée') +
+        drvHead('wallet', 'Mon portefeuille', 'Commission prélevée à chaque course acceptée') +
         '<div id="box"><div class="skel" style="height:180px"></div></div>' +
       '</div></div></div>';
 
@@ -710,7 +710,7 @@
   Router.add('/d/available', async function (params, query, view) {
     view.innerHTML = '<div class="driver-page"><div class="wrap page">' +
       '<div class="card card-p drv-panel">' +
-        drvHead('🛍️', 'Courses disponibles', 'Commandes prêtes dans votre zone') +
+        drvHead('bag', 'Courses disponibles', 'Commandes prêtes dans votre zone') +
         '<div id="posBox"></div>' +
         '<div id="list"><div class="skel" style="height:150px"></div></div>' +
       '</div></div></div>';
@@ -789,7 +789,7 @@
             '<p class="scene-sub">Restez disponible : dès qu’un restaurant de votre zone ' +
               'signale une commande prête, <b>elle apparaît ici</b>.</p>' +
             '<div class="drv-note">' +
-              '<span class="art">🔔</span>' +
+              '<span class="art">' + UI.icon('bell', 22) + '</span>' +
               '<span class="grow"><b>Restez disponible</b>' +
                 '<span class="tiny">Activez les notifications pour ne manquer aucune course.</span></span>' +
               '<label class="switch"><input type="checkbox" id="soundOn"' +
@@ -827,7 +827,7 @@
 
       view.innerHTML = '<div class="driver-page"><div class="wrap-sm page">' +
         '<div class="card card-p drv-panel">' +
-          drvHead('🛵', 'Ma livraison', 'Suivez et validez chaque étape') +
+          drvHead('scooter', 'Ma livraison', 'Suivez et validez chaque étape') +
           (active.length ? '<div id="shareBox" style="margin-bottom:14px"></div>' : '') +
           (active.length
             ? '<div class="stack">' + active.map(o => deliveryCard(o, true)).join('') + '</div>'
@@ -889,7 +889,7 @@
     const total = done.reduce((s, o) => s + (o.driver_earning || 0), 0);
 
     view.innerHTML = '<div class="driver-page"><div class="wrap-sm page">' +
-      drvHead('📈', 'Historique', done.length + ' livraison(s) effectuée(s)') +
+      drvHead('chart', 'Historique', done.length + ' livraison(s) effectuée(s)') +
 
       '<div class="drv-earn">' +
         '<div class="grow"><div class="k">GAINS CUMULÉS</div>' +

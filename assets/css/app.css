@@ -2268,6 +2268,70 @@ body.role-driver .drv-panel .chip.on{
    concerne l'attente : ce qu'on cherche, pourquoi rien n'arrive, et le geste
    qui peut y changer quelque chose.
    ========================================================================== */
+/* ---- l'en-tête de page : pictogramme en carré bleu, titre en grand ----
+   Le même traitement que les vignettes de chiffres, pour que les quatre pages
+   du livreur se reconnaissent comme une famille. */
+body.app-driver .drv-title .ic,
+body.role-driver .drv-title .ic{
+  width:58px;height:58px;flex:none;border-radius:19px;font-size:0;
+  background:linear-gradient(150deg,#EAF1FF,#D5E4FF);
+  color:var(--lv-actif);display:grid;place-items:center;
+  box-shadow:inset 0 1px 0 #fff,0 6px 14px -8px rgba(37,99,235,.7);
+}
+body.app-driver .drv-title .h1,
+body.role-driver .drv-title .h1{font-size:27px;font-weight:850;letter-spacing:-.03em}
+body.app-driver .drv-title .sub,
+body.role-driver .drv-title .sub{color:#5D6E90;font-size:14px;margin-top:2px}
+
+/* ---- « Position partagée » : bleu, jamais vert ----
+   Ce bandeau annonçait une bonne nouvelle en vert, seule tache verte d'une
+   page bleue. Ici le bleu suffit à dire que tout va bien, et l'information
+   compte plus que la félicitation. */
+body.app-driver .drv-panel .banner-ok,
+body.role-driver .drv-panel .banner-ok{
+  background:#EEF4FF;border:none;border-radius:16px;color:#1E40AF;
+}
+body.app-driver .drv-panel .banner-ok b,
+body.role-driver .drv-panel .banner-ok b{color:var(--lv-actif)}
+
+/* ---- LE PANNEAU D'ILLUSTRATION, d'après la maquette 25 ----
+   L'attente occupe le centre de l'écran : autant qu'elle soit belle. Le dessin
+   posé sur un dégradé bleu très pâle devient un objet dans la carte, au lieu
+   d'une image qui flotte sur du blanc. */
+body.app-driver .drv-panel .empty-scene,
+body.role-driver .drv-panel .empty-scene{
+  border-radius:22px;padding:18px 16px 20px;margin-top:14px;
+  background:linear-gradient(170deg,#F7FAFF 0%,#EAF1FF 100%);
+  border:1px solid #E4EDFB;
+}
+body.app-driver .drv-panel .scene-art,
+body.role-driver .drv-panel .scene-art{filter:drop-shadow(0 14px 22px rgba(37,99,235,.22))}
+body.app-driver .drv-panel .scene-sub,
+body.role-driver .drv-panel .scene-sub{color:#5D6E90;font-weight:600}
+body.app-driver .drv-panel .scene-sub b,
+body.role-driver .drv-panel .scene-sub b{color:var(--lv-actif)}
+
+/* ---- le rappel de disponibilité, avec son interrupteur ----
+   Il ferme la page sur la seule chose que le livreur peut encore faire quand
+   aucune course n'arrive : rester joignable. */
+body.app-driver .drv-note,
+body.role-driver .drv-note{
+  display:flex;align-items:center;gap:12px;text-align:left;
+  margin-top:16px;padding:14px;border-radius:18px;
+  background:#fff;border:1px solid #E4EDFB;
+  box-shadow:0 2px 6px -3px rgba(37,99,235,.3);
+}
+body.app-driver .drv-note .art,
+body.role-driver .drv-note .art{
+  width:46px;height:46px;flex:none;border-radius:15px;font-size:0;
+  background:linear-gradient(150deg,#EAF1FF,#D5E4FF);
+  color:var(--lv-actif);display:grid;place-items:center;
+}
+body.app-driver .drv-note b,
+body.role-driver .drv-note b{display:block;font-size:14.5px;color:#0C1526}
+body.app-driver .drv-note .tiny,
+body.role-driver .drv-note .tiny{display:block;color:#5D6E90;margin-top:1px}
+
 body.app-driver .drv-chip,
 body.role-driver .drv-chip{
   display:inline-flex;align-items:center;gap:9px;
