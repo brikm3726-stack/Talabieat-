@@ -369,7 +369,13 @@
         restaurant: o.restaurant && U.hasCoords(o.restaurant)
           ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null,
         client: U.hasCoords(client) ? client : null,
-        driver: pos
+        driver: pos,
+        /* Le trajet qui reste, dans l'ordre. Avant le retrait il passe par le
+           restaurant : c'est ce qui explique au client pourquoi son livreur
+           s'éloigne parfois de chez lui. */
+        chemin: o.status === 'delivering'
+          ? ['driver', 'client']
+          : ['driver', 'restaurant', 'client']
       }),
 
       /* Le statut est relu en même temps que la position : c'est lui qui fait

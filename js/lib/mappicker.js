@@ -227,7 +227,30 @@
       if (!container) return null;
 
       const fige = !!(opts && opts.fige);
+      /* `suit` : la vue se recadre à CHAQUE position reçue, au lieu de se
+         régler une fois pour toutes. C'est ce qui distingue une carte de
+         suivi d'une carte de situation — le livreur roule, et sans ça il
+         sort du cadre au bout de trois rues. */
+      const suit = !!(opts && opts.suit);
+      /* `marges` : où la carte est réellement visible. En plein écran, une
+         feuille couvre le bas et une barre le haut ; centrer sur la zone
+         entière plaçait le livreur sous la feuille, donc invisible. La valeur
+         est demandée à chaque cadrage, parce que la hauteur de la feuille
+         change avec son contenu. */
+      const marges = (opts && opts.marges) || null;
+      const cadre = ecart => {
+        const m = typeof marges === 'function' ? marges() : marges;
+        return Object.assign({ maxZoom: 16 }, m
+          ? { paddingTopLeft: m.tl, paddingBottomRight: m.br }
+          : { padding: [ecart, ecart] });
+      };
+
       let map = null, markers = {}, attendus = points, premier = true, mort = false;
+      let trace = null;
+      /* Dès que le doigt déplace la carte, on arrête de la recadrer : quelqu'un
+         qui regarde le quartier d'à côté ne veut pas être ramené de force
+         toutes les quinze secondes. Le bouton de recentrage rend la main. */
+      let libre = false;
 
       const defs = {
         restaurant: ['🏪', 'lm-resto', 'Restaurant'],
@@ -258,6 +281,21 @@
           }).addTo(map);
         });
 
+        /* Le chemin parcouru : un trait pointillé qui relie les repères dans
+           l'ordre où on les visite. À vol d'oiseau, faute d'un service
+           d'itinéraire — il ne prétend pas dire par où passer, seulement dans
+           quel sens ça va. C'est ce qui fait lire « il monte vers le
+           restaurant » plutôt que « trois épingles sur une carte ». */
+        const chemin = (pts && pts.chemin || []).map(k => markers[k])
+          .filter(Boolean).map(m => m.getLatLng());
+        if (chemin.length > 1) {
+          if (trace) trace.setLatLngs(chemin);
+          else trace = L.polyline(chemin, {
+            color: '#FF4D2D', weight: 4, opacity: .75,
+            dashArray: '2 9', lineCap: 'round'
+          }).addTo(map);
+        } else if (trace) { map.removeLayer(trace); trace = null; }
+
         if (!bornes.length) { map.setView([CITY.lat, CITY.lng], 13); return; }
 
         /* Carte figée avec un seul repère : la vue le suit, sinon le livreur
@@ -265,9 +303,19 @@
         if (fige && bornes.length === 1 && !premier) { map.setView(bornes[0]); return; }
 
         if (premier) {
-          if (bornes.length > 1) map.fitBounds(bornes, { padding: [42, 42], maxZoom: 16 });
+          if (bornes.length > 1) map.fitBounds(bornes, cadre(42));
           else map.setView(bornes[0], 16);
           premier = false;
+          return;
+        }
+
+        /* Suivi : on garde tout le monde dans le cadre à chaque relevé. Le
+           déplacement est animé — un saut sec à chaque position donne
+           l'impression que la carte se recharge. */
+        if (suit && !libre) {
+          if (bornes.length > 1)
+            map.flyToBounds(bornes, Object.assign(cadre(56), { duration: .8 }));
+          else map.panTo(bornes[0], { animate: true, duration: .8 });
         }
       }
 
@@ -287,6 +335,9 @@
         } : null));
 
         L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT }).addTo(map);
+        /* Le doigt reprend la main : à partir de là, la carte ne se recadre
+           plus toute seule. */
+        if (suit) map.on('dragstart', () => { libre = true; });
         appliquer(attendus);
         setTimeout(() => map.invalidateSize(), 260);
       });
@@ -298,14 +349,15 @@
         nudge() { if (map) map.invalidateSize(); },
         recenter() {
           if (!map) return;
+          libre = false;                 // le suivi automatique reprend
           const b = Object.keys(markers).map(k => markers[k].getLatLng());
-          if (b.length > 1) map.fitBounds(b, { padding: [42, 42], maxZoom: 16 });
+          if (b.length > 1) map.fitBounds(b, cadre(42));
           else if (b.length) map.setView(b[0], 16);
         },
         destroy() {
           mort = true;
           try { if (map) map.remove(); } catch (e) {}
-          markers = {}; map = null;
+          markers = {}; map = null; trace = null;
         }
       };
     },

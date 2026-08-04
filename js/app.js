@@ -146,7 +146,7 @@
           Router.render();
           return;
         }
-        if (what === 'orders') LiveTrack.sync();
+        if (what === 'orders') { LiveTrack.sync(); ouvrirLeSuivi(); }
         // sonne dès qu'une commande attend une réponse, se tait dès qu'il n'y
         // en a plus
         if (w.Sound) Sound.watchOrders();
@@ -195,6 +195,9 @@
       // un livreur qui rouvre l'app en pleine course reprend le partage
       LiveTrack.sync();
 
+      // un client qui rouvre l'app pendant qu'on le livre retombe sur le suivi
+      ouvrirLeSuivi();
+
       horlogeDesDelais();
 
       /* ---- 7. Fin de l'écran d'ouverture ---- */
@@ -215,6 +218,62 @@
       console.error(e);
       fail('Impossible de démarrer l’application', e.message);
     }
+  }
+
+  /* ====================================================================
+     « UN LIVREUR A PRIS VOTRE COMMANDE » — OUVERTURE DU SUIVI
+     --------------------------------------------------------------------
+     À la seconde où un livreur accepte, le client n'a plus rien à faire :
+     il veut voir la moto avancer. Il fallait pourtant qu'il l'apprenne par
+     un message, retrouve sa commande, l'ouvre, descende jusqu'à la carte,
+     et appuie sur « plein écran » — cinq gestes pour la seule chose qui
+     l'intéresse à ce moment-là. L'écran s'ouvre donc tout seul.
+
+     Deux garde-fous, parce qu'une page qui s'impose est une page qui
+     agace :
+
+     • UNE FOIS PAR COMMANDE. Le client qui referme le suivi pour aller
+       voir autre chose ne doit pas y être ramené à chaque relevé de
+       position. La mémoire tient dans sessionStorage : elle dure le temps
+       de l'onglet, ce qui correspond à la durée d'une livraison.
+
+     • JAMAIS PAR-DESSUS UN GESTE EN COURS. Une commande en train d'être
+       validée, un compte en train d'être créé : on ne remplace pas l'écran
+       sous les doigts de quelqu'un. Le suivi attendra le relevé suivant,
+       quinze secondes plus tard.
+     ==================================================================== */
+  const MEM_SUIVI = 'talabi.suivi_ouvert';
+
+  function dejaOuvert(id) {
+    try { return (sessionStorage.getItem(MEM_SUIVI) || '').split(',').indexOf(id) >= 0; }
+    catch (e) { return false; }
+  }
+  function noterOuvert(id) {
+    try {
+      const v = (sessionStorage.getItem(MEM_SUIVI) || '').split(',').filter(Boolean);
+      v.push(id);
+      /* On ne garde que les dernières : la liste n'a pas à enfler pendant
+         toute une soirée de commandes. */
+      sessionStorage.setItem(MEM_SUIVI, v.slice(-8).join(','));
+    } catch (e) {}
+  }
+
+  /* Les écrans qu'on ne recouvre pas : on y est en train de faire quelque
+     chose dont on ne veut pas perdre le fil. */
+  const OCCUPE = ['/checkout', '/login', '/signup', '/reset', '/live/'];
+
+  async function ouvrirLeSuivi() {
+    if (!App.est('client') || !Store.isLogged || Store.role !== 'client') return;
+
+    const ici = Router.path().split('?')[0];
+    if (OCCUPE.some(p => ici.indexOf(p) === 0)) return;
+
+    const list = await API.safe(() => API.orders({ scope: 'client' }), []);
+    const o = list.find(x => ['driver_assigned', 'delivering'].indexOf(x.status) >= 0);
+    if (!o || dejaOuvert(o.id)) return;
+
+    noterOuvert(o.id);
+    Router.go('/live/' + o.id);
   }
 
   /* ====================================================================

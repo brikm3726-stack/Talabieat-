@@ -1027,7 +1027,12 @@
       code: '#' + (o.code || ''),
       back: '/d/active',
 
-      points: () => ({ restaurant: resto(), client: chez(), driver: moi() }),
+      points: () => ({
+        restaurant: resto(), client: chez(), driver: moi(),
+        chemin: o.status === 'delivering'
+          ? ['driver', 'client']
+          : ['driver', 'restaurant', 'client']
+      }),
 
       fetch: async () => {
         const frais = await API.safe(() => API.order(params.id), null);

@@ -60,8 +60,19 @@
       const sheet = view.querySelector('#lvSheet');
 
       /* Carte libre, pas figée : l'écran ne défile pas, le doigt n'a donc rien
-         d'autre à faire dessus que déplacer la carte. */
+         d'autre à faire dessus que déplacer la carte.
+
+         `suit` : elle se recadre à chaque position reçue — c'est tout l'objet
+         de l'écran. `marges` lui dit où elle est vraiment visible : sans ça
+         elle centre sur la zone entière et place le livreur sous la feuille,
+         c'est-à-dire nulle part. La hauteur est relue à chaque cadrage,
+         puisque la feuille grandit avec son contenu. */
       const map = MapPicker.live(view.querySelector('#lvMap'), points(), {
+        suit: true,
+        marges: () => ({
+          tl: [22, 74],
+          br: [22, (sheet.offsetHeight || 320) + 28]
+        }),
         onEchec(raison) {
           const el = view.querySelector('#lvMap');
           if (!el) return;
