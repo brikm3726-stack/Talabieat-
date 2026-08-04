@@ -2545,6 +2545,83 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 .h3d-step .h3{font-size:15.5px;font-weight:850;color:#12141A;letter-spacing:-.01em}
 .h3d-step p{margin-top:5px;font-size:12.8px;line-height:1.55;color:rgba(255,255,255,.9)}
 
+/* ---- les trois cases se mettent en place --------------------------------
+   Cinq secondes pendant lesquelles les trois cases tournent, puis chacune
+   tombe dans la sienne — la première, puis la deuxième, puis la troisième.
+
+   Ce n'est pas une animation d'ambiance. « Comment ça marche ? » explique
+   un ORDRE, et un ordre ne se voit pas sur trois cartes posées : on lit les
+   trois titres, on ne retient pas la suite. En les regardant se ranger, on
+   comprend qu'il y a un premier, un deuxième et un troisième avant même
+   d'avoir lu un mot.
+
+   Trois règles la rendent supportable plutôt que fatigante :
+   — elle ne part qu'au moment où le bloc entre dans l'écran (sinon elle
+     s'est déjà jouée quand on arrive, et il ne reste rien à voir) ;
+   — elle ne se joue qu'une fois par visite ;
+   — seuls transform et opacity bougent : le compositeur s'en charge seul,
+     rien n'est recalculé à chaque image.
+   ---------------------------------------------------------------------- */
+.h3d-steps.danse .h3d-step{
+  will-change:transform,opacity;
+  animation:h3dRange 4s cubic-bezier(.34,1.28,.44,1) both;
+}
+/* Chacune part d'un côté différent et met un peu plus longtemps que la
+   précédente : c'est ce décalage qui fait « d'abord la 1, puis la 2, puis
+   la 3 » plutôt que trois cases qui atterrissent ensemble. */
+.h3d-steps.danse .h3d-step:nth-child(1){animation-name:h3dRangeA;animation-duration:4s}
+.h3d-steps.danse .h3d-step:nth-child(2){animation-name:h3dRangeB;animation-duration:4.5s}
+.h3d-steps.danse .h3d-step:nth-child(3){animation-name:h3dRangeC;animation-duration:5s}
+
+/* Le numéro s'allume au moment où SA case se pose. */
+.h3d-steps.danse .h3d-step .num{animation:h3dNum .5s ease-out both}
+.h3d-steps.danse .h3d-step:nth-child(1) .num{animation-delay:3.8s}
+.h3d-steps.danse .h3d-step:nth-child(2) .num{animation-delay:4.3s}
+.h3d-steps.danse .h3d-step:nth-child(3) .num{animation-delay:4.8s}
+
+/* Le trait qui relie les cases n'a de sens qu'une fois qu'elles sont en
+   place : il se dévoile en dernier, sinon il relie des cases en vol. */
+.h3d-steps.danse .rail::before{animation:h3dTrait .6s 4.6s ease both}
+
+@keyframes h3dRangeA{
+  0%  {opacity:0;transform:translate3d(-46%,62%,0) rotate(-8deg) scale(.82)}
+  20% {opacity:1;transform:translate3d(30%,-30%,0) rotate(6deg)  scale(.9)}
+  45% {opacity:1;transform:translate3d(-22%,26%,0) rotate(-4deg) scale(.95)}
+  70% {opacity:1;transform:translate3d(12%,-12%,0) rotate(2deg)  scale(.99)}
+  88% {opacity:1;transform:translate3d(-4%,4%,0)  rotate(-.6deg) scale(1)}
+  100%{opacity:1;transform:none}
+}
+@keyframes h3dRangeB{
+  0%  {opacity:0;transform:translate3d(52%,-58%,0) rotate(9deg)   scale(.82)}
+  20% {opacity:1;transform:translate3d(-34%,34%,0) rotate(-7deg)  scale(.9)}
+  45% {opacity:1;transform:translate3d(26%,-24%,0) rotate(5deg)   scale(.95)}
+  70% {opacity:1;transform:translate3d(-13%,11%,0) rotate(-2deg)  scale(.99)}
+  88% {opacity:1;transform:translate3d(5%,-4%,0)   rotate(.6deg)  scale(1)}
+  100%{opacity:1;transform:none}
+}
+@keyframes h3dRangeC{
+  0%  {opacity:0;transform:translate3d(-54%,-52%,0) rotate(-10deg) scale(.82)}
+  20% {opacity:1;transform:translate3d(36%,28%,0)   rotate(7deg)   scale(.9)}
+  45% {opacity:1;transform:translate3d(-24%,-22%,0) rotate(-5deg)  scale(.95)}
+  70% {opacity:1;transform:translate3d(14%,10%,0)   rotate(2deg)   scale(.99)}
+  88% {opacity:1;transform:translate3d(-5%,-4%,0)   rotate(-.6deg) scale(1)}
+  100%{opacity:1;transform:none}
+}
+@keyframes h3dNum{
+  0%  {opacity:0;transform:scale(.5)}
+  60% {opacity:1;transform:scale(1.14)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes h3dTrait{from{opacity:0}to{opacity:1}}
+
+/* Qui a demandé moins de mouvement dans son téléphone ne voit rien bouger :
+   les cases sont simplement là. L'explication ne dépend pas du spectacle. */
+@media(prefers-reduced-motion:reduce){
+  .h3d-steps.danse .h3d-step,
+  .h3d-steps.danse .h3d-step .num,
+  .h3d-steps.danse .rail::before{animation:none}
+}
+
 @media(min-width:760px){
   .h3d-steps{padding:34px 30px 32px}
   .h3d-steps .rail{

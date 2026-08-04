@@ -114,7 +114,7 @@
         /* Trois étapes, pas quatre. « Le restaurant prépare » décrivait ce que
            fait le restaurant, pas ce que fait le client : on lui demandait de
            lire une étape où il n'a rien à faire. */
-        '<div class="h3d-steps">' +
+        '<div class="h3d-steps" id="h3dSteps">' +
           '<div class="h2">Comment ça marche ?</div>' +
           '<p class="lead">Trois étapes, et votre repas est en route.</p>' +
           '<div class="rail">' +
@@ -173,6 +173,29 @@
     };
     view.querySelector('#goSearch').onclick = search;
     q.onkeydown = e => { if (e.key === 'Enter') search(); };
+
+    /* ---- les trois cases se rangent -------------------------------------
+       Le bloc « Comment ça marche ? » est loin sous l'accueil. Lancer
+       l'animation au chargement, c'est la jouer pour personne : le temps
+       qu'on descende, elle est finie. Elle attend donc d'être VUE.
+
+       Une seule fois par visite : ce qui étonne au premier passage agace au
+       troisième, et on repasse par l'accueil à chaque retour. */
+    const bloc = view.querySelector('#h3dSteps');
+    if (bloc) {
+      const jouer = () => bloc.classList.add('danse');
+      if (!w.IntersectionObserver) jouer();
+      else {
+        const oeil = new IntersectionObserver(entrees => {
+          entrees.forEach(e => {
+            if (!e.isIntersecting) return;
+            jouer();
+            oeil.disconnect();
+          });
+        }, { threshold: .35 });
+        oeil.observe(bloc);
+      }
+    }
 
     /* -------------------------------------------------------- données */
     /* Plus de filtre par quartier : on annonce la wilaya, on ne trie plus le
