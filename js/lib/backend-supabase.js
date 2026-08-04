@@ -886,10 +886,17 @@
     'client:profiles!orders_client_id_fkey(id,full_name,phone), ' +
     /* Le livreur avec sa photo, son véhicule et sa note : l'écran de suivi les
        affiche, et ils existent déjà en base — profiles.avatar_url d'un côté,
-       drivers.vehicle / rating de l'autre. Les inventer aurait été absurde ;
-       les afficher sans les demander, impossible. */
+       drivers.vehicle / rating de l'autre.
+
+       ATTENTION EN TOUCHANT À CETTE LISTE. Elle sert à TOUTES les requêtes de
+       commandes — client, livreur, restaurant, administration. Une seule
+       colonne inexistante ne dégrade pas l'affichage : PostgREST refuse la
+       requête entière, et toutes les commandes de l'application deviennent
+       introuvables. C'est arrivé avec `rating_count`, qui n'existe que sur les
+       restaurants et pas sur les livreurs. Chaque nom ci-dessous a été relevé
+       dans supabase/01_schema.sql. */
     'driver:profiles!orders_driver_id_fkey(id,full_name,phone,avatar_url,' +
-      'driver:drivers(vehicle,plate,rating,rating_count)), ' +
+      'driver:drivers(vehicle,plate,rating,total_deliveries)), ' +
     'zone:zones(*), items:order_items(*)';
 
   function decorate(r) {
