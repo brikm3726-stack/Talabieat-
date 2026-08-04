@@ -6,6 +6,9 @@
 
   const UI = {
 
+    /** Compteur de modales — sert à reconnaître notre entrée d'historique. */
+    _nSheet: 0,
+
     /* ------------------------------------------------------------- toasts */
     toast(msg, kind, sub) {
       const box = document.getElementById('toasts');
@@ -28,7 +31,23 @@
     /* ------------------------------------------------------------ modales */
     /**
      * UI.sheet({ title, body, footer, onMount, wide })
-     * Retourne { close }
+     * Retourne { close, el }
+     *
+     * UNE MODALE EST UNE ÉTAPE DE PLUS DANS L'HISTORIQUE.
+     *
+     * Elle vit dans #modal-root, hors de #view : une navigation ne la détruit
+     * pas. Sans précaution, appuyer sur « retour » pendant qu'un panneau est
+     * ouvert changeait la page DERRIÈRE le panneau — qui, lui, restait au
+     * premier plan, par-dessus un écran qui n'était plus le bon. Le document
+     * restait aussi bloqué en overflow:hidden. Rien ne « revenait ».
+     *
+     * On empile donc une entrée d'historique à l'ouverture. Le retour du
+     * téléphone la dépile et ne fait que fermer le panneau — le geste attendu.
+     * Fermer par la croix retire cette entrée à son tour, pour que l'historique
+     * reste le reflet exact de ce que l'utilisateur a traversé.
+     *
+     * close(suite) : `suite` est exécutée APRÈS le dépilement. Naviguer avant
+     * qu'il ait eu lieu ferait reculer d'un cran la page qu'on vient d'ouvrir.
      */
     sheet(opts) {
       const root = document.getElementById('modal-root');
@@ -47,21 +66,76 @@
         '</div>';
       root.appendChild(ov);
       document.body.style.overflow = 'hidden';
+      /* Sur téléphone la fenêtre ne défile plus : c'est #view qui défile. Le
+         bloquer aussi, sinon la page continue de glisser sous le panneau. */
+      const vue = document.getElementById('view');
+      if (vue) vue.style.overflow = 'hidden';
 
-      const close = () => {
+      const jeton = 'sh' + (++UI._nSheet);
+      let empile = false, fini = false;
+      try {
+        w.history.pushState({ talabiSheet: jeton }, '', w.location.href);
+        empile = true;
+      } catch (e) {}
+
+      const retirer = () => {
+        if (fini) return; fini = true;
+        w.removeEventListener('popstate', surRetour);
         ov.style.transition = '.16s'; ov.style.opacity = '0';
-        setTimeout(() => { ov.remove(); if (!root.children.length) document.body.style.overflow = ''; }, 160);
+        setTimeout(() => {
+          ov.remove();
+          if (!root.children.length) {
+            document.body.style.overflow = '';
+            if (vue) vue.style.overflow = '';
+          }
+        }, 160);
       };
+
+      /* Le retour du téléphone : notre entrée vient d'être dépilée, il n'y a
+         plus rien à dépiler — on ferme, c'est tout. */
+      function surRetour() { empile = false; retirer(); }
+      w.addEventListener('popstate', surRetour);
+
+      const close = (arg) => {
+        /* close est aussi branché sur des clics : l'argument reçu peut être un
+           évènement. Seule une fonction est une suite à exécuter. */
+        const suite = (typeof arg === 'function') ? arg : null;
+        if (fini) return;
+        const aDepiler = empile &&
+          w.history.state && w.history.state.talabiSheet === jeton;
+        retirer();
+        if (!aDepiler) { if (suite) suite(); return; }
+        if (suite) {
+          w.addEventListener('popstate', function unefois() {
+            w.removeEventListener('popstate', unefois);
+            suite();
+          });
+        }
+        w.history.back();
+      };
+
       ov.addEventListener('click', e => { if (e.target === ov) close(); });
       // querySelectorAll et non querySelector : une modale a souvent DEUX
       // boutons de fermeture — la croix de l'en-tête et un bouton de pied de
       // page (« J'ai compris »). Avec querySelector, seule la croix marchait
       // et le bouton du bas ne faisait rien.
-      ov.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', close));
+      ov.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', () => close()));
 
       const api = { close, el: ov };
+      ov._fermer = close;
       if (opts.onMount) opts.onMount(ov, api);
       return api;
+    },
+
+    /* Filet de sécurité : si la page change pour une raison qui n'est pas le
+       bouton retour — un lien à l'intérieur d'un panneau, une redirection —
+       aucun panneau ne doit survivre à l'écran qu'il recouvrait. */
+    closeSheets() {
+      const root = document.getElementById('modal-root');
+      if (!root) return;
+      Array.prototype.slice.call(root.children).forEach(ov => {
+        if (ov._fermer) ov._fermer(); else ov.remove();
+      });
     },
 
     /** Confirmation — retourne une Promise<boolean> */
@@ -223,7 +297,22 @@
       scooter:  '<circle cx="5.5" cy="17.5" r="2.8"/><circle cx="18.5" cy="17.5" r="2.8"/>' +
                 '<path d="M8.3 17.5h6.4"/>' +
                 '<path d="M5.5 14.7v-2.2a1.8 1.8 0 0 1 1.8-1.8h4.4"/>' +
-                '<path d="m17.6 14.6-1.9-7.4"/><path d="M13.9 6.6h3.4"/>'
+                '<path d="m17.6 14.6-1.9-7.4"/><path d="M13.9 6.6h3.4"/>',
+
+      /* ---------------------------------------------- pictogrammes des avis
+         Le panneau des notifications marchait aux émojis. Un émoji n'est pas
+         dessiné par nous : chaque téléphone a le sien, ils n'ont ni la même
+         épaisseur, ni la même couleur, ni la même taille optique — mis les
+         uns sous les autres, la colonne était bancale. Ces tracés-ci suivent
+         la même grille de 24 et la même épaisseur de trait que le reste de
+         l'application, et prennent la couleur qu'on leur donne. */
+      'check-circle': '<circle cx="12" cy="12" r="9"/><path d="m8.2 12.2 2.6 2.6 5-5.2"/>',
+      bag:      '<path d="M5.4 8h13.2l-1 11.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8Z"/>' +
+                '<path d="M8.8 8V6.4a3.2 3.2 0 0 1 6.4 0V8"/>',
+      navigation: '<path d="M20.6 4.4 4.9 10.2a.8.8 0 0 0-.1 1.5l6.4 2.6a.8.8 0 0 1 .4.4l2.6 6.4a.8.8 0 0 0 1.5-.1Z"/>',
+      ban:      '<circle cx="12" cy="12" r="9"/><path d="m5.9 5.9 12.2 12.2"/>',
+      sparkle:  '<path d="M12 2.6 13.9 8 19.4 10 13.9 12 12 17.4 10.1 12 4.6 10 10.1 8Z"/>' +
+                '<path d="M18.6 16.4 19.4 18.6 21.6 19.4 19.4 20.2 18.6 22.4 17.8 20.2 15.6 19.4 17.8 18.6Z"/>'
     },
 
     icon(name, size) {

@@ -1279,10 +1279,96 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
   body:not(.role-admin) tr:hover td{background:#FCFDFF}
 }
 
-.notif-item{display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.14s}
-.notif-item:hover{background:var(--bg)}
-.notif-item.unread{background:var(--brand-soft)}
-.notif-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:17px;flex:none;background:#fff;border:1px solid var(--line)}
+/* ==========================================================================
+   NOTIFICATIONS
+   --------------------------------------------------------------------------
+   Une notification n'est pas une ligne de tableau : c'est une nouvelle. Elle
+   se lit en un coup d'œil, dans cet ordre — le dessin dit QUOI, sa teinte dit
+   si c'est bon ou mauvais, le titre dit de quelle commande il s'agit, l'heure
+   dit si c'est encore d'actualité.
+
+   Les émojis d'avant venaient du téléphone, pas de nous : ni la même
+   épaisseur, ni la même couleur, ni le même centrage d'un appareil à l'autre.
+   Ce sont maintenant nos propres tracés, sur la même grille que le reste.
+   ========================================================================== */
+.notif-tete-ic{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;
+  flex:none;color:var(--brand);background:var(--brand-soft);
+  border:1px solid color-mix(in srgb,var(--brand) 22%,transparent)}
+
+.notif-liste{display:flex;flex-direction:column}
+
+/* Repère de jour. Volontairement PAS collant : le panneau défile d'un seul
+   bloc, en-tête comprise, et deux éléments collés au même bord se recouvrent.
+   Un séparateur qui passe suffit — la liste n'est jamais très longue. */
+.notif-jour{
+  padding:13px 18px 6px;font-size:11.5px;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);background:var(--bg)}
+.notif-jour + .notif-item{border-top:1px solid var(--line)}
+
+.notif-item{
+  display:flex;align-items:flex-start;gap:13px;width:100%;
+  padding:13px 16px;text-align:left;cursor:pointer;
+  background:none;border:0;border-bottom:1px solid var(--line);
+  font:inherit;color:inherit;position:relative;
+  transition:background .16s ease,transform .12s ease}
+.notif-item:last-child{border-bottom:0}
+@media(hover:hover){.notif-item:hover{background:var(--bg)}}
+/* L'enfoncement remplace le survol là où il n'existe pas — sur un téléphone,
+   c'est le seul retour possible entre l'appui et l'ouverture de la page. */
+.notif-item:active{transform:scale(.985);background:var(--bg)}
+
+/* Non lu : un liseré orange à gauche plutôt qu'un fond coloré sur toute la
+   ligne. Le fond teintait le texte et rendait la colonne bruyante dès qu'il y
+   avait trois avis d'affilée. */
+.notif-item.unread{background:color-mix(in srgb,var(--brand-soft) 55%,#fff)}
+.notif-item.unread::before{
+  content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--brand)}
+
+.notif-ic{
+  width:40px;height:40px;border-radius:14px;flex:none;
+  display:grid;place-items:center;
+  background:var(--tone-bg);color:var(--tone);
+  border:1px solid color-mix(in srgb,var(--tone) 20%,transparent);
+  box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.notif-ic .ico{stroke-width:2}
+
+/* Les quatre teintes. On n'en veut pas plus : au-delà, la couleur cesse
+   d'être un signal et redevient de la décoration. */
+.notif-ic.t-or   {--tone:#E8590C;--tone-bg:#FFF2E6}
+.notif-ic.t-vert {--tone:#0F9D58;--tone-bg:#E8F7EF}
+.notif-ic.t-bleu {--tone:#1E6FD9;--tone-bg:#E9F1FE}
+.notif-ic.t-rouge{--tone:#D64545;--tone-bg:#FDECEC}
+.notif-ic.t-gris {--tone:#64748B;--tone-bg:#F1F5F9}
+
+.notif-txt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.notif-h{font-size:14.5px;font-weight:750;line-height:1.3}
+.notif-b{font-size:13px;color:var(--muted);line-height:1.42;
+  /* deux lignes au plus : au-delà, le détail est dans la commande elle-même */
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.notif-t{font-size:11.5px;color:var(--muted);opacity:.8;margin-top:2px;font-weight:600}
+
+/* La pastille du non-lu et la flèche occupent la même colonne de droite :
+   l'une signale, l'autre invite. */
+.notif-neuf{width:8px;height:8px;border-radius:50%;background:var(--brand);
+  flex:none;margin-top:7px;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
+.notif-fl{flex:none;color:var(--muted);opacity:.45;margin-top:9px;display:grid}
+.notif-item.unread .notif-fl{opacity:.65}
+
+.notif-vide{text-align:center;padding:34px 18px 26px}
+.notif-vide-ic{width:64px;height:64px;border-radius:22px;margin:0 auto 14px;
+  display:grid;place-items:center;color:var(--brand);background:var(--brand-soft)}
+.notif-vide b{display:block;font-size:15.5px}
+.notif-vide p{margin:6px auto 0;max-width:280px;font-size:13.5px;color:var(--muted);line-height:1.5}
+
+@media(prefers-color-scheme:dark){
+  .notif-ic{box-shadow:none}
+  .notif-ic.t-or   {--tone:#FFA45B;--tone-bg:rgba(232,89,12,.16)}
+  .notif-ic.t-vert {--tone:#4ADE80;--tone-bg:rgba(15,157,88,.16)}
+  .notif-ic.t-bleu {--tone:#7BB0FF;--tone-bg:rgba(30,111,217,.16)}
+  .notif-ic.t-rouge{--tone:#FF8A8A;--tone-bg:rgba(214,69,69,.16)}
+  .notif-ic.t-gris {--tone:#94A3B8;--tone-bg:rgba(148,163,184,.14)}
+}
 
 /* ------------------------------------------------- changement de page
    Une page qui apparaît d'un coup se lit comme un à-coup, même quand elle est

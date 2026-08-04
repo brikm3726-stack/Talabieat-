@@ -80,6 +80,20 @@
       return 'il y a ' + Math.floor(s / 86400) + ' j';
     },
 
+    /** Le jour d'une date, dit comme on le dit : « Aujourd'hui », « Hier »,
+        puis la date. Sert à séparer une longue liste en tranches lisibles. */
+    dayLabel(v) {
+      if (!v) return '';
+      const d = new Date(v);
+      if (isNaN(d.getTime())) return '';
+      const jour = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+      const ecart = Math.round((jour(new Date()) - jour(d)) / 86400000);
+      if (ecart <= 0) return "Aujourd'hui";
+      if (ecart === 1) return 'Hier';
+      if (ecart < 7) return d.toLocaleDateString('fr-FR', { weekday: 'long' });
+      return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+    },
+
     /** "10:00" + "23:00" -> le restaurant est-il dans ses horaires ? */
     withinHours(opens, closes) {
       if (!opens || !closes) return true;

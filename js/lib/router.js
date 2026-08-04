@@ -52,6 +52,11 @@
     get current() { return current; },
 
     async render() {
+      /* Les panneaux vivent hors de #view : changer de page ne les efface pas.
+         On les ferme ici, sinon un panneau resté ouvert recouvre un écran qui
+         n'est plus celui qu'il commentait. */
+      if (w.UI && UI.closeSheets) UI.closeSheets();
+
       const path = Router.path().split('?')[0];
       const query = {};
       const qs = Router.path().split('?')[1];

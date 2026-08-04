@@ -337,41 +337,73 @@
 
     /* -------------------------------------------------------- notifications */
     async notifPanel() {
+      const nb = Store.unread || 0;
       const m = UI.sheet({
         title: 'Notifications',
-        body: '<div id="nlist"><div class="skel" style="height:70px;margin-bottom:8px"></div>' +
-              '<div class="skel" style="height:70px"></div></div>',
-        footer: '<button class="btn btn-ghost btn-block" id="markAll">Tout marquer comme lu</button>'
+        subtitle: nb ? (nb > 1 ? nb + ' non lues' : '1 non lue') : 'Tout est à jour',
+        icon: '<span class="notif-tete-ic">' + UI.icon('bell', 19) + '</span>',
+        body: '<div id="nlist">' +
+              '<div class="skel" style="height:72px;margin-bottom:10px;border-radius:16px"></div>' +
+              '<div class="skel" style="height:72px;border-radius:16px"></div></div>',
+        footer: nb ? '<button class="btn btn-ghost btn-block" id="markAll">' +
+                     UI.icon('check', 17) + ' Tout marquer comme lu</button>' : ''
       });
 
       const list = await API.safe(() => API.notifications(40), []);
       const box = m.el.querySelector('#nlist');
 
       if (!list.length) {
-        box.innerHTML = UI.empty(UI.icon('bell', 34), 'Aucune notification', 'Vous serez prévenu ici à chaque étape de vos commandes.');
+        box.innerHTML = '<div class="notif-vide">' +
+          '<div class="notif-vide-ic">' + UI.icon('bell', 30) + '</div>' +
+          '<b>Rien pour le moment</b>' +
+          '<p>Vous serez prévenu ici à chaque étape de vos commandes.</p></div>';
       } else {
-        box.style.margin = '-18px';
-        box.innerHTML = list.map(n =>
-          '<div class="notif-item ' + (n.is_read ? '' : 'unread') + '" data-o="' + U.esc(n.order_id || '') +
-            '" data-t="' + U.esc(n.type || '') + '">' +
-            '<div class="notif-ic">' + iconFor(n.type) + '</div>' +
-            '<div class="grow"><b style="font-size:14px">' + U.esc(n.title) + '</b>' +
-            '<div class="tiny" style="margin-top:2px">' + U.esc(n.body || '') + '</div>' +
-            '<div class="tiny" style="margin-top:4px;opacity:.7">' + U.ago(n.created_at) + '</div></div>' +
-          '</div>').join('');
+        box.style.margin = '-18px -18px -6px';
+        /* Les avis sont regroupés par jour : « aujourd'hui » d'abord. Sans
+           ces repères, quinze lignes d'affilée se lisent comme un mur, et
+           « il y a 3 h » ne dit plus rien à côté de « il y a 3 j ». */
+        let jour = '';
+        box.innerHTML = '<div class="notif-liste">' + list.map(n => {
+          const j = U.dayLabel ? U.dayLabel(n.created_at) : '';
+          let tete = '';
+          if (j && j !== jour) { jour = j; tete = '<div class="notif-jour">' + U.esc(j) + '</div>'; }
+          return tete +
+            '<button type="button" class="notif-item' + (n.is_read ? '' : ' unread') + '"' +
+              ' data-o="' + U.esc(n.order_id || '') + '" data-t="' + U.esc(n.type || '') + '">' +
+              iconFor(n.type) +
+              '<span class="notif-txt">' +
+                '<span class="notif-h">' + U.esc(n.title) + '</span>' +
+                (n.body ? '<span class="notif-b">' + U.esc(n.body) + '</span>' : '') +
+                '<span class="notif-t">' + U.esc(U.ago(n.created_at)) + '</span>' +
+              '</span>' +
+              (n.is_read ? '' : '<span class="notif-neuf" aria-label="Non lu"></span>') +
+              (n.order_id ? '<span class="notif-fl">' + UI.icon('chevron', 16) + '</span>' : '') +
+            '</button>';
+        }).join('') + '</div>';
 
         box.querySelectorAll('[data-o]').forEach(el => el.onclick = () => {
-          const id = el.dataset.o;
-          m.close();
-          if (id) Router.go(targetFor(id, el.dataset.t));
+          const id = el.dataset.o, t = el.dataset.t;
+          if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+          /* La navigation attend que le panneau ait rendu son entrée
+             d'historique : sinon le « retour » de l'écran qu'on vient
+             d'ouvrir ramènerait sur cet écran-ci, pas sur le précédent. */
+          m.close(id ? () => Router.go(targetFor(id, t)) : null);
         });
       }
 
-      m.el.querySelector('#markAll').onclick = async () => {
+      const tout = m.el.querySelector('#markAll');
+      if (tout) tout.onclick = async () => {
+        /* Les pastilles s'éteignent tout de suite, sous le doigt : attendre
+           le serveur pour un geste dont l'issue ne fait aucun doute donne
+           l'impression que le bouton n'a pas répondu. */
+        m.el.querySelectorAll('.notif-item.unread').forEach(el => {
+          el.classList.remove('unread');
+          const p = el.querySelector('.notif-neuf'); if (p) p.remove();
+        });
+        tout.disabled = true;
         await API.safe(() => API.markNotificationsRead());
         await Store.refreshUnread();
         Shell.renderTop();
-        m.close();
         UI.ok('Notifications marquées comme lues');
       };
 
@@ -397,14 +429,31 @@
     return '/order/' + orderId;
   }
 
+  /* Chaque type d'avis a un dessin ET une teinte. La teinte porte le sens
+     avant même la lecture : vert, ça a avancé ; orange, ça bouge maintenant ;
+     rouge, c'est arrêté. On reconnaît une notification de loin, sans lire. */
+  const AVIS = {
+    new_order:           ['receipt',      'or'],
+    accepted:            ['check-circle', 'vert'],
+    preparing:           ['chef',         'bleu'],
+    ready:               ['bag',          'or'],
+    delivery_available:  ['pin',          'or'],
+    driver_assigned:     ['scooter',      'bleu'],
+    delivering:          ['navigation',   'or'],
+    delivered:           ['sparkle',      'vert'],
+    rejected:            ['ban',          'rouge'],
+    cancelled:           ['ban',          'rouge'],
+    restaurant_status:   ['store',        'bleu'],
+    restaurant_pending:  ['store',        'bleu'],
+    driver_status:       ['scooter',      'bleu'],
+    no_driver:           ['clock',        'rouge']
+  };
+
+  function avisDe(type) { return AVIS[type] || ['bell', 'gris']; }
+
   function iconFor(type) {
-    const m = {
-      new_order: '🧾', accepted: '✅', preparing: '👨‍🍳', ready: '🛍️',
-      delivery_available: UI.icon('pin', 17), driver_assigned: '🛵', delivering: '🚀',
-      delivered: '🎉', rejected: '⛔', cancelled: '🚫',
-      restaurant_status: '🏪', restaurant_pending: '🏪', driver_status: '🛵'
-    };
-    return m[type] || '🔔';
+    const a = avisDe(type);
+    return '<span class="notif-ic t-' + a[1] + '">' + UI.icon(a[0], 20) + '</span>';
   }
 
   w.Shell = Shell;
