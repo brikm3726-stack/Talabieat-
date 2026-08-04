@@ -816,53 +816,88 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .lv-steps{display:flex;justify-content:space-between;gap:6px;font-size:10.5px;font-weight:600;color:var(--muted)}
 .lv-steps span.on{color:var(--brand);font-weight:800}
 
-/* ---- LA LIGNE DE MISSION, d'après la maquette « 35 » ----
-   Le trajet de haut en bas, dans l'ordre où il se déroule. Ruban orange sur le
-   tronçon en cours, sombre sur celui qui reste — les deux couleurs de la
-   maquette, et le même sens de lecture.
+/* ---- LE CHEMIN EN 2D, d'après la maquette « 35 » ----
+   Un plan dessiné à partir des vraies coordonnées : les positions relatives
+   sont justes, mais ce n'est pas une carte et ça ne cherche pas à l'être — pas
+   de rues, pas de noms, pas de tuiles à télécharger.
 
-   Elle est en HTML, pas sur la carte : c'est délibéré. Quand les tuiles ne
-   viennent pas, c'est elle qui répond aux deux seules questions qu'on se pose
-   en attendant son repas — où en est-il, et combien de temps encore. La partie
-   de l'écran qui ne peut pas tomber. */
-.lv-ligne{margin-top:16px}
-
-.lv-etape{display:flex;align-items:center;gap:11px}
-.lv-rond{
-  width:34px;height:34px;flex:none;border-radius:50%;
-  display:grid;place-items:center;font-size:16px;
-  background:var(--bg);color:var(--ink);
-  box-shadow:inset 0 0 0 2px var(--cream-line);
+   C'est ce qui le rend increvable. Une carte dépend d'un moteur, d'un
+   fournisseur de tuiles et d'un réseau qui répond ; ce plan ne dépend de rien.
+   Il tient donc la promesse de l'écran même au fond d'une cave. */
+.lv-plan{
+  position:relative;height:158px;margin-top:14px;
+  border-radius:20px;overflow:hidden;
+  background:#EFE7DC;
+  /* La trame de rues : elle ne décrit aucune ville, elle dit « un plan ». Sans
+     elle, les trois épingles flottent dans un rectangle beige. */
+  background-image:
+    linear-gradient(0deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),
+    linear-gradient(90deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),
+    linear-gradient(0deg,rgba(255,255,255,.5) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
+  background-size:96px 96px,96px 96px,32px 32px,32px 32px;
 }
-.lv-etape .lv-tx{min-width:0;line-height:1.25}
-.lv-etape .lv-tx b{display:block;font-size:13.5px;font-weight:700;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lv-etape .lv-tx small{font-size:11.5px;font-weight:600;color:var(--muted)}
+.lv-plan svg{position:absolute;inset:0;width:100%;height:100%}
 
-/* L'étape où l'on se trouve : pastille pleine, comme le repère de la carte. */
-.lv-etape.ici .lv-rond{
+/* Le repère du SVG est étiré pour coller au cadre : sans non-scaling-stroke,
+   le ruban serait épais dans un sens et fin dans l'autre. */
+.lv-route,.lv-route-flux{
+  fill:none;stroke-linecap:round;stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+}
+.lv-route{stroke:#2A1A2E;stroke-width:6;opacity:.32;stroke-dasharray:9 10}
+.lv-route.on{stroke:#FF4D2D;stroke-width:8;opacity:1;stroke-dasharray:none}
+/* Les pointillés blancs filent vers la destination : « en direct » sans
+   écrire le mot. */
+.lv-route-flux{
+  stroke:#fff;stroke-width:3;opacity:.95;
+  stroke-dasharray:2 14;animation:lmFlux 1.1s linear infinite;
+}
+
+/* ---- les épingles du plan ---- */
+.lv-pp{
+  position:absolute;transform:translate(-50%,-50%);
+  display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+/* Dans la moitié droite, l'étiquette passe à gauche de l'épingle, sinon elle
+   sort du cadre et se fait couper. */
+.lv-pp.gauche{flex-direction:row-reverse}
+.lv-pp i{
+  width:28px;height:28px;flex:none;font-size:14px;font-style:normal;
+  border-radius:50% 50% 50% 4px;transform:rotate(-45deg);
+  display:grid;place-items:center;
+  background:linear-gradient(140deg,#3A2B40,#1B1220);color:#fff;
+  box-shadow:0 5px 12px -4px rgba(16,24,40,.55);
+}
+/* La goutte penche de 45° : son contenu se redresse d'autant, sinon
+   l'emoji est couché. */
+.lv-pp i em{font-style:normal;line-height:1;display:block;transform:rotate(45deg)}
+.lv-pp b{
+  background:rgba(255,255,255,.96);padding:3px 7px;border-radius:8px;
+  font-size:10.5px;font-weight:800;color:var(--ink);
+  box-shadow:0 3px 8px -3px rgba(16,24,40,.3);
+}
+/* Le livreur : le seul qui bouge, donc un cercle qui bat et non une goutte. */
+.lv-pp.ici i{
+  border-radius:50%;transform:none;
   background:radial-gradient(120% 120% at 32% 24%,#FFC182,#F97316 58%,#E8600A);
-  color:#fff;box-shadow:0 4px 12px -4px rgba(233,96,10,.7);
+  animation:lmPulse 2s infinite;
 }
-.lv-etape.ici .lv-tx b{color:var(--brand)}
-/* Franchie : elle s'efface sans disparaître — on doit pouvoir vérifier d'où
-   l'on vient, pas la relire. */
-.lv-etape.fait .lv-rond{background:#2A1A2E;color:#fff;box-shadow:none}
-.lv-etape.fait .lv-tx b{color:var(--muted);font-weight:650}
+.lv-pp.ici i em{transform:none}
+.lv-pp.ici b{color:var(--brand)}
+/* Franchie : présente, mais elle ne réclame plus l'attention. */
+.lv-pp.fait i{opacity:.55;box-shadow:none}
+.lv-pp.fait b{color:var(--muted);font-weight:700}
 
-/* Le brin entre deux étapes : le ruban, et ce qu'il coûte écrit à côté. */
-.lv-brin{display:flex;align-items:center;gap:11px;min-height:34px}
-.lv-brin i{
-  width:34px;flex:none;align-self:stretch;
-  background:linear-gradient(#2A1A2E,#2A1A2E) center/6px 100% no-repeat;
-  opacity:.3;border-radius:3px;
+/* Ce que coûte le tronçon, posé au milieu de celui-ci. */
+.lv-pkm{
+  position:absolute;transform:translate(-50%,-50%);
+  padding:2px 7px;border-radius:7px;white-space:nowrap;
+  background:rgba(255,255,255,.94);
+  font-size:10px;font-weight:800;color:var(--muted);
+  box-shadow:0 2px 6px -2px rgba(16,24,40,.3);
 }
-.lv-brin.on i{
-  background-image:linear-gradient(#F97316,#FF4D2D);
-  opacity:1;
-}
-.lv-brin span{font-size:11.5px;font-weight:700;color:var(--muted)}
-.lv-brin.on span{color:var(--brand)}
+.lv-pkm.on{color:var(--brand)}
 
 /* ---- la personne d'en face ---- */
 .lv-who{

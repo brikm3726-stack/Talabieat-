@@ -436,38 +436,45 @@
           titre = 'Votre livreur';
         }
 
-        /* LA LIGNE DE MISSION — où il est, et ce qui reste après.
-           Avant le retrait, le livreur est au-dessus du restaurant : il y va.
-           Après, il est entre le restaurant et chez vous. L'ordre de lecture
-           est celui du temps, ce qui évite d'avoir à se demander pourquoi le
-           livreur s'éloigne. */
+        /* LE CHEMIN EN 2D — le livreur, le restaurant, chez vous.
+           Avant le retrait, le tronçon en cours mène au restaurant et celui
+           d'après revient vers le client : c'est ce qui explique d'un regard
+           pourquoi le livreur s'éloigne parfois de chez lui. Après le retrait,
+           il n'en reste qu'un, et il vient droit sur le client. */
         const nomResto = (o.restaurant && o.restaurant.name) || 'Restaurant';
         const totalMin = o.status === 'delivering'
           ? (versClient ? versClient.min : 0)
           : ((versResto ? versResto.min : 0) + (restoClient ? restoClient.min : 0));
 
-        const ligne = o.status === 'delivering'
-          ? LiveScreen.ligne([
+        const resto = o.restaurant && U.hasCoords(o.restaurant)
+          ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null;
+
+        const chemin = o.status === 'delivering'
+          ? LiveScreen.plan([
               /* Le tronçon déjà parcouru reste sombre : l'orange désigne
                  toujours ce qui se fait maintenant, jamais ce qui est fini. */
-              { ic: '🏪', t: nomResto, s: 'Commande récupérée', fait: true,
-                vers: { on: false, txt: '' } },
-              { ic: '🛵', t: 'Votre livreur', s: pos ? 'en route vers vous' : 'position en attente',
-                ici: true, vers: { on: true, txt: versClient ? versClient.texte : '' } },
-              { ic: '🏠', t: 'Chez vous', s: LiveScreen.heureArrivee(totalMin) }
+              { p: resto, ic: '🏪', t: nomResto, fait: true, vers: { on: false, txt: '' } },
+              { p: pos, ic: '🛵', t: 'Votre livreur', ici: true,
+                vers: { on: true, txt: versClient ? versClient.texte : '' } },
+              { p: client, ic: '🏠', t: 'Chez vous' }
             ])
-          : LiveScreen.ligne([
-              { ic: '🛵', t: 'Votre livreur', s: pos ? 'en route vers le restaurant' : 'position en attente',
-                ici: true, vers: { on: true, txt: versResto ? versResto.texte : '' } },
-              { ic: '🏪', t: nomResto, s: 'il récupère votre commande',
+          : LiveScreen.plan([
+              { p: pos, ic: '🛵', t: 'Votre livreur', ici: true,
+                vers: { on: true, txt: versResto ? versResto.texte : '' } },
+              { p: resto, ic: '🏪', t: nomResto,
                 vers: { on: false, txt: restoClient ? restoClient.texte : '' } },
-              { ic: '🏠', t: 'Chez vous', s: LiveScreen.heureArrivee(totalMin) }
+              { p: client, ic: '🏠', t: 'Chez vous' }
             ]);
 
         return LiveScreen.grab() +
-          LiveScreen.eta(titre, valeur, apres) +
+          /* L'heure d'arrivée rejoint la ligne du haut : « 47 min » se périme
+             dans la tête de celui qui le lit, « vers 20:45 » reste vrai. Les
+             morceaux sont assemblés, jamais concaténés à la main — sinon un
+             morceau vide laisse un séparateur orphelin en tête de ligne. */
+          LiveScreen.eta(titre, valeur,
+            [apres, LiveScreen.heureArrivee(totalMin)].filter(Boolean).join(' · ')) +
+          chemin +
           LiveScreen.progress(ETAPES, idx) +
-          ligne +
           LiveScreen.person({
             name: (o.driver && o.driver.full_name) || 'Votre livreur',
             /* Ni note ni véhicule : la plateforme ne les connaît pas. Un

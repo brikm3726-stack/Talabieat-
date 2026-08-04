@@ -211,39 +211,106 @@
     },
 
     /**
-     * LA LIGNE DE MISSION — d'après la maquette « 35 ».
+     * LE CHEMIN EN 2D — livreur → restaurant → client.
      *
-     * Le trajet raconté de haut en bas, dans l'ordre où il se déroule : le
-     * ruban est orange sur le tronçon en cours, sombre sur celui qui reste, et
-     * chaque brin porte ce qu'il coûte — « 1,2 km · 4 min ».
+     * Un plan dessiné en SVG, à partir des vraies coordonnées : les positions
+     * relatives sont donc justes — si le livreur est au nord-est du
+     * restaurant, il apparaît au nord-est. Ce n'est pas une carte pour autant,
+     * et ça ne cherche pas à l'être : pas de rues, pas de noms, pas de tuiles
+     * à télécharger. Juste les trois points et la route entre eux.
      *
-     * C'est la réponse au vrai besoin : quand ça traîne, le client ne veut pas
-     * une carte, il veut savoir OÙ en est son livreur et COMBIEN il reste. Et
-     * comme elle est dessinée en HTML, elle ne dépend d'aucune tuile ni
-     * d'aucun moteur de carte : elle s'affiche toujours, y compris là où la
-     * carte renonce. C'est la partie de l'écran qui ne peut pas tomber.
+     * C'est précisément ce qui le rend increvable. Une carte dépend d'un
+     * moteur, d'un fournisseur de tuiles et d'un réseau qui répond ; ce plan ne
+     * dépend de rien. Il répond aux deux seules questions qu'on se pose en
+     * attendant son repas — où en est-il, combien de temps encore — et il y
+     * répond même au fond d'une cave.
      *
-     * etapes : [{ ic, t, s, ici, fait, vers:{ on, txt } }]
-     *   ic/t/s  pictogramme, titre, précision
-     *   ici     l'étape où l'on se trouve — mise en avant
-     *   fait    déjà franchie
-     *   vers    le brin qui descend vers l'étape suivante
+     * Le tracé est coudé, pas droit : on ne va jamais à vol d'oiseau, et deux
+     * angles droits suffisent à faire lire « un trajet » plutôt qu'« une
+     * distance ». Le tronçon en cours est orange et parcouru de pointillés
+     * blancs dans le sens de la marche ; celui d'après est sombre et discret.
+     *
+     * etapes : [{ p:{lat,lng}, ic, t, ici, fait, vers:{ on, txt } }]
      */
-    ligne(etapes) {
-      return '<div class="lv-ligne">' + etapes.map((e, i) => {
-        const dernier = i === etapes.length - 1;
-        const cls = 'lv-etape' + (e.ici ? ' ici' : '') + (e.fait ? ' fait' : '');
-        return '<div class="' + cls + '">' +
-            '<span class="lv-rond">' + (e.ic || '') + '</span>' +
-            '<span class="lv-tx"><b>' + U.esc(e.t || '') + '</b>' +
-              (e.s ? '<small>' + U.esc(e.s) + '</small>' : '') + '</span>' +
-          '</div>' +
-          (!dernier && e.vers
-            ? '<div class="lv-brin' + (e.vers.on ? ' on' : '') + '">' +
-                '<i></i>' + (e.vers.txt ? '<span>' + U.esc(e.vers.txt) + '</span>' : '') +
-              '</div>'
-            : '');
-      }).join('') + '</div>';
+    plan(etapes) {
+      /* Repère de dessin : 0→100 dans les deux sens, marges comprises pour que
+         ni une épingle ni son étiquette ne soient rognées par le cadre. */
+      const MIN = 16, MAX = 84;
+      const connus = etapes.filter(e => e.p && U.hasCoords(e.p));
+
+      let xy;
+      if (connus.length < 2) {
+        /* Position inconnue — le plan s'affiche quand même, en escalier. Un
+           trajet schématique dit encore l'ordre des étapes, ce qu'un cadre
+           vide ne dit pas. Toute la raison d'être de ce composant est là :
+           il ne renonce jamais. */
+        xy = etapes.map((e, i) => ({
+          x: MIN + i * ((MAX - MIN) / Math.max(1, etapes.length - 1)),
+          y: MAX - i * ((MAX - MIN) / Math.max(1, etapes.length - 1))
+        }));
+      } else {
+        const lats = connus.map(e => +e.p.lat), lngs = connus.map(e => +e.p.lng);
+        const laMin = Math.min.apply(null, lats), laMax = Math.max.apply(null, lats);
+        const loMin = Math.min.apply(null, lngs), loMax = Math.max.apply(null, lngs);
+        /* Un degré de longitude est plus court qu'un degré de latitude, et
+           d'autant plus qu'on monte vers le pôle : sans ce facteur, un trajet
+           est-ouest paraîtrait deux fois plus long qu'il ne l'est. */
+        const k = Math.cos((laMin + laMax) / 2 * Math.PI / 180);
+        /* Deux points quasi confondus donneraient une division par zéro puis
+           un plan vide : on impose un écart minimal. */
+        const dl = Math.max((laMax - laMin), 1e-4);
+        const dg = Math.max((loMax - loMin) * k, 1e-4);
+        const ech = v => MIN + v * (MAX - MIN);
+        xy = etapes.map(e => {
+          if (!e.p || !U.hasCoords(e.p)) return null;
+          return {
+            x: ech(((+e.p.lng - loMin) * k) / dg),
+            /* La latitude croît vers le nord, l'axe des Y d'un écran vers le
+               bas : sans l'inversion, le plan serait à l'envers. */
+            y: ech(1 - (+e.p.lat - laMin) / dl)
+          };
+        });
+      }
+
+      /* Le coude : on part à l'horizontale jusqu'à mi-chemin, on descend, puis
+         on repart à l'horizontale. Deux angles, arrondis par le tracé. */
+      const coude = (a, b) => {
+        const mx = (a.x + b.x) / 2;
+        return 'M' + a.x + ',' + a.y + ' L' + mx + ',' + a.y +
+               ' L' + mx + ',' + b.y + ' L' + b.x + ',' + b.y;
+      };
+
+      let routes = '', pins = '', kms = '';
+      etapes.forEach((e, i) => {
+        const a = xy[i], b = xy[i + 1];
+        if (a && b && e.vers) {
+          const d = coude(a, b);
+          const on = e.vers.on;
+          routes += '<path class="lv-route' + (on ? ' on' : '') + '" d="' + d + '"/>' +
+            (on ? '<path class="lv-route-flux" d="' + d + '"/>' : '');
+          if (e.vers.txt) {
+            const m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+            kms += '<span class="lv-pkm' + (on ? ' on' : '') + '" style="left:' +
+              m.x.toFixed(1) + '%;top:' + m.y.toFixed(1) + '%">' +
+              U.esc(e.vers.txt) + '</span>';
+          }
+        }
+        if (!a) return;
+        /* L'étiquette passe à gauche dans la moitié droite du cadre : sinon
+           elle sort par le bord et se fait couper. */
+        const cls = 'lv-pp' + (e.ici ? ' ici' : '') + (e.fait ? ' fait' : '') +
+                    (a.x > 55 ? ' gauche' : '');
+        pins += '<span class="' + cls + '" style="left:' + a.x.toFixed(1) +
+          '%;top:' + a.y.toFixed(1) + '%">' +
+          '<i><em>' + (e.ic || '') + '</em></i>' +
+          '<b>' + U.esc(e.t || '') + '</b></span>';
+      });
+
+      return '<div class="lv-plan">' +
+        '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+          routes +
+        '</svg>' + kms + pins +
+      '</div>';
     },
 
     /**

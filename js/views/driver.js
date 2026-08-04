@@ -1094,30 +1094,30 @@
         const restoClient = LiveScreen.trajet(resto(), chez());
         const total = (t ? t.min : 0) + (versClient ? 0 : (restoClient ? restoClient.min : 0));
 
-        const ligne = versClient
-          ? LiveScreen.ligne([
-              { ic: '🏪', t: nomResto, s: 'Commande récupérée', fait: true,
-                vers: { on: false, txt: '' } },
-              { ic: '🛵', t: 'Vous', s: 'en route vers le client', ici: true,
+        const chemin = versClient
+          ? LiveScreen.plan([
+              { p: resto(), ic: '🏪', t: nomResto, fait: true, vers: { on: false, txt: '' } },
+              { p: moi(), ic: '🛵', t: 'Vous', ici: true,
                 vers: { on: true, txt: t ? t.texte : '' } },
-              { ic: '🏠', t: nomClient, s: LiveScreen.heureArrivee(total) }
+              { p: chez(), ic: '🏠', t: nomClient }
             ])
-          : LiveScreen.ligne([
-              { ic: '🛵', t: 'Vous', s: 'en route vers le restaurant', ici: true,
+          : LiveScreen.plan([
+              { p: moi(), ic: '🛵', t: 'Vous', ici: true,
                 vers: { on: true, txt: t ? t.texte : '' } },
-              { ic: '🏪', t: nomResto, s: 'récupérez la commande',
+              { p: resto(), ic: '🏪', t: nomResto,
                 vers: { on: false, txt: restoClient ? restoClient.texte : '' } },
-              { ic: '🏠', t: nomClient, s: LiveScreen.heureArrivee(total) }
+              { p: chez(), ic: '🏠', t: nomClient }
             ]);
 
         return LiveScreen.grab() +
           LiveScreen.eta(
             versClient ? 'Chez le client' : 'Au restaurant',
             t ? t.min + ' min' : (st.pos ? '—' : 'Position…'),
-            t ? t.texte : (st.error ? 'activez la localisation' : 'recherche du signal')
+            [t ? t.texte : (st.error ? 'activez la localisation' : 'recherche du signal'),
+             LiveScreen.heureArrivee(total)].filter(Boolean).join(' · ')
           ) +
+          chemin +
           LiveScreen.progress(ETAPES, versClient ? 2 : 1) +
-          ligne +
 
           /* Avant le retrait, l'interlocuteur est le restaurant ; après, c'est
              le client. Afficher les deux mettrait le livreur devant un choix
