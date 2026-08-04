@@ -10,17 +10,39 @@
     _nSheet: 0,
 
     /* ------------------------------------------------------------- toasts */
+    /**
+     * Un message de Talabi — « Course acceptée », « Commande envoyée »,
+     * « Vous êtes disponible ».
+     *
+     * Même habit que la confirmation de position (`place`, plus bas) :
+     * capsule crème, contour dégradé orange, pastille pleine à gauche. Ces
+     * messages sortaient en vert plat, avec un émoji système à la place de
+     * l'icône — deux choses qui n'existent nulle part ailleurs dans
+     * l'application. Or c'est la même voix qui parle : elle doit se
+     * reconnaître avant d'être lue.
+     */
     toast(msg, kind, sub) {
       const box = document.getElementById('toasts');
       if (!box) return;
+      const trait = kind === 'ok'   ? 'm5 12.6 4.6 4.6L19 7.4'
+                  : kind === 'err'  ? 'M12 6.4v7M12 17.2v.2'
+                  :                   'M12 11v6.6M12 6.6v.2';
       const t = document.createElement('div');
       t.className = 'toast ' + (kind || '');
+      t.setAttribute('role', kind === 'err' ? 'alert' : 'status');
       t.innerHTML =
-        '<span>' + (kind === 'ok' ? '✅' : kind === 'err' ? '⚠️' : 'ℹ️') + '</span>' +
-        '<div class="t-body">' + U.esc(msg) + (sub ? '<small>' + U.esc(sub) + '</small>' : '') + '</div>';
+        '<span class="t-ic" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" ' +
+            'stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="' + trait + '"/></svg></span>' +
+        '<div class="t-body"><b>' + U.esc(msg) + '</b>' +
+          (sub ? '<small>' + U.esc(sub) + '</small>' : '') + '</div>';
       box.appendChild(t);
       setTimeout(() => {
-        t.style.transition = '.25s'; t.style.opacity = '0'; t.style.transform = 'translateY(-12px)';
+        /* L'animation d'entrée est en `both` : tant qu'elle reste déclarée,
+           elle impose sa position finale et le fondu ne part pas. */
+        t.style.animation = 'none';
+        t.style.transition = '.25s'; t.style.opacity = '0'; t.style.transform = 'translateY(-12px) scale(.96)';
         setTimeout(() => t.remove(), 260);
       }, kind === 'err' ? 4200 : 2800);
     },
@@ -56,6 +78,7 @@
         '<span class="loc-pin" aria-hidden="true">' + UI.icon('pin', 22) + '</span>';
       box.appendChild(t);
       setTimeout(() => {
+        t.style.animation = 'none';
         t.style.transition = '.3s ease';
         t.style.opacity = '0';
         t.style.transform = 'translateY(-10px) scale(.96)';

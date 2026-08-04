@@ -734,18 +734,92 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 @keyframes slideUp{from{transform:translateY(40px);opacity:.6}to{transform:translateY(0);opacity:1}}
 @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
 
-/* ---------------------------------------------------------------- toasts */
+/* ---------------------------------------------------------------- toasts
+   Même habit que « Vous êtes à Tizi Ouzou » (plus bas dans ce fichier) :
+   capsule crème, contour dégradé orange, coche dans un rond plein.
+
+   Ces messages sortaient en vert plat — une couleur qui n'existe nulle part
+   ailleurs dans l'application. Or c'est Talabi qui parle : « Course
+   acceptée », « Commande envoyée », « Vous êtes disponible » doivent se
+   reconnaître à leur forme et à leur teinte avant même d'être lus, comme la
+   confirmation de position. Une seule maison, une seule voix.
+
+   Deux fonds superposés (padding-box / border-box) : c'est la seule façon
+   d'obtenir une bordure dégradée sur un coin arrondi. */
 .toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:400;display:flex;flex-direction:column;gap:8px;width:calc(100% - 28px);max-width:400px;pointer-events:none}
 .toast{
-  background:var(--ink);color:#fff;padding:13px 15px;border-radius:14px;
-  box-shadow:var(--sh-3);font-size:14px;font-weight:600;display:flex;gap:10px;align-items:flex-start;
-  animation:drop .24s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;gap:10px;
+  padding:7px;border-radius:999px;
+  border:2px solid transparent;
+  background:
+    linear-gradient(#FFFDFC,#FFF4EA) padding-box,
+    linear-gradient(100deg,#FFB067,#F97316 46%,#FFCE9E) border-box;
+  box-shadow:
+    0 18px 38px -18px rgba(249,115,22,.55),
+    0 3px 12px rgba(249,115,22,.15);
+  position:relative;overflow:hidden;pointer-events:none;
+  animation:locPop .44s cubic-bezier(.2,1.15,.35,1) both;
 }
-.toast.ok{background:#0B7A4B}
-.toast.err{background:#B42318}
-.toast .t-body{flex:1;min-width:0}
-.toast .t-body small{display:block;font-weight:500;opacity:.85;margin-top:2px}
-@keyframes drop{from{transform:translateY(-16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.toast > *{position:relative;z-index:1}
+
+/* La trame de points de la maquette, reprise à l'identique : elle s'efface
+   vers la gauche pour ne jamais passer sous le texte. */
+.toast::before{
+  content:'';position:absolute;inset:0 0 0 auto;width:44%;
+  background-image:radial-gradient(rgba(249,115,22,.42) 1.1px,transparent 1.3px);
+  background-size:7px 7px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 78%);
+          mask-image:linear-gradient(90deg,transparent,#000 78%);
+}
+
+.toast .t-ic{
+  width:42px;height:42px;border-radius:50%;flex:none;
+  display:grid;place-items:center;color:#fff;
+  background:radial-gradient(120% 120% at 32% 24%,#FFC182,#F97316 58%,#E8600A);
+  box-shadow:inset 0 1.5px 2px rgba(255,255,255,.65),0 4px 12px rgba(233,96,10,.45);
+}
+/* La coche se trace au lieu d'apparaître : le geste dit « c'est fait »
+   mieux que la forme finale. */
+.toast.ok .t-ic path{stroke-dasharray:26;stroke-dashoffset:26;animation:locCoche .4s .22s ease forwards}
+
+.toast .t-body{
+  flex:1;min-width:0;padding:11px 14px;border-radius:999px;
+  background:rgba(255,255,255,.72);
+  text-align:center;font-size:15px;font-weight:800;color:var(--ink);
+  overflow:hidden;
+}
+/* Ici le texte a le droit de passer à la ligne, contrairement à la capsule
+   de position : « Nous cherchons un livreur pour votre commande #18CE47 »
+   n'a aucune chance de tenir sur une ligne, et coupé il ne dit plus rien. */
+.toast .t-body b,
+.toast .t-body small{display:block;overflow-wrap:anywhere}
+.toast .t-body b{font-weight:800}
+.toast .t-body small{font-size:13px;font-weight:600;color:var(--muted);margin-top:1px}
+
+/* L'échec garde la forme, change de teinte : un « Échec de l'envoi » orange
+   passerait pour une réussite. */
+.toast.err{
+  background:
+    linear-gradient(#FFFCFB,#FDECEA) padding-box,
+    linear-gradient(100deg,#F5A79C,#D92D20 46%,#F7BDB5) border-box;
+  box-shadow:
+    0 18px 38px -18px rgba(217,45,32,.5),
+    0 3px 12px rgba(217,45,32,.15);
+}
+.toast.err::before{background-image:radial-gradient(rgba(217,45,32,.38) 1.1px,transparent 1.3px)}
+.toast.err .t-ic{
+  background:radial-gradient(120% 120% at 32% 24%,#F7A199,#D92D20 58%,#B42318);
+  box-shadow:inset 0 1.5px 2px rgba(255,255,255,.55),0 4px 12px rgba(180,35,24,.42);
+}
+
+/* Un écran très étroit ne tient pas la capsule ET une phrase entière. */
+@media(max-width:359px){
+  .toast .t-body{font-size:14px;padding:11px 10px}
+}
+@media(prefers-reduced-motion:reduce){
+  .toast{animation:none}
+  .toast.ok .t-ic path{animation:none;stroke-dashoffset:0}
+}
 
 /* ---------------------------------------------------------------- misc */
 .empty{text-align:center;padding:46px 20px;color:var(--muted)}
