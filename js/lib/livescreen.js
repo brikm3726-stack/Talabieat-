@@ -109,10 +109,9 @@
 
       const map = MapPicker.live(view.querySelector('#lvMap'), points(), {
         suit: true,
-        marges: () => ({
-          tl: [22, 74],
-          br: [22, (sheet.offsetHeight || 320) + 28]
-        }),
+        /* La hauteur OCCUPÉE, pas la hauteur totale : quand la feuille est
+           descendue, la place qu'elle libère revient à la carte. */
+        marges: () => ({ tl: [22, 74], br: [22, occupe()] }),
         /* Leaflet est en place : la pastille d'attente disparaît. */
         onPret() { if (etatCarte) etatCarte.remove(); },
         onEchec: panne
@@ -138,7 +137,17 @@
            de se téléporter d'un relevé à l'autre. */
         if (cfg.plan && fond) {
           const p = cfg.plan();
-          if (p) LiveScreen.planMaj(fond, p.etapes || [], p.opts);
+          if (p) {
+            /* La part réservée en bas est MESURÉE, pas fixée d'avance : c'est
+               ce qui fait que le trajet se déplie quand on descend la feuille.
+               Une valeur en dur laisserait les trois repères tassés en haut
+               d'un écran devenu libre. */
+            const h = w.innerHeight || 800;
+            const opts = Object.assign({}, p.opts || {}, {
+              bas: Math.max(6, Math.min(58, Math.round(occupe() / h * 100)))
+            });
+            LiveScreen.planMaj(fond, p.etapes || [], opts);
+          }
         }
 
         const etat = cfg.etat && cfg.etat();
@@ -148,6 +157,89 @@
 
         if (map) map.update(points());
       }
+
+      /* ================================================== LA FEUILLE SE TIRE
+         La poignée ressemblait à une poignée et n'en était pas une : on tirait
+         dessus, rien ne bougeait, et le plan restait à moitié caché sous la
+         feuille. Or c'est bien la carte qu'on veut voir en entier quand on
+         suit un livreur — la feuille, on l'a déjà lue.
+
+         Deux positions seulement, pas un curseur libre : en haut, tout se lit ;
+         en bas, il reste l'essentiel — la poignée et les minutes restantes.
+         Deux crans se retiennent, un réglage continu se re-règle sans cesse.
+
+         Ce qui compte autant que le geste : la carte ET le plan se recadrent
+         sur la place libérée. Descendre la feuille pour découvrir une carte
+         cadrée comme si elle était encore haute n'aurait rien découvert. */
+      let dy = 0;
+      const RESTE = 112;                      // ce qui reste visible en bas
+      const course = () => Math.max(0, sheet.offsetHeight - RESTE);
+      /* Hauteur réellement occupée par la feuille, une fois descendue : c'est
+         elle qui borne le cadrage, pas la hauteur totale. */
+      const occupe = () => Math.max(0, sheet.offsetHeight - dy) + 28;
+
+      function poser(v) {
+        dy = Math.max(0, Math.min(course(), v));
+        sheet.style.setProperty('--dy', dy + 'px');
+      }
+
+      /* Après un cran, on redonne à la carte et au plan la place gagnée. */
+      function recadrer() {
+        if (map) { map.nudge(); map.recenter(); }
+        repaint();
+      }
+
+      /* Les écouteurs vivent sur la FEUILLE, pas sur la poignée : celle-ci est
+         recréée à chaque rafraîchissement — toutes les six secondes — et un
+         écouteur posé dessus disparaîtrait avec elle au premier tour.
+
+         La zone de prise est la bande du haut. La saisir n'importe où
+         empêcherait de faire défiler le contenu de la feuille quand il dépasse,
+         et deux gestes dans la même zone finissent toujours par se marcher
+         dessus. */
+      const PRISE = 46;
+      let depart = null;
+
+      const prise = e => {
+        const y = e.touches ? e.touches[0].clientY : e.clientY;
+        if (y - sheet.getBoundingClientRect().top > PRISE) return;
+        depart = { y: y, dy: dy, bouge: false };
+        sheet.classList.add('glisse');
+      };
+      const glisse = e => {
+        if (!depart) return;
+        const y = e.touches ? e.touches[0].clientY : e.clientY;
+        if (Math.abs(y - depart.y) > 3) depart.bouge = true;
+        poser(depart.dy + (y - depart.y));
+        /* Sans quoi le geste fait aussi défiler la page derrière. */
+        if (e.cancelable) e.preventDefault();
+      };
+      const lache = () => {
+        if (!depart) return;
+        sheet.classList.remove('glisse');
+        /* Un appui sans glissement vaut bascule : c'est le geste le plus
+           naturel sur une poignée, et il évite d'avoir à viser un mouvement. */
+        if (!depart.bouge) poser(dy > 0 ? 0 : course());
+        else poser(dy > course() / 2 ? course() : 0);
+        depart = null;
+        setTimeout(recadrer, 320);            // une fois le cran atteint
+      };
+
+      sheet.addEventListener('touchstart', prise, { passive: true });
+      sheet.addEventListener('touchmove', glisse, { passive: false });
+      sheet.addEventListener('touchend', lache);
+      sheet.addEventListener('mousedown', e => {
+        prise(e);
+        if (!depart) return;
+        const m = ev => glisse(ev);
+        const u = () => {
+          lache();
+          document.removeEventListener('mousemove', m);
+          document.removeEventListener('mouseup', u);
+        };
+        document.addEventListener('mousemove', m);
+        document.addEventListener('mouseup', u);
+      });
 
       let timer = null;
       async function tour() {

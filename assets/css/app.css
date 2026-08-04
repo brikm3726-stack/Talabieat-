@@ -804,19 +804,50 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   /* Une feuille plus haute que l'écran doit pouvoir défiler seule — sinon,
      sur un petit téléphone, le bouton de validation passe sous le bord. */
   max-height:74vh;overflow-y:auto;overscroll-behavior:contain;
-  animation:lvMonte .34s cubic-bezier(.22,1,.36,1) both;
+
+  /* LA FEUILLE SE TIRE VERS LE BAS (voir livescreen.js).
+     `--dy` est le seul point que le geste modifie : passer par une variable
+     évite de reconstruire la règle et laisse le décalage se composer avec le
+     centrage des grands écrans.
+
+     L'animation d'entrée n'est plus en `both` : sa dernière image restait
+     appliquée pour toujours et écrasait ce décalage — la feuille refusait de
+     descendre sans qu'aucune erreur ne le dise. */
+  transform:translateY(var(--dy,0px));
+  transition:transform .32s cubic-bezier(.22,1,.36,1);
+  animation:lvMonte .34s cubic-bezier(.22,1,.36,1);
 }
+/* Pendant le geste, aucune transition : le doigt doit tenir la feuille, pas la
+   poursuivre avec un tiers de seconde de retard. */
+.lv-sheet.glisse{transition:none}
 @keyframes lvMonte{from{transform:translateY(64px);opacity:.7}to{transform:none;opacity:1}}
 @media(min-width:640px){
-  .lv-sheet{left:50%;right:auto;width:420px;transform:translateX(-50%)}
+  .lv-sheet{
+    left:50%;right:auto;width:420px;
+    transform:translateX(-50%) translateY(var(--dy,0px));
+  }
   @keyframes lvMonte{
     from{transform:translateX(-50%) translateY(64px);opacity:.7}
     to  {transform:translateX(-50%);opacity:1}
   }
 }
 
-.lv-grab{display:grid;place-items:center;margin:-6px 0 12px}
-.lv-grab span{width:44px;height:5px;border-radius:3px;background:var(--cream-line)}
+/* LA POIGNÉE — une vraie, maintenant.
+   Elle avait l'air d'une poignée et n'en était pas une : on tirait dessus, rien
+   ne bougeait. Sa zone de prise couvre toute la bande du haut de la feuille, et
+   pas seulement le trait de 44 px : un doigt vise mal, et rater une poignée
+   trois fois de suite fait conclure qu'elle ne sert à rien. */
+.lv-grab{
+  display:grid;place-items:center;
+  margin:-16px -18px 6px;padding:14px 0 10px;
+  cursor:grab;touch-action:none;
+}
+.lv-grab:active{cursor:grabbing}
+.lv-grab span{
+  width:46px;height:5px;border-radius:3px;background:var(--cream-line);
+  transition:background .2s ease,width .2s ease;
+}
+.lv-sheet.glisse .lv-grab span{background:var(--brand);width:58px}
 
 .lv-k{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#9A8B7E}
 .lv-eta{display:flex;align-items:flex-end;gap:9px;margin-top:2px}
