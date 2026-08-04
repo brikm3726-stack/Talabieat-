@@ -2111,10 +2111,188 @@ body.app-driver .page > .h1,
 body.app-driver .page > .h2,
 body.app-driver .page > .sub{color:#DCE8FF}
 
+/* ==========================================================================
+   TABLEAU DU LIVREUR — LE BLOC BLEU, d'après la maquette 26
+   --------------------------------------------------------------------------
+   C'étaient trois cartes empilées : qui je suis, si je suis disponible,
+   combien il me reste. Or ces trois choses n'en font qu'une — l'état du livreur
+   à cet instant — et on les lit ensemble ou pas du tout. Séparées, elles
+   obligeaient à parcourir un demi-écran pour une seule question, et
+   repoussaient les chiffres du jour sous la ligne de flottaison.
+   ========================================================================== */
+.drv-hero{
+  position:relative;overflow:hidden;
+  border-radius:28px;padding:18px 18px 16px;
+  background:linear-gradient(150deg,#2E6BFF 0%,#1148E0 46%,#0B34B4 100%);
+  color:#fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    0 2px 8px rgba(2,11,47,.35),
+    0 22px 46px -22px rgba(11,52,180,.9),
+    0 40px 80px -44px rgba(46,107,255,.8);
+}
+/* La lueur, sous le contenu : un aplat de bleu reste plat, celui-ci respire. */
+.drv-hero-lueur{
+  position:absolute;right:-18%;top:-42%;width:74%;height:150%;
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,255,255,.22),transparent 62%);
+}
+.drv-hero > *{position:relative;z-index:1}
+
+.drv-hero-haut{display:flex;align-items:center;gap:14px}
+.drv-hero .h1{font-size:22px;font-weight:850;letter-spacing:-.02em;color:#fff}
+.drv-hero .sub,.drv-hero .drv-meta{color:rgba(255,255,255,.82);font-size:13px;margin-top:3px}
+.drv-hero .drv-meta .dot{color:rgba(255,255,255,.45)}
+.drv-hero .pin-ic{color:#fff}
+/* L'avatar reçoit un anneau blanc translucide au lieu du dégradé de marque :
+   sur du bleu plein, un cerclage bleu ne se voit pas. */
+.drv-hero .drv-ava{background:rgba(255,255,255,.3)}
+.drv-hero .drv-ava .avatar{border-color:rgba(255,255,255,.9)}
+.drv-hero .drv-ava.online::after{border-color:#1148E0}
+
+.drv-hero-etat{display:flex;flex-direction:column;align-items:flex-end;gap:9px;flex:none}
+.drv-hero .drv-pill{
+  background:rgba(3,17,63,.42);border:1px solid rgba(255,255,255,.22);
+  color:#fff;font-size:12px;font-weight:750;padding:6px 11px;border-radius:999px;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+}
+/* L'interrupteur en blanc sur bleu : sa piste éteinte doit rester visible,
+   d'où le voile blanc plutôt qu'un gris qui disparaîtrait. */
+.drv-hero .switch .track{background:rgba(255,255,255,.32)}
+.drv-hero .switch input:checked + .track{background:#fff}
+.drv-hero .switch input:checked + .track .knob{background:#1148E0}
+
+.drv-hero-note{
+  margin-top:12px;padding:9px 12px;border-radius:14px;
+  background:rgba(3,17,63,.3);border:1px solid rgba(255,255,255,.16);
+  font-size:12.5px;font-weight:600;color:rgba(255,255,255,.92);
+}
+
+/* ---- le crédit, dans le même bloc ----
+   Ce n'est pas un sujet à part : c'est ce qui décide si le livreur peut
+   accepter la prochaine course. Son état se lit à la teinte du bandeau, non à
+   la couleur d'une bordure qu'on ne remarquait pas. */
+.drv-hero-credit{
+  margin-top:14px;padding:13px 14px;border-radius:20px;
+  background:rgba(2,12,50,.34);border:1px solid rgba(255,255,255,.16);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+}
+.drv-hero-credit.bas{background:rgba(120,72,4,.34);border-color:rgba(255,214,140,.4)}
+.drv-hero-credit.bloque{background:rgba(122,20,20,.4);border-color:rgba(255,160,160,.45)}
+.drv-hero-credit-haut{display:flex;align-items:center;gap:12px}
+.drv-hero-credit .ic{
+  width:44px;height:44px;flex:none;border-radius:14px;
+  background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28);
+}
+.drv-hero-credit .k{font-size:12px;font-weight:700;color:rgba(255,255,255,.8)}
+.drv-hero-credit .v{font-size:23px;font-weight:850;letter-spacing:-.02em;color:#fff;margin-top:1px}
+.drv-hero-credit-note{
+  margin-top:10px;font-size:12px;font-weight:600;line-height:1.45;
+  color:rgba(255,255,255,.82);
+}
+.drv-hero-credit-note b{color:#fff}
+.drv-hero-btn{
+  flex:none;display:inline-flex;align-items:center;gap:4px;
+  padding:9px 13px;border-radius:999px;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);
+  color:#fff;font-size:13px;font-weight:750;
+  transition:transform .16s cubic-bezier(.22,1,.36,1),background-color .16s ease;
+}
+.drv-hero-btn:hover{background:rgba(255,255,255,.28)}
+.drv-hero-btn:active{transform:scale(.95)}
+
+/* ---- les quatre vignettes de chiffres, deux par deux ----
+   Le pictogramme dans un carré bleu clair, le libellé en capitales, le nombre
+   en grand et bleu : c'est la hiérarchie de la maquette, et c'est celle qui
+   permet de lire les quatre d'un seul balayage. */
+body.app-driver .drv-stat,
+body.role-driver .drv-stat{
+  display:flex;align-items:center;gap:13px;padding:15px;
+}
+body.app-driver .drv-stat .ic,
+body.role-driver .drv-stat .ic{
+  width:52px;height:52px;flex:none;border-radius:17px;font-size:0;
+  background:linear-gradient(150deg,#EAF1FF,#D8E6FF);
+  color:var(--lv-actif);display:grid;place-items:center;
+  box-shadow:inset 0 1px 0 #fff,0 4px 10px -6px rgba(37,99,235,.6);
+}
+body.app-driver .drv-stat .k,
+body.role-driver .drv-stat .k{
+  font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:#5D6E90;line-height:1.25;
+}
+body.app-driver .drv-stat .v,
+body.role-driver .drv-stat .v{font-size:26px;font-weight:900;color:var(--lv-actif)}
+body.app-driver .drv-stat .go,
+body.role-driver .drv-stat .go{color:#9CB0D4;flex:none;display:grid;place-items:center}
+
+/* ==========================================================================
+   MON PORTEFEUILLE — d'après la maquette 27
+   ========================================================================== */
+/* Le solde dans une carte blanche posée DANS la carte : c'est le chiffre qu'on
+   vient chercher, il ne se confond pas avec le reste du panneau. */
+body.app-driver .drv-panel > #box > .card:first-child,
+body.role-driver .drv-panel > #box > .card:first-child{
+  border-radius:22px;padding:18px;
+  background:#fff;border:1px solid #EAF0FB;
+  box-shadow:0 2px 6px rgba(37,99,235,.08),0 14px 30px -18px rgba(37,99,235,.45);
+}
+/* Les onglets : pilules blanches, l'actif en bleu plein. Ils défilent d'un
+   seul tenant plutôt que de passer à la ligne — cinq filtres sur deux rangées
+   donnaient une grille, pas une barre de filtres. */
+body.app-driver .drv-panel .chips,
+body.role-driver .drv-panel .chips{
+  flex-wrap:nowrap !important;overflow-x:auto;scrollbar-width:none;
+  padding-bottom:2px;
+}
+body.app-driver .drv-panel .chips::-webkit-scrollbar,
+body.role-driver .drv-panel .chips::-webkit-scrollbar{display:none}
+body.app-driver .drv-panel .chip,
+body.role-driver .drv-panel .chip{
+  flex:none;border-radius:999px;padding:10px 16px;
+  background:#fff;border:1px solid #E4EBF7;color:#516184;font-weight:750;
+  box-shadow:0 2px 6px -3px rgba(37,99,235,.25);
+}
+body.app-driver .drv-panel .chip.on,
+body.role-driver .drv-panel .chip.on{
+  background:linear-gradient(135deg,#3B82F6,var(--lv-actif));
+  border-color:transparent;color:#fff;
+  box-shadow:0 8px 18px -9px rgba(37,99,235,.9);
+}
+
+/* ==========================================================================
+   COURSES DISPONIBLES — d'après la maquette 25
+   --------------------------------------------------------------------------
+   Une grande carte claire posée sur la nuit bleue, et dedans tout ce qui
+   concerne l'attente : ce qu'on cherche, pourquoi rien n'arrive, et le geste
+   qui peut y changer quelque chose.
+   ========================================================================== */
+body.app-driver .drv-chip,
+body.role-driver .drv-chip{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:13px 20px;border-radius:999px;
+  background:#fff;border:1px solid #E7EEFA;
+  font-size:16px;font-weight:800;color:#0C1526;
+  box-shadow:0 2px 6px rgba(37,99,235,.1),0 12px 26px -16px rgba(37,99,235,.5);
+}
+/* Le bandeau d'explication : bleu très pâle, sans bordure — un encadré de plus
+   dans une carte déjà encadrée ajoute un trait pour rien. */
+body.app-driver .drv-panel .banner-info,
+body.role-driver .drv-panel .banner-info{
+  background:#EEF4FF;border:none;border-radius:16px;color:#1E40AF;
+}
+body.app-driver .drv-note,
+body.role-driver .drv-note{color:#5D6E90;font-weight:600}
+body.app-driver .drv-note b,
+body.role-driver .drv-note b{color:var(--lv-actif)}
+
 /* ---- respect du réglage système ---- */
 @media(prefers-reduced-motion:reduce){
   body.app-driver::before,
   body.role-driver::before{animation:none}
+  .drv-hero-btn,
+  body.app-driver .drv-stat{transition:none}
 }
 
 /* en-tête : avatar cerclé, pastille verte quand le livreur est disponible */

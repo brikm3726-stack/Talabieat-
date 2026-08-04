@@ -23,13 +23,17 @@
   /* Vignette de statistique : pastille, intitulé, valeur, légende. */
   /* `lien` : la vignette devient cliquable. C'est par là qu'on atteint
      l'historique des courses depuis que « Passé » a quitté la barre du bas. */
+  /* Le pictogramme n'est plus un emoji mais un dessin au trait dans un carré
+     bleu clair, comme sur la maquette : les emojis changent d'allure d'un
+     téléphone à l'autre, et quatre vignettes doivent se ressembler. Le chevron
+     est là sur celles qui mènent quelque part, et seulement celles-là. */
   function drvStat(icone, label, valeur, legende, lien) {
     const dedans =
-      '<span class="ic">' + icone + '</span>' +
+      '<span class="ic">' + UI.icon(icone, 24) + '</span>' +
       '<div class="grow"><div class="k">' + U.esc(label) + '</div>' +
         '<div class="v">' + valeur + '</div>' +
         '<div class="s">' + U.esc(legende) + '</div></div>' +
-      (lien ? '<span class="go">›</span>' : '');
+      (lien ? '<span class="go">' + UI.icon('chevron', 17) + '</span>' : '');
     return lien
       ? '<a class="card drv-stat lien" href="#' + lien + '">' + dedans + '</a>'
       : '<div class="card drv-stat">' + dedans + '</div>';
@@ -334,31 +338,36 @@
 
       const statut = (d && d.status) || 'offline';
 
-      /* ---- zone du haut : tout ce qui précède la carte ---- */
+      /* ---- zone du haut : tout ce qui précède la carte ----------------------
+         UN SEUL BLOC BLEU, d'après la maquette 26.
+
+         C'était trois cartes empilées : qui je suis, si je suis disponible,
+         combien il me reste. Or ces trois choses n'en font qu'une — l'état du
+         livreur à cet instant — et on les lit ensemble ou pas du tout. Trois
+         cartes séparées obligeaient à parcourir un demi-écran pour répondre à
+         une seule question, et repoussaient les chiffres du jour sous la ligne
+         de flottaison.
+
+         Rien n'est perdu : mêmes textes, même interrupteur, même lien vers le
+         détail du crédit, mêmes avertissements. C'est le contenant qui change. */
       zoneHaut.innerHTML =
         validationBanner(d) +
 
-        /* --- en-tête : avatar, salutation, quartier et véhicule --- */
-        '<div class="drv-head">' +
-          '<span class="drv-ava' + (statut === 'available' ? ' online' : '') + '">' +
-            UI.avatar(Store.profile.full_name, Store.profile.avatar_url, 62) + '</span>' +
-          '<div class="grow">' +
-            '<div class="h1">Bonjour ' + U.esc((Store.profile.full_name || '').split(' ')[0]) + ' 👋</div>' +
-            '<div class="sub drv-meta">' + UI.pin(15) + ' ' +
-              U.esc((d && d.zone && d.zone.name) || 'Zone non définie') +
-              '<span class="dot">•</span>' + UI.icon(VEHICLE_ICON[(d && d.vehicle) || 'moto'], 15) + ' ' + U.esc(U.VEHICLES[(d && d.vehicle) || 'moto']) + '</div>' +
-          '</div>' +
-        '</div>' +
+        '<div class="drv-hero">' +
+          /* La lueur en haut à droite, sous le contenu : c'est elle qui donne
+             au bloc sa profondeur, là où un aplat de bleu resterait plat. */
+          '<span class="drv-hero-lueur" aria-hidden="true"></span>' +
 
-        /* --- disponibilité --- */
-        '<div class="card card-p drv-status ' + statut + '">' +
-          '<div class="row-between">' +
-            '<div class="row" style="gap:14px">' +
-              '<span class="drv-badge">' + UI.icon(statut === 'available' ? 'check' : 'lock', 22) + '</span>' +
-              '<div><div class="tiny">Mon statut</div>' +
-                '<div class="h2 drv-state">' + U.esc(STATUS_LABEL[statut]) + '</div></div>' +
+          '<div class="drv-hero-haut">' +
+            '<span class="drv-ava' + (statut === 'available' ? ' online' : '') + '">' +
+              UI.avatar(Store.profile.full_name, Store.profile.avatar_url, 62) + '</span>' +
+            '<div class="grow">' +
+              '<div class="h1">Bonjour ' + U.esc((Store.profile.full_name || '').split(' ')[0]) + ' 👋</div>' +
+              '<div class="sub drv-meta">' + UI.pin(15) + ' ' +
+                U.esc((d && d.zone && d.zone.name) || 'Zone non définie') +
+                '<span class="dot">•</span>' + UI.icon(VEHICLE_ICON[(d && d.vehicle) || 'moto'], 15) + ' ' + U.esc(U.VEHICLES[(d && d.vehicle) || 'moto']) + '</div>' +
             '</div>' +
-            '<div class="row" style="gap:12px">' +
+            '<div class="drv-hero-etat">' +
               '<span class="drv-pill">' + (statut === 'available' ? 'En ligne' : 'Hors ligne') + ' ●</span>' +
               '<label class="switch" title="Disponibilité">' +
                 '<input type="checkbox" id="availSw" ' + (statut === 'available' ? 'checked' : '') +
@@ -366,11 +375,12 @@
                 '<span class="track"><span class="knob"></span></span></label>' +
             '</div>' +
           '</div>' +
-          (!approved ? '<div class="tiny" style="margin-top:10px">Disponible après validation de votre compte.</div>' :
-            statut === 'busy' ? '<div class="tiny" style="margin-top:10px">Terminez votre livraison en cours pour redevenir disponible.</div>' : '') +
-        '</div>' +
 
-        carteCredit(d);
+          (!approved ? '<div class="drv-hero-note">Disponible après validation de votre compte.</div>' :
+            statut === 'busy' ? '<div class="drv-hero-note">Terminez votre livraison en cours pour redevenir disponible.</div>' : '') +
+
+          bandeauCredit(d) +
+        '</div>';
 
       /* La carte occupe le bloc du milieu : elle n'est jamais réécrite. On se
          contente de la montrer ou de la cacher — un compte pas encore validé
@@ -383,12 +393,12 @@
       /* ---- zone du bas : tout ce qui suit la carte ---- */
       zoneBas.innerHTML =
         '<div class="grid grid-stats drv-stats" style="margin-top:14px">' +
-          drvStat('📅', 'Courses aujourd’hui', todayDone.length, 'Aujourd’hui') +
-          drvStat('📦', 'Total livraisons', (d && d.total_deliveries) || 0,
+          drvStat('calendar', 'Courses aujourd’hui', todayDone.length, 'Aujourd’hui') +
+          drvStat('package', 'Total livraisons', (d && d.total_deliveries) || 0,
                   'Voir l’historique', '/d/history') +
-          drvStat('💰', 'Gains cumulés', U.money((d && d.total_earnings) || 0),
+          drvStat('wallet', 'Gains cumulés', U.money((d && d.total_earnings) || 0),
                   'Voir le détail', '/d/history') +
-          drvStat('⭐', 'Note', ((d && +d.rating) || 5).toFixed(1), 'Excellente note') +
+          drvStat('medal', 'Note', ((d && +d.rating) || 5).toFixed(1), 'Excellente note') +
         '</div>' +
 
         (active.length
@@ -462,30 +472,34 @@
      blocage est dans la base, pas ici — cet écran ne fait que l'annoncer
      avant qu'il ne survienne, pour que personne ne soit pris de court.
      ---------------------------------------------------------------------- */
-  function carteCredit(d) {
+  function bandeauCredit(d) {
     const solde = (d && d.credit_da) || 0;
     const alerte = (Store.settings && Store.settings.credit_alert_da) != null
       ? +Store.settings.credit_alert_da : 200;
     const bloque = solde <= 0;
     const bas = !bloque && solde <= alerte;
 
-    return '<div class="card card-p" style="margin-top:14px' +
-        (bloque ? ';border-color:var(--danger)' : bas ? ';border-color:var(--warn)' : '') + '">' +
-      '<div class="row-between">' +
-        '<div class="row" style="gap:12px">' +
-          '<span style="font-size:26px">' + (bloque ? '🚫' : bas ? '⚠️' : '💳') + '</span>' +
-          '<div><div class="tiny">Mon crédit</div>' +
-            '<div class="h2">' + U.money(solde) + '</div></div>' +
-        '</div>' +
-        '<a class="btn btn-soft btn-sm" href="#/d/credit">Détail</a>' +
+    /* Le crédit vit maintenant DANS le bloc bleu : ce n'est pas un sujet à
+       part, c'est ce qui décide si le livreur peut accepter la prochaine
+       course. L'état — bloqué, bas, normal — se lit à la teinte du bandeau
+       plutôt qu'à la couleur d'une bordure, qui se remarquait à peine. */
+    return '<div class="drv-hero-credit' +
+        (bloque ? ' bloque' : bas ? ' bas' : '') + '">' +
+      '<div class="drv-hero-credit-haut">' +
+        '<span class="ic">' + UI.icon(bloque ? 'ban' : bas ? 'warn' : 'wallet', 22) + '</span>' +
+        '<div class="grow"><div class="k">Mon crédit</div>' +
+          '<div class="v">' + U.money(solde) + '</div></div>' +
+        '<a class="drv-hero-btn" href="#/d/credit">Détail ' +
+          UI.icon('chevron', 15) + '</a>' +
       '</div>' +
-      (bloque
-        ? '<div class="tiny" style="margin-top:10px"><b>Vous ne pouvez plus accepter de course.</b> ' +
-          'Rechargez votre crédit auprès de la plateforme pour reprendre.</div>'
-        : bas
-          ? '<div class="tiny" style="margin-top:10px">Crédit bas : pensez à recharger avant d’être bloqué.</div>'
-          : '<div class="tiny" style="margin-top:10px">La commission de chaque course est prélevée ici ' +
-            'au moment où vous l’acceptez.</div>') +
+      '<div class="drv-hero-credit-note">' +
+        (bloque
+          ? '<b>Vous ne pouvez plus accepter de course.</b> ' +
+            'Rechargez votre crédit auprès de la plateforme pour reprendre.'
+          : bas
+            ? 'Crédit bas : pensez à recharger avant d’être bloqué.'
+            : 'La commission de chaque course est prélevée ici au moment où vous l’acceptez.') +
+      '</div>' +
     '</div>';
   }
 
