@@ -713,6 +713,14 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   margin:0 6px;border-radius:7px;padding:2px 7px;
 }
 
+/* Tant que ce message est là, c'est que Leaflet n'a pas pris la main. Un
+   rectangle vide ne dit ni qu'on attend ni que c'est cassé. */
+.lv-charge{
+  position:absolute;inset:0;display:grid;place-items:center;
+  align-content:center;gap:10px;
+  color:var(--muted);font-size:13px;font-weight:600;
+}
+
 /* Sans réseau ni tuiles, on le dit — et on rassure : les chiffres de la
    feuille, eux, continuent d'arriver. */
 .lv-map.ko{display:grid;place-items:center;padding:24px}

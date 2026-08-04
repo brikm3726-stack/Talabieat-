@@ -43,7 +43,14 @@
 
       view.innerHTML =
         '<div class="lv">' +
-          '<div class="lv-map" id="lvMap"></div>' +
+          /* Le message d'attente est DANS le conteneur de la carte : tant
+             qu'il est visible, c'est que Leaflet n'a pas encore pris la main.
+             Un rectangle vide, lui, ne dit ni qu'on attend ni que c'est
+             cassé — et laisse tout le monde sans réponse, moi compris. */
+          '<div class="lv-map" id="lvMap">' +
+            '<div class="lv-charge"><span class="spinner dark"></span>' +
+            'Chargement de la carte…</div>' +
+          '</div>' +
 
           '<div class="lv-top">' +
             '<button class="lv-glass" id="lvBack" title="Retour" aria-label="Retour">' +
@@ -76,22 +83,34 @@
          elle centre sur la zone entière et place le livreur sous la feuille,
          c'est-à-dire nulle part. La hauteur est relue à chaque cadrage,
          puisque la feuille grandit avec son contenu. */
+      const panne = raison => {
+        const el = view.querySelector('#lvMap');
+        if (!el) return;
+        el.classList.add('ko');
+        el.innerHTML = '<div class="lv-mapko"><span class="art">🗺️</span>' +
+          '<b>La carte ne s’affiche pas</b>' +
+          '<span>Le suivi continue : les informations ci-dessous restent à jour.</span>' +
+          (raison ? '<span class="tiny">' + U.esc(raison) + '</span>' : '') + '</div>';
+      };
+
       const map = MapPicker.live(view.querySelector('#lvMap'), points(), {
         suit: true,
         marges: () => ({
           tl: [22, 74],
           br: [22, (sheet.offsetHeight || 320) + 28]
         }),
-        onEchec(raison) {
-          const el = view.querySelector('#lvMap');
-          if (!el) return;
-          el.classList.add('ko');
-          el.innerHTML = '<div class="lv-mapko"><span class="art">🗺️</span>' +
-            '<b>La carte ne s’affiche pas</b>' +
-            '<span>Le suivi continue : les informations ci-dessous restent à jour.</span>' +
-            (raison ? '<span class="tiny">' + U.esc(raison) + '</span>' : '') + '</div>';
-        }
+        /* Leaflet est en place : le message d'attente s'efface, et lui seul —
+           les calques de la carte sont déjà dessous. */
+        onPret() {
+          const c = view.querySelector('#lvMap > .lv-charge');
+          if (c) c.remove();
+        },
+        onEchec: panne
       });
+
+      /* Retour null : le conteneur manquait. C'était jusqu'ici la seule panne
+         totalement muette — aucun message n'était même tenté. */
+      if (!map) panne('Le cadre de la carte est introuvable.');
 
       function points() { return (cfg.points && cfg.points()) || {}; }
 

@@ -416,6 +416,25 @@
          pire des pannes, parce qu'on la prend pour une application cassée. */
       const echec = raison => { if (opts && opts.onEchec) opts.onEchec(raison); };
 
+      /* Combien de tuiles sont arrivées, et combien ont échoué. Lu par la
+         sentinelle ci-dessous, qui n'a aucun autre moyen de savoir si la
+         carte est vraiment là. */
+      let rates = 0, recues = 0;
+
+      /* LA SENTINELLE
+         Une carte peut rester vide sans que rien n'échoue : moteur qui ne
+         répond jamais, tuiles muettes, écran refermé entre-temps. Aucun de ces
+         cas ne déclenchait quoi que ce soit — on restait devant un rectangle
+         beige, et personne, moi compris, ne pouvait dire pourquoi. Au bout de
+         sept secondes, la carte dit où elle en est. */
+      const sentinelle = setTimeout(() => {
+        if (mort) return;
+        if (!map) return echec('Le moteur de carte n’a pas répondu.');
+        if (!recues) return echec(rates
+          ? 'Les tuiles de la carte sont refusées (' + rates + ' essais).'
+          : 'Les tuiles de la carte n’arrivent pas.');
+      }, 7000);
+
       chargerLeaflet().then(ok => {
         if (mort) return;
         if (!ok)
@@ -430,13 +449,17 @@
             zoomControl: false, tap: false
           } : null));
 
+          /* La carte existe : le message d'attente posé par l'appelant n'a plus
+             lieu d'être, et Leaflet ne le retire pas lui-même — il ajoute ses
+             calques par-dessus. */
+          if (opts && opts.onPret) opts.onPret();
+
           const tuiles = L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT });
 
           /* Le moteur peut très bien se charger et les tuiles ne jamais
              arriver : filtrage, coupure, quota. On voyait alors un rectangle
              gris sans explication. Quelques échecs de suite sans une seule
              tuile reçue, et on le dit. */
-          let rates = 0, recues = 0;
           tuiles.on('tileload', () => { recues++; });
           tuiles.on('tileerror', () => {
             if (++rates >= 6 && !recues)
@@ -469,6 +492,7 @@
         },
         destroy() {
           mort = true;
+          clearTimeout(sentinelle);
           try { if (map) map.remove(); } catch (e) {}
           markers = {}; map = null;
           voies.encours = voies.flux = voies.apres = null;
