@@ -832,6 +832,12 @@ body.lv-open{overflow:hidden}
 body.lv-open .topbar,
 body.lv-open .bottomnav{display:none}
 
+/* Ceinture, en plus du `transform:none` de fadeUp : cet écran est le seul du
+   site à dépendre de la fenêtre entière, et il ne doit pas retomber en panne
+   le jour où quelqu'un remettra un transform sur les pages. Tant que le
+   plein écran est ouvert, sa page hôte n'en porte aucun. */
+body.lv-open #view > .view-in{animation:none;transform:none}
+
 @media(prefers-reduced-motion:reduce){
   .lv-sheet{animation:none}
   .lv-dot{animation:none}
@@ -1895,7 +1901,19 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
    assez pour être perçu, assez court pour ne jamais faire attendre. */
 #view{position:relative}
 .fade-in{animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+/* `transform:none` et non `translateY(0)` : ce n'est pas la même chose, et la
+   différence casse des écrans entiers.
+
+   L'animation est en `both` — sa dernière image reste donc appliquée pour
+   toujours, sur toutes les pages du site. Un élément qui porte un transform,
+   même l'identité, devient le repère de tous les `position:fixed` qu'il
+   contient. Le suivi plein écran se cadrait ainsi sur SA PAGE au lieu de la
+   fenêtre : une boîte de 0 pixel de haut, puisque tout son contenu est en
+   absolu. Écran vide, et carte sans dimensions qui ne charge aucune tuile.
+
+   `none` est l'identité elle aussi — l'animation se déroule pareil — mais il
+   ne crée ni repère ni couche de composition. */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
 /* .view-out n'existe plus : la page sortante est retiree immediatement.
    Hors du flux dans un conteneur qui defile, elle recouvrait la nouvelle. */

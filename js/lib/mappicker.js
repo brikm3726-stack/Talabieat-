@@ -240,9 +240,25 @@
       const marges = (opts && opts.marges) || null;
       const cadre = ecart => {
         const m = typeof marges === 'function' ? marges() : marges;
-        return Object.assign({ maxZoom: 16 }, m
-          ? { paddingTopLeft: m.tl, paddingBottomRight: m.br }
-          : { padding: [ecart, ecart] });
+        if (!m) return { maxZoom: 16, padding: [ecart, ecart] };
+
+        /* Des marges plus grandes que la carte ne laissent aucune place aux
+           repères : Leaflet calcule alors une zone de largeur négative et
+           part en zoom infini — la carte reste grise. Sur un écran court,
+           barre du haut plus feuille du bas dépassent vite la hauteur
+           disponible, donc on plafonne à trois quarts de chaque dimension et
+           on rabote la marge du bas, la seule qui varie. */
+        const t = map ? map.getSize() : null;
+        let tl = m.tl.slice(), br = m.br.slice();
+        if (t && t.y > 0) {
+          const max = t.y * .75;
+          if (tl[1] + br[1] > max) br[1] = Math.max(0, max - tl[1]);
+        }
+        if (t && t.x > 0) {
+          const max = t.x * .75;
+          if (tl[0] + br[0] > max) { tl[0] = max / 2; br[0] = max / 2; }
+        }
+        return { maxZoom: 16, paddingTopLeft: tl, paddingBottomRight: br };
       };
 
       let map = null, markers = {}, attendus = points, premier = true, mort = false;
