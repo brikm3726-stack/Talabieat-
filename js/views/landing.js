@@ -99,12 +99,16 @@
           'Rapide, frais, fiable.">' +
 
         /* ------------------------------------------------ RESTAURANTS */
-        '<div class="section-head">' +
-          '<div><div class="h2">Restaurants populaires</div>' +
+        /* La médaille dit « classement », l'étoile aurait dit « note » —
+           deux choses différentes, et la note vit déjà sur chaque carte. */
+        '<div class="section-head rc-head">' +
+          '<span class="rc-head-ic">' + UI.icon('medal', 22) + '</span>' +
+          '<div class="grow"><div class="h2">Restaurants populaires</div>' +
           '<div class="sub">Livraison à ' + U.esc(ouLabel) + '</div></div>' +
-          '<a class="link" href="#/restaurants">Tout voir →</a>' +
+          '<a class="rc-tout" href="#/restaurants">Tout voir ' +
+            UI.icon('arrow-right', 16) + '</a>' +
         '</div>' +
-        '<div id="popular">' + UI.skeletonCards(4) + '</div>' +
+        '<div id="popular">' + UI.skeletonCards(3) + '</div>' +
 
         /* -------------------------------------------- COMMENT ÇA MARCHE */
         /* Trois étapes, pas quatre. « Le restaurant prépare » décrivait ce que

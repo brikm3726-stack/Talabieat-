@@ -240,8 +240,11 @@
     },
 
     skeletonCards(n) {
-      let h = '<div class="grid grid-auto">';
-      for (let i = 0; i < (n || 4); i++) h += '<div class="skel" style="height:210px"></div>';
+      // même gabarit que les cartes qui vont les remplacer : un squelette
+      // d'une autre taille fait sauter la page au moment du remplacement
+      let h = '<div class="rc-list">';
+      for (let i = 0; i < (n || 3); i++)
+        h += '<div class="skel" style="height:250px;border-radius:24px"></div>';
       return h + '</div>';
     },
 
@@ -341,6 +344,12 @@
          uns sous les autres, la colonne était bancale. Ces tracés-ci suivent
          la même grille de 24 et la même épaisseur de trait que le reste de
          l'application, et prennent la couleur qu'on leur donne. */
+      'arrow-right': '<path d="M4.5 12h15"/><path d="m13.2 5.4 6.6 6.6-6.6 6.6"/>',
+      // médaille : le ruban en dessous, la rosette au-dessus. Une étoile
+      // seule aurait dit « note » ; ici on parle de classement.
+      medal:    '<circle cx="12" cy="9" r="6"/>' +
+                '<path d="m9.2 14.4-1.7 6.1 4.5-2.6 4.5 2.6-1.7-6.1"/>' +
+                '<path d="m12 6.2.95 1.93 2.13.31-1.54 1.5.36 2.12L12 11.06l-1.9 1-.36-2.12-1.54-1.5 2.13-.31Z" fill="currentColor" stroke="none"/>',
       'check-circle': '<circle cx="12" cy="12" r="9"/><path d="m8.2 12.2 2.6 2.6 5-5.2"/>',
       bag:      '<path d="M5.4 8h13.2l-1 11.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8Z"/>' +
                 '<path d="M8.8 8V6.4a3.2 3.2 0 0 1 6.4 0V8"/>',

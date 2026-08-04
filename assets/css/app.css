@@ -224,19 +224,196 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .tag-danger{background:var(--danger-soft);color:#B42318}
 .tag-muted{background:var(--bg);color:var(--muted)}
 
-/* ---------------------------------------------------------- restaurant card */
-.resto-card{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-1);transition:.2s;cursor:pointer;position:relative}
-.resto-card:hover{transform:translateY(-3px);box-shadow:var(--sh-3)}
+/* ==========================================================================
+   CARTE RESTAURANT
+   --------------------------------------------------------------------------
+   Bâtie sur ce qu'on reconnaît vraiment d'un établissement : son ENSEIGNE.
+   Le bandeau la montre en grand à gauche ; la photo du plat arrive de la
+   droite et se fond dans le crème. L'enseigne n'est donc JAMAIS posée sur
+   une image chargée — elle reste lisible quelle que soit la photo envoyée
+   par le restaurant, ce qu'aucun recadrage ne pouvait garantir.
+
+   En dessous, la barre de décision : nom, note, temps, prix plancher,
+   quartier, flèche. Tout ce qui sert à choisir tient sur deux lignes et
+   n'est jamais mêlé au décor.
+   ========================================================================== */
+/* Bandeau et méta de la FICHE d'un restaurant — l'écran qu'on ouvre en
+   touchant une carte. Il garde son gabarit : une fiche n'est pas une carte,
+   elle a la largeur de l'écran et n'a rien à mettre en avant. */
 .resto-cover{aspect-ratio:16/9;background:#F2EDE5 center/cover no-repeat;position:relative}
 .resto-cover .closed-ov{position:absolute;inset:0;background:rgba(10,12,18,.6);display:grid;place-items:center;color:#fff;font-weight:750;font-size:13px;letter-spacing:.02em}
-.resto-logo{
-  position:absolute;left:14px;bottom:-22px;width:52px;height:52px;border-radius:15px;
-  background:#fff center/cover no-repeat;border:3px solid #fff;box-shadow:var(--sh-2);
-  display:grid;place-items:center;font-size:22px;
-}
-.resto-body{padding:30px 14px 14px}
 .resto-meta{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;margin-top:6px;flex-wrap:wrap}
 .dot-sep::before{content:'•';margin-right:8px;opacity:.5}
+
+.rc-list{display:flex;flex-direction:column;gap:18px}
+
+.rcard{
+  position:relative;cursor:pointer;
+  background:#fff;border:1px solid var(--line);border-radius:24px;
+  box-shadow:0 10px 26px -18px rgba(17,24,39,.28),0 1px 3px rgba(17,24,39,.05);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+  /* la photo déborde du bandeau : sans ceci elle sortirait des coins */
+  overflow:hidden;
+}
+@media(hover:hover){
+  .rcard:hover{transform:translateY(-3px);
+    box-shadow:0 20px 40px -20px rgba(17,24,39,.35),0 2px 6px rgba(17,24,39,.06)}
+}
+.rcard:active{transform:scale(.99)}
+.rcard:focus-visible{outline:3px solid var(--ring);outline-offset:3px}
+
+/* Le premier de la liste porte le cadre orange. Dans une pile de cartes
+   identiques, rien ne dit où commencer. Une seule mise en avant — deux ne
+   mettraient plus rien en avant. */
+.rcard.feat{
+  border:2px solid var(--brand);
+  box-shadow:0 18px 40px -22px rgba(249,115,22,.55),0 0 0 5px rgba(249,115,22,.07);
+}
+
+/* ------------------------------------------------------------- le bandeau */
+.rc-haut{
+  position:relative;aspect-ratio:20/9;min-height:150px;overflow:hidden;
+  background:linear-gradient(105deg,#FFF8F2 0%,#FFF2E6 46%,#FFE9D8 100%);
+}
+.rc-photo{
+  position:absolute;inset:0 0 0 40%;
+  background:#F2EDE5 center/cover no-repeat;
+  /* Le fondu vers la gauche remplace une découpe nette : une frontière
+     franche entre photo et fond crème se voit d'autant plus que les deux
+     images n'ont ni la même lumière ni la même dominante. */
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 26%);
+          mask-image:linear-gradient(90deg,transparent,#000 26%);
+}
+/* Pas de photo : un emoji de catégorie à sa place, sans fondu — le fondu
+   n'a de sens que pour rattraper une vraie image. Il reste dans la moitié
+   droite pour ne pas venir se poser sur l'enseigne. */
+.rc-photo.rc-vide{display:grid;place-items:center;font-size:46px;opacity:.28;
+  -webkit-mask-image:none;mask-image:none;background:transparent}
+
+/* L'arc orange de la maquette : il sépare l'enseigne de la photo sans
+   trancher, et rappelle la couleur de la marque à hauteur d'œil. */
+.rc-haut::after{
+  content:'';position:absolute;top:-18%;bottom:-18%;left:38%;width:26%;
+  border-radius:50%;border:2.5px solid rgba(249,115,22,.55);
+  border-right-color:transparent;border-top-color:transparent;
+  transform:rotate(-14deg);pointer-events:none;
+}
+
+.rc-enseigne{
+  position:absolute;left:0;top:0;bottom:0;width:46%;
+  display:grid;place-items:center;padding:34px 12px 14px;
+}
+.rc-enseigne img{
+  max-width:100%;max-height:100%;object-fit:contain;
+  /* Beaucoup de logos arrivent en carré sur fond blanc ou noir : la tuile
+     arrondie les rattrape tous, au lieu de laisser un rectangle brut posé
+     sur le dégradé. */
+  border-radius:18px;background:#fff;padding:6px;
+  box-shadow:0 6px 18px -8px rgba(17,24,39,.3);
+}
+.rc-emoji{font-size:44px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.12))}
+
+/* ------------------------------------------------------- pastilles posées */
+.rc-note,.rc-etat{
+  position:absolute;top:12px;z-index:2;
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 12px;border-radius:999px;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(6px);
+  font-size:13px;font-weight:800;color:var(--ink);
+  box-shadow:0 3px 10px -3px rgba(17,24,39,.22);
+}
+.rc-note{left:12px}
+.rc-note .et{color:#F5A623;font-size:14px}
+.rc-etat{right:12px;color:#0F9D58}
+.rc-etat.ferme{color:#B4212B}
+
+/* Fermé : la photo perd sa couleur. Rien ne dit « pas maintenant » aussi
+   vite qu'une image éteinte — le mot seul se lit trop tard, après le choix. */
+.rcard.clos .rc-photo{filter:grayscale(.85) brightness(.96)}
+.rcard.clos .rc-enseigne img{opacity:.75}
+
+/* ------------------------------------------------------------- le pied */
+.rc-bas{
+  position:relative;z-index:2;margin-top:-16px;
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px 15px;background:#fff;border-radius:22px 22px 0 0;
+}
+.rc-txt{flex:1;min-width:0}
+.rc-nom{font-size:16.5px;font-weight:800;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.rc-meta{
+  display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:6px;
+  font-size:13px;color:var(--muted);font-weight:600;
+}
+.rc-meta .m{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.rc-meta .m b{color:var(--ink);font-weight:800}
+.rc-meta .m i{font-style:normal;opacity:.65}
+.rc-meta .et{color:#F5A623}
+.rc-meta .ico{opacity:.75}
+.rc-meta .sep{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.4;flex:none}
+
+.rc-lieu{display:flex;align-items:center;gap:5px;margin-top:6px;
+  font-size:12.5px;color:var(--muted);font-weight:600}
+.rc-lieu .ico{color:var(--brand)}
+.rc-plat{display:flex;align-items:center;gap:5px;margin-top:5px;
+  font-size:12.5px;color:var(--brand);font-weight:700}
+
+.rc-go{
+  flex:none;width:48px;height:48px;border-radius:50%;
+  display:grid;place-items:center;color:#fff;
+  background:radial-gradient(120% 120% at 32% 24%,#FFA654,#F97316 62%,#EA6A0A);
+  box-shadow:0 8px 18px -8px rgba(234,106,10,.8);
+  transition:transform .18s ease;
+}
+@media(hover:hover){.rcard:hover .rc-go{transform:translateX(3px)}}
+
+/* Écran étroit : l'enseigne prend un peu plus de place, la photo recule.
+   L'inverse — photo large, enseigne écrasée — donnait trois cartes qu'on ne
+   distinguait plus les unes des autres. */
+@media(max-width:400px){
+  .rc-haut{min-height:132px}
+  .rc-enseigne{width:50%;padding-top:38px}
+  .rc-photo{inset:0 0 0 46%}
+  .rc-nom{font-size:15.5px}
+  .rc-meta{font-size:12.5px;gap:6px}
+  .rc-go{width:44px;height:44px}
+}
+
+/* Grand écran : deux colonnes, pas trois. Au-delà, la carte redevient une
+   vignette et l'enseigne cesse d'être lisible. */
+@media(min-width:900px){
+  .rc-list{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+}
+
+/* --------------------------------------------------- en-tête de la section */
+.rc-head{align-items:center;gap:12px}
+.rc-head-ic{
+  width:40px;height:40px;border-radius:13px;flex:none;
+  display:grid;place-items:center;color:#fff;
+  background:radial-gradient(120% 120% at 32% 24%,#FFB067,#F97316 62%,#E8600A);
+  box-shadow:0 6px 14px -6px rgba(232,96,10,.75);
+}
+.rc-tout{
+  flex:none;display:inline-flex;align-items:center;gap:7px;
+  padding:9px 16px;border-radius:999px;
+  border:1.5px solid var(--brand);color:var(--brand);
+  font-size:13.5px;font-weight:800;background:#fff;
+  transition:background .16s ease,color .16s ease;
+}
+@media(hover:hover){.rc-tout:hover{background:var(--brand);color:#fff}}
+.rc-tout:active{transform:scale(.97)}
+
+@media(prefers-color-scheme:dark){
+  .rcard{background:var(--card)}
+  .rc-bas{background:var(--card)}
+  .rc-haut{background:linear-gradient(105deg,#241C15,#2B2018 60%,#33241A)}
+  .rc-enseigne img{background:#fff}
+  .rc-note,.rc-etat{background:rgba(28,28,32,.92);color:#F3F4F6}
+  .rc-etat{color:#4ADE80}
+  .rc-etat.ferme{color:#FF8A8A}
+  .rc-tout{background:transparent}
+}
 
 /* ---------------------------------------------------------- menu item */
 /* onglets du menu d'un restaurant : une catégorie à la fois, barre collante

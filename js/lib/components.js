@@ -6,48 +6,101 @@
 
   const Cmp = {
 
-    /* ------------------------------------------------------ carte restaurant */
-    restoCard(r) {
-      const emoji = (r.category_list && r.category_list[0] && r.category_list[0].icon) || '🍽️';
-      const cover = r.cover_url ? 'background-image:url(' + U.escUrl(r.cover_url) + ')' : '';
-      const logo = r.logo_url ? 'background-image:url(' + U.escUrl(r.logo_url) + ')' : '';
-      const open = r.open_now;
+    /* ====================================================================
+       CARTE RESTAURANT
+       --------------------------------------------------------------------
+       L'ancienne carte était une vignette de catalogue : photo en 16/9,
+       petit logo posé en bas à gauche, puis quatre lignes de texte. Trois
+       d'affilée se ressemblaient toutes — on ne reconnaissait un restaurant
+       qu'en lisant son nom.
 
-      return '<article class="resto-card" data-resto="' + U.esc(r.id) + '">' +
-        '<div class="resto-cover" style="' + cover + '">' +
-          (cover ? '' : '<div style="height:100%;display:grid;place-items:center;font-size:52px;opacity:.35">' + emoji + '</div>') +
-          (open ? '' : '<div class="closed-ov">FERMÉ ACTUELLEMENT</div>') +
-          '<div class="resto-logo" style="' + logo + '">' + (logo ? '' : emoji) + '</div>' +
+       Celle-ci est bâtie sur ce qu'on reconnaît réellement d'un
+       établissement : son ENSEIGNE. Le bandeau la montre en grand à gauche,
+       et la photo du plat arrive de la droite en se fondant dans le fond
+       crème — l'enseigne n'est jamais posée sur une image chargée, donc
+       elle reste lisible quelle que soit la photo envoyée.
+
+       En dessous, la barre de décision : nom, note, temps, prix plancher,
+       quartier, et la flèche qui dit qu'on peut entrer. Tout ce qui sert à
+       choisir est réuni sur deux lignes, jamais mêlé au décor.
+       ==================================================================== */
+    restoCard(r, i) {
+      const emoji = (r.category_list && r.category_list[0] && r.category_list[0].icon) || '🍽️';
+      const cover = r.cover_url ? U.escUrl(r.cover_url) : '';
+      const logo  = r.logo_url  ? U.escUrl(r.logo_url)  : '';
+      const open  = r.open_now;
+      const note  = (+r.rating || 0).toFixed(1);
+
+      /* Le premier de la liste porte le cadre orange : dans une pile de
+         cartes identiques, rien ne dit où commencer. Une seule mise en
+         avant — deux ne mettraient plus rien en avant. */
+      const cls = 'rcard' + (i === 0 ? ' feat' : '') + (open ? '' : ' clos');
+
+      return '<article class="' + cls + '" data-resto="' + U.esc(r.id) + '" ' +
+               'role="button" tabindex="0" aria-label="' + U.esc(r.name) + '">' +
+
+        '<div class="rc-haut">' +
+          (cover ? '<div class="rc-photo" style="background-image:url(' + cover + ')"></div>'
+                 : '<div class="rc-photo rc-vide">' + emoji + '</div>') +
+
+          '<div class="rc-enseigne">' +
+            (logo ? '<img src="' + logo + '" alt="" loading="lazy">'
+                  : '<span class="rc-emoji">' + emoji + '</span>') +
+          '</div>' +
+
+          '<span class="rc-note"><span class="et">★</span> ' + note + '</span>' +
+          '<span class="rc-etat' + (open ? '' : ' ferme') + '">' +
+            (open ? 'Ouvert' : 'Fermé') + '</span>' +
         '</div>' +
-        '<div class="resto-body">' +
-          '<div class="row-between" style="align-items:flex-start">' +
-            '<div class="grow"><div class="h3">' + U.esc(r.name) + '</div></div>' +
-            '<span class="tag ' + (open ? 'tag-ok' : 'tag-muted') + '">' + (open ? 'Ouvert' : 'Fermé') + '</span>' +
+
+        '<div class="rc-bas">' +
+          '<div class="rc-txt">' +
+            '<div class="rc-nom">' + U.esc(r.name) + '</div>' +
+            '<div class="rc-meta">' +
+              '<span class="m"><span class="et">★</span> <b>' + note + '</b>' +
+                '<i>(' + (r.rating_count || 0) + ')</i></span>' +
+              '<span class="sep"></span>' +
+              '<span class="m">' + UI.icon('clock', 15) + (r.prep_time_min || 25) + ' min</span>' +
+              '<span class="sep"></span>' +
+              /* le tarif dépend de la distance : on annonce le plancher, le
+                 montant exact apparaît une fois l'adresse choisie */
+              '<span class="m">' + UI.icon('scooter', 16) + 'dès ' +
+                U.money(U.deliveryFor(0, Store.settings).fee) + '</span>' +
+            '</div>' +
+            (r.zone && r.zone.name
+              ? '<div class="rc-lieu">' + UI.icon('pin', 15) + U.esc(r.zone.name) + '</div>' : '') +
+            (r.matched_dish
+              ? '<div class="rc-plat">' + UI.icon('utensils', 14) +
+                'propose « ' + U.esc(r.matched_dish) + ' »</div>' : '') +
           '</div>' +
-          '<div class="resto-meta">' +
-            '<span>⭐ <b>' + (+r.rating).toFixed(1) + '</b> <span style="opacity:.7">(' + (r.rating_count || 0) + ')</span></span>' +
-            '<span class="dot-sep">🕒 ' + (r.prep_time_min || 25) + ' min</span>' +
-            // le tarif dépend de la distance : on annonce le plancher, le montant
-            // exact apparaît une fois l'adresse choisie
-            '<span class="dot-sep">🛵 dès ' + U.money(U.deliveryFor(0, Store.settings).fee) + '</span>' +
-          '</div>' +
-          '<div class="tiny" style="margin-top:6px">' + UI.pin() + ' ' + U.esc(r.zone ? r.zone.name : '') + '</div>' +
-          (r.matched_dish
-            ? '<div class="tiny" style="margin-top:5px;color:var(--brand);font-weight:650">' +
-              '🍽️ propose « ' + U.esc(r.matched_dish) + ' »</div>' : '') +
-        '</div></article>';
+          '<span class="rc-go" aria-hidden="true">' + UI.icon('arrow-right', 20) + '</span>' +
+        '</div>' +
+      '</article>';
     },
 
-    /** Rend une grille de restaurants + branche la navigation */
+    /** Rend une liste de restaurants + branche la navigation */
     restoGrid(list, container) {
       if (!list.length) {
         container.innerHTML = UI.empty('🍽️', 'Aucun restaurant',
           'Aucun restaurant ne correspond à votre recherche dans ce quartier.');
         return;
       }
-      container.innerHTML = '<div class="grid grid-auto">' + list.map(Cmp.restoCard).join('') + '</div>';
-      container.querySelectorAll('[data-resto]').forEach(el =>
-        el.onclick = () => Router.go('/resto/' + el.dataset.resto));
+      /* Une pile, plus une grille. Une carte de restaurant se juge à sa
+         photo et à son enseigne : réduite à un tiers de largeur, il ne reste
+         ni l'une ni l'autre. C'est aussi ce que font toutes les applications
+         de livraison — on fait défiler, on ne balaye pas. */
+      container.innerHTML = '<div class="rc-list">' +
+        list.map((r, i) => Cmp.restoCard(r, i)).join('') + '</div>';
+
+      const ouvrir = el => Router.go('/resto/' + el.dataset.resto);
+      container.querySelectorAll('[data-resto]').forEach(el => {
+        el.onclick = () => ouvrir(el);
+        /* La carte n'est pas un lien : sans ceci elle serait inatteignable
+           au clavier, et invisible pour un lecteur d'écran. */
+        el.onkeydown = e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrir(el); }
+        };
+      });
     },
 
     /* ------------------------------------------------------------ plat */
