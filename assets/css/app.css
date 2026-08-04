@@ -1859,15 +1859,262 @@ body.app-driver{
   --brand-grad:linear-gradient(135deg,#3E8BFF 0%,#1E6BE6 100%);
   --line:#E2E9F5;
 
+  /* overflow:hidden conservé : il bornait les décors de cette page, et le
+     retirer changerait la façon dont ses marges se comportent. Ce n'est pas
+     le sujet ici. */
   position:relative;overflow:hidden;min-height:calc(100vh - 60px);
-  background:
-    radial-gradient(560px 320px at 98% 0%, rgba(62,139,255,.13), transparent 60%),
-    radial-gradient(460px 300px at 0% 100%, rgba(30,107,230,.09), transparent 58%),
-    #F5F9FF;
 }
 .driver-page .card{
   border-radius:22px;border:1px solid var(--line);
   box-shadow:0 1px 2px rgba(74,120,196,.06), 0 10px 28px -18px rgba(74,120,196,.4);
+}
+
+/* ==========================================================================
+   ESPACE LIVREUR — LE FOND BLEU PROFOND
+   --------------------------------------------------------------------------
+   Le livreur passe sa soirée dans cette application, souvent dehors, souvent
+   dans le noir. Un fond blanc lui brûle les yeux au feu rouge et ne dit rien
+   de la plateforme ; ce bleu de nuit fait l'inverse — il repose l'œil et se
+   reconnaît d'un coup d'œil parmi trois applications ouvertes.
+
+   TOUT EST EN CSS, RIEN N'EST TOUCHÉ D'AUTRE. Pas un texte, pas un bouton, pas
+   un composant, pas une ligne de logique : seuls les jetons de couleur et les
+   couches de fond changent. Les règles existantes suivent d'elles-mêmes,
+   puisqu'elles parlent en var(--ink), var(--muted), var(--line).
+
+   LA LISIBILITÉ D'ABORD. Le fond devient sombre, mais les cartes restent
+   claires — et à l'intérieur d'une carte, les jetons reprennent leurs valeurs
+   claires. Un même texte est donc pâle sur le fond, foncé sur une carte, sans
+   qu'aucune règle existante ait à le savoir. C'est ce double jeu qui permet de
+   basculer tout un espace sans relire chaque écran.
+   ========================================================================== */
+body.app-driver,
+body.role-driver{
+  /* La palette demandée, nommée pour être relue */
+  --lv-abysse:#020B2F;
+  --lv-nuit:#061A5F;
+  --lv-electrique:#0B4DFF;
+  --lv-vif:#3B82F6;
+  --lv-clair:#6EA8FF;
+  --lv-actif:#2563EB;
+
+  color-scheme:dark;      /* barres de défilement et champs système suivent */
+
+  /* LE FOND, EN SEPT COUCHES, de la plus haute à la plus basse :
+       1. le grain — une texture de film à 3 %, qui empêche les dégradés de
+          « bander » en escaliers sur les écrans bon marché ;
+       2. le vignettage — les bords s'assombrissent, l'œil va au centre ;
+       3. l'éclairage du haut — la lumière tombe de la barre supérieure,
+          comme sur un objet posé sous une lampe ;
+       4-5. deux halos diffus, l'un électrique à droite, l'autre plus clair à
+          gauche : ce sont eux qui donnent l'impression de volume ;
+       6. le dégradé radial du centre, cœur lumineux de l'écran ;
+       7. le dégradé de base, du bleu de nuit vers l'abysse.
+     Aucune couche n'est nette : c'est l'absence de bord franc qui fait la
+     profondeur. Un fond plat se remarque, celui-ci se ressent. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E"),
+    radial-gradient(130% 100% at 50% 45%, transparent 42%, rgba(1,6,24,.55) 100%),
+    radial-gradient(120% 48% at 50% -8%, rgba(110,168,255,.20), transparent 70%),
+    radial-gradient(70% 45% at 96% 14%, rgba(11,77,255,.32), transparent 66%),
+    radial-gradient(66% 44% at 4% 82%, rgba(59,130,246,.20), transparent 68%),
+    radial-gradient(95% 70% at 50% 38%, rgba(6,26,95,.95), transparent 72%),
+    linear-gradient(168deg,#061A5F 0%,#03113F 52%,#020B2F 100%);
+  /* Pas de background-attachment:fixed : iOS l'ignore ou le paie en saccades,
+     et sur téléphone ce n'est pas <body> qui défile mais #view — le fond ne
+     bouge donc pas de toute façon. */
+  background-color:#020B2F;
+}
+
+/* ---- L'AURORA ET LES PARTICULES ----
+   Une couche fixe, plus grande que l'écran, posée entre le fond et le contenu.
+   Elle porte deux voiles de lumière et une poignée de points, et elle dérive
+   très lentement — quarante secondes pour un aller-retour.
+
+   Elle n'est animée qu'en `transform` et `opacity` : ce sont les deux seules
+   propriétés que le compositeur du navigateur traite sans refaire la mise en
+   page, donc les deux seules qui tiennent soixante images par seconde sur les
+   téléphones d'entrée de gamme — ceux de la plupart des livreurs. Animer un
+   dégradé par sa position, comme on le voit souvent, ferait ramer l'écran. */
+body.app-driver::before,
+body.role-driver::before{
+  content:'';position:fixed;inset:-22%;z-index:0;pointer-events:none;
+  background:
+    /* les deux voiles */
+    radial-gradient(38% 26% at 30% 32%, rgba(11,77,255,.30), transparent 70%),
+    radial-gradient(34% 24% at 72% 62%, rgba(110,168,255,.18), transparent 72%),
+    /* les particules : dix points, jamais alignés, jamais réguliers */
+    radial-gradient(1.6px 1.6px at 18% 22%, rgba(255,255,255,.55), transparent),
+    radial-gradient(1.4px 1.4px at 63% 14%, rgba(174,208,255,.5), transparent),
+    radial-gradient(1.8px 1.8px at 82% 34%, rgba(255,255,255,.42), transparent),
+    radial-gradient(1.3px 1.3px at 34% 48%, rgba(174,208,255,.45), transparent),
+    radial-gradient(1.6px 1.6px at 71% 55%, rgba(255,255,255,.38), transparent),
+    radial-gradient(1.4px 1.4px at 12% 66%, rgba(174,208,255,.42), transparent),
+    radial-gradient(1.7px 1.7px at 47% 76%, rgba(255,255,255,.34), transparent),
+    radial-gradient(1.3px 1.3px at 88% 82%, rgba(174,208,255,.36), transparent),
+    radial-gradient(1.5px 1.5px at 26% 88%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1.4px 1.4px at 58% 94%, rgba(174,208,255,.3), transparent);
+  animation:lvAurora 40s ease-in-out infinite;
+  will-change:transform,opacity;
+}
+@keyframes lvAurora{
+  0%,100%{transform:translate3d(0,0,0) scale(1);opacity:.85}
+  33%{transform:translate3d(2.5%,-2%,0) scale(1.06);opacity:1}
+  66%{transform:translate3d(-2%,2.5%,0) scale(1.03);opacity:.9}
+}
+
+/* ---- LA PAGE devient transparente, et ses jetons passent en sombre ----
+   C'est ici que tout se joue. Redéfinir les jetons plutôt que réécrire les
+   règles : les titres, les libellés, les traits de séparation d'une centaine
+   de règles existantes basculent d'un coup, sans qu'aucune ne soit touchée. */
+body.app-driver .driver-page,
+body.role-driver .driver-page{
+  background:transparent;
+  --ink:#EDF3FF;
+  --ink-2:#C3D6FA;
+  --muted:#8FA6D4;          /* le gris bleuté premium des éléments inactifs */
+  --line:rgba(255,255,255,.13);
+  --bg:rgba(255,255,255,.06);
+  --card:rgba(255,255,255,.07);
+  --cream-line:rgba(255,255,255,.16);
+  color:var(--ink);
+}
+
+/* ---- LES CARTES FLOTTENT ----
+   Verre légèrement teinté, bordure blanche à 10 %, et deux ombres : une courte
+   qui pose la carte, une longue et bleue qui la décolle du fond. Une seule
+   ombre donne un autocollant ; deux donnent un objet.
+
+   Et à l'intérieur, les jetons redeviennent clairs : le contenu d'une carte
+   n'a pas à savoir que la page est sombre. */
+body.app-driver .driver-page .card,
+body.app-driver .driver-page .order-card,
+body.role-driver .driver-page .card,
+body.role-driver .driver-page .order-card{
+  --ink:#0C1526;
+  --ink-2:#394763;
+  --muted:#6A7C9E;
+  --line:#E6EDF9;
+  --bg:#F4F8FF;
+  --card:#fff;
+  color:#0C1526;
+  border:1px solid rgba(255,255,255,.62);
+  border-radius:24px;
+  /* Deux ombres et non une : la courte pose la carte, la longue et bleue la
+     décolle du fond. Une seule donne un autocollant, deux donnent un objet.
+     Le reflet intérieur sur l'arête haute fait « verre » plutôt que
+     « papier » — un pixel, à peine visible, et tout change. */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 2px 6px rgba(2,11,47,.24),
+    0 18px 40px -20px rgba(2,11,47,.72),
+    0 44px 90px -46px rgba(11,77,255,.6);
+}
+/* Le fond de verre s'arrête aux cartes ordinaires : la carte de statut porte sa
+   propre teinte — verte quand le livreur est disponible, bleue quand il livre —
+   et c'est une information, pas une décoration. On ne la recouvre pas. */
+body.app-driver .driver-page .card:not(.drv-status),
+body.app-driver .driver-page .order-card,
+body.role-driver .driver-page .card:not(.drv-status),
+body.role-driver .driver-page .order-card{
+  background:rgba(255,255,255,.965);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);
+          backdrop-filter:blur(22px) saturate(1.25);
+}
+
+/* ---- la barre du haut : verre sombre ---- */
+body.app-driver .topbar,
+body.role-driver .topbar{
+  background:rgba(4,15,56,.72);
+  -webkit-backdrop-filter:blur(20px) saturate(1.3);
+          backdrop-filter:blur(20px) saturate(1.3);
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+body.app-driver .topbar .icon-btn,
+body.role-driver .topbar .icon-btn{
+  background:rgba(255,255,255,.09);
+  border-color:rgba(255,255,255,.16);
+  color:#DCE8FF;
+}
+body.app-driver .topbar .icon-btn:hover,
+body.role-driver .topbar .icon-btn:hover{background:rgba(255,255,255,.16)}
+body.app-driver .topbar .brand,
+body.role-driver .topbar .brand{color:#fff}
+
+/* ---- LA BARRE DU BAS, d'après les maquettes 26 et 27 ----
+   Blanche et franche sur le fond de nuit : c'est la seule chose qu'on vise en
+   roulant, elle n'a pas à être discrète. La case active devient un carré
+   arrondi bleu clair — pas une pilule cerclée : sur les maquettes, c'est le
+   carré qui donne l'assise, et le cercle qui flottait. */
+body.app-driver .bottomnav,
+body.role-driver .bottomnav{
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:
+    0 2px 6px rgba(2,11,47,.3),
+    0 16px 34px -14px rgba(2,11,47,.6),
+    0 34px 60px -30px rgba(11,77,255,.5);
+}
+body.app-driver .bottomnav .ic,
+body.role-driver .bottomnav .ic{width:46px;height:34px}
+body.app-driver .bottomnav .cap,
+body.role-driver .bottomnav .cap{
+  border-radius:14px;border-color:transparent;background:transparent;
+}
+body.app-driver .bottomnav a.on .cap,
+body.role-driver .bottomnav a.on .cap{
+  background:rgba(37,99,235,.12);
+  border-color:transparent;
+  box-shadow:0 6px 16px -8px rgba(37,99,235,.75);
+}
+body.app-driver .bottomnav a,
+body.role-driver .bottomnav a{color:#8296B8}
+body.app-driver .bottomnav a.on,
+body.role-driver .bottomnav a.on{color:var(--lv-actif)}
+body.app-driver .bottomnav a.on::after,
+body.role-driver .bottomnav a.on::after{background:var(--lv-actif);width:22px}
+
+/* ---- LES BOUTONS ACTIFS : bleu électrique et lueur ----
+   La lueur n'est pas un ornement : sur un fond sombre, un bouton plein sans
+   halo paraît collé à l'écran. Elle lui donne l'épaisseur qui le rend
+   touchable du regard. */
+body.app-driver .driver-page .btn-primary,
+body.role-driver .driver-page .btn-primary{
+  background:linear-gradient(135deg,#3B82F6 0%,var(--lv-actif) 55%,#1D4ED8 100%);
+  border:none;color:#fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    0 8px 22px -10px rgba(37,99,235,.95),
+    0 2px 6px rgba(2,11,47,.3);
+}
+body.app-driver .driver-page .btn-primary:active,
+body.role-driver .driver-page .btn-primary:active{
+  transform:translateY(1px) scale(.99);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 4px 12px -6px rgba(37,99,235,.9);
+}
+/* Les boutons secondaires, sur le fond sombre : verre et non blanc plein. */
+body.app-driver .driver-page > .wrap > .btn-ghost,
+body.app-driver .driver-page > .wrap-sm > .btn-ghost,
+body.role-driver .driver-page > .wrap > .btn-ghost,
+body.role-driver .driver-page > .wrap-sm > .btn-ghost{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.18);
+  color:#DCE8FF;
+}
+
+/* ---- les pages sans .driver-page ----
+   Connexion et inscription portent .auth-page, qui a son propre fond clair et
+   ses propres décors : on ne le touche pas — un formulaire de connexion doit
+   rester lisible, et il l'est déjà. Seuls les titres posés directement sur le
+   fond de nuit, dans les pages ordinaires, ont besoin de s'éclaircir. */
+body.app-driver .page > .h1,
+body.app-driver .page > .h2,
+body.app-driver .page > .sub{color:#DCE8FF}
+
+/* ---- respect du réglage système ---- */
+@media(prefers-reduced-motion:reduce){
+  body.app-driver::before,
+  body.role-driver::before{animation:none}
 }
 
 /* en-tête : avatar cerclé, pastille verte quand le livreur est disponible */
