@@ -28,6 +28,41 @@
     ok(m, s)  { UI.toast(m, 'ok', s); },
     err(m, s) { UI.toast(m, 'err', s); },
 
+    /**
+     * « Vous êtes à Tizi Ouzou » — la confirmation de position.
+     *
+     * Elle passait par le toast ordinaire, celui qui sert aussi bien à « Plat
+     * ajouté » qu'à « Profil enregistré ». Or trouver sa ville n'est pas un
+     * message parmi d'autres : c'est le moment où l'application dit qu'elle
+     * sait où l'on est, et c'est de là que découlent les restaurants qu'on
+     * verra et le prix qu'on paiera. Elle a donc sa propre forme — une
+     * capsule qu'on reconnaît du premier coup d'œil.
+     *
+     * Trois zones, de gauche à droite : la coche dit que c'est fait, le
+     * centre dit où, le repère rappelle de quoi on parle.
+     */
+    place(nom) {
+      const box = document.getElementById('toasts');
+      if (!box || !nom) return;
+      const t = document.createElement('div');
+      t.className = 'loc-pop';
+      t.setAttribute('role', 'status');
+      t.innerHTML =
+        '<span class="loc-ok" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" ' +
+            'stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="m5 12.6 4.6 4.6L19 7.4"/></svg></span>' +
+        '<span class="loc-txt">Vous êtes à <b>' + U.esc(nom) + '</b></span>' +
+        '<span class="loc-pin" aria-hidden="true">' + UI.icon('pin', 22) + '</span>';
+      box.appendChild(t);
+      setTimeout(() => {
+        t.style.transition = '.3s ease';
+        t.style.opacity = '0';
+        t.style.transform = 'translateY(-10px) scale(.96)';
+        setTimeout(() => t.remove(), 320);
+      }, 3400);
+    },
+
     /* ------------------------------------------------------------ modales */
     /**
      * UI.sheet({ title, body, footer, onMount, wide })

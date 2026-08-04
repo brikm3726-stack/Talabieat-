@@ -580,6 +580,87 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 .avatar{width:42px;height:42px;border-radius:50%;background:var(--brand-grad) center/cover no-repeat;display:grid;place-items:center;color:#fff;font-weight:750;flex:none}
 
+/* ==========================================================================
+   « VOUS ÊTES À TIZI OUZOU » — la confirmation de position
+   --------------------------------------------------------------------------
+   Ce n'est pas un message parmi d'autres, donc ce n'est pas un toast. Trouver
+   la ville, c'est le moment où l'application dit qu'elle sait où l'on est :
+   de là découlent les restaurants qu'on verra et le prix qu'on paiera. Elle
+   a donc sa propre forme, reconnaissable avant même d'être lue.
+
+   Trois zones : la coche dit que c'est FAIT, le centre dit OÙ, le repère
+   rappelle DE QUOI on parle. Le contour est un dégradé — d'où les deux
+   fonds superposés, l'un arrêté au padding, l'autre à la bordure : c'est la
+   seule façon d'obtenir une bordure dégradée sur un coin arrondi.
+   ========================================================================== */
+.loc-pop{
+  display:flex;align-items:center;gap:10px;
+  padding:7px;border-radius:999px;
+  border:2px solid transparent;
+  background:
+    linear-gradient(#FFFDFC,#FFF4EA) padding-box,
+    linear-gradient(100deg,#FFB067,#F97316 46%,#FFCE9E) border-box;
+  box-shadow:
+    0 18px 38px -18px rgba(249,115,22,.55),
+    0 3px 12px rgba(249,115,22,.15);
+  position:relative;overflow:hidden;pointer-events:none;
+  animation:locPop .44s cubic-bezier(.2,1.15,.35,1) both;
+}
+.loc-pop > *{position:relative;z-index:1}
+
+/* La trame de points de la maquette : elle ne décore pas au hasard, elle
+   attire l'œil vers le repère, à droite. Elle s'efface vers la gauche pour
+   ne jamais passer sous le texte. */
+.loc-pop::before{
+  content:'';position:absolute;inset:0 0 0 auto;width:44%;
+  background-image:radial-gradient(rgba(249,115,22,.42) 1.1px,transparent 1.3px);
+  background-size:7px 7px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 78%);
+          mask-image:linear-gradient(90deg,transparent,#000 78%);
+}
+
+.loc-ok{
+  width:42px;height:42px;border-radius:50%;flex:none;
+  display:grid;place-items:center;color:#fff;
+  background:radial-gradient(120% 120% at 32% 24%,#FFC182,#F97316 58%,#E8600A);
+  box-shadow:inset 0 1.5px 2px rgba(255,255,255,.65),0 4px 12px rgba(233,96,10,.45);
+}
+/* La coche se trace au lieu d'apparaître : le geste dit « c'est validé »
+   mieux que la forme finale. */
+.loc-ok path{stroke-dasharray:26;stroke-dashoffset:26;animation:locCoche .4s .22s ease forwards}
+
+.loc-txt{
+  flex:1;min-width:0;padding:11px 14px;border-radius:999px;
+  background:rgba(255,255,255,.72);
+  text-align:center;font-size:15px;font-weight:800;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.loc-txt b{color:#F97316;font-weight:850}
+
+.loc-pin{
+  width:42px;height:42px;border-radius:50%;flex:none;
+  display:grid;place-items:center;color:#F97316;background:#fff;
+  box-shadow:0 2px 9px rgba(249,115,22,.3);
+}
+
+@keyframes locPop{
+  from{opacity:0;transform:translateY(-14px) scale(.94)}
+  to  {opacity:1;transform:none}
+}
+@keyframes locCoche{to{stroke-dashoffset:0}}
+
+/* Un écran étroit ne peut pas tenir les deux cercles ET la phrase entière :
+   le repère de droite s'efface, la trame de points reste. */
+@media(max-width:359px){
+  .loc-pin{display:none}
+  .loc-txt{font-size:14px;padding:11px 10px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .loc-pop{animation:none}
+  .loc-ok path{animation:none;stroke-dashoffset:0}
+}
+
 .tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:14px;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tabs button{flex:1;min-width:max-content;padding:9px 14px;border:none;background:transparent;border-radius:11px;font-weight:650;font-size:13.5px;color:var(--muted);cursor:pointer;transition:.16s;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:7px}

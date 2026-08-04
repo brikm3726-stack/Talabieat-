@@ -186,7 +186,7 @@
         const avant = this.innerHTML;
         this.innerHTML = '<span class="spinner dark"></span> Localisation…';
         const nom = await Store.detectWilaya(true);
-        if (nom) UI.ok('Vous êtes à ' + nom);
+        if (nom) UI.place(nom);
         else {
           this.innerHTML = avant;
           UI.err('Position introuvable',
