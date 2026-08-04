@@ -448,9 +448,9 @@
            magasin et non un restaurant, et chaque téléphone dessine les emojis
            à sa façon — le repère changeait d'allure d'un appareil à l'autre. */
         const IC = {
-          resto: UI.icon('utensils', 15),
-          moi: UI.icon('scooter', 16),
-          chez: UI.icon('home', 15)
+          resto: UI.icon('dome', 20),
+          moi: UI.icon('scooter', 20),
+          chez: UI.icon('home', 20)
         };
 
         return {

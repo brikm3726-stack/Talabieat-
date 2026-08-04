@@ -1066,9 +1066,9 @@
         /* Le jeu de pictogrammes de l'application, pas des emojis : identiques
            sur tous les téléphones, et 🏪 désigne un magasin, pas un restaurant. */
         const IC = {
-          resto: UI.icon('utensils', 15),
-          moi: UI.icon('scooter', 16),
-          chez: UI.icon('home', 15)
+          resto: UI.icon('dome', 20),
+          moi: UI.icon('scooter', 20),
+          chez: UI.icon('home', 20)
         };
 
         return {

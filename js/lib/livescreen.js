@@ -357,41 +357,37 @@
       const xy = LiveScreen.planGeo(etapes, opts);
       const coude = LiveScreen.planCoude;
 
-      let routes = '', pins = '', kms = '';
+      let routes = '', pins = '';
       etapes.forEach((e, i) => {
         const a = xy[i], b = xy[i + 1];
         if (a && b && e.vers) {
           const d = coude(a, b);
-          const on = e.vers.on;
-          routes += '<path class="lv-route' + (on ? ' on' : '') + '" d="' + d + '"/>' +
-            (on ? '<path class="lv-route-flux" d="' + d + '"/>' : '');
-          if (e.vers.txt) {
-            const m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-            kms += '<span class="lv-pkm' + (on ? ' on' : '') + '" style="left:' +
-              m.x.toFixed(1) + '%;top:' + m.y.toFixed(1) + '%">' +
-              U.esc(e.vers.txt) + '</span>';
-          }
+          /* Le halo passe AVANT le ruban : en SVG le dernier tracé recouvre les
+             précédents, et un halo par-dessus troublerait la couleur pleine. */
+          if (e.vers.on) routes += '<path class="lv-halo" d="' + d + '"/>';
+          routes += '<path class="lv-route' + (e.vers.on ? ' on' : '') + '" d="' + d + '"/>';
         }
         if (!a) return;
-        /* L'étiquette passe à gauche dans la moitié droite du cadre : sinon
-           elle sort par le bord et se fait couper. */
-        const cls = 'lv-pp' + (e.ici ? ' ici' : '') + (e.fait ? ' fait' : '') +
-                    (a.x > 55 ? ' gauche' : '');
-        pins += '<span class="' + cls + '" style="left:' + a.x.toFixed(1) +
-          '%;top:' + a.y.toFixed(1) + '%">' +
-          '<i><em>' + (e.ic || '') + '</em></i>' +
-          /* La seconde ligne dit ce qui s'est passé à cette étape — « commande
-             récupérée ». Sans elle, le client voit bien que le restaurant a
-             changé d'allure, mais rien ne lui dit pourquoi. */
-          '<b>' + U.esc(e.t || '') +
-            (e.s ? '<span>' + U.esc(e.s) + '</span>' : '') + '</b></span>';
+        /* Ni nom ni distance sur les repères : la feuille du bas les dit déjà,
+           et deux fois la même chose sur un si petit écran fait du bruit sans
+           rien apprendre. Le plan ne répond qu'à « où », la feuille à
+           « combien ». */
+        pins += '<span class="lv-pp' + (e.ici ? ' ici' : '') +
+          (e.fait ? ' fait' : '') + '" style="left:' + a.x.toFixed(1) +
+          '%;top:' + a.y.toFixed(1) + '%" title="' + U.esc(e.t || '') + '">' +
+          (e.ici ? '<u></u><u></u>' : '') +
+          '<i><em>' + (e.ic || '') + '</em></i></span>';
       });
 
       return '<div class="lv-plan' + (opts.plein ? ' plein' : '') +
         '" data-sig="' + U.esc(LiveScreen.planSig(etapes)) + '">' +
+        /* Un parc et un plan d'eau : deux taches de couleur qui suffisent à
+           faire lire « une ville » plutôt qu'« un quadrillage ». Elles ne
+           représentent rien de réel et ne le prétendent pas. */
+        '<span class="lv-zone verte"></span><span class="lv-zone bleue"></span>' +
         '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
           routes +
-        '</svg>' + kms + pins +
+        '</svg>' + pins +
       '</div>';
     },
 
@@ -420,32 +416,23 @@
       const xy = LiveScreen.planGeo(etapes, opts);
       const pins = racine.querySelectorAll('.lv-pp');
       const traces = racine.querySelectorAll('path');
-      const kms = racine.querySelectorAll('.lv-pkm');
-      let ip = 0, it = 0, ik = 0;
+      let ip = 0, it = 0;
 
       etapes.forEach((e, i) => {
         const a = xy[i], b = xy[i + 1];
         if (a && b && e.vers) {
           const d = LiveScreen.planCoude(a, b);
+          /* Même ordre qu'au dessin — halo puis ruban — sinon on écrirait le
+             tracé de l'un dans l'autre. */
+          if (e.vers.on) { if (traces[it]) traces[it].setAttribute('d', d); it++; }
           if (traces[it]) traces[it].setAttribute('d', d);
           it++;
-          if (e.vers.on) { if (traces[it]) traces[it].setAttribute('d', d); it++; }
-          if (e.vers.txt && kms[ik]) {
-            const el = kms[ik];
-            el.textContent = e.vers.txt;
-            el.style.left = ((a.x + b.x) / 2).toFixed(1) + '%';
-            el.style.top = ((a.y + b.y) / 2).toFixed(1) + '%';
-          }
-          if (e.vers.txt) ik++;
         }
         if (!a) return;
         const el = pins[ip++];
         if (!el) return;
         el.style.left = a.x.toFixed(1) + '%';
         el.style.top = a.y.toFixed(1) + '%';
-        /* L'étiquette change de côté en cours de route si le repère traverse le
-           milieu du cadre — sinon elle finit par sortir par le bord. */
-        el.classList.toggle('gauche', a.x > 55);
       });
     },
 

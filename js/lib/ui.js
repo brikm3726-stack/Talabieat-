@@ -466,7 +466,12 @@
       navigation: '<path d="M20.6 4.4 4.9 10.2a.8.8 0 0 0-.1 1.5l6.4 2.6a.8.8 0 0 1 .4.4l2.6 6.4a.8.8 0 0 0 1.5-.1Z"/>',
       ban:      '<circle cx="12" cy="12" r="9"/><path d="m5.9 5.9 12.2 12.2"/>',
       sparkle:  '<path d="M12 2.6 13.9 8 19.4 10 13.9 12 12 17.4 10.1 12 4.6 10 10.1 8Z"/>' +
-                '<path d="M18.6 16.4 19.4 18.6 21.6 19.4 19.4 20.2 18.6 22.4 17.8 20.2 15.6 19.4 17.8 18.6Z"/>'
+                '<path d="M18.6 16.4 19.4 18.6 21.6 19.4 19.4 20.2 18.6 22.4 17.8 20.2 15.6 19.4 17.8 18.6Z"/>',
+      /* La cloche de service : c'est le signe du restaurant sur un plan, là où
+         des couverts disent plutôt « manger » et une boutique « acheter ». */
+      dome:     '<path d="M3.8 15.6a8.2 8.2 0 0 1 16.4 0"/>' +
+                '<path d="M2.4 15.6h19.2"/>' +
+                '<path d="M12 7.4V6"/><circle cx="12" cy="4.8" r="1.2"/>'
     },
 
     icon(name, size) {
