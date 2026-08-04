@@ -395,6 +395,42 @@
         if (!suivable(o)) Router.go('/order/' + params.id, true);
       },
 
+      /* LE CHEMIN, EN FOND D'ÉCRAN — le livreur, le restaurant, chez vous.
+         Il occupe la place que la carte laissait vide. Avant le retrait, le
+         tronçon en cours mène au restaurant et celui d'après revient vers le
+         client : c'est ce qui explique d'un regard pourquoi le livreur
+         s'éloigne parfois. Après, il n'en reste qu'un, droit sur le client.
+
+         `bas` réserve le tiers inférieur : la feuille le recouvre, et un
+         livreur dessiné dessous n'existe pas. */
+      plan: () => {
+        const nomResto = (o.restaurant && o.restaurant.name) || 'Restaurant';
+        const resto = o.restaurant && U.hasCoords(o.restaurant)
+          ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null;
+        const cible = U.hasCoords(client) ? client : null;
+        const reste = LiveScreen.trajet(pos, cible);
+        const versR = LiveScreen.trajet(pos, resto);
+        const rc = LiveScreen.trajet(resto, cible);
+        const opts = { plein: true, bas: 34 };
+
+        return o.status === 'delivering'
+          ? LiveScreen.plan([
+              /* Le tronçon déjà parcouru reste sombre : l'orange désigne
+                 toujours ce qui se fait maintenant, jamais ce qui est fini. */
+              { p: resto, ic: '🏪', t: nomResto, fait: true, vers: { on: false, txt: '' } },
+              { p: pos, ic: '🛵', t: 'Votre livreur', ici: true,
+                vers: { on: true, txt: reste ? reste.texte : '' } },
+              { p: cible, ic: '🏠', t: 'Chez vous' }
+            ], opts)
+          : LiveScreen.plan([
+              { p: pos, ic: '🛵', t: 'Votre livreur', ici: true,
+                vers: { on: true, txt: versR ? versR.texte : '' } },
+              { p: resto, ic: '🏪', t: nomResto,
+                vers: { on: false, txt: rc ? rc.texte : '' } },
+              { p: cible, ic: '🏠', t: 'Chez vous' }
+            ], opts);
+      },
+
       /* Trois raisons pour qu'une carte reste vide, et chacune se répare
          ailleurs que sur cet écran. Les nommer évite au client de conclure
          que l'application est cassée — et de nous appeler pour ça. */
@@ -436,35 +472,9 @@
           titre = 'Votre livreur';
         }
 
-        /* LE CHEMIN EN 2D — le livreur, le restaurant, chez vous.
-           Avant le retrait, le tronçon en cours mène au restaurant et celui
-           d'après revient vers le client : c'est ce qui explique d'un regard
-           pourquoi le livreur s'éloigne parfois de chez lui. Après le retrait,
-           il n'en reste qu'un, et il vient droit sur le client. */
-        const nomResto = (o.restaurant && o.restaurant.name) || 'Restaurant';
         const totalMin = o.status === 'delivering'
           ? (versClient ? versClient.min : 0)
           : ((versResto ? versResto.min : 0) + (restoClient ? restoClient.min : 0));
-
-        const resto = o.restaurant && U.hasCoords(o.restaurant)
-          ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null;
-
-        const chemin = o.status === 'delivering'
-          ? LiveScreen.plan([
-              /* Le tronçon déjà parcouru reste sombre : l'orange désigne
-                 toujours ce qui se fait maintenant, jamais ce qui est fini. */
-              { p: resto, ic: '🏪', t: nomResto, fait: true, vers: { on: false, txt: '' } },
-              { p: pos, ic: '🛵', t: 'Votre livreur', ici: true,
-                vers: { on: true, txt: versClient ? versClient.texte : '' } },
-              { p: client, ic: '🏠', t: 'Chez vous' }
-            ])
-          : LiveScreen.plan([
-              { p: pos, ic: '🛵', t: 'Votre livreur', ici: true,
-                vers: { on: true, txt: versResto ? versResto.texte : '' } },
-              { p: resto, ic: '🏪', t: nomResto,
-                vers: { on: false, txt: restoClient ? restoClient.texte : '' } },
-              { p: client, ic: '🏠', t: 'Chez vous' }
-            ]);
 
         return LiveScreen.grab() +
           /* L'heure d'arrivée rejoint la ligne du haut : « 47 min » se périme
@@ -473,7 +483,6 @@
              morceau vide laisse un séparateur orphelin en tête de ligne. */
           LiveScreen.eta(titre, valeur,
             [apres, LiveScreen.heureArrivee(totalMin)].filter(Boolean).join(' · ')) +
-          chemin +
           LiveScreen.progress(ETAPES, idx) +
           LiveScreen.person({
             name: (o.driver && o.driver.full_name) || 'Votre livreur',

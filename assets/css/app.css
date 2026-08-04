@@ -695,7 +695,35 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
    couper, sinon l'écran se remplit de bandeaux et la carte n'a plus de place.
    ========================================================================== */
 .lv{position:fixed;inset:0;z-index:80;background:#EFE7DC;overflow:hidden}
+
+/* Le plan au fond, la carte par-dessus. Cette zone restait vide pendant que la
+   carte cherchait ses tuiles : la plus grande partie de l'écran ne disait rien,
+   au moment précis où l'on regarde l'écran pour savoir quelque chose. */
+.lv-fond{position:absolute;inset:0}
 .lv-map{position:absolute;inset:0}
+
+/* Fond transparent : quand les tuiles ne viennent pas, Leaflet posait un gris
+   opaque qui masquait le plan. Le supplément ne doit pas recouvrir l'essentiel. */
+.lv .leaflet-container{background:transparent}
+
+/* L'état de la carte, en pastille discrète sous la barre du haut : le plan
+   répond déjà à la question, la carte n'est plus qu'un supplément. La raison
+   de la panne reste écrite — c'est elle qui permet de réparer. */
+.lv-etatcarte{
+  position:absolute;right:14px;z-index:2;
+  top:calc(66px + env(safe-area-inset-top));
+  display:flex;align-items:center;gap:7px;
+  padding:6px 11px;border-radius:999px;
+  background:rgba(255,255,255,.9);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  font-size:11px;font-weight:700;color:var(--muted);
+  box-shadow:0 3px 10px -3px rgba(0,0,0,.3);
+  max-width:calc(100% - 28px);
+}
+.lv-etatcarte.ko{color:#B54708}
+/* Quand le bandeau d'état occupe déjà cette hauteur, la pastille descend
+   sous lui : deux informations superposées n'en font aucune. */
+.lv-etat:not([hidden]) + .lv-etatcarte{top:calc(132px + env(safe-area-inset-top))}
 
 /* Les boutons de zoom de Leaflet naissent en haut à gauche, exactement sous
    la flèche de retour — deux commandes empilées, dont on touche l'une en
@@ -713,21 +741,10 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   margin:0 6px;border-radius:7px;padding:2px 7px;
 }
 
-/* Tant que ce message est là, c'est que Leaflet n'a pas pris la main. Un
-   rectangle vide ne dit ni qu'on attend ni que c'est cassé. */
-.lv-charge{
-  position:absolute;inset:0;display:grid;place-items:center;
-  align-content:center;gap:10px;
-  color:var(--muted);font-size:13px;font-weight:600;
-}
-
-/* Sans réseau ni tuiles, on le dit — et on rassure : les chiffres de la
-   feuille, eux, continuent d'arriver. */
-.lv-map.ko{display:grid;place-items:center;padding:24px}
-.lv-mapko{display:grid;justify-items:center;gap:6px;text-align:center;max-width:320px;color:var(--muted)}
-.lv-mapko .art{font-size:40px;opacity:.7}
-.lv-mapko b{color:var(--ink);font-size:15.5px}
-.lv-mapko span{font-size:13px}
+/* Le grand panneau « la carte ne s'affiche pas » n'existe plus : il couvrait
+   tout l'écran pour annoncer l'absence d'un supplément, alors que le plan du
+   fond, lui, répondait déjà. Sa raison tient maintenant dans la pastille
+   .lv-etatcarte ci-dessus. */
 
 /* ---- les commandes du haut ---- */
 .lv-top{
@@ -828,6 +845,8 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   position:relative;height:158px;margin-top:14px;
   border-radius:20px;overflow:hidden;
   background:#EFE7DC;
+  /* Ce fond de secours doit exister ici aussi : sans lui, un plan posé dans la
+     feuille blanche perdrait sa trame. */
   /* La trame de rues : elle ne décrit aucune ville, elle dit « un plan ». Sans
      elle, les trois épingles flottent dans un rectangle beige. */
   background-image:
@@ -836,6 +855,12 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
     linear-gradient(0deg,rgba(255,255,255,.5) 1px,transparent 1px),
     linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
   background-size:96px 96px,96px 96px,32px 32px,32px 32px;
+}
+/* En fond d'écran : plus de cadre, plus de coins arrondis, toute la place.
+   La trame de rues devient plus large, sinon elle fait moustiquaire. */
+.lv-plan.plein{
+  height:100%;margin:0;border-radius:0;
+  background-size:150px 150px,150px 150px,50px 50px,50px 50px;
 }
 .lv-plan svg{position:absolute;inset:0;width:100%;height:100%}
 

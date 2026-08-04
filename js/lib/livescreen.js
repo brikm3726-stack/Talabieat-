@@ -28,6 +28,7 @@
      *   back    adresse du bouton retour (par défaut : page précédente)
      *   points  () => { restaurant, client, driver } — les repères de la carte
      *   sheet   () => HTML de la feuille du bas, redessinée à chaque tour
+     *   plan    () => HTML du plan de fond, sous la carte (voir LiveScreen.plan)
      *   bind    (feuille) => void — branche les boutons après chaque dessin
      *   etat    () => HTML | '' — ce qui manque, posé sur la carte
      *   bindEtat(bandeau) => void — branche le bouton du bandeau, s'il y en a
@@ -43,14 +44,20 @@
 
       view.innerHTML =
         '<div class="lv">' +
-          /* Le message d'attente est DANS le conteneur de la carte : tant
-             qu'il est visible, c'est que Leaflet n'a pas encore pris la main.
-             Un rectangle vide, lui, ne dit ni qu'on attend ni que c'est
-             cassé — et laisse tout le monde sans réponse, moi compris. */
-          '<div class="lv-map" id="lvMap">' +
-            '<div class="lv-charge"><span class="spinner dark"></span>' +
-            'Chargement de la carte…</div>' +
-          '</div>' +
+          /* LE PLAN, AU FOND — c'est lui qu'on voit tant que la carte n'est pas
+             là, et il occupe toute la place laissée libre. Cette zone restait
+             vide pendant que la carte cherchait ses tuiles : la plus grande
+             partie de l'écran ne disait rien, au moment précis où l'on regarde
+             l'écran pour savoir quelque chose.
+
+             La carte se pose par-dessus quand elle réussit — mais elle n'est
+             plus le seul plan de l'écran, seulement le meilleur des deux. */
+          '<div class="lv-fond" id="lvFond"></div>' +
+
+          /* Le message d'attente n'est plus un panneau qui couvre tout : le
+             fond a désormais quelque chose à montrer, et le masquer pour dire
+             « je charge » serait un mauvais échange. */
+          '<div class="lv-map" id="lvMap"></div>' +
 
           '<div class="lv-top">' +
             '<button class="lv-glass" id="lvBack" title="Retour" aria-label="Retour">' +
@@ -68,12 +75,19 @@
              cassée alors qu'elle attend simplement une position que personne
              ne lui a encore donnée. */
           '<div class="lv-etat" id="lvEtat" hidden></div>' +
+          /* Juste après le bandeau, et non ailleurs : c'est cette adjacence qui
+             permet à la pastille de descendre quand le bandeau occupe déjà sa
+             hauteur (voir app.css). */
+          '<div class="lv-etatcarte" id="lvEtatCarte">' +
+            '<span class="spinner dark"></span>Carte…</div>' +
 
           '<div class="lv-sheet" id="lvSheet"></div>' +
         '</div>';
 
       const sheet = view.querySelector('#lvSheet');
       const etatEl = view.querySelector('#lvEtat');
+      const fond = view.querySelector('#lvFond');
+      const etatCarte = view.querySelector('#lvEtatCarte');
 
       /* Carte libre, pas figée : l'écran ne défile pas, le doigt n'a donc rien
          d'autre à faire dessus que déplacer la carte.
@@ -83,14 +97,14 @@
          elle centre sur la zone entière et place le livreur sous la feuille,
          c'est-à-dire nulle part. La hauteur est relue à chaque cadrage,
          puisque la feuille grandit avec son contenu. */
+      /* La panne de la carte tient maintenant dans une pastille : le plan du
+         fond répond déjà à la question, la carte n'est plus qu'un supplément.
+         Dire la raison reste utile — c'est elle qui permet de réparer — mais
+         elle n'a plus à occuper l'écran entier. */
       const panne = raison => {
-        const el = view.querySelector('#lvMap');
-        if (!el) return;
-        el.classList.add('ko');
-        el.innerHTML = '<div class="lv-mapko"><span class="art">🗺️</span>' +
-          '<b>La carte ne s’affiche pas</b>' +
-          '<span>Le suivi continue : les informations ci-dessous restent à jour.</span>' +
-          (raison ? '<span class="tiny">' + U.esc(raison) + '</span>' : '') + '</div>';
+        if (!etatCarte) return;
+        etatCarte.classList.add('ko');
+        etatCarte.innerHTML = '🗺️ ' + U.esc(raison || 'Carte indisponible');
       };
 
       const map = MapPicker.live(view.querySelector('#lvMap'), points(), {
@@ -99,12 +113,8 @@
           tl: [22, 74],
           br: [22, (sheet.offsetHeight || 320) + 28]
         }),
-        /* Leaflet est en place : le message d'attente s'efface, et lui seul —
-           les calques de la carte sont déjà dessous. */
-        onPret() {
-          const c = view.querySelector('#lvMap > .lv-charge');
-          if (c) c.remove();
-        },
+        /* Leaflet est en place : la pastille d'attente disparaît. */
+        onPret() { if (etatCarte) etatCarte.remove(); },
         onEchec: panne
       });
 
@@ -122,6 +132,10 @@
         if (!sheet.isConnected) return;
         sheet.innerHTML = (cfg.sheet && cfg.sheet()) || '';
         if (cfg.bind) cfg.bind(sheet);
+
+        /* Le plan du fond se redessine avec le reste : le livreur y avance à
+           chaque relevé, comme sur la carte. */
+        if (cfg.plan && fond) fond.innerHTML = cfg.plan() || '';
 
         const etat = cfg.etat && cfg.etat();
         etatEl.innerHTML = etat || '';
@@ -231,11 +245,17 @@
      * blancs dans le sens de la marche ; celui d'après est sombre et discret.
      *
      * etapes : [{ p:{lat,lng}, ic, t, ici, fait, vers:{ on, txt } }]
+     * opts   : { plein, bas }
+     *   plein  occupe tout l'espace au lieu d'un cadre de 158 px
+     *   bas    part de hauteur, en %, laissée libre en bas — la feuille
+     *          recouvre le bas de l'écran, et un livreur dessiné dessous
+     *          n'existe pas
      */
-    plan(etapes) {
+    plan(etapes, opts) {
+      opts = opts || {};
       /* Repère de dessin : 0→100 dans les deux sens, marges comprises pour que
          ni une épingle ni son étiquette ne soient rognées par le cadre. */
-      const MIN = 16, MAX = 84;
+      const MIN = 16, MAX = 100 - 16 - (+opts.bas || 0);
       const connus = etapes.filter(e => e.p && U.hasCoords(e.p));
 
       let xy;
@@ -306,7 +326,7 @@
           '<b>' + U.esc(e.t || '') + '</b></span>';
       });
 
-      return '<div class="lv-plan">' +
+      return '<div class="lv-plan' + (opts.plein ? ' plein' : '') + '">' +
         '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
           routes +
         '</svg>' + kms + pins +

@@ -1046,6 +1046,34 @@
         if (!encours(o)) Router.go('/d/active', true);
       },
 
+      /* LE CHEMIN, EN FOND D'ÉCRAN — la course entière, pas la seule étape en
+         cours : ce qui reste après le restaurant compte pour décider d'un
+         détour ou d'un plein. Il occupe la place que la carte laissait vide, et
+         tient même là où elle renonce — au fond d'une cave d'immeuble. */
+      plan: () => {
+        const nomResto = (o.restaurant && o.restaurant.name) || 'Restaurant';
+        const nomClient = o.client_name || (o.client && o.client.full_name) || 'Client';
+        const versClient = o.status === 'delivering';
+        const t = LiveScreen.trajet(moi(), versClient ? chez() : resto());
+        const rc = LiveScreen.trajet(resto(), chez());
+        const opts = { plein: true, bas: 34 };
+
+        return versClient
+          ? LiveScreen.plan([
+              { p: resto(), ic: '🏪', t: nomResto, fait: true, vers: { on: false, txt: '' } },
+              { p: moi(), ic: '🛵', t: 'Vous', ici: true,
+                vers: { on: true, txt: t ? t.texte : '' } },
+              { p: chez(), ic: '🏠', t: nomClient }
+            ], opts)
+          : LiveScreen.plan([
+              { p: moi(), ic: '🛵', t: 'Vous', ici: true,
+                vers: { on: true, txt: t ? t.texte : '' } },
+              { p: resto(), ic: '🏪', t: nomResto,
+                vers: { on: false, txt: rc ? rc.texte : '' } },
+              { p: chez(), ic: '🏠', t: nomClient }
+            ], opts);
+      },
+
       /* Chez le livreur, la carte vide a presque toujours la même cause : le
          navigateur n'a pas la permission de le localiser. C'est réparable
          d'ici, en un bouton — et personne d'autre ne peut le faire pour lui. */
@@ -1089,25 +1117,8 @@
            reste après le restaurant compte pour décider s'il accepte un détour
            ou s'il fait le plein. Et comme elle est en HTML, elle tient même là
            où la carte renonce, ce qui arrive au fond d'une cave d'immeuble. */
-        const nomResto = (o.restaurant && o.restaurant.name) || 'Restaurant';
-        const nomClient = o.client_name || (o.client && o.client.full_name) || 'Client';
         const restoClient = LiveScreen.trajet(resto(), chez());
         const total = (t ? t.min : 0) + (versClient ? 0 : (restoClient ? restoClient.min : 0));
-
-        const chemin = versClient
-          ? LiveScreen.plan([
-              { p: resto(), ic: '🏪', t: nomResto, fait: true, vers: { on: false, txt: '' } },
-              { p: moi(), ic: '🛵', t: 'Vous', ici: true,
-                vers: { on: true, txt: t ? t.texte : '' } },
-              { p: chez(), ic: '🏠', t: nomClient }
-            ])
-          : LiveScreen.plan([
-              { p: moi(), ic: '🛵', t: 'Vous', ici: true,
-                vers: { on: true, txt: t ? t.texte : '' } },
-              { p: resto(), ic: '🏪', t: nomResto,
-                vers: { on: false, txt: restoClient ? restoClient.texte : '' } },
-              { p: chez(), ic: '🏠', t: nomClient }
-            ]);
 
         return LiveScreen.grab() +
           LiveScreen.eta(
@@ -1116,7 +1127,6 @@
             [t ? t.texte : (st.error ? 'activez la localisation' : 'recherche du signal'),
              LiveScreen.heureArrivee(total)].filter(Boolean).join(' · ')
           ) +
-          chemin +
           LiveScreen.progress(ETAPES, versClient ? 2 : 1) +
 
           /* Avant le retrait, l'interlocuteur est le restaurant ; après, c'est
