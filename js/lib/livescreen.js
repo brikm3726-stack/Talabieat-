@@ -29,6 +29,8 @@
      *   points  () => { restaurant, client, driver } — les repères de la carte
      *   sheet   () => HTML de la feuille du bas, redessinée à chaque tour
      *   bind    (feuille) => void — branche les boutons après chaque dessin
+     *   etat    () => HTML | '' — ce qui manque, posé sur la carte
+     *   bindEtat(bandeau) => void — branche le bouton du bandeau, s'il y en a
      *   fetch   async () => void — va chercher les données, avant chaque dessin
      *   every   millisecondes entre deux tours (défaut 12 000)
      */
@@ -54,10 +56,17 @@
               UI.icon('navigation', 19) + '</button>' +
           '</div>' +
 
+          /* Ce qui manque, dit sur la carte elle-même. Une carte de Tizi Ouzou
+             sans le moindre repère est le pire des affichages : elle a l'air
+             cassée alors qu'elle attend simplement une position que personne
+             ne lui a encore donnée. */
+          '<div class="lv-etat" id="lvEtat" hidden></div>' +
+
           '<div class="lv-sheet" id="lvSheet"></div>' +
         '</div>';
 
       const sheet = view.querySelector('#lvSheet');
+      const etatEl = view.querySelector('#lvEtat');
 
       /* Carte libre, pas figée : l'écran ne défile pas, le doigt n'a donc rien
          d'autre à faire dessus que déplacer la carte.
@@ -94,6 +103,12 @@
         if (!sheet.isConnected) return;
         sheet.innerHTML = (cfg.sheet && cfg.sheet()) || '';
         if (cfg.bind) cfg.bind(sheet);
+
+        const etat = cfg.etat && cfg.etat();
+        etatEl.innerHTML = etat || '';
+        etatEl.hidden = !etat;
+        if (cfg.bindEtat && etat) cfg.bindEtat(etatEl);
+
         if (map) map.update(points());
       }
 

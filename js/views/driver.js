@@ -1042,6 +1042,36 @@
         if (!encours(o)) Router.go('/d/active', true);
       },
 
+      /* Chez le livreur, la carte vide a presque toujours la même cause : le
+         navigateur n'a pas la permission de le localiser. C'est réparable
+         d'ici, en un bouton — et personne d'autre ne peut le faire pour lui. */
+      etat: () => {
+        const st = LiveTrack.state;
+        if (!st.pos)
+          return '<span class="ic">📡</span><span class="tx">' +
+            U.esc(st.error || 'Position introuvable') +
+            '<small>Le client ne vous voit pas avancer tant qu’elle manque.</small></span>' +
+            '<button class="btn btn-primary btn-sm" id="lvGeo">Activer</button>';
+        const cible = o.status === 'delivering' ? chez() : resto();
+        if (!cible)
+          return '<span class="ic">' + UI.icon('pin', 17) + '</span><span class="tx">' +
+            (o.status === 'delivering'
+              ? 'Cette adresse n’a pas de position GPS'
+              : 'Ce restaurant n’a pas de position sur la carte') +
+            '<small>Appelez pour vous faire guider : le trajet ne peut pas être calculé.</small></span>';
+        return '';
+      },
+
+      bindEtat: bandeau => {
+        const b = bandeau.querySelector('#lvGeo');
+        if (b) b.onclick = async function () {
+          UI.busy(this, true);
+          try { await LiveTrack.pushOnce(); LiveTrack.start('course'); UI.ok('Position partagée'); }
+          catch (e) { UI.err(e.message); }
+          ecran.repaint();
+        };
+      },
+
       sheet: () => {
         /* La commande est récupérée : il roule vers le client. Sinon il roule
            encore vers le restaurant. */

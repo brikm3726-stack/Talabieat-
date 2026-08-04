@@ -388,6 +388,24 @@
         if (!suivable(o)) Router.go('/order/' + params.id, true);
       },
 
+      /* Trois raisons pour qu'une carte reste vide, et chacune se répare
+         ailleurs que sur cet écran. Les nommer évite au client de conclure
+         que l'application est cassée — et de nous appeler pour ça. */
+      etat: () => {
+        const ic = t => '<span class="ic">' + t + '</span>';
+        if (!pos)
+          return ic('📡') + '<span class="tx">En attente du signal de votre livreur' +
+            '<small>Sa position apparaîtra dès qu’il se met en route.</small></span>';
+        if (!U.hasCoords(client))
+          return ic(UI.icon('pin', 17)) + '<span class="tx">Votre adresse n’a pas de position GPS' +
+            '<small>Le livreur ne peut pas être guidé jusqu’à votre porte. ' +
+            'Ajoutez-la dans Mon compte.</small></span>';
+        if (!o.restaurant || !U.hasCoords(o.restaurant))
+          return ic('🏪') + '<span class="tx">Le restaurant n’a pas de position sur la carte' +
+            '<small>Le trajet affiché commence donc à votre livreur.</small></span>';
+        return '';
+      },
+
       sheet: () => {
         const idx = { driver_assigned: 1, delivering: 2, delivered: 3 }[o.status] || 1;
 
