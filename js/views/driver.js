@@ -1020,8 +1020,14 @@
       ? { lat: +o.address_lat, lng: +o.address_lng } : null;
     /* Sa propre position vient du téléphone, pas de la base : elle n'a pas
        fait l'aller-retour par le serveur, elle a donc quelques secondes
-       d'avance — et c'est lui qui bouge. */
-    const moi    = () => LiveTrack.state.pos;
+       d'avance — et c'est lui qui bouge.
+
+       Tant qu'aucun relevé n'est arrivé et que la commande est récupérée, on
+       le place au restaurant : il en sort à l'instant, c'est ce qu'on sait de
+       plus sûr sur lui. Un scooter dessiné au hasard vaut moins qu'un scooter
+       posé là où il est vraiment. */
+    const moi    = () => LiveTrack.state.pos ||
+                         (o.status === 'delivering' ? resto() : null);
 
     const ecran = LiveScreen.open(view, {
       code: '#' + (o.code || ''),
@@ -1057,20 +1063,28 @@
         const t = LiveScreen.trajet(moi(), versClient ? chez() : resto());
         const rc = LiveScreen.trajet(resto(), chez());
         const opts = { plein: true, bas: 34 };
+        /* Le jeu de pictogrammes de l'application, pas des emojis : identiques
+           sur tous les téléphones, et 🏪 désigne un magasin, pas un restaurant. */
+        const IC = {
+          resto: UI.icon('utensils', 15),
+          moi: UI.icon('scooter', 16),
+          chez: UI.icon('home', 15)
+        };
 
         return versClient
           ? LiveScreen.plan([
-              { p: resto(), ic: '🏪', t: nomResto, fait: true, vers: { on: false, txt: '' } },
-              { p: moi(), ic: '🛵', t: 'Vous', ici: true,
+              { p: resto(), ic: IC.resto, t: nomResto, s: 'commande récupérée',
+                fait: true, vers: { on: false, txt: '' } },
+              { p: moi(), ic: IC.moi, t: 'Vous', ici: true,
                 vers: { on: true, txt: t ? t.texte : '' } },
-              { p: chez(), ic: '🏠', t: nomClient }
+              { p: chez(), ic: IC.chez, t: nomClient }
             ], opts)
           : LiveScreen.plan([
-              { p: moi(), ic: '🛵', t: 'Vous', ici: true,
+              { p: moi(), ic: IC.moi, t: 'Vous', ici: true,
                 vers: { on: true, txt: t ? t.texte : '' } },
-              { p: resto(), ic: '🏪', t: nomResto,
+              { p: resto(), ic: IC.resto, t: nomResto, s: 'récupérez la commande',
                 vers: { on: false, txt: rc ? rc.texte : '' } },
-              { p: chez(), ic: '🏠', t: nomClient }
+              { p: chez(), ic: IC.chez, t: nomClient }
             ], opts);
       },
 

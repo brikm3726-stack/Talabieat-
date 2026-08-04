@@ -305,10 +305,14 @@
          toutes les quinze secondes. Le bouton de recentrage rend la main. */
       let libre = false;
 
+      /* Les pictogrammes du jeu de l'application plutôt que des emojis : 🏪 est
+         un magasin et non un restaurant, et chaque téléphone dessine les emojis
+         à sa façon — le repère changeait d'allure d'un appareil à l'autre, et
+         paraissait plat sur certains Android. */
       const defs = {
-        restaurant: ['🏪', 'lm-resto', 'Restaurant'],
-        client:     ['🏠', 'lm-client', 'Client'],
-        driver:     ['🛵', 'lm-driver', 'Livreur']
+        restaurant: [UI.icon('utensils', 17), 'lm-resto', 'Restaurant'],
+        client:     [UI.icon('home', 17),     'lm-client', 'Client'],
+        driver:     [UI.icon('scooter', 18),  'lm-driver', 'Livreur']
       };
 
       /* Le nom à côté du repère, pas seulement au survol : sur un téléphone il

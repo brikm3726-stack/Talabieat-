@@ -253,9 +253,12 @@
      */
     plan(etapes, opts) {
       opts = opts || {};
-      /* Repère de dessin : 0→100 dans les deux sens, marges comprises pour que
-         ni une épingle ni son étiquette ne soient rognées par le cadre. */
-      const MIN = 16, MAX = 100 - 16 - (+opts.bas || 0);
+      /* Repère de dessin, en centièmes du cadre. Les marges gardent les
+         épingles et leurs étiquettes à l'écart des bords, et `bas` retire du
+         bas la part que la feuille recouvre — les deux axes ont donc leurs
+         propres limites : partager la même rognait la moitié droite du plan. */
+      const MINX = 16, MAXX = 84;
+      const MINY = 16, MAXY = 100 - 16 - (+opts.bas || 0);
       const connus = etapes.filter(e => e.p && U.hasCoords(e.p));
 
       let xy;
@@ -264,9 +267,10 @@
            trajet schématique dit encore l'ordre des étapes, ce qu'un cadre
            vide ne dit pas. Toute la raison d'être de ce composant est là :
            il ne renonce jamais. */
+        const n = Math.max(1, etapes.length - 1);
         xy = etapes.map((e, i) => ({
-          x: MIN + i * ((MAX - MIN) / Math.max(1, etapes.length - 1)),
-          y: MAX - i * ((MAX - MIN) / Math.max(1, etapes.length - 1))
+          x: MINX + i * ((MAXX - MINX) / n),
+          y: MAXY - i * ((MAXY - MINY) / n)
         }));
       } else {
         const lats = connus.map(e => +e.p.lat), lngs = connus.map(e => +e.p.lng);
@@ -280,16 +284,38 @@
            un plan vide : on impose un écart minimal. */
         const dl = Math.max((laMax - laMin), 1e-4);
         const dg = Math.max((loMax - loMin) * k, 1e-4);
-        const ech = v => MIN + v * (MAX - MIN);
         xy = etapes.map(e => {
           if (!e.p || !U.hasCoords(e.p)) return null;
           return {
-            x: ech(((+e.p.lng - loMin) * k) / dg),
+            x: MINX + (((+e.p.lng - loMin) * k) / dg) * (MAXX - MINX),
             /* La latitude croît vers le nord, l'axe des Y d'un écran vers le
                bas : sans l'inversion, le plan serait à l'envers. */
-            y: ech(1 - (+e.p.lat - laMin) / dl)
+            y: MINY + (1 - (+e.p.lat - laMin) / dl) * (MAXY - MINY)
           };
         });
+      }
+
+      /* DEUX REPÈRES AU MÊME ENDROIT
+         Au moment du retrait, le livreur EST au restaurant : les deux points se
+         confondent, et les deux épingles se recouvrent — on n'en voit plus
+         qu'une, et le client ne comprend plus qui est où. On écarte donc
+         légèrement celle du dessus. Le décalage est visuel, jamais dans les
+         distances annoncées : celles-là restent calculées sur les vraies
+         coordonnées. */
+      for (let i = 1; i < xy.length; i++) {
+        if (!xy[i]) continue;
+        for (let j = 0; j < i; j++) {
+          if (!xy[j]) continue;
+          const dx = xy[i].x - xy[j].x, dy = xy[i].y - xy[j].y;
+          if (Math.sqrt(dx * dx + dy * dy) >= 10) continue;
+          /* On s'écarte du côté où il reste de la place : contre un bord, un
+             décalage aveugle serait annulé par le plafonnement et les deux
+             épingles resteraient l'une sur l'autre. */
+          xy[i] = {
+            x: xy[i].x + 9 <= MAXX ? xy[i].x + 9 : xy[i].x - 9,
+            y: xy[i].y - 9 >= MINY ? xy[i].y - 9 : xy[i].y + 9
+          };
+        }
       }
 
       /* Le coude : on part à l'horizontale jusqu'à mi-chemin, on descend, puis
@@ -323,7 +349,11 @@
         pins += '<span class="' + cls + '" style="left:' + a.x.toFixed(1) +
           '%;top:' + a.y.toFixed(1) + '%">' +
           '<i><em>' + (e.ic || '') + '</em></i>' +
-          '<b>' + U.esc(e.t || '') + '</b></span>';
+          /* La seconde ligne dit ce qui s'est passé à cette étape — « commande
+             récupérée ». Sans elle, le client voit bien que le restaurant a
+             changé d'allure, mais rien ne lui dit pourquoi. */
+          '<b>' + U.esc(e.t || '') +
+            (e.s ? '<span>' + U.esc(e.s) + '</span>' : '') + '</b></span>';
       });
 
       return '<div class="lv-plan' + (opts.plein ? ' plein' : '') + '">' +

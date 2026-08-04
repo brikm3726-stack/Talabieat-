@@ -361,15 +361,38 @@
 
     const ETAPES = ['Prête', 'Livreur assigné', 'En livraison', 'Livrée'];
 
+    const resto = () => o.restaurant && U.hasCoords(o.restaurant)
+      ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null;
+
+    /**
+     * AU MOMENT DU RETRAIT, LE LIVREUR EST AU RESTAURANT.
+     *
+     * Sa position n'arrive que toutes les quinze secondes, et il peut très bien
+     * n'en avoir envoyé aucune depuis qu'il roule. Le client lisait donc
+     * « commande récupérée » avec la moto dessinée trois rues plus loin, à
+     * l'endroit où le livreur se trouvait avant d'arriver au restaurant — ce
+     * qui donne l'impression que l'application raconte n'importe quoi.
+     *
+     * Dès que la commande est récupérée, si le dernier relevé est plus ancien
+     * que le retrait lui-même, on le place au restaurant : c'est ce qu'on sait
+     * de plus sûr sur lui à cette seconde, et c'est vrai. Le relevé suivant le
+     * fera repartir de là.
+     */
+    const positionLivreur = () => {
+      if (o.status !== 'delivering') return pos;
+      const perime = !pos || !pos.at || (o.delivering_at &&
+        new Date(pos.at).getTime() < new Date(o.delivering_at).getTime());
+      return perime ? (resto() || pos) : pos;
+    };
+
     const ecran = LiveScreen.open(view, {
       code: '#' + (o.code || ''),
       back: '/order/' + params.id,
 
       points: () => ({
-        restaurant: o.restaurant && U.hasCoords(o.restaurant)
-          ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null,
+        restaurant: resto(),
         client: U.hasCoords(client) ? client : null,
-        driver: pos,
+        driver: positionLivreur(),
         /* Le trajet qui reste, dans l'ordre. Avant le retrait il passe par le
            restaurant : c'est ce qui explique au client pourquoi son livreur
            s'éloigne parfois de chez lui. */
@@ -405,29 +428,41 @@
          livreur dessiné dessous n'existe pas. */
       plan: () => {
         const nomResto = (o.restaurant && o.restaurant.name) || 'Restaurant';
-        const resto = o.restaurant && U.hasCoords(o.restaurant)
-          ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null;
+        const r = resto();
         const cible = U.hasCoords(client) ? client : null;
-        const reste = LiveScreen.trajet(pos, cible);
-        const versR = LiveScreen.trajet(pos, resto);
-        const rc = LiveScreen.trajet(resto, cible);
+        /* Le même point que sur la carte : au retrait, le livreur est au
+           restaurant tant qu'aucun relevé plus récent n'est arrivé. */
+        const moi = positionLivreur();
+        const reste = LiveScreen.trajet(moi, cible);
+        const versR = LiveScreen.trajet(moi, r);
+        const rc = LiveScreen.trajet(r, cible);
         const opts = { plein: true, bas: 34 };
+
+        /* Des pictogrammes du jeu de l'application, pas des emojis : 🏪 est un
+           magasin et non un restaurant, et chaque téléphone dessine les emojis
+           à sa façon — le repère changeait d'allure d'un appareil à l'autre. */
+        const IC = {
+          resto: UI.icon('utensils', 15),
+          moi: UI.icon('scooter', 16),
+          chez: UI.icon('home', 15)
+        };
 
         return o.status === 'delivering'
           ? LiveScreen.plan([
               /* Le tronçon déjà parcouru reste sombre : l'orange désigne
                  toujours ce qui se fait maintenant, jamais ce qui est fini. */
-              { p: resto, ic: '🏪', t: nomResto, fait: true, vers: { on: false, txt: '' } },
-              { p: pos, ic: '🛵', t: 'Votre livreur', ici: true,
+              { p: r, ic: IC.resto, t: nomResto, s: 'commande récupérée',
+                fait: true, vers: { on: false, txt: '' } },
+              { p: moi, ic: IC.moi, t: 'Votre livreur', ici: true,
                 vers: { on: true, txt: reste ? reste.texte : '' } },
-              { p: cible, ic: '🏠', t: 'Chez vous' }
+              { p: cible, ic: IC.chez, t: 'Chez vous' }
             ], opts)
           : LiveScreen.plan([
-              { p: pos, ic: '🛵', t: 'Votre livreur', ici: true,
+              { p: moi, ic: IC.moi, t: 'Votre livreur', ici: true,
                 vers: { on: true, txt: versR ? versR.texte : '' } },
-              { p: resto, ic: '🏪', t: nomResto,
+              { p: r, ic: IC.resto, t: nomResto, s: 'il prend votre commande',
                 vers: { on: false, txt: rc ? rc.texte : '' } },
-              { p: cible, ic: '🏠', t: 'Chez vous' }
+              { p: cible, ic: IC.chez, t: 'Chez vous' }
             ], opts);
       },
 
@@ -454,10 +489,15 @@
 
         /* Avant le retrait, le livreur doit d'abord passer au restaurant :
            annoncer la seule distance qui le sépare du client donnerait un
-           chiffre deux fois trop optimiste. */
-        const versResto = LiveScreen.trajet(pos, o.restaurant);
+           chiffre deux fois trop optimiste.
+
+           Les distances partent du même point que le plan et la carte — au
+           retrait, le restaurant : trois chiffres calculés depuis trois
+           endroits différents finiraient par se contredire à l'écran. */
+        const depuis = positionLivreur();
+        const versResto = LiveScreen.trajet(depuis, o.restaurant);
         const restoClient = LiveScreen.trajet(o.restaurant, client);
-        const versClient = LiveScreen.trajet(pos, client);
+        const versClient = LiveScreen.trajet(depuis, client);
 
         let valeur = '—', apres = '', titre = 'Arrivée estimée';
         if (o.status === 'delivering' && versClient) {
