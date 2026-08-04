@@ -174,6 +174,17 @@
     view.querySelector('#goSearch').onclick = search;
     q.onkeydown = e => { if (e.key === 'Enter') search(); };
 
+    /* ---- le champ montre quoi taper au lieu de le décrire ---------------
+       « Un restaurant ou un plat » est une consigne : on la lit, on ne sait
+       toujours pas quoi écrire. Des exemples qui s'écrivent tout seuls
+       montrent la réponse — et disent au passage qu'il y a du monde
+       derrière. Les vrais noms remplacent les exemples génériques dès que
+       le catalogue est chargé, plus bas. */
+    const machine = UI.typewriter(q, [
+      'Ex : Melyza tacos', 'Ex : pizza margherita',
+      'Ex : burger poulet', 'Ex : tacos viande hachée'
+    ]);
+
     /* ---- les trois cases se rangent -------------------------------------
        Le bloc « Comment ça marche ? » est loin sous l'accueil. Lancer
        l'animation au chargement, c'est la jouer pour personne : le temps
@@ -203,6 +214,14 @@
        pas une liste déjà rétrécie par un réglage qu'il n'a pas fait. */
     const list = await API.safe(() => API.restaurants({}), []);
     Cmp.restoGrid(list.slice(0, 6), view.querySelector('#popular'));
+
+    /* De vrais noms plutôt que des exemples inventés : un client qui voit
+       défiler une enseigne qu'il connaît sait immédiatement que la recherche
+       porte sur SA ville. On en garde quatre, mêlés à deux plats — le champ
+       cherche les deux, il faut que ça se voie. */
+    const enseignes = list.slice(0, 4).map(r => 'Ex : ' + r.name);
+    if (enseignes.length)
+      machine.mots(enseignes.concat(['Ex : pizza margherita', 'Ex : burger poulet']));
 
     const chiffre = (icone, valeur, label) =>
       '<div><span class="ic">' + icone + '</span>' +

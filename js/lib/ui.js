@@ -63,6 +63,93 @@
       }, 3400);
     },
 
+    /* --------------------------------------------------- champ qui s'écrit */
+    /**
+     * UI.typewriter(input, mots) — le repère du champ s'écrit et s'efface.
+     *
+     * Un champ de recherche vide ne dit pas ce qu'on peut y mettre. « Un
+     * restaurant ou un plat » est une consigne, pas un exemple : on la lit,
+     * on ne sait toujours pas quoi taper. Un vrai nom qui s'écrit sous les
+     * yeux — « Ex : Melyza tacos » — montre la réponse au lieu de la
+     * décrire, et prouve au passage qu'il y a quelque chose derrière.
+     *
+     * S'arrête définitivement dès que le client tape : à partir de là, le
+     * champ lui appartient, et un repère qui continue de bouger derrière ce
+     * qu'on écrit rend la saisie illisible.
+     *
+     * Retourne { stop, mots } — `mots` permet de remplacer la liste plus
+     * tard, quand les vrais noms de restaurants sont arrivés du serveur.
+     */
+    typewriter(input, mots, opts) {
+      const rien = { stop() {}, mots() {} };
+      if (!input || !mots || !mots.length) return rien;
+      opts = opts || {};
+
+      const repos = opts.repos || input.getAttribute('placeholder') || '';
+      /* Qui a demandé moins de mouvement garde la consigne fixe : elle
+         suffit à comprendre le champ, le reste n'est qu'un plus. */
+      if (w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches) return rien;
+
+      let liste = mots.slice();
+      let i = 0, j = 0, efface = false, mort = false, gele = false, t = null;
+
+      const stop = (definitif) => {
+        clearTimeout(t);
+        if (definitif) { mort = true; input.setAttribute('placeholder', repos); }
+      };
+
+      const tic = () => {
+        if (mort) return;
+        /* La vue a pu être remplacée entre deux battements : sans ce
+           contrôle, la minuterie survivrait à la page et tournerait pour un
+           champ qui n'existe plus. */
+        if (!document.body.contains(input)) return stop(true);
+        if (input.value) return stop(true);
+        // rien à écrire tant que l'onglet est caché ou que le doigt est dans
+        // le champ : on repasse simplement plus tard
+        if (gele || document.hidden) { t = setTimeout(tic, 400); return; }
+
+        const mot = liste[i % liste.length];
+        if (!efface) {
+          j++;
+          input.setAttribute('placeholder', mot.slice(0, j) + '|');
+          if (j >= mot.length) { efface = true; t = setTimeout(tic, opts.pause || 1700); return; }
+          // la frappe n'est jamais régulière : une cadence fixe s'entend
+          // comme une machine, une cadence irrégulière comme quelqu'un
+          t = setTimeout(tic, 46 + Math.random() * 44);
+        } else {
+          j--;
+          input.setAttribute('placeholder', mot.slice(0, j) + (j ? '|' : ''));
+          if (j <= 0) { efface = false; i++; t = setTimeout(tic, 340); return; }
+          t = setTimeout(tic, 25);   // on efface plus vite qu'on n'écrit
+        }
+      };
+
+      input.addEventListener('input', () => stop(true));
+      /* Au moment où le doigt entre dans le champ, l'exemple se fige — et la
+         consigne reprend sa place. On vient taper : c'est « un restaurant ou
+         un plat » qu'il faut avoir sous les yeux, pas un mot à moitié écrit.
+         Si on ressort sans rien saisir, les exemples reprennent. */
+      input.addEventListener('focus', () => {
+        gele = true;
+        input.setAttribute('placeholder', repos);
+      });
+      input.addEventListener('blur', () => { gele = false; j = 0; efface = false; });
+
+      t = setTimeout(tic, opts.debut || 700);
+
+      return {
+        stop: () => stop(true),
+        mots(nouveaux) {
+          if (!nouveaux || !nouveaux.length || mort) return;
+          /* On ne remet pas le compteur à zéro : la nouvelle liste prend le
+             relais au mot suivant. Basculer au milieu d'un mot ferait sauter
+             le texte d'un nom à l'autre en pleine frappe. */
+          liste = nouveaux.slice();
+        }
+      };
+    },
+
     /* ------------------------------------------------------------ modales */
     /**
      * UI.sheet({ title, body, footer, onMount, wide })

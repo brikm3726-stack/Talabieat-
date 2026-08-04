@@ -97,6 +97,13 @@
          ville, donc un résultat vide veut dire vide, pas « masqué par un
          filtre que vous avez oublié ». */
       Cmp.restoGrid(list, results);
+
+      /* Les exemples du champ deviennent de vrais noms de la ville dès que
+         la liste est là : voir défiler une enseigne qu'on connaît vaut
+         mieux que n'importe quel exemple inventé. */
+      if (machineR && list.length)
+        machineR.mots(list.slice(0, 4).map(r => 'Ex : ' + r.name)
+          .concat(['Ex : pizza margherita']));
     }
 
     /**
@@ -126,8 +133,17 @@
       return list.sort((a, b) => (b.open_now - a.open_now) || (b.rating - a.rating));
     }
 
-    const onType = U.debounce(() => { term = view.querySelector('#q').value; load(); }, 320);
-    view.querySelector('#q').oninput = onType;
+    const champ = view.querySelector('#q');
+    const onType = U.debounce(() => { term = champ.value; load(); }, 320);
+    champ.oninput = onType;
+
+    /* Même repère qui s'écrit que sur l'accueil : la page Restaurants est
+       souvent la première qu'on ouvre, et le champ y est encore plus muet
+       — « Restaurant ou plat… » ne donne aucun exemple. Rien ne s'anime si
+       le champ arrive déjà rempli (retour de recherche). */
+    const machineR = UI.typewriter(champ, [
+      'Ex : Melyza tacos', 'Ex : pizza margherita', 'Ex : burger poulet'
+    ]);
 
     view.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
       mode = b.dataset.mode;
