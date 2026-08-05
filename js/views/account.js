@@ -485,6 +485,12 @@
      ====================================================================== */
   Router.add('/securite', async function (params, query, view) {
     const p = Store.profile || {};
+    /* L'adresse de la session passe devant celle du profil. `profiles.email`
+       n'est qu'une copie écrite à l'inscription : elle est vide sur certains
+       comptes, en particulier ceux ouverts avec Google. On affichait alors
+       « nous envoyons un code à  » — sans rien — et l'envoi partait avec une
+       adresse vide, ce qui échouait avec un message en anglais. */
+    const adresse = (p.email || '').trim() || API.email() || '';
     let etape = 'demande';        // demande → code
 
     function paint() {
@@ -499,11 +505,11 @@
 
           (etape === 'demande'
             ? '<p class="sub">Pour changer votre mot de passe, nous envoyons un code à ' +
-                '<b>' + U.esc(p.email || '') + '</b>. Il prouve que cette boîte mail est bien la vôtre.</p>' +
+                '<b>' + U.esc(adresse) + '</b>. Il prouve que cette boîte mail est bien la vôtre.</p>' +
               '<button class="btn btn-primary btn-block btn-lg" id="envoyer" style="margin-top:14px">' +
                 UI.icon('mail', 18) + ' Recevoir le code</button>'
 
-            : '<p class="sub">Code envoyé à <b>' + U.esc(p.email || '') + '</b>. ' +
+            : '<p class="sub">Code envoyé à <b>' + U.esc(adresse) + '</b>. ' +
                 'Valable 1 heure — pensez à regarder dans les spams.</p>' +
               '<form id="sf" class="stack" style="margin-top:14px" novalidate>' +
                 '<div class="field"><label>Code reçu par email</label>' +
@@ -542,7 +548,7 @@
       const btn = view.querySelector('#envoyer') || view.querySelector('#renvoyer');
       UI.busy(btn, true, 'Envoi…');
       try {
-        await API.sendEmailCode(p.email);
+        await API.sendEmailCode(adresse);
         etape = 'code';
         paint();
         UI.ok('Code envoyé', 'Vérifiez votre boîte mail, et les spams.');
@@ -564,7 +570,7 @@
         /* Le code d'abord : il rouvre une session fraîche, et c'est elle qui
            autorise le changement. Dans l'autre ordre, on modifierait le mot de
            passe sans avoir rien prouvé. */
-        await API.verifyEmailCode(p.email, code);
+        await API.verifyEmailCode(adresse, code);
         await API.updatePassword(d.password);
         UI.ok('Mot de passe modifié', 'Il est actif dès maintenant.');
         Router.go('/account', true);

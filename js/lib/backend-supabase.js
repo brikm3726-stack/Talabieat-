@@ -177,9 +177,23 @@
      * un compte au lieu de refuser, et la page « sécurité » deviendrait une
      * porte d'inscription déguisée.
      */
+    /** L'adresse de la SESSION — la seule qui soit toujours juste.
+        `profiles.email` est une copie, écrite par un déclencheur à
+        l'inscription. Elle est vide sur certains comptes (connexion Google
+        notamment), et c'est elle que les écrans affichent. */
+    email() { return (currentUser && currentUser.email) || null; },
+
     async sendEmailCode(email) {
+      /* Sans ce repli, une adresse vide partait au serveur et l'erreur
+         revenait en anglais, incompréhensible : l'utilisateur voyait
+         « Recevoir le code » échouer sans savoir pourquoi, alors que son
+         compte a bel et bien une adresse. */
+      const adresse = String(email || '').trim() || SB.email();
+      if (!adresse)
+        throw new Error("Ce compte n'a pas d'adresse email : impossible d'y envoyer un code. " +
+                        'Ajoutez une adresse depuis « Informations personnelles ».');
       unwrap(await sb.auth.signInWithOtp({
-        email: email, options: { shouldCreateUser: false }
+        email: adresse, options: { shouldCreateUser: false }
       }));
       return true;
     },
@@ -187,7 +201,10 @@
     /** Vérifie ce code : la session repart à neuf, ce qui autorise la suite. */
     async verifyEmailCode(email, code) {
       const token = String(code || '').replace(/\D/g, '');
-      const data = unwrap(await sb.auth.verifyOtp({ email: email, token: token, type: 'email' }));
+      // même repli qu'à l'envoi : les deux appels doivent viser la même adresse,
+      // sinon le code est jugé invalide alors qu'il est bon
+      const adresse = String(email || '').trim() || SB.email();
+      const data = unwrap(await sb.auth.verifyOtp({ email: adresse, token: token, type: 'email' }));
       currentUser = data.user;
       return { user: data.user };
     },
