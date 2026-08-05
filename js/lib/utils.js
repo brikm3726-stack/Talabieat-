@@ -263,8 +263,10 @@
       cancelled:       { label: 'Annulée',              short: 'Annulée',      icon: '🚫', tag: 'tag-danger' }
     },
 
-    statusLabel(s) { return (U.STATUS[s] || { label: s }).label; },
-    statusShort(s) { return (U.STATUS[s] || { short: s }).short; },
+    /* Traduits a la lecture, pas au stockage : le dictionnaire reste en
+       francais, et un statut inconnu revient tel quel. */
+    statusLabel(s) { return T((U.STATUS[s] || { label: s }).label); },
+    statusShort(s) { return T((U.STATUS[s] || { short: s }).short); },
     statusTag(s)   { return (U.STATUS[s] || { tag: 'tag-muted' }).tag; },
     statusIcon(s)  { return (U.STATUS[s] || { icon: '•' }).icon; },
 
