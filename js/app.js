@@ -269,12 +269,26 @@
     if (OCCUPE.some(p => ici.indexOf(p) === 0)) return;
 
     const list = await API.safe(() => API.orders({ scope: 'client' }), []);
-    /* La livraison terminée mais pas encore confirmée compte comme un suivi à
-       ouvrir : c'est l'instant où le client doit remettre l'argent et valider
-       la réception, et c'est justement l'écran qu'il ne trouvait pas. */
+
+    /* LA RÉCEPTION EST UN ÉVÉNEMENT, PAS UN ÉTAT.
+       Une commande livrée et jamais confirmée le reste indéfiniment : sans
+       cette limite, l'écran de réception d'un repas d'avant-hier s'ouvrait à
+       CHAQUE lancement de l'application, et pour l'écarter il fallait
+       confirmer une commande qu'on avait oubliée. Un rappel qui se répète sans
+       fin n'est plus un rappel, c'est un obstacle.
+
+       Passé une demi-heure, ce n'est plus un instant à saisir mais une ligne
+       d'historique : le bouton reste sur la page de la commande, il ne vient
+       plus au-devant. */
+    const RAPPEL_MS = 30 * 60 * 1000;
+    const fraiche = x => {
+      if (!x.delivered_at) return false;
+      return Date.now() - new Date(x.delivered_at).getTime() < RAPPEL_MS;
+    };
+
     const o = list.find(x =>
       ['driver_assigned', 'delivering'].indexOf(x.status) >= 0 ||
-      (x.status === 'delivered' && !x.client_confirmed));
+      (x.status === 'delivered' && !x.client_confirmed && fraiche(x)));
     if (!o) return;
 
     /* Deux moments distincts dans la vie d'une commande, donc deux mémoires :
