@@ -13,16 +13,11 @@
 (function (w) {
   'use strict';
 
-  /* « Vos plats préférés, livrés chez vous » : la seconde moitié passe en
-     orange, comme sur la maquette. On coupe à la virgule ; sans virgule, le
-     titre reste d'un seul tenant. */
-  function tagline() {
-    const t = String(TALABI_CONFIG.APP_TAGLINE || '');
-    const i = t.indexOf(',');
-    if (i < 0) return U.esc(t);
-    return U.esc(t.slice(0, i + 1)) +
-      '<span class="accent">' + U.esc(t.slice(i + 1).trim()) + '</span>';
-  }
+  /* Le slogan « Vos plats préférés, livrés chez vous » et son plat en 3D ont
+     quitté l'accueil : une demi-page pour une phrase que personne ne lit deux
+     fois, et qui repoussait le premier restaurant sous la ligne de flottaison.
+     C'est l'adresse de livraison qui ouvre l'écran (maquette 1b). La fonction
+     qui coloriait ce titre n'a donc plus rien à colorier. */
 
   /** Un raccourci : pastille pêche, deux lignes de texte, chevron. */
   function raccourci(icone, l1, l2, href) {
@@ -51,19 +46,21 @@
 
     view.innerHTML = '<div class="home3d">' +
 
-      /* ---------------------------------------------------------- HÉRO */
-      '<section class="h3d-hero"><div class="wrap h3d-hin">' +
-        '<div class="h3d-txt">' +
-          '<h1>' + tagline() + '</h1>' +
-          '<p>Les meilleurs restaurants de Tizi Ouzou livrés chez vous en ' +
-            'quelques minutes. Paiement à la livraison.</p>' +
-        '</div>' +
-        /* le plat de la maquette, découpé au vol et fondu sur les bords : voir
-           la note dans app.css (.h3d-bol) */
-        '<span class="h3d-bol" aria-hidden="true"></span>' +
-      '</div></section>' +
+      /* ---------------------------------------------- L'ADRESSE, PAS UN SLOGAN
+         Le héros disait « Vos plats préférés, livrés chez vous » au-dessus d'un
+         plat en 3D : une demi-page pour une phrase que personne ne lit deux
+         fois, et qui repoussait le premier restaurant sous la ligne de
+         flottaison. À la place, la seule information dont on a besoin en
+         ouvrant l'application : où l'on se fait livrer. D'après la maquette 1b.
 
+         Le repère est cliquable et refait la détection — c'est le même geste
+         que le bouton de la barre du haut, à portée de pouce cette fois. */
       '<div class="wrap h3d-body">' +
+        '<button class="hm-ou" id="hmOu">' +
+          '<span class="k">Livrer à</span>' +
+          '<span class="v">' + UI.pin(17) + ' ' + U.esc(ouLabel) +
+            UI.icon('chevron', 15) + '</span>' +
+        '</button>' +
 
         /* ----------------------------------------------------- RECHERCHE */
         '<div class="h3d-search">' +
@@ -71,6 +68,15 @@
           '<input id="q" placeholder="Rechercher un restaurant ou un plat…" autocomplete="off">' +
           '<button class="btn btn-primary" id="goSearch">Rechercher</button>' +
         '</div>' +
+
+        /* ------------------------------------- LA COMMANDE EN COURS D'ABORD
+           Quand une commande est en route, c'est LA question du moment : où en
+           est-elle. Elle vivait dans l'onglet Commandes, à deux touches d'ici —
+           on ouvrait l'accueil, on cherchait, on tapait deux fois. Elle passe
+           donc devant tout le reste, et disparaît d'elle-même dès qu'il n'y a
+           plus rien à suivre. Rien de nouveau n'est calculé : ce sont les
+           commandes du client, déjà en base. */
+        '<div id="hmSuivi"></div>' +
 
         /* --------------------------------------------------- RACCOURCIS */
         '<div class="h3d-quick">' +
@@ -166,6 +172,73 @@
     '</div>';
 
     /* ------------------------------------------------------ interactions */
+
+    /* Le repère de l'accueil refait la détection de wilaya, comme celui de la
+       barre du haut. Deux entrées pour le même geste, parce que le pouce ne va
+       pas naturellement en haut de l'écran. */
+    const bo = view.querySelector('#hmOu');
+    if (bo) bo.onclick = async function () {
+      const avant = this.innerHTML;
+      this.innerHTML = '<span class="k">Livrer à</span><span class="v">' +
+        '<span class="spinner dark"></span> Localisation…</span>';
+      const nom = await Store.detectWilaya(true);
+      if (nom) { UI.place(nom); Router.render(); }
+      else {
+        this.innerHTML = avant;
+        UI.err('Position introuvable',
+               'Autorisez la localisation pour que Talabi trouve votre wilaya.');
+      }
+    };
+
+    /* ---- la commande en cours, en tête d'accueil ------------------------
+       Quatre étapes sur la frise, les mêmes que l'écran de suivi : ce bandeau
+       n'invente pas un vocabulaire de plus, il montre en petit ce que le suivi
+       montre en grand. */
+    async function peindreSuivi() {
+      const boite = view.querySelector('#hmSuivi');
+      if (!boite || !isClient) return;
+      const list = await API.safe(() => API.orders({ scope: 'client' }), []);
+      const EN_COURS = ['pending', 'accepted', 'preparing', 'ready',
+                        'driver_assigned', 'delivering'];
+      const o = list.find(x => EN_COURS.indexOf(x.status) >= 0);
+      if (!o) { boite.innerHTML = ''; return; }
+
+      const etape = { ready: 1, driver_assigned: 2, delivering: 3, delivered: 4 }[o.status] || 1;
+      /* En route : le prénom du livreur suffit — « Karim arrive » se lit plus
+         vite que « votre livreur est en route ». Avant qu'il soit assigné, on
+         annonce l'étape, pas une personne qui n'existe pas encore. */
+      const prenom = (o.driver && (o.driver.full_name || '').split(' ')[0]) || '';
+      const titre = o.status === 'delivering'
+        ? (prenom ? prenom + ' arrive' : 'Votre commande arrive')
+        : o.status === 'driver_assigned'
+          ? (prenom ? prenom + ' va au restaurant' : 'Un livreur a pris votre commande')
+          : o.status === 'ready' ? 'Prête — on cherche un livreur'
+          : o.status === 'preparing' ? 'En préparation'
+          : o.status === 'accepted' ? 'Commande acceptée'
+          : 'En attente du restaurant';
+
+      boite.innerHTML =
+        '<a class="hm-suivi" href="#/order/' + U.esc(o.id) + '">' +
+          '<span class="sheen" aria-hidden="true"></span>' +
+          '<span class="ic">' + UI.icon('scooter', 26) + '</span>' +
+          '<span class="tx">' +
+            '<span class="etat"><i></i>' +
+              U.esc(U.statusLabel(o.status)) + '</span>' +
+            '<b>' + U.esc(titre) + '</b>' +
+            '<span class="det">' +
+              U.esc((o.restaurant && o.restaurant.name) || '') +
+              ' · ' + (o.items ? o.items.length : 0) + ' article' +
+              ((o.items && o.items.length > 1) ? 's' : '') +
+              ' · ' + U.esc(U.money(o.total)) + '</span>' +
+          '</span>' +
+          '<span class="go">' + UI.icon('chevron', 18) + '</span>' +
+          '<span class="frise">' +
+            [0, 1, 2, 3].map(i => '<i class="' + (i < etape ? 'on' : '') + '"></i>').join('') +
+          '</span>' +
+        '</a>';
+    }
+    peindreSuivi();
+
     const q = view.querySelector('#q');
     const search = () => {
       const v = q.value.trim();

@@ -1320,6 +1320,91 @@ body.lv-open #view > .view-in{animation:none;transform:none}
 }
 
 /* ==========================================================================
+   ACCUEIL — L'ADRESSE ET LA COMMANDE EN COURS, d'après la maquette 1b
+   --------------------------------------------------------------------------
+   Le héros publicitaire a disparu de l'accueil. Ce qui le remplace tient en
+   deux blocs : où l'on se fait livrer, et où en est la commande qui roule.
+   Le premier restaurant devient visible sans faire défiler — c'était tout
+   l'objet de la maquette.
+   ========================================================================== */
+.hm-ou{
+  display:block;width:100%;text-align:left;padding:0 0 12px;
+  background:none;border:none;cursor:pointer;
+}
+.hm-ou .k{
+  display:block;font-size:11.5px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:#9A8B7E;
+}
+.hm-ou .v{
+  display:flex;align-items:center;gap:5px;margin-top:2px;
+  font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--ink);
+}
+.hm-ou .v .ico{opacity:.4;margin-left:1px}
+.hm-ou:active .v{transform:scale(.98)}
+
+/* ---- la commande en cours ----
+   Sombre au milieu d'une page crème : c'est le seul bloc de l'écran qui parle
+   d'un événement en train de se produire, et il doit se distinguer sans crier.
+   Le reflet qui le traverse dit « ça bouge » — animé en transform seul, donc
+   sans coût de mise en page. */
+.hm-suivi{
+  position:relative;overflow:hidden;display:block;
+  margin-bottom:14px;padding:16px 17px;border-radius:24px;
+  background:linear-gradient(128deg,#2A1A2E 0%,#3A2130 52%,#4A2226 100%);
+  color:#fff;box-shadow:0 20px 40px -26px rgba(42,26,46,.9);
+  animation:lvMonte .4s cubic-bezier(.22,1,.36,1);
+}
+.hm-suivi .sheen{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,138,90,.16) 50%,transparent 70%);
+  animation:hmSheen 4.5s ease-in-out infinite;
+}
+@keyframes hmSheen{
+  0%{transform:translateX(-120%)}
+  60%,100%{transform:translateX(220%)}
+}
+.hm-suivi > *{position:relative;z-index:1}
+.hm-suivi{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center}
+.hm-suivi .ic{
+  width:46px;height:46px;border-radius:15px;
+  background:rgba(255,255,255,.12);color:#FFB183;
+  display:grid;place-items:center;
+  animation:hmRoule 2.2s ease-in-out infinite;
+}
+@keyframes hmRoule{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+.hm-suivi .tx{min-width:0}
+.hm-suivi .etat{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:rgba(255,255,255,.7);
+}
+.hm-suivi .etat i{
+  width:7px;height:7px;border-radius:50%;background:#4ADE80;
+  animation:hmBat 1.8s ease-in-out infinite;
+}
+@keyframes hmBat{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.55}}
+.hm-suivi b{
+  display:block;font-size:15.5px;font-weight:750;letter-spacing:-.01em;margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.hm-suivi .det{
+  display:block;font-size:12.5px;color:rgba(255,255,255,.62);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.hm-suivi .go{
+  width:38px;height:38px;border-radius:50%;background:var(--brand);color:#fff;
+  display:grid;place-items:center;
+  box-shadow:0 8px 18px -8px rgba(255,77,45,.9);
+}
+/* La frise occupe toute la largeur sous les trois colonnes. */
+.hm-suivi .frise{grid-column:1/-1;display:flex;gap:5px;margin-top:14px}
+.hm-suivi .frise i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.18)}
+.hm-suivi .frise i.on{background:#FF8A5A}
+@media(prefers-reduced-motion:reduce){
+  .hm-suivi,.hm-suivi .sheen,.hm-suivi .ic,.hm-suivi .etat i{animation:none}
+}
+
+/* ==========================================================================
    VALIDER LA COMMANDE — d'après la maquette 2b
    --------------------------------------------------------------------------
    Un seul écran au lieu d'un formulaire : la position d'abord, la note
