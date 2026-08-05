@@ -13,11 +13,9 @@
 (function (w) {
   'use strict';
 
-  /* Le slogan « Vos plats préférés, livrés chez vous » et son plat en 3D ont
-     quitté l'accueil : une demi-page pour une phrase que personne ne lit deux
-     fois, et qui repoussait le premier restaurant sous la ligne de flottaison.
-     C'est l'adresse de livraison qui ouvre l'écran (maquette 1b). La fonction
-     qui coloriait ce titre n'a donc plus rien à colorier. */
+  /* Le slogan et son plat en 3D ont quitté l'accueil : une demi-page pour une
+     phrase que personne ne lit deux fois. La fonction qui coloriait ce titre
+     n'a donc plus rien à colorier. */
 
   /** Un raccourci : pastille pêche, deux lignes de texte, chevron. */
   function raccourci(icone, l1, l2, href) {
@@ -46,21 +44,15 @@
 
     view.innerHTML = '<div class="home3d">' +
 
-      /* ---------------------------------------------- L'ADRESSE, PAS UN SLOGAN
-         Le héros disait « Vos plats préférés, livrés chez vous » au-dessus d'un
-         plat en 3D : une demi-page pour une phrase que personne ne lit deux
-         fois, et qui repoussait le premier restaurant sous la ligne de
-         flottaison. À la place, la seule information dont on a besoin en
-         ouvrant l'application : où l'on se fait livrer. D'après la maquette 1b.
+      /* Le héros publicitaire est parti (maquette 1b) : une demi-page pour une
+         phrase que personne ne lit deux fois, et qui repoussait le premier
+         restaurant sous la ligne de flottaison.
 
-         Le repère est cliquable et refait la détection — c'est le même geste
-         que le bouton de la barre du haut, à portée de pouce cette fois. */
+         L'adresse de livraison ne le remplace pas non plus : la barre du haut
+         l'annonce déjà et permet de la redétecter. Deux fois le même bouton à
+         quinze centimètres l'un de l'autre, c'est une hésitation offerte à
+         chaque ouverture — la recherche prend la place. */
       '<div class="wrap h3d-body">' +
-        '<button class="hm-ou" id="hmOu">' +
-          '<span class="k">Livrer à</span>' +
-          '<span class="v">' + UI.pin(17) + ' ' + U.esc(ouLabel) +
-            UI.icon('chevron', 15) + '</span>' +
-        '</button>' +
 
         /* ----------------------------------------------------- RECHERCHE */
         '<div class="h3d-search">' +
@@ -172,23 +164,6 @@
     '</div>';
 
     /* ------------------------------------------------------ interactions */
-
-    /* Le repère de l'accueil refait la détection de wilaya, comme celui de la
-       barre du haut. Deux entrées pour le même geste, parce que le pouce ne va
-       pas naturellement en haut de l'écran. */
-    const bo = view.querySelector('#hmOu');
-    if (bo) bo.onclick = async function () {
-      const avant = this.innerHTML;
-      this.innerHTML = '<span class="k">Livrer à</span><span class="v">' +
-        '<span class="spinner dark"></span> Localisation…</span>';
-      const nom = await Store.detectWilaya(true);
-      if (nom) { UI.place(nom); Router.render(); }
-      else {
-        this.innerHTML = avant;
-        UI.err('Position introuvable',
-               'Autorisez la localisation pour que Talabi trouve votre wilaya.');
-      }
-    };
 
     /* ---- la commande en cours, en tête d'accueil ------------------------
        Quatre étapes sur la frise, les mêmes que l'écran de suivi : ce bandeau

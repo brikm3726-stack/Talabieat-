@@ -1349,21 +1349,6 @@ body.lv-open #view > .view-in{animation:none;transform:none}
    Le premier restaurant devient visible sans faire défiler — c'était tout
    l'objet de la maquette.
    ========================================================================== */
-.hm-ou{
-  display:block;width:100%;text-align:left;padding:0 0 12px;
-  background:none;border:none;cursor:pointer;
-}
-.hm-ou .k{
-  display:block;font-size:11.5px;font-weight:600;letter-spacing:.06em;
-  text-transform:uppercase;color:#9A8B7E;
-}
-.hm-ou .v{
-  display:flex;align-items:center;gap:5px;margin-top:2px;
-  font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--ink);
-}
-.hm-ou .v .ico{opacity:.4;margin-left:1px}
-.hm-ou:active .v{transform:scale(.98)}
-
 /* ---- la commande en cours ----
    Sombre au milieu d'une page crème : c'est le seul bloc de l'écran qui parle
    d'un événement en train de se produire, et il doit se distinguer sans crier.
@@ -3875,7 +3860,10 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 /* ---- recherche ---- */
 .h3d-search{
   display:flex;align-items:center;gap:8px;
-  margin:-24px 0 0;position:relative;z-index:3;
+  /* Ce champ remontait de 24 px pour chevaucher le héros et mordre sur le plat
+     en 3D. Le héros parti, il remontait dans le vide et se faisait rogner par
+     la barre du haut : un décalage négatif ne vaut que par ce qu'il chevauche. */
+  margin:0;position:relative;z-index:3;
   background:#fff;border-radius:20px;padding:9px 9px 9px 15px;
   box-shadow:0 2px 6px rgba(196,120,74,.07), 0 18px 38px -22px rgba(196,120,74,.55);
 }
