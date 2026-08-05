@@ -13,13 +13,13 @@
     let mode = 'resto';   // 'resto' | 'dish'
 
     view.innerHTML = '<div class="wrap page">' +
-      Cmp.pageHead('Restaurants', Store.zoneName() ? 'Livraison à ' + Store.zoneName() : 'Toute la ville de Tizi Ouzou',
-        '<button class="btn btn-ghost btn-sm" id="zoneBtn2">' + UI.pin(14) + ' ' + U.esc(Store.zoneName() || 'Mon quartier') + '</button>') +
+      Cmp.pageHead(T('Restaurants'), Store.zoneName() ? 'Livraison à ' + Store.zoneName() : 'Toute la ville de Tizi Ouzou',
+        '<button class="btn btn-ghost btn-sm" id="zoneBtn2">' + UI.pin(14) + ' ' + U.esc(Store.zoneName() || T('Mon quartier')) + '</button>') +
       '<div class="search" style="margin-bottom:12px">' +
         '<input class="input" id="q" placeholder="Restaurant ou plat…" value="' + U.esc(term) + '" autocomplete="off">' +
       '</div>' +
       '<div class="tabs" style="margin-bottom:14px">' +
-        '<button data-mode="resto" class="on">Restaurants</button>' +
+        '<button data-mode="resto" class="on">' + T('Restaurants') + '</button>' +
         '<button data-mode="dish">Plats</button>' +
       '</div>' +
       '<div id="cats"></div>' +
@@ -66,12 +66,12 @@
     async function charger() {
       if (mode === 'dish') {
         if (term.trim().length < 2) {
-          results.innerHTML = UI.empty('🔎', 'Recherchez un plat', 'Saisissez au moins 2 lettres (pizza, tacos, chawarma…).');
+          results.innerHTML = UI.empty('🔎', T('Recherchez un plat'), 'Saisissez au moins 2 lettres (pizza, tacos, chawarma…).');
           return;
         }
         const dishes = await API.safe(() => API.searchDishes(term, null), []);
         if (!dishes.length) {
-          results.innerHTML = UI.empty('🍽️', 'Aucun plat trouvé', 'Essayez un autre mot-clé.');
+          results.innerHTML = UI.empty('🍽️', T('Aucun plat trouvé'), 'Essayez un autre mot-clé.');
           return;
         }
         const catOf = id => Store.categories.find(c => c.id === id) || {};
@@ -165,8 +165,8 @@
 
     const r = await API.safe(() => API.restaurant(params.id), null);
     if (!r) {
-      view.innerHTML = '<div class="wrap page">' + UI.empty('🏪', 'Restaurant introuvable', '',
-        '<a class="btn btn-primary" href="#/restaurants">Voir les restaurants</a>') + '</div>';
+      view.innerHTML = '<div class="wrap page">' + UI.empty('🏪', T('Restaurant introuvable'), '',
+        '<a class="btn btn-primary" href="#/restaurants">' + T('Voir les restaurants') + '</a>') + '</div>';
       return;
     }
 
@@ -201,7 +201,7 @@
             '<span class="dot-sep">🛵 dès ' + U.money(U.deliveryFor(0, Store.settings).fee) + '</span>' +
               '</div>' +
             '</div>' +
-            '<span class="tag ' + (r.open_now ? 'tag-ok' : 'tag-muted') + '">' + (r.open_now ? 'Ouvert' : 'Fermé') + '</span>' +
+            '<span class="tag ' + (r.open_now ? 'tag-ok' : 'tag-muted') + '">' + (r.open_now ? T('Ouvert') : T('Fermé')) + '</span>' +
           '</div>' +
           (r.description ? '<p class="sub" style="margin-top:12px">' + U.esc(r.description) + '</p>' : '') +
           '<div class="divider"></div>' +
@@ -217,14 +217,14 @@
 
         (menu.length
           ? '<div id="menuNav" class="menu-tabs chips"></div><div id="menu" class="stack" style="margin-top:6px"></div>'
-          : '<div style="margin-top:20px">' + UI.empty('📋', 'Menu en préparation', 'Ce restaurant n’a pas encore publié ses plats.') + '</div>') +
+          : '<div style="margin-top:20px">' + UI.empty('📋', T('Menu en préparation'), 'Ce restaurant n’a pas encore publié ses plats.') + '</div>') +
       '</div>';
 
     view.querySelector('#back').onclick = () => Router.back();
 
     if (menu.length) {
       const groups = catsOfMenu.map(c => ({ id: c.id, name: c.name_fr, cat: c, items: menu.filter(m => m.category_id === c.id) }));
-      if (others.length) groups.push({ id: 'other', name: 'Autres', cat: { icon: '🍽️' }, items: others });
+      if (others.length) groups.push({ id: 'other', name: T('Autres'), cat: { icon: '🍽️' }, items: others });
 
       // logo de la catégorie, emoji seulement en repli
       const gIcon = (g, big) => g.cat.image_url
@@ -296,7 +296,7 @@
           : '') +
         (item.description ? '<p class="sub" style="margin-bottom:14px">' + U.esc(item.description) + '</p>' : '') +
         (formats.length
-          ? '<div class="h3" style="margin-bottom:10px">Format</div><div class="stack" style="gap:8px;margin-bottom:16px">' +
+          ? '<div class="h3" style="margin-bottom:10px">' + T('Format') + '</div><div class="stack" style="gap:8px;margin-bottom:16px">' +
             formats.map((v, i) =>
               '<label class="row-between opt-row" style="padding:11px 13px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer">' +
                 '<span class="row" style="gap:10px"><input type="radio" name="fmt" data-fmt="' + i + '"' +
@@ -306,13 +306,13 @@
               '</label>').join('') + '</div>'
           : '<div class="h2 price" style="margin-bottom:14px">' + U.money(item.price) + '</div>') +
         (opts.length
-          ? '<div class="h3" style="margin-bottom:10px">Suppléments <span class="tiny">(facultatif)</span></div>' +
+          ? '<div class="h3" style="margin-bottom:10px">' + T('Suppléments') + ' <span class="tiny">(facultatif)</span></div>' +
             '<div class="stack" style="gap:8px">' +
             opts.map((o, i) =>
               '<label class="row-between" style="padding:11px 13px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer">' +
                 '<span class="row" style="gap:10px"><input type="checkbox" data-opt="' + i + '" style="width:18px;height:18px;accent-color:var(--brand)">' +
                 U.esc(o.name) + '</span>' +
-                '<b class="' + (o.extra_price ? 'price' : 'tiny') + '">' + (o.extra_price ? '+ ' + U.money(o.extra_price) : 'Gratuit') + '</b>' +
+                '<b class="' + (o.extra_price ? 'price' : 'tiny') + '">' + (o.extra_price ? '+ ' + U.money(o.extra_price) : T('Gratuit')) + '</b>' +
               '</label>').join('') + '</div>'
           : ''),
       footer:
@@ -337,7 +337,7 @@
         });
 
         el.querySelector('#add').onclick = async function () {
-          if (!resto.open_now) return UI.err('Restaurant fermé', 'Réouverture à ' + U.hhmm(resto.opens_at));
+          if (!resto.open_now) return UI.err(T('Restaurant fermé'), 'Réouverture à ' + U.hhmm(resto.opens_at));
           const v = formats.length ? formats[vIdx] : null;
           const ok = await Store.addToCart(resto, item, qty,
             chosen().map(o => ({ name: o.name, extra_price: o.extra_price })), v);
@@ -386,7 +386,7 @@
         view.innerHTML =
           '<div class="empty-scene"><div class="wrap">' +
             '<img class="scene-art" src="' + U.asset('assets/img/bg/panier-vide.png') + '" alt="" aria-hidden="true">' +
-            '<div class="h1 scene-title">Votre panier est vide</div>' +
+            '<div class="h1 scene-title">' + T('Votre panier est vide') + '</div>' +
             '<p class="scene-sub">Ajoutez vos plats préférés parmi les meilleurs restaurants de votre ville.</p>' +
             '<div class="scene-cta">' +
               '<a class="btn btn-primary btn-lg" href="#/restaurants">Découvrir les restaurants →</a>' +
@@ -401,7 +401,7 @@
       const below = Store.cart.min_order && t.subtotal < Store.cart.min_order;
 
       view.innerHTML = '<div class="wrap-sm page">' +
-        Cmp.pageHead('Mon panier', Store.cart.restaurant_name || '',
+        Cmp.pageHead(T('Mon panier'), Store.cart.restaurant_name || '',
           '<button class="btn btn-danger btn-sm" id="clear">Vider</button>') +
 
         '<div class="card card-p">' +
@@ -423,7 +423,7 @@
 
         '<div class="card card-p" style="margin-top:14px">' +
           '<div class="oline"><span class="l">Sous-total</span><span>' + U.money(t.subtotal) + '</span></div>' +
-          '<div class="oline"><span class="l">Frais de livraison</span><span>' + U.money(t.delivery_fee) + '</span></div>' +
+          '<div class="oline"><span class="l">' + T('Frais de livraison') + '</span><span>' + U.money(t.delivery_fee) + '</span></div>' +
           '<div class="divider"></div>' +
           '<div class="oline" style="font-size:17px;font-weight:800"><span>Total</span>' +
             '<span class="price">' + U.money(t.total) + '</span></div>' +
@@ -448,7 +448,7 @@
         Store.setQuantity(l.key, l.quantity - 1); paint();
       });
       view.querySelector('#clear').onclick = async () => {
-        if (await UI.confirm('Vider le panier ?', 'Tous les articles seront retirés.', 'Vider', true)) {
+        if (await UI.confirm('Vider le panier ?', 'Tous les articles seront retirés.', T('Vider'), true)) {
           Store.clearCart(); paint();
         }
       };

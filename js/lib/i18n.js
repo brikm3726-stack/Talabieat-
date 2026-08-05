@@ -181,7 +181,23 @@
     'min': 'د',
     'Gratuit': 'مجانا',
     'Ouvert': 'مفتوح',
-    'Fermé': 'مغلق'
+    'Fermé': 'مغلق',
+
+    /* ---- restaurants, plats, panier ---- */
+    'Mon quartier': 'حيّي',
+    'Vider': 'تفريغ',
+    'Autres': 'أخرى',
+    'Aucun plat trouvé': 'ما لقيناش أي طبق',
+    'Menu en préparation': 'القائمة قيد الإعداد',
+    'Recherchez un plat': 'ابحث عن طبق',
+    'Restaurant fermé': 'المطعم مغلق',
+    'Restaurant introuvable': 'المطعم غير موجود',
+    'Voir les restaurants': 'شوف المطاعم',
+    'Votre panier est vide': 'سلّتك فارغة',
+    'Frais de livraison': 'رسوم التوصيل',
+    'Format': 'الحجم',
+    'Suppléments': 'الإضافات',
+    'Ajouter': 'إضافة'
   };
 
   const I18n = {
