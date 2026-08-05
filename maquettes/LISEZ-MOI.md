@@ -30,11 +30,21 @@ change de dossier.
 Il charge React depuis unpkg.com : le fichier a donc besoin d'une
 connexion pour s'afficher.
 
-### Manque encore
+### Le tour 3 — après la commande
 
-L'écran **2c** — l'arrivée du livreur : « J'ai bien reçu ma commande » et la
-note facultative. Il n'est toujours pas dans l'export du 4 août au soir, qui
-s'arrête à 2b. À redemander à Claude Design.
+| Écran | Ce qu'il montre | État |
+|---|---|---|
+| 3a | commande envoyée, minuteur du restaurant, annulation gratuite | à intégrer |
+| 3b | le livreur est arrivé, montant à remettre, réception | **intégré** |
+| 3c | noter la livraison — deux notes séparées, livreur et restaurant | bloqué |
+
+**3b remplace le 2c** qui manquait.
+
+**3c est bloqué côté base**, pas côté écran : `drivers.rating` et
+`restaurants.rating` existent, mais rien ne permet d'écrire un avis — ni table
+des avis, ni fonction pour en enregistrer un. L'intégrer aujourd'hui donnerait
+un écran qui remercie sans rien conserver. Il faut d'abord une table `reviews`
+et la fonction qui recalcule les moyennes.
 
 ### Attention aux chemins d'images
 

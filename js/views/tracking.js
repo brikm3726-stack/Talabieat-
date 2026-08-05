@@ -480,6 +480,20 @@
         };
       },
 
+      /* Le bouton de réception : le même appel que la page de commande, pour
+         qu'un client puisse confirmer d'où il veut. */
+      bind: feuille => {
+        const b = feuille.querySelector('#lvRecu');
+        if (!b) return;
+        b.onclick = async function () {
+          UI.busy(this, true);
+          await API.safe(() => API.confirmReception(o.id));
+          o.client_confirmed = true;
+          UI.ok('Merci !', 'Bon appétit 😋');
+          ecran.repaint();
+        };
+      },
+
       /* Trois raisons pour qu'une carte reste vide, et chacune se répare
          ailleurs que sur cet écran. Les nommer évite au client de conclure
          que l'application est cassée — et de nous appeler pour ça. */
@@ -499,6 +513,56 @@
       },
 
       sheet: () => {
+        /* ============================================ LE LIVREUR EST ARRIVÉ
+           Maquette 3b — l'écran qui manquait, celui de la porte.
+
+           À cent cinquante mètres et la commande récupérée, la feuille change
+           de sujet : il n'y a plus de trajet à suivre, il y a de l'argent à
+           sortir et une porte à ouvrir. Le MONTANT PASSE DEVANT TOUT, avant
+           même le bouton — c'est ce qu'on cherche des yeux en descendant
+           l'escalier, et le chercher dans un récapitulatif à ce moment-là est
+           exactement ce qui fait attendre le livreur en bas.
+
+           L'arrivée n'est pas un statut en base : elle se déduit de la
+           distance, comme les deux étapes de la timeline. Personne ne coche
+           « je suis devant la porte » en portant deux sacs. */
+        const arrive = o.status === 'delivering' && (() => {
+          const t = LiveScreen.trajet(positionLivreur(), client);
+          return t && t.km < 0.15;
+        })();
+
+        if (arrive) {
+          const liv2 = o.driver || {};
+          const f2 = liv2.driver || {};
+          const p2 = (liv2.full_name || '').split(' ')[0];
+          return LiveScreen.grab() +
+            LiveScreen.eta('À remettre en espèces', U.money(o.total),
+              p2 ? p2 + ' est en bas' : 'Votre livreur est en bas') +
+            LiveScreen.note(UI.icon('info', 18),
+              'Il vous attend quelques minutes. Descendez, ou indiquez-lui ' +
+              'comment monter.') +
+            LiveScreen.person({
+              name: liv2.full_name || 'Votre livreur',
+              photo: liv2.avatar_url,
+              meta: [
+                f2.rating ? '<span class="et">★</span>' + U.esc((+f2.rating).toFixed(1)) : '',
+                f2.vehicle ? U.esc({ moto: 'Scooter', voiture: 'Voiture', velo: 'Vélo' }[f2.vehicle] || 'Véhicule') : ''
+              ].filter(Boolean).join(' · '),
+              phone: liv2.phone,
+              sms: liv2.phone
+            }) +
+            /* Le geste de fin, et la seule porte de sortie s'il y a un
+               problème : le support par téléphone, qui existe déjà. On
+               n'invente pas un formulaire de litige qui n'irait nulle part. */
+            (o.client_confirmed
+              ? '<div class="lv-recu">' + UI.icon('check-circle', 20) +
+                ' Réception confirmée · merci !</div>'
+              : LiveScreen.action('J’ai bien reçu ma commande', 'id="lvRecu"')) +
+            '<a class="lv-souci" href="tel:' +
+              U.esc(String(TALABI_CONFIG.SUPPORT_PHONE || '').replace(/\s/g, '')) + '">' +
+              'Un problème avec la commande ?</a>';
+        }
+
         /* Avant le retrait, le livreur doit d'abord passer au restaurant :
            annoncer la seule distance qui le sépare du client donnerait un
            chiffre deux fois trop optimiste.

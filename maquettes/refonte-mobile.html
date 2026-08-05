@@ -23,7 +23,250 @@ a:hover{color:#E03A1B}
 @keyframes tlTrait{from{transform:translateX(-50%) scaleX(0)}to{transform:translateX(-50%) scaleX(1)}}
 @keyframes tlRise{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes tlSheet{from{transform:translateY(64px)}to{transform:translateY(0)}}
+@keyframes tlRing{to{transform:rotate(360deg)}}
 </style></helmet>
+
+<section style="padding:44px 46px 40px;border-bottom:1px solid rgba(0,0,0,.08)" id="t3">
+<div style="display:flex;align-items:baseline;gap:10px;margin:0 0 8px">
+<a href="#t3" style="font:800 10px ui-monospace,Menlo,monospace;padding:4px 8px;background:#2A1A2E;color:#fff;border-radius:5px;letter-spacing:.04em">3</a>
+<span style="font:700 14px Sora,sans-serif;color:#12141A">La fin du parcours — de « Commander » à l'avis</span>
+</div>
+<p style="margin:0 0 30px;max-width:760px;font:400 13.5px/1.65 Inter,sans-serif;color:rgba(18,20,26,.6);text-wrap:pretty">Trois écrans qui prolongent <a href="#2b" style="font:700 11px ui-monospace,Menlo,monospace;padding:2px 6px;background:rgba(0,0,0,.08);color:#12141A;border-radius:4px;text-decoration:none">2b</a> et <a href="#2a" style="font:700 11px ui-monospace,Menlo,monospace;padding:2px 6px;background:rgba(0,0,0,.08);color:#12141A;border-radius:4px;text-decoration:none">2a</a> : l'attente d'acceptation du restaurant, l'arrivée du livreur (l'écran <b>2c</b> qui manquait), puis l'avis. Les trois sont branchés sur le même panier que <a href="#1f" style="font:700 11px ui-monospace,Menlo,monospace;padding:2px 6px;background:rgba(0,0,0,.08);color:#12141A;border-radius:4px;text-decoration:none">1f</a> — le total suit.</p>
+
+<div style="display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start">
+
+<!-- ==================================================== 3a COMMANDE ENVOYÉE -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="3a">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#3a" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">3a</a>Commande envoyée · attente du restaurant</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="flex:none;height:56px"></div>
+  <div style="flex:none;display:flex;align-items:center;gap:10px;padding:4px 16px 10px">
+    <span style="display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:13px;background:#fff;border:1px solid #EBE3D9;font:800 12px ui-monospace,Menlo,monospace"><span style="width:7px;height:7px;border-radius:50%;background:#F5A623;animation:tlPulse 1.6s ease-in-out infinite"></span>#TLB-4821</span>
+    <span style="margin-left:auto;width:40px;height:40px;border-radius:14px;background:#fff;border:1px solid #EBE3D9;display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+  </div>
+
+  <div style="flex:1;overflow:hidden;padding:0 16px 138px">
+    <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px 6px 4px;animation:tlRise .5s ease both">
+      <span style="position:relative;display:grid;place-items:center;width:92px;height:92px;border-radius:50%;background:#fff;border:1px solid #EBE3D9;box-shadow:0 18px 36px -22px rgba(122,62,24,.8)">
+        <span style="position:absolute;inset:-9px;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,77,45,0),#FF4D2D 78%,rgba(255,77,45,0));-webkit-mask-image:radial-gradient(circle,transparent 44px,#000 45px);mask-image:radial-gradient(circle,transparent 44px,#000 45px);animation:tlRing 2.6s linear infinite"></span>
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#FF4D2D" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.4 18 20 6.6"/></svg>
+      </span>
+      <div style="font:800 27px Sora,sans-serif;letter-spacing:-.04em;margin-top:16px">Commande envoyée</div>
+      <p style="margin:7px 0 0;font:500 13.5px/1.5 Inter,sans-serif;color:#7A8291;max-width:290px;text-wrap:pretty">Melyza Food a reçu votre commande. Il lui reste <b style="color:#12141A">4 min 32</b> pour l'accepter.</p>
+    </div>
+
+    <div style="margin-top:20px;padding:16px;border-radius:22px;background:#fff;border:1px solid #EBE3D9;box-shadow:0 1px 2px rgba(16,24,40,.05),0 18px 38px -30px rgba(122,62,24,.7)">
+      <div style="display:flex;align-items:center;gap:11px">
+        <img src="../assets/img/restaurants/melyza-logo.jpg" alt="" style="width:44px;height:44px;flex:none;object-fit:contain;border-radius:14px;background:#fff;padding:3px;border:1px solid #EBE3D9">
+        <div style="flex:1;min-width:0">
+          <div style="font:700 15px Sora,sans-serif">Melyza Food</div>
+          <div style="font:500 12px Inter,sans-serif;color:#7A8291;margin-top:1px">Nouvelle Ville · ferme à 23:30</div>
+        </div>
+        <span style="flex:none;width:40px;height:40px;border-radius:14px;background:#F7EDE4;display:grid;place-items:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#3A404D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span>
+      </div>
+
+      <div style="height:1px;background:#F1E7DC;margin:15px 0 3px"></div>
+
+      <div style="display:flex;gap:13px;padding-top:12px">
+        <div style="flex:none;display:flex;flex-direction:column;align-items:center;padding-top:3px">
+          <span style="width:11px;height:11px;border-radius:50%;background:#FF4D2D;box-shadow:0 0 0 4px rgba(255,77,45,.16)"></span>
+          <span style="width:2px;flex:1;min-height:28px;background:linear-gradient(180deg,#FF4D2D,#F1E7DC)"></span>
+        </div>
+        <div style="flex:1;padding-bottom:14px">
+          <div style="font:700 13.5px Sora,sans-serif">Envoyée au restaurant</div>
+          <div style="font:500 11.5px Inter,sans-serif;color:#7A8291;margin-top:2px">20:41 · à l'instant</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:13px">
+        <div style="flex:none;display:flex;flex-direction:column;align-items:center;padding-top:3px">
+          <span style="position:relative;display:grid;place-items:center;width:11px;height:11px"><span style="position:absolute;width:24px;height:24px;border-radius:50%;background:rgba(245,166,35,.18);animation:tlPulse 2s ease-in-out infinite"></span><span style="position:relative;width:11px;height:11px;border-radius:50%;background:#F5A623"></span></span>
+          <span style="width:2px;flex:1;min-height:28px;background:#F1E7DC"></span>
+        </div>
+        <div style="flex:1;padding-bottom:14px">
+          <div style="font:700 13.5px Sora,sans-serif;color:#B7791F">Acceptation en cours</div>
+          <div style="font:500 11.5px Inter,sans-serif;color:#7A8291;margin-top:2px">Réponse moyenne : 3 min</div>
+          <div style="display:flex;gap:5px;margin-top:9px">
+            <span style="flex:1;height:4px;border-radius:3px;background:#F5A623"></span>
+            <span style="flex:1;height:4px;border-radius:3px;background:#F5A623"></span>
+            <span style="flex:1;height:4px;border-radius:3px;background:#F1E7DC"></span>
+            <span style="flex:1;height:4px;border-radius:3px;background:#F1E7DC"></span>
+            <span style="flex:1;height:4px;border-radius:3px;background:#F1E7DC"></span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:13px">
+        <div style="flex:none;display:flex;flex-direction:column;align-items:center;padding-top:3px">
+          <span style="width:11px;height:11px;border-radius:50%;background:#E7DACB"></span>
+        </div>
+        <div style="flex:1;opacity:.55">
+          <div style="font:700 13.5px Sora,sans-serif">Préparation, puis livreur</div>
+          <div style="font:500 11.5px Inter,sans-serif;color:#7A8291;margin-top:2px">Le livreur le plus proche est prévenu dès l'acceptation</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:15px 16px;border-radius:22px;background:#fff;border:1px solid #EBE3D9">
+      <div style="display:flex;align-items:center;justify-content:space-between;font:500 13px Inter,sans-serif;color:#3A404D"><span style="color:#7A8291">{{ cartCount }} articles · espèces</span><span style="font:800 15px Sora,sans-serif">{{ totalTxt }}</span></div>
+      <div style="display:flex;align-items:flex-start;gap:9px;margin-top:12px;font:500 12.5px/1.45 Inter,sans-serif;color:#7A8291">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FF4D2D" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Cité 20 Logements, Bt B — 3<sup>e</sup> étage, porte à droite</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px 30px;background:linear-gradient(180deg,rgba(247,237,228,0),#F7EDE4 26%)">
+    <span style="display:flex;align-items:center;justify-content:center;gap:10px;padding:17px 20px;border-radius:20px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 15.5px Inter,sans-serif;cursor:pointer;box-shadow:0 14px 30px -12px rgba(255,77,45,.85)">Suivre ma commande<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12h15"/><path d="m13.2 5.4 6.6 6.6-6.6 6.6"/></svg></span>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font:600 12.5px Inter,sans-serif;color:#7A8291"><span style="text-decoration:underline;text-underline-offset:3px;cursor:pointer">Annuler la commande</span><span style="opacity:.6">· gratuit avant l'acceptation</span></div>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">L'écran d'après « Commander ». Le minuteur du restaurant existe déjà en base (<code style="font-size:11px">09_delais.sql</code>) : ici il est visible, avec l'annulation gratuite tant que personne n'a accepté. Statuts et horodatages viennent de <code style="font-size:11px">orders</code>.</p>
+</div>
+
+<!-- ================================================== 3b LE LIVREUR EST ARRIVÉ -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="3b">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#3b" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">3b</a>Le livreur est arrivé · confirmer la réception</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;position:relative;background:#EFE7DC;font-family:Inter,sans-serif;color:#12141A;overflow:hidden">
+
+  <div style="position:absolute;inset:0;background:#E8DFD2;background-image:linear-gradient(0deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),linear-gradient(0deg,rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:132px 132px,132px 132px,44px 44px,44px 44px"></div>
+  <div style="position:absolute;left:-40px;top:96px;width:210px;height:150px;border-radius:18px;background:rgba(160,190,150,.28)"></div>
+  <div style="position:absolute;left:0;right:0;top:206px;height:26px;background:rgba(255,255,255,.9)"></div>
+  <div style="position:absolute;top:0;bottom:0;left:216px;width:26px;background:rgba(255,255,255,.9)"></div>
+
+  <div style="position:absolute;left:50%;top:224px;transform:translateX(-50%);display:grid;place-items:center">
+    <span style="position:absolute;width:132px;height:132px;border-radius:50%;background:rgba(18,183,106,.14);animation:tlPulse 2.4s ease-in-out infinite"></span>
+    <span style="position:absolute;width:86px;height:86px;border-radius:50%;background:rgba(18,183,106,.2)"></span>
+    <span style="position:relative;display:grid;place-items:center;width:60px;height:60px;border-radius:50%;background:#12B76A;color:#fff;box-shadow:0 14px 28px -10px rgba(18,183,106,.9)"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="2.8"/><circle cx="18.5" cy="17.5" r="2.8"/><path d="M8.3 17.5h6.4"/><path d="M5.5 14.7v-2.2a1.8 1.8 0 0 1 1.8-1.8h4.4"/><path d="m17.6 14.6-1.9-7.4"/><path d="M13.9 6.6h3.4"/></svg></span>
+  </div>
+  <span style="position:absolute;left:50%;top:300px;transform:translateX(-50%);padding:6px 12px;border-radius:9px;background:#fff;font:800 11.5px Inter,sans-serif;box-shadow:0 6px 14px -6px rgba(0,0,0,.35)">Devant chez vous</span>
+
+  <div style="position:absolute;top:60px;left:16px;right:16px;display:flex;align-items:center;gap:10px">
+    <span style="width:42px;height:42px;border-radius:15px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);display:grid;place-items:center;box-shadow:0 4px 12px -4px rgba(0,0,0,.25)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#12141A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+    <span style="display:inline-flex;align-items:center;gap:7px;padding:11px 14px;border-radius:15px;background:#12B76A;color:#fff;font:800 12.5px Inter,sans-serif;box-shadow:0 8px 18px -8px rgba(18,183,106,.75)"><span style="width:7px;height:7px;border-radius:50%;background:#fff;animation:tlPulse 1.4s ease-in-out infinite"></span>Livreur arrivé</span>
+  </div>
+
+  <div style="position:absolute;left:16px;right:16px;bottom:22px;background:#fff;border-radius:28px;padding:18px 18px 20px;box-shadow:0 -6px 20px -10px rgba(0,0,0,.18),0 24px 50px -20px rgba(0,0,0,.4);animation:tlSheet .45s ease both">
+    <div style="display:grid;place-items:center;margin:-8px 0 14px"><span style="width:44px;height:5px;border-radius:3px;background:#E7DACB"></span></div>
+
+    <div style="font:800 24px Sora,sans-serif;letter-spacing:-.035em">Karim est en bas</div>
+    <p style="margin:6px 0 0;font:500 13px/1.5 Inter,sans-serif;color:#7A8291">Il attend 5 minutes. Descendez ou faites-le monter au 3<sup>e</sup>.</p>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-top:15px;padding:13px;border-radius:20px;background:#F7EDE4">
+      <span style="width:46px;height:46px;flex:none;border-radius:50%;background:#2A1A2E;color:#fff;display:grid;place-items:center;font:800 15px Sora,sans-serif">KA</span>
+      <div style="flex:1;min-width:0">
+        <div style="font:700 15px Sora,sans-serif">Karim A.</div>
+        <div style="display:flex;align-items:center;gap:5px;font:500 12px Inter,sans-serif;color:#7A8291;margin-top:1px"><span style="color:#F5A623">★</span>4.9 · Scooter jaune · 0661 …</div>
+      </div>
+      <span style="flex:none;width:44px;height:44px;border-radius:15px;background:#12B76A;display:grid;place-items:center;box-shadow:0 8px 18px -8px rgba(18,183,106,.8)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:13px;margin-top:11px;padding:15px 15px;border-radius:20px;background:#2A1A2E;color:#fff">
+      <div style="flex:1">
+        <div style="font:600 10.5px Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6)">À remettre en espèces</div>
+        <div style="font:800 26px Sora,sans-serif;letter-spacing:-.03em;margin-top:3px">{{ totalTxt }}</div>
+      </div>
+      <span style="flex:none;padding:9px 12px;border-radius:13px;background:rgba(255,255,255,.12);font:700 11.5px Inter,sans-serif;text-align:center;line-height:1.35">Reçu<br>disponible</span>
+    </div>
+
+    <sc-if value="{{ notReceived }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <span onClick="{{ confirmReception }}" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding:18px 20px;border-radius:20px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 15.5px Inter,sans-serif;cursor:pointer;box-shadow:0 14px 30px -12px rgba(255,77,45,.85)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.4 18 20 6.6"/></svg>J'ai bien reçu ma commande</span>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:13px;font:600 12.5px Inter,sans-serif;color:#7A8291">
+        <span style="text-decoration:underline;text-underline-offset:3px;cursor:pointer">Il manque un article</span>
+        <span style="width:4px;height:4px;border-radius:50%;background:#D8C9B8"></span>
+        <span style="text-decoration:underline;text-underline-offset:3px;cursor:pointer">Signaler un problème</span>
+      </div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ received }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:12px;margin-top:14px;padding:16px 15px;border-radius:20px;background:#E7F8F0;border:1px solid #B6EBD2;animation:tlRise .4s ease both">
+      <span style="width:38px;height:38px;flex:none;border-radius:13px;background:#12B76A;display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.4 18 20 6.6"/></svg></span>
+      <div style="flex:1;min-width:0">
+        <div style="font:800 14.5px Sora,sans-serif;color:#067647">Réception confirmée</div>
+        <div style="font:500 12px Inter,sans-serif;color:#3F7A62;margin-top:2px">Commande #TLB-4821 · livrée en 26 min</div>
+      </div>
+    </div>
+    </sc-if>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">L'écran 2c qui manquait. Tapez « J'ai bien reçu ma commande » : la feuille passe en confirmé. Le montant exact à sortir est la première information, avant même le bouton — c'est ce qu'on cherche des yeux en descendant.</p>
+</div>
+
+<!-- =========================================================== 3c AVIS -->
+<div style="flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px" id="3c">
+<div style="display:flex;align-items:baseline;gap:9px;font:400 11.5px Inter,sans-serif;color:rgba(0,0,0,.5)">
+<a href="#3c" style="font:800 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.08);color:#12141A;border-radius:5px">3c</a>Noter la livraison</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="402px" height="874px" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F7EDE4;font-family:Inter,sans-serif;color:#12141A">
+  <div style="flex:none;height:56px"></div>
+  <div style="flex:none;display:flex;align-items:center;padding:4px 16px 6px">
+    <span style="margin-left:auto;padding:9px 14px;border-radius:13px;background:#fff;border:1px solid #EBE3D9;font:700 12.5px Inter,sans-serif;color:#7A8291;cursor:pointer">Plus tard</span>
+  </div>
+
+  <div style="flex:1;overflow:hidden;padding:0 16px 138px">
+    <div style="padding:10px 2px 0">
+      <div style="display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;background:#E7F8F0;color:#067647;font:800 11.5px Inter,sans-serif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.4 18 20 6.6"/></svg>Livrée en 26 min</div>
+      <div style="font:800 27px Sora,sans-serif;letter-spacing:-.04em;margin-top:12px;text-wrap:pretty">Comment s'est passée la livraison ?</div>
+      <p style="margin:7px 0 0;font:500 13.5px/1.5 Inter,sans-serif;color:#7A8291;text-wrap:pretty">Deux taps. La note du livreur reste privée, celle du restaurant s'affiche sur sa fiche.</p>
+    </div>
+
+    <div style="margin-top:18px;padding:18px 16px;border-radius:24px;background:#fff;border:1px solid #EBE3D9;box-shadow:0 1px 2px rgba(16,24,40,.05),0 18px 38px -30px rgba(122,62,24,.7)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="width:44px;height:44px;flex:none;border-radius:50%;background:#2A1A2E;color:#fff;display:grid;place-items:center;font:800 14.5px Sora,sans-serif">KA</span>
+        <div style="flex:1;min-width:0">
+          <div style="font:700 15px Sora,sans-serif">Karim A.</div>
+          <div style="font:500 12px Inter,sans-serif;color:#7A8291;margin-top:1px">Votre livreur · Scooter</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:10px;margin-top:16px">
+        <span onClick="{{ rate1 }}" style="cursor:pointer;line-height:0"><svg width="42" height="42" viewBox="0 0 24 24" fill="{{ st1 }}" stroke="{{ st1s }}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2.6 2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 17.45 6.2 20.5l1.1-6.45-4.7-4.6 6.5-.95Z"/></svg></span>
+        <span onClick="{{ rate2 }}" style="cursor:pointer;line-height:0"><svg width="42" height="42" viewBox="0 0 24 24" fill="{{ st2 }}" stroke="{{ st2s }}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2.6 2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 17.45 6.2 20.5l1.1-6.45-4.7-4.6 6.5-.95Z"/></svg></span>
+        <span onClick="{{ rate3 }}" style="cursor:pointer;line-height:0"><svg width="42" height="42" viewBox="0 0 24 24" fill="{{ st3 }}" stroke="{{ st3s }}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2.6 2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 17.45 6.2 20.5l1.1-6.45-4.7-4.6 6.5-.95Z"/></svg></span>
+        <span onClick="{{ rate4 }}" style="cursor:pointer;line-height:0"><svg width="42" height="42" viewBox="0 0 24 24" fill="{{ st4 }}" stroke="{{ st4s }}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2.6 2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 17.45 6.2 20.5l1.1-6.45-4.7-4.6 6.5-.95Z"/></svg></span>
+        <span onClick="{{ rate5 }}" style="cursor:pointer;line-height:0"><svg width="42" height="42" viewBox="0 0 24 24" fill="{{ st5 }}" stroke="{{ st5s }}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2.6 2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 17.45 6.2 20.5l1.1-6.45-4.7-4.6 6.5-.95Z"/></svg></span>
+      </div>
+      <div style="text-align:center;margin-top:10px;font:700 13px Inter,sans-serif;color:#B7791F">{{ ratingTxt }}</div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:14px">
+        <span onClick="{{ toggleRapide }}" style="padding:9px 13px;border-radius:999px;background:{{ cRapideBg }};border:1px solid {{ cRapideLine }};color:{{ cRapideFg }};font:700 12.5px Inter,sans-serif;cursor:pointer">Rapide</span>
+        <span onClick="{{ toggleAimable }}" style="padding:9px 13px;border-radius:999px;background:{{ cAimableBg }};border:1px solid {{ cAimableLine }};color:{{ cAimableFg }};font:700 12.5px Inter,sans-serif;cursor:pointer">Aimable</span>
+        <span onClick="{{ toggleChaud }}" style="padding:9px 13px;border-radius:999px;background:{{ cChaudBg }};border:1px solid {{ cChaudLine }};color:{{ cChaudFg }};font:700 12.5px Inter,sans-serif;cursor:pointer">Repas encore chaud</span>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:16px;border-radius:24px;background:#fff;border:1px solid #EBE3D9">
+      <div style="display:flex;align-items:center;gap:12px">
+        <img src="../assets/img/restaurants/melyza-logo.jpg" alt="" style="width:44px;height:44px;flex:none;object-fit:contain;border-radius:14px;background:#fff;padding:3px;border:1px solid #EBE3D9">
+        <div style="flex:1;min-width:0">
+          <div style="font:700 15px Sora,sans-serif">Melyza Food</div>
+          <div style="font:500 12px Inter,sans-serif;color:#7A8291;margin-top:1px">{{ cartCount }} articles · {{ totalTxt }}</div>
+        </div>
+        <div style="display:flex;gap:4px">
+          <span style="color:#F5A623;font-size:19px">★</span><span style="color:#F5A623;font-size:19px">★</span><span style="color:#F5A623;font-size:19px">★</span><span style="color:#F5A623;font-size:19px">★</span><span style="color:#E7DACB;font-size:19px">★</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:13px;border-radius:16px;background:#F7EDE4;font:500 13px/1.45 Inter,sans-serif;color:#9A8B7E">Un mot sur les plats ? (facultatif)</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px 30px;background:linear-gradient(180deg,rgba(247,237,228,0),#F7EDE4 26%)">
+    <span style="display:flex;align-items:center;justify-content:center;gap:10px;padding:17px 20px;border-radius:20px;background:linear-gradient(135deg,#FF6A3D,#FF3D2E 55%,#E62E5C);color:#fff;font:800 15.5px Inter,sans-serif;cursor:pointer;box-shadow:0 14px 30px -12px rgba(255,77,45,.85)">Envoyer mon avis</span>
+    <div style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;font:600 12.5px Inter,sans-serif;color:#7A8291"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.5 13a9 9 0 1 0 2.6-6.4L3 9"/></svg><span style="text-decoration:underline;text-underline-offset:3px;cursor:pointer">Recommander la même chose</span></div>
+  </div>
+</div>
+</x-import>
+<p style="margin:2px 0 0;max-width:402px;font:400 11.5px/1.5 Inter,sans-serif;color:rgba(0,0,0,.45);text-wrap:pretty">Les étoiles et les compliments réagissent au tap. Deux notes séparées — le livreur et le restaurant — parce qu'un repas froid n'est pas la faute du scooter. « Recommander la même chose » remet le panier de <a href="#1f" style="font:700 11px ui-monospace,Menlo,monospace;padding:2px 6px;background:rgba(0,0,0,.08);color:#12141A;border-radius:4px;text-decoration:none">1f</a> tel quel.</p>
+</div>
+
+</div>
+
+<p style="margin:26px 0 0;font:400 12px/1.6 Inter,sans-serif;color:rgba(0,0,0,.5)">À essayer ensuite : « la même refonte pour l'espace livreur » · « l'écran quand le restaurant refuse la commande » · « <a href="#3c" style="font:700 11px ui-monospace,Menlo,monospace;padding:2px 6px;background:rgba(0,0,0,.08);color:#12141A;border-radius:4px;text-decoration:none">3c</a> en arabe (RTL) comme <a href="#1h" style="font:700 11px ui-monospace,Menlo,monospace;padding:2px 6px;background:rgba(0,0,0,.08);color:#12141A;border-radius:4px;text-decoration:none">1h</a> »</p>
+</section>
 
 <section style="padding:44px 46px 40px;border-bottom:1px solid rgba(0,0,0,.08)" id="t2">
 <div style="display:flex;align-items:baseline;gap:10px;margin:0 0 8px">
@@ -1029,6 +1272,21 @@ class Component extends DCLogic {
       mark: on ? '1' : '0'
     });
     const f0 = sel(s.fmt === 0), f1 = sel(s.fmt === 1), f2 = sel(s.fmt === 2);
+
+    const stars = s.stars || 0;
+    const star = (i) => ({
+      ['st' + i]: i <= stars ? '#F5A623' : 'none',
+      ['st' + i + 's']: i <= stars ? '#F5A623' : '#D8C9B8',
+      ['rate' + i]: () => this.setState({ stars: i })
+    });
+    const chip = (label, key) => {
+      const on = !!s[key];
+      return {
+        ['c' + label + 'Bg']: on ? '#FFF1ED' : '#fff',
+        ['c' + label + 'Line']: on ? '#FF4D2D' : '#EBE3D9',
+        ['c' + label + 'Fg']: on ? '#E03A1B' : '#3A404D'
+      };
+    };
     const oF = sel(s.fromage), oP = sel(s.frites), oS = sel(s.sauce);
 
     return {
@@ -1048,6 +1306,17 @@ class Component extends DCLogic {
       oFromageLine: oF.line, oFromageBg: oF.bg, oFromageFill: oF.fill, oFromageMark: oF.mark,
       oFritesLine: oP.line, oFritesBg: oP.bg, oFritesFill: oP.fill, oFritesMark: oP.mark,
       oSauceLine: oS.line, oSauceBg: oS.bg, oSauceFill: oS.fill, oSauceMark: oS.mark,
+
+      // ---- 3b / 3c : réception et avis ----
+      received: !!s.received,
+      notReceived: !s.received,
+      confirmReception: () => this.setState({ received: true }),
+      ...star(1), ...star(2), ...star(3), ...star(4), ...star(5),
+      ratingTxt: ['Touchez une étoile', 'Décevant', 'Moyen', 'Correct', 'Très bien', 'Parfait, merci Karim !'][stars],
+      ...chip('Rapide', 'rapide'), ...chip('Aimable', 'aimable'), ...chip('Chaud', 'chaud'),
+      toggleRapide: () => this.setState(p => ({ rapide: !p.rapide })),
+      toggleAimable: () => this.setState(p => ({ aimable: !p.aimable })),
+      toggleChaud: () => this.setState(p => ({ chaud: !p.chaud })),
 
       pickSolo: () => this.setState({ fmt: 0 }),
       pickMenu: () => this.setState({ fmt: 1 }),
