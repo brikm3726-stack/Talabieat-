@@ -24,16 +24,6 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "shop.talabi.resto",
-      "sha256_cert_fingerprints": [
-        "64:76:38:5D:D6:57:DA:A1:D7:69:D1:D8:1C:86:DD:DF:37:EF:B0:D3:8C:ED:9E:C8:15:29:4F:8A:20:46:BE:7B"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
       "package_name": "shop.talabi.livreur",
       "sha256_cert_fingerprints": [
         "41:82:16:1D:9C:7A:DB:27:F9:7D:10:9D:72:BE:DD:33:93:78:0E:9F:93:DB:D5:EC:CC:7A:39:5A:61:A0:F4:7E"
