@@ -237,8 +237,24 @@
       };
 
       /* Le retour du téléphone : notre entrée vient d'être dépilée, il n'y a
-         plus rien à dépiler — on ferme, c'est tout. */
-      function surRetour() { empile = false; retirer(); }
+         plus rien à dépiler — on ferme, c'est tout.
+
+         MAIS un panneau peut en ouvrir un autre PAR-DESSUS lui : le
+         formulaire d'adresse ouvre la carte, la carte se referme sur
+         « Confirmer cette position ». Chaque panneau empile son entrée, et
+         popstate est un évènement global : la fermeture de la carte
+         réveillait AUSSI le formulaire du dessous, qui se fermait sans avoir
+         rien enregistré. L'adresse ne changeait jamais, et rien n'indiquait
+         pourquoi — l'écran se contentait de tout refermer.
+
+         La question à poser n'est donc pas « quelqu'un a-t-il reculé ? »
+         mais « est-ce MON entrée qu'on vient de quitter ? ». Si notre entrée
+         est redevenue l'entrée courante, c'est le panneau du dessus qui
+         vient de partir : on est de retour au premier plan, on reste. */
+      function surRetour() {
+        if (w.history.state && w.history.state.talabiSheet === jeton) return;
+        empile = false; retirer();
+      }
       w.addEventListener('popstate', surRetour);
 
       const close = (arg) => {
