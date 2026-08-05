@@ -45,10 +45,14 @@
 --   2. Le rend explicitement à `authenticated` pour les seules fonctions que
 --      l'application appelle vraiment — relevées dans le code, une par une.
 --   3. Les rouages internes (dispatch_order, dispatch_waiting_orders,
---      offre_en_cours, km_entre…) ne sont plus appelables par personne de
+--      km_entre, wallet_write) ne sont plus appelables par personne de
 --      l'extérieur. Les déclencheurs continuent de les utiliser : une
 --      fonction `security definer` s'exécute sous l'identité de son
 --      propriétaire, à qui aucun droit n'a été retiré.
+--   4. Une seule exception, expliquée à sa place : offre_en_cours garde son
+--      droit d'exécution, parce que la règle de lecture des commandes
+--      l'appelle et qu'une telle règle s'évalue avec les droits de celui qui
+--      interroge. La révoquer aurait fait échouer toute lecture de commande.
 --
 --  Sans risque et rejouable. Aucun changement de comportement pour un
 --  utilisateur légitime.
