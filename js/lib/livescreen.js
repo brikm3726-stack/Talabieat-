@@ -607,26 +607,6 @@
       return 'arrivée vers ' + U.time(Date.now() + min * 60000);
     },
 
-    /**
-     * LES CHIFFRES, en petites cases.
-     *
-     * Récupération, temps restant, distance : trois valeurs qu'on lit d'un coup
-     * d'œil et qu'on compare entre elles. En lignes de texte, il faut les
-     * chercher ; en cases alignées, elles se lisent ensemble.
-     *
-     * Une case vide n'est pas affichée : mieux vaut deux chiffres qu'on a que
-     * trois dont un tiret.
-     *
-     * cases : [{ k, v }]
-     */
-    chiffres(cases) {
-      const utiles = (cases || []).filter(c => c && c.v);
-      if (!utiles.length) return '';
-      return '<div class="lv-num">' + utiles.map(c =>
-        '<div><span class="k">' + U.esc(c.k) + '</span>' +
-        '<b>' + U.esc(c.v) + '</b></div>').join('') + '</div>';
-    },
-
     /** Un rappel encadré, sous la personne : l'argent à préparer, une consigne. */
     note(icone, html) {
       return '<div class="lv-note"><span class="ic">' + icone + '</span>' +

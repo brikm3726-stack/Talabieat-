@@ -1062,26 +1062,6 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .lv-tl-e.ici .lv-tl-t{color:var(--brand);font-weight:800}
 .lv-tl-h{font-size:9px;font-weight:700;color:var(--muted);opacity:.75}
 
-/* ---- LES CHIFFRES, en petites cases ----
-   Récupération, temps restant, distance : trois valeurs qu'on compare entre
-   elles. En lignes de texte il faut les chercher ; alignées, elles se lisent
-   ensemble. */
-.lv-num{
-  display:flex;gap:8px;margin-top:14px;
-}
-.lv-num > div{
-  flex:1;min-width:0;padding:9px 10px;border-radius:14px;
-  background:var(--bg);text-align:center;
-}
-.lv-num .k{
-  display:block;font-size:9px;font-weight:700;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--muted);
-}
-.lv-num b{
-  display:block;font-size:14.5px;font-weight:800;margin-top:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-
 /* ---- la personne d'en face ---- */
 .lv-who{
   display:flex;align-items:center;gap:12px;margin-top:18px;

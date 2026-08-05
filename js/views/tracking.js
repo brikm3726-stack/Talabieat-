@@ -359,7 +359,6 @@
     const client = { lat: o.address_lat, lng: o.address_lng };
     let pos = null;                       // dernière position connue du livreur
 
-    const ETAPES = ['Prête', 'Livreur assigné', 'En livraison', 'Livrée'];
 
     const resto = () => o.restaurant && U.hasCoords(o.restaurant)
       ? { lat: +o.restaurant.lat, lng: +o.restaurant.lng } : null;
@@ -500,8 +499,6 @@
       },
 
       sheet: () => {
-        const idx = { driver_assigned: 1, delivering: 2, delivered: 3 }[o.status] || 1;
-
         /* Avant le retrait, le livreur doit d'abord passer au restaurant :
            annoncer la seule distance qui le sépare du client donnerait un
            chiffre deux fois trop optimiste.
@@ -543,20 +540,28 @@
           pos ? 'signal ' + U.esc(U.ago(pos.at)) : 'en attente du signal'
         ].filter(Boolean).join(' · ');
 
+        /* LA FEUILLE DISAIT TROIS FOIS LA MÊME CHOSE.
+           Les minutes restantes en grand, puis « Restant : 47 min » en case ;
+           la distance dans la ligne du haut, puis « Distance » en case ; les
+           quatre segments de la frise, puis les six étapes de la timeline qui
+           les contiennent. La feuille avait fini par couvrir l'écran, et c'est
+           la carte qu'on venait voir.
+
+           Ne reste qu'une occurrence de chaque : le grand chiffre pour le temps
+           et la distance, la timeline en six étapes pour l'avancement — plus
+           précise que les quatre segments, donc c'est elle qui reste. L'heure de
+           récupération rejoint la ligne du haut, où sont déjà les autres
+           heures. */
         return LiveScreen.grab() +
-          /* L'heure d'arrivée rejoint la ligne du haut : « 47 min » se périme
-             dans la tête de celui qui le lit, « vers 20:45 » reste vrai. Les
-             morceaux sont assemblés, jamais concaténés à la main — sinon un
-             morceau vide laisse un séparateur orphelin en tête de ligne. */
+          /* « 47 min » se périme dans la tête de celui qui le lit, « vers
+             20:45 » reste vrai. Les morceaux sont assemblés, jamais concaténés à
+             la main — sinon un morceau vide laisse un séparateur orphelin. */
           LiveScreen.eta(titre, valeur,
-            [apres, LiveScreen.heureArrivee(totalMin)].filter(Boolean).join(' · ')) +
-          LiveScreen.progress(ETAPES, idx) +
+            [apres,
+             LiveScreen.heureArrivee(totalMin),
+             o.delivering_at ? 'récupérée à ' + U.time(o.delivering_at) : ''
+            ].filter(Boolean).join(' · ')) +
           LiveScreen.timeline(jalons(depuis)) +
-          LiveScreen.chiffres([
-            { k: 'Récupérée', v: o.delivering_at ? U.time(o.delivering_at) : '' },
-            { k: 'Restant', v: totalMin ? totalMin + ' min' : '' },
-            { k: 'Distance', v: distanceRestante(depuis) }
-          ]) +
           LiveScreen.person({
             name: liv.full_name || 'Votre livreur',
             photo: liv.avatar_url,
@@ -602,19 +607,6 @@
         fait: faits[i],
         ici: i === encours
       }));
-    }
-
-    /* La distance qui reste vraiment à couvrir : avant le retrait, elle passe
-       par le restaurant. Annoncer la seule distance à vol d'oiseau jusqu'au
-       client donnerait un chiffre deux fois trop optimiste. */
-    function distanceRestante(depuis) {
-      const a = LiveScreen.trajet(depuis, client);
-      if (o.status === 'delivering') return a ? a.texte.replace(' restants', '') : '';
-      const r1 = LiveScreen.trajet(depuis, o.restaurant);
-      const r2 = LiveScreen.trajet(o.restaurant, client);
-      if (!r1 || !r2) return a ? a.texte.replace(' restants', '') : '';
-      const t = r1.km + r2.km;
-      return t < 1 ? Math.round(t * 1000) + ' m' : t.toFixed(1) + ' km';
     }
 
     const off = API.onChange(t => { if (t === 'orders' || t === '*') ecran.repaint(); });
