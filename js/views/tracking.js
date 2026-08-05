@@ -171,17 +171,17 @@
           '<div class="tiny">' + U.dt(o.created_at) + '</div></div>' +
         '</div>' +
 
-        /* ---- bandeau statut ---- */
-        '<div class="card card-p" style="background:var(--brand-grad);color:#fff;border:none">' +
-          '<div style="font-size:32px">' + U.statusIcon(o.status) + '</div>' +
-          '<div class="h2" style="margin-top:8px">' + U.esc(U.statusLabel(o.status)) + '</div>' +
-          '<div style="opacity:.9;font-size:13.5px;margin-top:5px">' + U.esc(eta) + '</div>' +
-          // le client voit le temps qu'il reste au restaurant : il sait qu'il
-          // n'attendra pas indéfiniment, et pourquoi
-          (o.status === 'pending' && o.respond_deadline
-            ? Cmp.countdown(o.respond_deadline, 'Réponse du restaurant sous', 60)
-            : '') +
-        '</div>' +
+        /* ---- bandeau statut ----
+           En attente du restaurant, il cède la place à l'écran 3a : voir
+           `blocEnvoyee`. Un bandeau qui répète « en attente » sans dire ce
+           qu'on attend, ni combien de temps, ni ce qui vient après, laisse le
+           client seul devant une horloge. */
+        (o.status === 'pending' ? blocEnvoyee(o) :
+          '<div class="card card-p" style="background:var(--brand-grad);color:#fff;border:none">' +
+            '<div style="font-size:32px">' + U.statusIcon(o.status) + '</div>' +
+            '<div class="h2" style="margin-top:8px">' + U.esc(U.statusLabel(o.status)) + '</div>' +
+            '<div style="opacity:.9;font-size:13.5px;margin-top:5px">' + U.esc(eta) + '</div>' +
+          '</div>') +
 
         /* ---- livreur + suivi en direct ---- */
         (o.driver ?
@@ -720,6 +720,66 @@
     const off = API.onChange(t => { if (t === 'orders' || t === '*') ecran.repaint(); });
     return () => { off(); ecran.destroy(); };
   }, { auth: true, roles: ['client'] });
+
+  /* ======================================================================
+     COMMANDE ENVOYÉE — maquette 3a
+     ----------------------------------------------------------------------
+     L'écran d'après « Commander ». Il ne remplace aucune donnée : le minuteur
+     de réponse du restaurant existe déjà en base (supabase/09_delais.sql),
+     l'heure d'envoi aussi. Ce qui manquait, c'est de les montrer ensemble.
+
+     Un bandeau « en attente » ne dit ni ce qu'on attend, ni combien de temps,
+     ni ce qui vient après : le client reste seul devant une horloge, et c'est
+     là qu'il appelle le restaurant pour demander si sa commande est passée.
+     Les trois étapes répondent aux trois questions d'un coup.
+     ====================================================================== */
+  function blocEnvoyee(o) {
+    const resto = o.restaurant || {};
+    const etape = (etat, titre, detail, quand) =>
+      '<div class="ev-e ' + etat + '">' +
+        '<span class="p"></span>' +
+        '<span class="tx"><b>' + U.esc(titre) + '</b>' +
+          '<span>' + detail + '</span></span>' +
+        (quand ? '<span class="h">' + U.esc(quand) + '</span>' : '') +
+      '</div>';
+
+    return '<div class="card card-p ev">' +
+      '<div class="ev-haut">' +
+        '<span class="ev-ic">' + UI.icon('check-circle', 30) + '</span>' +
+        '<div class="grow"><div class="h1">Commande envoyée</div>' +
+          '<div class="sub">' + U.esc(resto.name || 'Le restaurant') +
+            ' a reçu votre commande.</div></div>' +
+      '</div>' +
+
+      /* Le compte à rebours de la base, tel quel : c'est lui qui garantit
+         qu'une commande sans réponse ne reste pas en attente toute la soirée. */
+      (o.respond_deadline
+        ? Cmp.countdown(o.respond_deadline, 'Il lui reste', 60)
+        : '') +
+
+      '<div class="ev-steps">' +
+        etape('fait', 'Envoyée au restaurant',
+              U.esc(resto.name || '') +
+              (resto.address ? ' · ' + U.esc(resto.address) : ''),
+              U.time(o.created_at)) +
+        etape('ici', 'Acceptation en cours',
+              'Réponse habituelle : ' +
+              U.respondMinutes(Store.settings) + ' min') +
+        etape('', 'Préparation, puis livreur',
+              'Le livreur le plus proche est prévenu dès l’acceptation') +
+      '</div>' +
+
+      '<div class="ev-pied">' +
+        '<div class="l">' +
+          '<b>' + (o.items ? o.items.length : 0) + ' article' +
+            ((o.items && o.items.length > 1) ? 's' : '') + ' · espèces</b>' +
+          '<span>' + U.esc(o.address_street || '') +
+            (o.address_details ? ' — ' + U.esc(o.address_details) : '') + '</span>' +
+        '</div>' +
+        '<b class="price">' + U.money(o.total) + '</b>' +
+      '</div>' +
+    '</div>';
+  }
 
   /* ======================================================================
      NOTER LA LIVRAISON — maquette 3c

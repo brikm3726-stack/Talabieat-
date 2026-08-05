@@ -187,7 +187,7 @@
         '<div class="ck-bas">' +
           '<div class="ck-delai">' + UI.icon('clock', 14) + ' ' +
             U.esc(Store.cart.restaurant_name || 'Le restaurant') +
-            ' répond sous ' + ((Store.settings && Store.settings.accept_minutes) || 5) + ' minutes</div>' +
+            ' répond sous ' + U.respondMinutes(Store.settings) + ' minutes</div>' +
           '<button class="btn btn-primary btn-block btn-lg ck-cta" id="confirm"' +
             (liv.horsZone ? ' disabled' : '') + '>' +
             (liv.horsZone

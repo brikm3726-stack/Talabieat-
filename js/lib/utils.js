@@ -106,6 +106,20 @@
 
     hhmm(t) { return t ? String(t).slice(0, 5) : ''; },
 
+    /**
+     * Le délai laissé au restaurant pour répondre, en minutes.
+     *
+     * Le réglage est en SECONDES en base (`platform_settings.resto_timeout_s`),
+     * parce que c'est ainsi que le cron le consomme. Deux écrans l'annonçaient
+     * au client en minutes en lisant un `accept_minutes` qui n'existe nulle
+     * part : ils affichaient donc toujours la valeur de repli, et auraient
+     * continué à annoncer cinq minutes même après un changement de réglage.
+     */
+    respondMinutes(settings) {
+      const s = settings && +settings.resto_timeout_s;
+      return s > 0 ? Math.max(1, Math.round(s / 60)) : 5;
+    },
+
     /* --------------------------------------------------------------- divers */
     uid() {
       if (w.crypto && w.crypto.randomUUID) return w.crypto.randomUUID();
