@@ -17,7 +17,7 @@
 
 /* Changer ce numéro à chaque mise en ligne : c'est lui qui déclenche le
    remplacement de l'ancien cache par le nouveau. */
-const VERSION = 'talabi-v107';
+const VERSION = 'talabi-v108';
 
 /* Quatre applications partagent ce fichier (client à la racine, resto/,
    livreur/, admin/). Chacune a son propre service worker de trois lignes qui
@@ -48,7 +48,6 @@ const A_PRECHARGER = [
   R + 'assets/img/icons/icon-192.png',
   R + 'assets/img/icons/icon-512.png',
   R + 'js/lib/apps.js',
-  R + 'js/lib/i18n.js',
   R + 'js/lib/utils.js',
   R + 'js/lib/ui.js',
   R + 'js/lib/backend-supabase.js',

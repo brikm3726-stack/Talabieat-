@@ -161,18 +161,10 @@
                  .map(x => '<a href="#' + x.p + '" class="' + (Shell.isActive(x.p) ? 'on' : '') + '">' +
                    // l'admin gère six rubriques : sans pictogramme, le menu
                    // devient une rangée de mots difficile à balayer
-                   (admin ? UI.icon(x.i, 17) + ' ' : '') + T(x.l) + '</a>').join('') +
+                   (admin ? UI.icon(x.i, 17) + ' ' : '') + x.l + '</a>').join('') +
           '</nav>' +
 
           '<div class="top-actions">' +
-            /* LA BASCULE DE LANGUE, avant tout le reste.
-               Elle porte la langue VERS LAQUELLE on va, pas celle où l'on est :
-               un bouton marqué « FR » quand on lit du français ne dit pas ce
-               qu'il fait. Deux caractères suffisent, et elle reste visible
-               déconnecté — c'est souvent là qu'on en a le plus besoin. */
-            '<button class="icon-btn lang-btn" id="langBtn" title="' +
-              (I18n.rtl ? 'Passer en français' : 'التبديل إلى العربية') + '">' +
-              (I18n.rtl ? 'FR' : 'ع') + '</button>' +
             (Store.isLogged
               /* La sonnerie avait son interrupteur ici, à côté de la cloche des
                  notifications : deux pictogrammes voisins, l'un qui informe et
@@ -202,16 +194,6 @@
         }
         Shell.renderTop();
       };
-      /* Changer de langue redessine tout : les barres, la page ouverte, et le
-         sens de lecture. Rien n'est rechargé depuis le réseau — les textes sont
-         dans le lexique, pas sur le serveur. */
-      const lb = document.getElementById('langBtn');
-      if (lb) lb.onclick = () => {
-        I18n.basculer();
-        Shell.render();
-        Router.render();
-      };
-
       const nb = document.getElementById('notifBtn');
       if (nb) nb.onclick = Shell.notifPanel;
     },
@@ -245,13 +227,13 @@
       if (nav.dataset.signature === signature) return Shell.majNav(items);
 
       nav.innerHTML = items.map(x =>
-        '<a href="#' + x.p + '" title="' + U.esc(T(x.l)) + '">' +
+        '<a href="#' + x.p + '" title="' + U.esc(x.l) + '">' +
           '<span class="ic">' +
             '<span class="cap" aria-hidden="true"></span>' +
             UI.icon(x.i, 23) +
             '<span class="marque"></span>' +
           '</span>' +
-          '<span class="lb">' + U.esc(T(x.c || x.l)) + '</span></a>').join('');
+          '<span class="lb">' + U.esc(x.c || x.l) + '</span></a>').join('');
       nav.dataset.signature = signature;
 
       /* --- onde au doigt, et petite vibration ---------------------------

@@ -13,7 +13,7 @@
 (function (w) {
   'use strict';
 
-  const ROLE_LABEL = { client: T('Client'), restaurant: 'Restaurant', driver: T('Livreur'), admin: T('Administrateur') };
+  const ROLE_LABEL = { client: 'Client', restaurant: 'Restaurant', driver: 'Livreur', admin: 'Administrateur' };
   const VEHICULES = ['moto', 'voiture', 'velo', 'autre'];
   const VEHICULE_ICON = { moto: 'scooter', voiture: 'car', velo: 'bike', autre: 'package' };
 
@@ -41,12 +41,12 @@
         '<div class="stack acc-reglages" style="gap:10px">' +
 
           /* 1 ---- mon compte ---- */
-          porte('#/compte', 'user', T('Mon compte'),
-                T('Vos informations personnelles et votre identité')) +
+          porte('#/compte', 'user', 'Mon compte',
+                'Vos informations personnelles et votre identité') +
 
           /* 2 ---- sécurité ---- */
-          porte('#/securite', 'lock', T('Sécurité'),
-                T('Modifier mon mot de passe, vérifié par email')) +
+          porte('#/securite', 'lock', 'Sécurité',
+                'Modifier mon mot de passe, vérifié par email') +
 
           /* ---- sonnerie ---- */
           (sonnerie
@@ -70,14 +70,14 @@
              fois par an. Ils passent en deux boutons courts, côte à côte. */
           '<div class="card card-p acc-secu acc-aide" style="cursor:default">' +
             '<span class="ic">' + UI.icon('headset', 20) + '</span>' +
-            '<span class="grow"><b>' + T('Assistance') + '</b>' +
-              '<span class="tiny">' + T('Une question, un problème sur une commande') + '</span></span>' +
+            '<span class="grow"><b>Assistance</b>' +
+              '<span class="tiny">Une question, un problème sur une commande</span></span>' +
           '</div>' +
           '<div class="acc-aide-btns">' +
             // le tel: ne supporte pas les espaces du numéro affiché
             '<a class="btn btn-soft btn-sm" href="tel:' +
               U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')) + '">' +
-              UI.icon('phone', 16) + ' ' + T('Nous appeler') + '</a>' +
+              UI.icon('phone', 16) + ' Nous appeler</a>' +
             (TALABI_CONFIG.SUPPORT_EMAIL
               ? '<a class="btn btn-soft btn-sm" href="mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL) + '">' +
                   UI.icon('mail', 16) + ' Nous écrire</a>'
@@ -147,11 +147,11 @@
         '<span class="acc-dots a" aria-hidden="true"></span>' +
         '<div class="wrap-sm page">' +
 
-        entete(T('Informations personnelles')) +
+        entete('Informations personnelles') +
 
         '<form id="pf" class="card card-p stack acc-block">' +
           '<div class="acc-grid">' +
-            UI.imageField('avatar_url', p.avatar_url, T('Photo de profil')) +
+            UI.imageField('avatar_url', p.avatar_url, 'Photo de profil') +
             '<div class="field"><label>Nom complet</label>' +
               '<div class="input-ic"><span>' + UI.icon('user', 17) + '</span>' +
               '<input class="input" name="full_name" value="' + U.esc(p.full_name || '') + '" required></div></div>' +
@@ -165,7 +165,7 @@
                   'Le téléphone de chaque adresse de livraison, lui, reste libre.</div>'
                 : '') +
             '</div>' +
-            Cmp.zoneSelect('zone_id', p.zone_id, p.role === 'driver' ? T('Mon quartier de livraison') : T('Ma zone')) +
+            Cmp.zoneSelect('zone_id', p.zone_id, p.role === 'driver' ? 'Mon quartier de livraison' : 'Ma zone') +
             '<div class="field acc-full"><label>Email</label>' +
               '<div class="input-ic"><span>' + UI.icon('mail', 17) + '</span>' +
               '<input class="input" value="' + U.esc(p.email || '') + '" disabled></div></div>' +
@@ -198,7 +198,7 @@
         (p.role === 'client'
           ? '<div class="card card-p acc-block" style="margin-top:16px">' +
             '<div class="row-between" style="margin-bottom:14px">' +
-              bloc('pin', T('Adresses de livraison')) +
+              bloc('pin', 'Adresses de livraison') +
               '<button class="btn btn-soft btn-sm" id="addAddr">' + UI.icon('plus', 16) +
                 ' Ajouter</button></div>' +
             (addresses.length
@@ -275,7 +275,7 @@
         addressSheet(addresses.find(a => a.id === b.dataset.ae), paint));
 
       view.querySelectorAll('[data-ad]').forEach(b => b.onclick = async () => {
-        if (!(await UI.confirm('Supprimer cette adresse ?', '', T('Supprimer'), true))) return;
+        if (!(await UI.confirm('Supprimer cette adresse ?', '', 'Supprimer', true))) return;
         await API.safe(() => API.deleteAddress(b.dataset.ad));
         UI.ok('Adresse supprimée');
         paint();
@@ -307,7 +307,7 @@
       '<span class="acc-dots a" aria-hidden="true"></span>' +
       '<div class="wrap-sm page">' +
 
-      entete(T('Mon compte')) +
+      entete('Mon compte') +
 
       '<div class="card card-p acc-head">' +
         '<div class="row" style="gap:14px">' +
@@ -319,13 +319,13 @@
       '</div>' +
 
       '<div class="card card-p acc-block" style="margin-top:16px">' +
-        bloc('user', T('Identité')) +
-        ligne('mail', T('Email'), p.email) +
-        ligne('phone', T('Téléphone'), p.phone) +
-        ligne('calendar', T('Compte créé le'), p.created_at ? U.dt(p.created_at) : '') +
-        (d ? ligne('scooter', T('Statut livreur'),
-                   d.validation_status === 'approved' ? T('Validé') :
-                   d.validation_status === 'rejected' ? T('Refusé') : T('En attente de validation')) : '') +
+        bloc('user', 'Identité') +
+        ligne('mail', 'Email', p.email) +
+        ligne('phone', 'Téléphone', p.phone) +
+        ligne('calendar', 'Compte créé le', p.created_at ? U.dt(p.created_at) : '') +
+        (d ? ligne('scooter', 'Statut livreur',
+                   d.validation_status === 'approved' ? 'Validé' :
+                   d.validation_status === 'rejected' ? 'Refusé' : 'En attente de validation') : '') +
       '</div>' +
 
       /* « Informations personnelles » a quitté la liste des réglages pour
@@ -399,10 +399,10 @@
         '<span class="acc-dots a" aria-hidden="true"></span>' +
         '<div class="wrap-sm page">' +
 
-        entete(T('Sécurité')) +
+        entete('Sécurité') +
 
         '<div class="card card-p acc-block">' +
-          bloc('lock', T('Mot de passe')) +
+          bloc('lock', 'Mot de passe') +
 
           (etape === 'demande'
             ? '<p class="sub">Pour changer votre mot de passe, nous envoyons un code à ' +
@@ -509,7 +509,7 @@
   }
 
   async function deconnexion() {
-    if (!(await UI.confirm(T('Se déconnecter ?'), T('Vous devrez vous reconnecter pour continuer.'), T('Déconnexion'), true))) return;
+    if (!(await UI.confirm('Se déconnecter ?', 'Vous devrez vous reconnecter pour continuer.', 'Déconnexion', true))) return;
     UI.busy(this, true, 'Déconnexion…');
     try {
       await API.signOut();
