@@ -1319,6 +1319,151 @@ body.lv-open #view > .view-in{animation:none;transform:none}
   .toast.ok .t-ic path{animation:none;stroke-dashoffset:0}
 }
 
+/* ==========================================================================
+   VALIDER LA COMMANDE — d'après la maquette 2b
+   --------------------------------------------------------------------------
+   Un seul écran au lieu d'un formulaire : la position d'abord, la note
+   ensuite, le paiement, le total. C'est l'ordre dans lequel on se pose les
+   questions — et non l'ordre dans lequel une base de données les stocke.
+
+   Le bouton quitte le bas du document pour une barre qui ne bouge plus : sur
+   un long écran, il fallait faire défiler tout le récapitulatif pour
+   l'atteindre, alors que c'est le seul geste de la page.
+   ========================================================================== */
+.ck-page{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+
+.ck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.ck-back{
+  width:40px;height:40px;flex:none;border-radius:14px;
+  background:#fff;border:1px solid var(--line);color:var(--ink);
+  display:grid;place-items:center;cursor:pointer;
+  transition:transform .16s cubic-bezier(.22,1,.36,1);
+}
+.ck-back:active{transform:scale(.93)}
+.ck-head .h1{font-size:24px;font-weight:850;letter-spacing:-.035em}
+.ck-head .sub{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:1px}
+
+/* ---- la position : la carte devant l'adresse ----
+   Une adresse écrite se vérifie mal ; un repère sur un plan se vérifie d'un
+   coup d'œil. C'est pour ça que la carte passe devant. */
+.ck-lieu{overflow:hidden;border-radius:22px}
+.ck-map{height:158px;background:#E8DFD2}
+.ck-map-vide{
+  display:grid;place-items:center;align-content:center;gap:8px;
+  color:var(--muted);font-size:12.5px;font-weight:600;text-align:center;
+}
+.ck-adr{display:flex;align-items:flex-start;gap:10px;padding:14px 15px}
+.ck-adr .ic{
+  width:34px;height:34px;flex:none;border-radius:11px;
+  background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;
+}
+.ck-adr b{display:block;font-size:14.5px;font-weight:750}
+.ck-adr .tiny{display:block;color:var(--muted);margin-top:2px}
+.ck-changer{
+  flex:none;padding:8px 13px;border-radius:11px;border:none;cursor:pointer;
+  background:var(--bg);color:var(--ink-2);font-size:12px;font-weight:750;
+}
+.ck-changer:active{transform:scale(.95)}
+.ck-liste{padding:0 15px 15px;display:flex;flex-direction:column;gap:9px}
+.ck-vide{padding:16px;text-align:center}
+.ck-vide b{display:block;font-size:15.5px}
+.ck-vide .sub{margin:6px 0 14px}
+
+.ck-bloc{margin-top:12px;border-radius:22px}
+.ck-t{font-size:13px;font-weight:800;letter-spacing:.02em;margin-bottom:10px}
+
+/* ---- la note, et deux réponses toutes faites ----
+   Un rectangle vide ne dit pas ce qu'on y met. Les deux propositions donnent
+   une réponse à écrire, et elles s'ajoutent à ce qui est déjà là. */
+.ck-note{min-height:64px;resize:vertical;background:var(--bg);border-color:transparent}
+.ck-props{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.ck-prop{
+  padding:8px 12px;border-radius:999px;cursor:pointer;
+  background:#fff;border:1px solid var(--line);
+  font-size:11.5px;font-weight:650;color:var(--ink-2);
+  transition:transform .16s ease,border-color .16s ease,color .16s ease;
+}
+.ck-prop:active{transform:scale(.95);border-color:var(--brand);color:var(--brand)}
+
+/* ---- le numéro : un champ qui ne ressemble pas à un champ ----
+   Il est presque toujours déjà rempli et presque jamais modifié. Un encadré
+   gris invitant à écrire attirait l'attention sur la seule ligne qui n'en
+   demandait pas. */
+.ck-tel{display:flex;align-items:center;gap:11px}
+.ck-tel .ic{
+  width:34px;height:34px;flex:none;border-radius:11px;
+  background:var(--bg);color:var(--ink-2);display:grid;place-items:center;
+}
+.ck-num{
+  width:100%;border:none;background:transparent;padding:0;
+  font-size:14.5px;font-weight:750;color:var(--ink);
+}
+.ck-num:focus{outline:none}
+.ck-tel .tiny{display:block;color:var(--muted);margin-top:1px}
+.ck-ok{
+  flex:none;display:inline-flex;align-items:center;gap:5px;
+  padding:6px 10px;border-radius:999px;
+  background:#E7F8F0;color:#067647;font-size:11px;font-weight:800;
+}
+
+/* ---- paiement : ce qui existe, et ce qui viendra ---- */
+.ck-pay{
+  display:flex;align-items:center;gap:11px;
+  padding:12px 13px;border-radius:16px;border:1px solid var(--line);
+  font-size:14px;font-weight:600;
+}
+.ck-pay + .ck-pay{margin-top:8px}
+.ck-pay .ck-radio{
+  width:21px;height:21px;flex:none;border-radius:50%;
+  border:2px solid var(--line);display:grid;place-items:center;
+}
+.ck-pay.on{border:1.5px solid var(--brand);background:#FFF6F3}
+.ck-pay.on .ck-radio{border-color:var(--brand)}
+.ck-pay.on .ck-radio::after{
+  content:'';width:11px;height:11px;border-radius:50%;background:var(--brand);
+}
+.ck-pay.on b{font-size:14px;font-weight:800;color:var(--brand)}
+/* Éteinte plutôt que cachée : un client qui ne voit pas la carte bancaire se
+   demande si Talabi la prend. Marquée « Bientôt », il sait à quoi s'en tenir. */
+.ck-pay.off{opacity:.5}
+.ck-bientot{
+  padding:4px 9px;border-radius:7px;background:var(--bg);
+  font-size:10.5px;font-weight:700;color:var(--muted);
+}
+
+.ck-total .oline{font-size:13.5px}
+.ck-somme{display:flex;align-items:center;justify-content:space-between}
+.ck-somme span:first-child{font-size:16px;font-weight:800}
+.ck-somme .price{font-size:19px;font-weight:800;color:var(--brand)}
+
+/* ---- la barre du bas ----
+   Le dégradé au-dessus n'est pas décoratif : sans lui, le contenu qui défile
+   se coupe net sous le bouton, comme derrière une bande de scotch. */
+/* z-index 71 : au-dessus de la barre de navigation, qui est à 70. Sans ça, le
+   seul bouton de la page passait dessous et devenait à moitié intouchable.
+   Et la navigation s'efface pendant la validation : à cette étape il n'y a
+   qu'une chose à faire, et proposer quatre sorties invite à en changer d'avis
+   pour rien. Les navigateurs sans :has gardent leur barre — le bouton reste
+   au-dessus, donc rien n'est bloqué. */
+body:has(.ck-page) .bottomnav{display:none}
+.ck-bas{
+  position:fixed;left:0;right:0;bottom:0;z-index:71;
+  padding:14px 16px calc(16px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(247,237,228,0),var(--bg) 26%);
+}
+@media(min-width:640px){
+  .ck-bas{left:50%;right:auto;transform:translateX(-50%);width:520px;max-width:100%}
+}
+.ck-delai{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  margin-bottom:10px;font-size:11.5px;font-weight:500;color:var(--muted);
+}
+.ck-cta{
+  border-radius:20px;gap:10px;
+  box-shadow:0 14px 30px -12px rgba(255,77,45,.85);
+}
+.ck-cta:disabled{box-shadow:none}
+
 /* ---------------------------------------------------------------- misc */
 .empty{text-align:center;padding:46px 20px;color:var(--muted)}
 .empty .ic{font-size:44px;margin-bottom:12px;opacity:.65}
