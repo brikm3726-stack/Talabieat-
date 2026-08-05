@@ -583,6 +583,25 @@
       return Array.isArray(r.data) ? r.data[0] : r.data;
     },
 
+    /* SUPPRIMER SON COMPTE.
+       Google Play l'exige depuis 2023 pour toute application où l'on peut
+       créer un compte, et c'est de toute façon un droit.
+
+       Tout se décide dans la base (voir supabase/26_suppression_compte.sql) :
+       elle refuse au milieu d'une commande en cours ou avec du crédit livreur
+       non dépensé, efface les données nominatives, anonymise les commandes
+       passées — les montants restent, les noms partent — puis supprime le
+       compte. Le message rendu est écrit pour être montré tel quel. */
+    async deleteMyAccount() {
+      const r = await sb.rpc('delete_my_account');
+      if (r.error) throw new Error(translate(r.error.message));
+      /* La session pointe désormais vers un compte qui n'existe plus : on la
+         ferme localement, sans appeler le serveur qui ne nous connaît plus. */
+      try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
+      currentUser = null;
+      return String(r.data || 'Compte supprimé.');
+    },
+
     /** L'avis déjà donné sur une commande, s'il y en a un. */
     async myReview(orderId) {
       const r = await sb.from('reviews').select('*').eq('order_id', orderId).maybeSingle();

@@ -350,9 +350,102 @@
       '<div class="acc-logout" style="margin-top:16px">' +
         '<button class="btn btn-block btn-lg" id="logout">' +
           UI.icon('logout', 18) + ' Se déconnecter</button></div>' +
+
+      /* SUPPRIMER SON COMPTE — tout en bas, discret, et jamais caché.
+         Google Play exige ce chemin dans l'application depuis 2023. Le mettre
+         à côté de « Se déconnecter » serait une faute d'ergonomie : les deux
+         boutons ne se ressemblent pas du tout dans leurs conséquences. Il est
+         donc plus bas, en petit, séparé — trouvable par qui le cherche, pas
+         par qui cherche autre chose. */
+      '<div class="center" style="margin-top:22px">' +
+        '<a class="tiny" href="#/supprimer-compte" ' +
+          'style="color:var(--muted);text-decoration:underline">' +
+          'Supprimer mon compte</a></div>' +
     '</div></div>';
 
     view.querySelector('#logout').onclick = deconnexion;
+  }, { auth: true });
+
+  /* ======================================================================
+     SUPPRIMER SON COMPTE
+     ----------------------------------------------------------------------
+     Un écran qui dit la vérité avant d'agir. Ce qui part, ce qui reste, et
+     pourquoi : les commandes passées sont conservées sans nom ni adresse
+     parce qu'elles font la comptabilité de la plateforme et les revenus
+     déclarés des livreurs. Le cacher pour faire plus propre serait mentir sur
+     ce qui se passe vraiment.
+
+     La même opération existe sur une page web publique
+     (talabi.shop/supprimer-compte.html) : Google Play demande les deux, une
+     personne qui a désinstallé l'application doit pouvoir la demander aussi.
+     ====================================================================== */
+  Router.add('/supprimer-compte', async function (params, query, view) {
+    const p = Store.profile || {};
+
+    view.innerHTML = '<div class="account-page"><div class="wrap-sm page">' +
+      entete('Supprimer mon compte') +
+
+      '<div class="card card-p acc-block">' +
+        '<div class="h2">Cette action est définitive</div>' +
+        '<p class="sub" style="margin-top:8px">Votre compte <b>' +
+          U.esc(p.email || p.phone || '') + '</b> sera supprimé et vous serez ' +
+          'déconnecté immédiatement. Vous pourrez recréer un compte plus tard ' +
+          'avec la même adresse email, mais rien ne sera récupéré.</p>' +
+
+        '<div class="divider"></div>' +
+
+        '<div class="h3">Ce qui est effacé</div>' +
+        '<ul class="sub" style="margin:8px 0 0;padding-left:20px;line-height:1.9">' +
+          '<li>Votre nom, votre téléphone et votre photo</li>' +
+          '<li>Vos adresses de livraison enregistrées</li>' +
+          '<li>Vos notifications</li>' +
+          '<li>Votre compte et votre mot de passe</li>' +
+        '</ul>' +
+
+        '<div class="h3" style="margin-top:16px">Ce qui est conservé, sans votre nom</div>' +
+        '<p class="sub" style="margin-top:8px">Les <b>montants et les dates</b> de ' +
+          'vos commandes passées restent dans nos comptes : ils font le chiffre ' +
+          'd’affaires des restaurants et les revenus déclarés des livreurs, que ' +
+          'la loi nous oblige à conserver. Le nom, le téléphone, l’adresse et le ' +
+          'point GPS en sont retirés — ces lignes ne désignent plus personne.</p>' +
+      '</div>' +
+
+      '<div class="card card-p acc-block" style="margin-top:14px">' +
+        '<div class="h3">Deux cas où la suppression est refusée</div>' +
+        '<p class="sub" style="margin-top:8px">Si une <b>commande est en cours</b>, ' +
+          'attendez la fin de la livraison ou annulez-la : un livreur est peut-être ' +
+          'déjà en route. Si vous êtes livreur et qu’il <b>reste du crédit</b> sur ' +
+          'votre compte, contactez-nous d’abord pour le récupérer — c’est votre ' +
+          'argent, il ne doit pas disparaître d’un clic.</p>' +
+      '</div>' +
+
+      '<button class="btn btn-block btn-lg" id="del" ' +
+        'style="margin-top:18px;background:var(--danger);color:#fff;border:none">' +
+        'Supprimer définitivement mon compte</button>' +
+
+      '<div class="center" style="margin-top:14px">' +
+        '<a class="tiny" href="#/compte">Annuler, revenir à mon compte</a></div>' +
+    '</div></div>';
+
+    view.querySelector('#del').onclick = async function () {
+      /* Double confirmation : le bouton rouge ne suffit pas pour un geste
+         irréversible qu'on peut déclencher d'un pouce dans un bus. */
+      if (!(await UI.confirm('Supprimer votre compte ?',
+            'C’est définitif. Vos adresses, votre nom et votre téléphone seront ' +
+            'effacés, et vous serez déconnecté.', 'Supprimer', true))) return;
+
+      UI.busy(this, true, 'Suppression…');
+      try {
+        const message = await API.deleteMyAccount();
+        Store.clearCart(true);
+        await Store.refreshProfile();
+        UI.ok('Compte supprimé', message);
+        Router.go(App.est('client') ? '/' : '/login', true);
+      } catch (e) {
+        UI.busy(this, false);
+        UI.err('Suppression impossible', e.message);
+      }
+    };
   }, { auth: true });
 
   /* ======================================================================

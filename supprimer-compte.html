@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#FF4D2D">
+<meta name="robots" content="index, follow">
+<title>Supprimer mon compte — Talabi</title>
+<meta name="description" content="Supprimez votre compte Talabi et vos données personnelles, directement depuis cette page, sans installer l'application.">
+<link rel="icon" href="assets/img/icons/icon-192.png">
+
+<!-- Cette page est volontairement autonome : ni routeur, ni service worker,
+     ni feuille de style de l'application. Google Play doit pouvoir l'ouvrir
+     telle quelle, et elle doit fonctionner même si l'application a un
+     problème — c'est précisément le jour où quelqu'un veut partir. -->
+<style>
+  :root{
+    --brand:#FF4D2D; --ink:#14161B; --muted:#6B7280; --line:#E7E9EE;
+    --bg:#F7F8FA; --card:#fff; --danger:#DC2626; --ok:#0F9D58;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:620px;margin:0 auto;padding:26px 18px 70px}
+  header.top{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+  header.top img{width:44px;height:44px;border-radius:12px}
+  header.top b{font-size:17px}
+  header.top span{display:block;font-size:12.5px;color:var(--muted)}
+  h1{font-size:26px;line-height:1.25;margin:0 0 10px}
+  h2{font-size:17px;margin:0 0 8px}
+  p{margin:0 0 12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+        padding:20px;margin-bottom:16px}
+  ul{margin:8px 0 0;padding-left:22px}
+  li{margin-bottom:6px}
+  .muted{color:var(--muted);font-size:14px}
+  label{display:block;font-size:13.5px;font-weight:600;margin:14px 0 6px}
+  input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:11px;
+        font-size:16px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:var(--brand)}
+  button{width:100%;padding:14px;border:none;border-radius:11px;font-size:15.5px;
+         font-weight:700;font-family:inherit;cursor:pointer;margin-top:16px}
+  .b-main{background:var(--brand);color:#fff}
+  .b-del{background:var(--danger);color:#fff}
+  .b-ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  button[disabled]{opacity:.55;cursor:default}
+  .note{padding:13px 15px;border-radius:11px;font-size:14px;margin-top:14px}
+  .note.err{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
+  .note.ok{background:#F0FDF4;color:#166534;border:1px solid #BBF7D0}
+  .note.info{background:#F5F7FF;color:#3730A3;border:1px solid #DDE3FF}
+  .hide{display:none}
+  a{color:var(--brand)}
+  footer{text-align:center;font-size:13px;color:var(--muted);margin-top:30px}
+  @media (prefers-color-scheme: dark){
+    :root{--ink:#F3F4F6;--muted:#9CA3AF;--line:#2A2E37;--bg:#12141A;--card:#1A1D24}
+    input{background:#12141A;color:var(--ink)}
+    .note.err{background:#2A1315;color:#FCA5A5;border-color:#4C1D1D}
+    .note.ok{background:#0F2418;color:#86EFAC;border-color:#14532D}
+    .note.info{background:#171A2E;color:#C7D2FE;border-color:#2C3160}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <img src="assets/img/logo.jpg" alt="Talabi">
+    <div><b>Talabi</b><span>Livraison de repas · Tizi Ouzou</span></div>
+  </header>
+
+  <h1>Supprimer mon compte et mes données</h1>
+  <p class="muted">Vous pouvez le faire ici, vous-même, en moins d’une minute.
+     Aucune installation, aucun email à attendre, aucune validation de notre
+     part.</p>
+
+  <div class="card">
+    <h2>Ce qui est effacé</h2>
+    <ul>
+      <li>Votre nom, votre téléphone et votre photo</li>
+      <li>Vos adresses de livraison enregistrées et leurs points GPS</li>
+      <li>Vos notifications</li>
+      <li>Votre compte et votre mot de passe</li>
+    </ul>
+
+    <h2 style="margin-top:20px">Ce qui est conservé, sans votre nom</h2>
+    <p>Les <b>montants et les dates</b> de vos commandes passées restent dans
+       notre comptabilité : ils font le chiffre d’affaires des restaurants et
+       les revenus déclarés des livreurs, que la loi algérienne nous oblige à
+       conserver. Le nom, le téléphone, l’adresse écrite et le point GPS en
+       sont retirés — ces lignes ne désignent plus personne et ne permettent
+       pas de vous retrouver.</p>
+
+    <h2 style="margin-top:20px">Deux cas où la suppression est refusée</h2>
+    <p>Si une <b>commande est en cours</b>, attendez la fin de la livraison ou
+       annulez-la : un livreur est peut-être déjà en route avec votre repas.
+       Si vous êtes <b>livreur et qu’il reste du crédit</b> sur votre compte,
+       écrivez-nous d’abord pour le récupérer — c’est votre argent, il ne doit
+       pas disparaître d’un clic.</p>
+  </div>
+
+  <!-- ÉTAPE 1 : prouver que le compte est bien le sien ---------------------
+       Sans cette preuve, cette page permettrait de supprimer le compte de
+       n'importe qui à partir de son adresse email. -->
+  <div class="card" id="etape-connexion">
+    <h2>1. Connectez-vous à votre compte</h2>
+    <p class="muted">C’est la seule façon de vérifier que ce compte est bien le
+       vôtre.</p>
+
+    <label for="email">Adresse email</label>
+    <input id="email" type="email" inputmode="email" autocomplete="email"
+           placeholder="vous@exemple.com">
+
+    <label for="mdp">Mot de passe</label>
+    <input id="mdp" type="password" autocomplete="current-password"
+           placeholder="Votre mot de passe">
+
+    <button class="b-main" id="btn-connexion">Se connecter</button>
+    <button class="b-ghost" id="btn-google">Continuer avec Google</button>
+
+    <div id="msg-connexion"></div>
+
+    <p class="muted" style="margin-top:16px">Mot de passe oublié ? Ouvrez
+       l’application Talabi et utilisez « Mot de passe oublié » pour en définir
+       un nouveau, puis revenez ici.</p>
+  </div>
+
+  <!-- ÉTAPE 2 : la suppression elle-même -->
+  <div class="card hide" id="etape-suppression">
+    <h2>2. Confirmer la suppression</h2>
+    <p>Vous êtes connecté en tant que <b id="qui"></b>.</p>
+    <p>Pour éviter un geste involontaire, écrivez <b>SUPPRIMER</b> dans le
+       champ ci-dessous.</p>
+
+    <label for="mot">Confirmation</label>
+    <input id="mot" type="text" autocapitalize="characters" autocomplete="off"
+           placeholder="SUPPRIMER">
+
+    <button class="b-del" id="btn-supprimer" disabled>
+      Supprimer définitivement mon compte</button>
+    <button class="b-ghost" id="btn-annuler">Annuler et me déconnecter</button>
+
+    <div id="msg-suppression"></div>
+  </div>
+
+  <!-- ÉTAPE 3 : c'est fait -->
+  <div class="card hide" id="etape-fin">
+    <h2>C’est fait</h2>
+    <div class="note ok" id="msg-fin"></div>
+    <p class="muted" style="margin-top:14px">Votre compte n’existe plus. Vous
+       pouvez en recréer un à tout moment avec la même adresse email — mais
+       rien ne sera récupéré.</p>
+    <button class="b-ghost" onclick="location.href='./'">Retour à Talabi</button>
+  </div>
+
+  <div class="card">
+    <h2>Besoin d’aide, ou d’un solde à récupérer ?</h2>
+    <p class="muted">Écrivez-nous et nous traitons la demande manuellement sous
+       30 jours :
+       <a href="mailto:contacttalabi@gmail.com?subject=Suppression%20de%20mon%20compte%20Talabi">contacttalabi@gmail.com</a></p>
+    <p class="muted" style="margin-bottom:0">Voir aussi notre
+       <a href="confidentialite.html">politique de confidentialité</a>.</p>
+  </div>
+
+  <footer>© <span id="an"></span> Talabi — Tizi Ouzou, Algérie</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+(function () {
+  'use strict';
+  document.getElementById('an').textContent = new Date().getFullYear();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var C = window.TALABI_CONFIG || {};
+  var sb = null;
+
+  function note(ou, type, texte) {
+    $(ou).innerHTML = '<div class="note ' + type + '">' + texte + '</div>';
+  }
+
+  if (!window.supabase || !C.SUPABASE_URL) {
+    note('msg-connexion', 'err',
+      'La connexion au serveur est indisponible. Réessayez dans un instant, ou ' +
+      'écrivez-nous à contacttalabi@gmail.com : nous supprimerons votre compte ' +
+      'manuellement sous 30 jours.');
+    $('btn-connexion').disabled = true;
+    $('btn-google').disabled = true;
+    return;
+  }
+
+  sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+
+  /* Traduction des messages du serveur : cette page peut être la dernière que
+     la personne voit de Talabi, elle ne mérite pas un message en anglais. */
+  function lisible(m) {
+    m = String(m || '');
+    if (/Invalid login credentials/i.test(m)) return 'Email ou mot de passe incorrect.';
+    if (/Email not confirmed/i.test(m)) return 'Ce compte n’a jamais été confirmé par email.';
+    if (/Failed to fetch|NetworkError/i.test(m)) return 'Connexion impossible. Vérifiez votre accès internet.';
+    return m;
+  }
+
+  function montrerSuppression(user) {
+    $('etape-connexion').classList.add('hide');
+    $('etape-suppression').classList.remove('hide');
+    $('qui').textContent = (user && user.email) || 'votre compte';
+  }
+
+  /* Une session peut déjà exister : retour de Google, ou visite précédente. */
+  sb.auth.getSession().then(function (r) {
+    var s = r && r.data && r.data.session;
+    if (s) montrerSuppression(s.user);
+  });
+
+  $('btn-connexion').onclick = async function () {
+    var email = $('email').value.trim(), mdp = $('mdp').value;
+    if (!email || !mdp) return note('msg-connexion', 'err', 'Saisissez votre email et votre mot de passe.');
+    this.disabled = true; this.textContent = 'Connexion…';
+    var r = await sb.auth.signInWithPassword({ email: email, password: mdp });
+    this.disabled = false; this.textContent = 'Se connecter';
+    if (r.error) return note('msg-connexion', 'err', lisible(r.error.message));
+    $('msg-connexion').innerHTML = '';
+    montrerSuppression(r.data.user);
+  };
+
+  $('btn-google').onclick = async function () {
+    note('msg-connexion', 'info', 'Redirection vers Google…');
+    var r = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // on revient sur CETTE page, pas sur l'application
+        redirectTo: location.origin + location.pathname,
+        queryParams: { prompt: 'select_account' }
+      }
+    });
+    if (r.error) note('msg-connexion', 'err', lisible(r.error.message));
+  };
+
+  /* Le mot à écrire : un bouton rouge se touche par accident dans un bus. */
+  $('mot').oninput = function () {
+    $('btn-supprimer').disabled = this.value.trim().toUpperCase() !== 'SUPPRIMER';
+  };
+
+  $('btn-supprimer').onclick = async function () {
+    this.disabled = true; this.textContent = 'Suppression…';
+    var r = await sb.rpc('delete_my_account');
+    if (r.error) {
+      this.disabled = false; this.textContent = 'Supprimer définitivement mon compte';
+      return note('msg-suppression', 'err', lisible(r.error.message));
+    }
+    /* Le compte n'existe plus : la session ne peut être fermée que localement,
+       le serveur ne nous connaît déjà plus. */
+    try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
+    $('etape-suppression').classList.add('hide');
+    $('etape-fin').classList.remove('hide');
+    $('msg-fin').textContent = String(r.data || 'Votre compte a été supprimé.');
+    window.scrollTo(0, 0);
+  };
+
+  $('btn-annuler').onclick = async function () {
+    try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
+    location.href = './';
+  };
+})();
+</script>
+</body>
+</html>
