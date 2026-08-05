@@ -1,14 +1,22 @@
 # Publier Talabi sur Google Play
 
-Les trois applications sont le même site, empaqueté trois fois (Trusted Web
-Activity). Aucun code à réécrire : l'application ouvre `talabi.shop` en plein
-écran, sans barre d'adresse, avec son icône.
+Les applications sont le même site, empaqueté (Trusted Web Activity). Aucun
+code à réécrire : l'application ouvre `talabi.shop` en plein écran, sans barre
+d'adresse, avec son icône. **Elle ne contient rien** — pas une ligne de HTML,
+pas une image. Tout est servi en direct par le site, ce qui veut dire que
+corriger un bug en ligne le corrige dans l'application, sans mise à jour Play.
 
-| Application | Paquet | Ouvre |
-|---|---|---|
-| Talabi | `shop.talabi.client` | `https://talabi.shop/` |
-| Talabi Resto | `shop.talabi.resto` | `https://talabi.shop/resto/` |
-| Talabi Livreur | `shop.talabi.livreur` | `https://talabi.shop/livreur/` |
+| Application | Paquet | Ouvre | À publier |
+|---|---|---|---|
+| Talabi | `shop.talabi.client` | `https://talabi.shop/` | **oui** |
+| Talabi Livreur | `shop.talabi.livreur` | `https://talabi.shop/livreur/` | **oui** |
+| ~~Talabi Resto~~ | `shop.talabi.resto` | `/resto/` | **non — l'espace restaurant a été retiré du projet** |
+
+Le paquet client est déjà construit et signé :
+`Téléchargements/Talabi - Google Play package.zip` → `Talabi.aab` (1,9 Mo),
+paquet `shop.talabi.client`, cible `https://talabi.shop/`, signé avec la clé
+dont l'empreinte est **déjà** dans `assetlinks.json`. Il n'y a rien à
+reconstruire : un TWA ne contient pas le site, seulement son adresse.
 
 ---
 
@@ -42,8 +50,22 @@ Google Play l'exige depuis 2023 pour toute application où l'on peut créer un
 compte : **un moyen de supprimer son compte depuis l'application**, et **une
 adresse web publique** pour le demander sans installer l'application.
 
-Rien de tel n'existe aujourd'hui dans le projet — ni dans les vues, ni dans
-`confidentialite.html`. C'est un motif de refus, pas un détail de confort.
+**C'est fait** (voir `supabase/26_suppression_compte.sql`) :
+
+| Ce que Play demande | Où c'est |
+|---|---|
+| Dans l'application | *Mon compte* → **Supprimer mon compte** (tout en bas) → `#/supprimer-compte` |
+| Adresse web publique | **`https://talabi.shop/supprimer-compte.html`** — connexion email ou Google, puis suppression immédiate |
+| Ce qui est supprimé / conservé | Écrit sur les deux écrans et dans `confidentialite.html` § 6 |
+
+C'est cette adresse `supprimer-compte.html` qu'il faut coller dans Play
+Console → **Contenu de l'app → Suppression du compte**.
+
+Un piège avait été désamorcé au passage : `orders.client_id` était en
+`on delete cascade`, donc supprimer un compte effaçait **toutes ses commandes**
+— le chiffre d'affaires des restaurants et les commissions des livreurs avec.
+Le lien est passé en `on delete set null` : la commande survit à son auteur,
+anonymisée.
 
 ---
 
@@ -110,8 +132,18 @@ Rien de tel n'existe aujourd'hui dans le projet — ni dans les vues, ni dans
 | Élément | Format | État |
 |---|---|---|
 | Icône | 512 × 512 PNG | ✅ `assets/img/icons/icon-512.png` |
-| Bandeau (feature graphic) | 1024 × 500 PNG/JPG | ❌ à créer, obligatoire |
+| Bandeau (feature graphic) | 1024 × 500 PNG/JPG | ✅ `assets/img/store/feature-1024x500.png` |
 | Captures téléphone | 2 minimum, 9:16, 1080 × 1920 | ❌ à faire, une par écran clé |
+
+Le bandeau a été fabriqué à partir du logo carré : logo recadré à gauche,
+« Livraison de repas à Tizi Ouzou » à droite, filet orange en bas. Les
+dimensions sont **exactement** 1024 × 500 — Play refuse tout autre format, et
+le fichier trouvé dans `Téléchargements` sous le nom `1024×500.png` faisait en
+réalité 1600 × 1600.
+
+Les captures d'écran, en revanche, doivent être prises sur un vrai téléphone :
+ouvre `talabi.shop` sur le tien, mets-toi en plein écran, et capture. Une
+capture fabriquée qui ne ressemble pas à l'application est un motif de rejet.
 
 Captures conseillées pour le client : l'accueil, la fiche d'un restaurant, le
 panier, le suivi en direct. Ce sont les quatre écrans qui décident d'un
@@ -132,8 +164,8 @@ inexacte est un motif de retrait :
 | Position précise (GPS) | **livreur** | montrer au client où en est sa commande, attribuer la course la plus proche |
 
 À cocher : données **chiffrées en transit** (tout passe en HTTPS), et
-**l'utilisateur peut demander la suppression de ses données** — ce qui suppose
-la porte de sortie décrite au point 1.
+**l'utilisateur peut demander la suppression de ses données** — la porte de
+sortie du point 1 existe maintenant, `https://talabi.shop/supprimer-compte.html`.
 
 La position du livreur mérite une phrase honnête dans le formulaire : elle
 n'est partagée que pendant une course, et le partage s'arrête quand le livreur
