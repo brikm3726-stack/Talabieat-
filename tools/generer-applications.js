@@ -32,6 +32,13 @@ const APPS = [
        tournent sur les mêmes téléphones, et l'écran de démarrage est ce qu'on
        voit avant tout le reste — il doit dire laquelle des deux s'ouvre. */
     couleur: '#1552B8',
+    /* LE FOND DE L'ÉCRAN DE DÉMARRAGE, DISTINCT DE LA COULEUR DE MARQUE.
+       Android peint cette couleur derrière l'icône pendant qu'il lance
+       l'application, avant que la moindre ligne du site ne s'affiche. Avec le
+       bleu de marque, on voyait donc un aplat bleu, puis d'un coup la photo
+       d'accueil sombre : une cassure à chaque ouverture. En prenant la couleur
+       du fond de cette photo, le passage ne se voit plus. */
+    fond: '#100C09',
     sousTitre: 'Espace livreur'
   },
   {
@@ -99,7 +106,7 @@ for (const a of APPS) {
     scope: './',
     display: 'standalone',
     orientation: 'portrait',
-    background_color: a.couleur,
+    background_color: a.fond || a.couleur,
     theme_color: a.couleur,
     icons: [
       { src: '../assets/img/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

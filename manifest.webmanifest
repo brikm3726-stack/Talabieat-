@@ -8,7 +8,7 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#FF4D2D",
+  "background_color": "#100C09",
   "theme_color": "#FF4D2D",
   "categories": ["food", "shopping", "lifestyle"],
   "icons": [
