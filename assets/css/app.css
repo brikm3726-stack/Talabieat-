@@ -1427,6 +1427,67 @@ body.lv-open #view > .view-in{animation:none;transform:none}
 }
 
 /* ==========================================================================
+   NOTER LA LIVRAISON — d'après la maquette 3c
+   --------------------------------------------------------------------------
+   Deux blocs, deux notes : le livreur, puis le restaurant. Séparés à l'écran
+   comme ils le sont en base — un repas froid n'est pas la faute du scooter.
+   ========================================================================== */
+.av-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
+.av-head .k{
+  font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);
+}
+.av-head .h1{font-size:24px;font-weight:850;letter-spacing:-.03em;margin-top:3px}
+/* « Plus tard » est aussi lisible que « Envoyer » : un écran de notation dont on
+   ne peut pas sortir se fait noter au hasard pour être fermé, et la moyenne ne
+   veut plus rien dire. */
+.av-plus{flex:none;padding:8px 12px;border-radius:12px;background:var(--bg);
+  font-size:12.5px;font-weight:750;color:var(--ink-2)}
+.av-note{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+
+.av-bloc{margin-bottom:12px;border-radius:22px}
+.av-qui{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.av-qui b{display:block;font-size:15px;font-weight:750}
+.av-qui .tiny{display:block;color:var(--muted);margin-top:1px}
+.av-logo{
+  width:48px;height:48px;flex:none;border-radius:15px;
+  background:var(--brand-soft) center/cover no-repeat;color:var(--brand);
+  display:grid;place-items:center;
+}
+
+/* ---- les étoiles ----
+   Grandes et espacées : on les touche du pouce, souvent d'une seule main, en
+   tenant un sac de l'autre. Une étoile de vingt pixels se rate. */
+.av-et{display:flex;gap:6px;justify-content:center}
+.av-et button{
+  border:none;background:none;padding:4px;cursor:pointer;
+  color:var(--cream-line);line-height:0;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1),color .18s ease;
+}
+.av-et button.on{color:#F5A623}
+.av-et button:active{transform:scale(1.18)}
+
+/* ---- les compliments ----
+   Trois mots en un tap. Une note sans mot ne dit pas ce qui était bien, et
+   personne n'écrit un paragraphe sur le pas de sa porte. */
+.av-comps{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.av-comp{
+  padding:9px 14px;border-radius:999px;cursor:pointer;
+  background:#fff;border:1px solid var(--line);
+  font-size:12.5px;font-weight:700;color:var(--ink-2);
+  transition:transform .16s ease,background-color .16s ease,
+             border-color .16s ease,color .16s ease;
+}
+.av-comp.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+.av-comp:active{transform:scale(.95)}
+
+.av-mot{margin-top:14px;min-height:60px;resize:vertical;background:var(--bg);border-color:transparent}
+.av-cta{margin-top:6px}
+@media(prefers-reduced-motion:reduce){
+  .av-et button,.av-comp{transition:none}
+}
+
+/* ==========================================================================
    VALIDER LA COMMANDE — d'après la maquette 2b
    --------------------------------------------------------------------------
    Un seul écran au lieu d'un formulaire : la position d'abord, la note

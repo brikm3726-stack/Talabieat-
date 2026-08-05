@@ -36,15 +36,18 @@ connexion pour s'afficher.
 |---|---|---|
 | 3a | commande envoyée, minuteur du restaurant, annulation gratuite | à intégrer |
 | 3b | le livreur est arrivé, montant à remettre, réception | **intégré** |
-| 3c | noter la livraison — deux notes séparées, livreur et restaurant | bloqué |
+| 3c | noter la livraison — deux notes séparées, livreur et restaurant | **intégré** |
 
 **3b remplace le 2c** qui manquait.
 
-**3c est bloqué côté base**, pas côté écran : `drivers.rating` et
-`restaurants.rating` existent, mais rien ne permet d'écrire un avis — ni table
-des avis, ni fonction pour en enregistrer un. L'intégrer aujourd'hui donnerait
-un écran qui remercie sans rien conserver. Il faut d'abord une table `reviews`
-et la fonction qui recalcule les moyennes.
+**3c est débloqué** : `supabase/22_avis.sql` installe la table des avis, la
+fonction `submit_review` et le déclencheur qui recalcule les moyennes. À
+exécuter dans l'éditeur SQL de Supabase **avant** d'ouvrir l'écran — sans lui,
+l'envoi d'un avis échoue sur une fonction qui n'existe pas.
+
+L'écran s'ouvre de lui-même deux secondes après la confirmation de réception :
+c'est le seul moment où le client a le repas en main et le livreur en tête. Une
+heure plus tard, il ne se souvient plus si c'était chaud.
 
 ### Attention aux chemins d'images
 

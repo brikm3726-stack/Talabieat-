@@ -554,6 +554,33 @@
       return await SB.order(id);
     },
 
+    /* ------------------------------------------------------------- AVIS
+       Un seul appel côté application : la fonction SQL relit la commande pour
+       savoir quel restaurant et quel livreur sont concernés, vérifie que c'est
+       bien la commande de ce client et qu'elle est livrée, puis remplace l'avis
+       s'il en existe déjà un (voir supabase/22_avis.sql).
+
+       Les moyennes se recalculent d'elles-mêmes derrière : rien à faire ici. */
+    async submitReview(orderId, avis) {
+      const a = avis || {};
+      const r = await sb.rpc('submit_review', {
+        p_order: orderId,
+        p_resto_note: a.resto || null,
+        p_driver_note: a.livreur || null,
+        p_compliments: a.compliments || [],
+        p_comment: a.comment || null
+      });
+      if (r.error) throw new Error(translate(r.error.message));
+      return Array.isArray(r.data) ? r.data[0] : r.data;
+    },
+
+    /** L'avis déjà donné sur une commande, s'il y en a un. */
+    async myReview(orderId) {
+      const r = await sb.from('reviews').select('*').eq('order_id', orderId).maybeSingle();
+      if (r.error) { console.warn(r.error.message); return null; }
+      return r.data;
+    },
+
     async confirmReception(id) {
       return unwrap(await sb.from('orders').update({ client_confirmed: true }).eq('id', id).select(ORDER_SELECT).single());
     },

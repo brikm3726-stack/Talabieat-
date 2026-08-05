@@ -521,10 +521,11 @@
           o.client_confirmed = true;
           UI.ok('Merci !', 'Bon appétit 😋');
           ecran.repaint();
-          /* On laisse la confirmation à l'écran deux secondes avant de rendre
-             la main : disparaître à l'instant du geste laisse un doute sur le
-             fait qu'il ait été enregistré. */
-          setTimeout(() => Router.go('/order/' + params.id), 2000);
+          /* On laisse la confirmation à l'écran deux secondes, puis on propose
+             de noter : c'est le seul moment où le client a le repas en main et
+             le livreur en tête. Une heure plus tard, il ne se souvient plus si
+             c'était chaud. */
+          setTimeout(() => Router.go('/avis/' + params.id), 2000);
         };
       },
 
@@ -718,6 +719,149 @@
 
     const off = API.onChange(t => { if (t === 'orders' || t === '*') ecran.repaint(); });
     return () => { off(); ecran.destroy(); };
+  }, { auth: true, roles: ['client'] });
+
+  /* ======================================================================
+     NOTER LA LIVRAISON — maquette 3c
+     ----------------------------------------------------------------------
+     Deux notes séparées, et c'est tout l'intérêt de cet écran : un repas
+     froid n'est pas la faute du scooter, et un livreur charmant ne rattrape
+     pas une pizza ratée. Une note unique mélangeait les deux et ne servait à
+     personne — ni au restaurant, qui ne savait pas ce qu'on lui reprochait,
+     ni au livreur, puni pour une cuisine qu'il n'a pas faite.
+
+     « Plus tard » est aussi visible que « Envoyer » : un écran de notation
+     dont on ne peut pas sortir se fait noter au hasard pour être fermé, et la
+     moyenne ne veut plus rien dire.
+     ====================================================================== */
+  const COMPLIMENTS = ['Rapide', 'Aimable', 'Repas encore chaud'];
+
+  Router.add('/avis/:id', async function (params, query, view) {
+    const o = await API.safe(() => API.order(params.id), null);
+    if (!o) return Router.go('/orders', true);
+    if (o.status !== 'delivered') return Router.go('/order/' + params.id, true);
+
+    /* Un avis déjà donné n'est pas un obstacle : on le recharge pour que le
+       client corrige au lieu de repartir de zéro. */
+    const deja = await API.safe(() => API.myReview(params.id), null);
+    let nResto = (deja && deja.resto_note) || 0;
+    let nLivreur = (deja && deja.driver_note) || 0;
+    let choisis = (deja && deja.compliments) || [];
+
+    const minutes = (o.delivered_at && o.created_at)
+      ? Math.max(1, Math.round((new Date(o.delivered_at) - new Date(o.created_at)) / 60000))
+      : null;
+
+    const etoiles = (n, quoi) =>
+      '<div class="av-et" data-et="' + quoi + '">' +
+        [1, 2, 3, 4, 5].map(i =>
+          '<button type="button" class="' + (i <= n ? 'on' : '') + '" data-n="' + i +
+            '" aria-label="' + i + ' sur 5">' +
+            /* L'étoile est pleine, pas au trait : une étoile en contour se lit
+               mal à trente pixels, et c'est le remplissage qui dit la note. */
+            '<svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">' +
+            '<path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.2-5.9 3.2 1.2-6.5L2.5 9.5l6.6-.9z"/>' +
+            '</svg></button>').join('') +
+      '</div>';
+
+    function paint() {
+      const liv = o.driver || {};
+      const f = (liv.driver) || {};
+      view.innerHTML = '<div class="wrap-sm page av-page">' +
+        '<div class="av-head">' +
+          '<div class="grow">' +
+            '<div class="k">' + (minutes ? 'Livrée en ' + minutes + ' min' : 'Livrée') + '</div>' +
+            '<div class="h1">Comment s’est passée la livraison ?</div>' +
+          '</div>' +
+          '<a class="av-plus" href="#/orders">Plus tard</a>' +
+        '</div>' +
+        '<p class="av-note">Deux taps. La note du livreur reste privée ; celle du ' +
+          'restaurant s’affiche sur sa fiche.</p>' +
+
+        (liv.full_name
+          ? '<div class="card card-p av-bloc">' +
+              '<div class="av-qui">' +
+                '<span class="lv-ini"' +
+                  (liv.avatar_url ? ' style="background-image:url(' + U.escUrl(liv.avatar_url) + ')"' : '') +
+                  '>' + (liv.avatar_url ? '' : U.esc(U.initials(liv.full_name))) + '</span>' +
+                '<div class="grow"><b>' + U.esc(liv.full_name) + '</b>' +
+                  '<span class="tiny">Votre livreur' +
+                  (f.vehicle ? ' · ' + U.esc({ moto: 'Scooter', voiture: 'Voiture', velo: 'Vélo' }[f.vehicle] || 'Véhicule') : '') +
+                  '</span></div>' +
+              '</div>' +
+              etoiles(nLivreur, 'livreur') +
+              '<div class="av-comps">' +
+                COMPLIMENTS.map(c => '<button type="button" class="av-comp' +
+                  (choisis.indexOf(c) >= 0 ? ' on' : '') + '" data-comp="' + U.esc(c) + '">' +
+                  U.esc(c) + '</button>').join('') +
+              '</div>' +
+            '</div>'
+          : '') +
+
+        '<div class="card card-p av-bloc">' +
+          '<div class="av-qui">' +
+            '<span class="av-logo"' +
+              (o.restaurant && o.restaurant.logo_url
+                ? ' style="background-image:url(' + U.escUrl(o.restaurant.logo_url) + ')"' : '') +
+              '>' + (o.restaurant && o.restaurant.logo_url ? '' : UI.icon('dome', 22)) + '</span>' +
+            '<div class="grow"><b>' + U.esc((o.restaurant && o.restaurant.name) || 'Restaurant') + '</b>' +
+              '<span class="tiny">' + (o.items ? o.items.length : 0) + ' article' +
+              ((o.items && o.items.length > 1) ? 's' : '') + ' · ' +
+              U.esc(U.money(o.total)) + '</span></div>' +
+          '</div>' +
+          etoiles(nResto, 'resto') +
+          '<textarea class="input av-mot" id="avMot" rows="2" ' +
+            'placeholder="Un mot sur les plats ? (facultatif)">' +
+            U.esc((deja && deja.comment) || '') + '</textarea>' +
+        '</div>' +
+
+        '<button class="btn btn-primary btn-block btn-lg av-cta" id="avEnvoi">' +
+          'Envoyer mon avis</button>' +
+        '<button class="btn btn-ghost btn-block" id="avRepeat" style="margin-top:10px">' +
+          'Recommander la même chose</button>' +
+      '</div>';
+
+      view.querySelectorAll('.av-et button').forEach(b => b.onclick = () => {
+        const quoi = b.closest('[data-et]').dataset.et;
+        const n = +b.dataset.n;
+        /* Retoucher la même étoile efface la note : sans ça, un tap malheureux
+           ne se reprend pas et on est forcé de noter. */
+        if (quoi === 'resto') nResto = (nResto === n ? 0 : n);
+        else nLivreur = (nLivreur === n ? 0 : n);
+        paint();
+      });
+
+      view.querySelectorAll('[data-comp]').forEach(b => b.onclick = () => {
+        const c = b.dataset.comp;
+        const i = choisis.indexOf(c);
+        if (i >= 0) choisis.splice(i, 1); else choisis.push(c);
+        paint();
+      });
+
+      view.querySelector('#avEnvoi').onclick = async function () {
+        const mot = view.querySelector('#avMot').value.trim();
+        if (!nResto && !nLivreur && !mot && !choisis.length)
+          return UI.err('Rien à envoyer', 'Touchez au moins une étoile.');
+        UI.busy(this, true, 'Envoi…');
+        const r = await API.safe(() => API.submitReview(o.id, {
+          resto: nResto || null, livreur: nLivreur || null,
+          compliments: choisis, comment: mot
+        }), null);
+        if (!r) return UI.busy(this, false);
+        UI.ok('Merci pour votre avis !', 'Il aide le prochain client.');
+        Router.go('/orders');
+      };
+
+      /* « Recommander la même chose » : le panier de la commande, tel quel.
+         C'est le geste le plus fréquent après un bon repas, et il n'existait
+         nulle part — il fallait retrouver le restaurant et tout recomposer. */
+      view.querySelector('#avRepeat').onclick = () => {
+        if (!o.restaurant) return Router.go('/restaurants');
+        Router.go('/resto/' + o.restaurant.id);
+      };
+    }
+
+    paint();
   }, { auth: true, roles: ['client'] });
 
   /* ------------------------------------------------------------ helpers */
