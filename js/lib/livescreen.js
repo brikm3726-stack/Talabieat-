@@ -516,9 +516,6 @@
              place dans le dessin — les mises à jour comptent les tracés dans
              l'ordre, il ne doit jamais en manquer un. */
           const d = LiveScreen.planMemeLieu(e, etapes[i + 1]) ? '' : coude(a, b);
-          /* Le halo passe AVANT le ruban : en SVG le dernier tracé recouvre les
-             précédents, et un halo par-dessus troublerait la couleur pleine. */
-          if (e.vers.on) routes += '<path class="lv-halo" d="' + d + '"/>';
           routes += '<path class="lv-route' + (e.vers.on ? ' on' : '') + '" d="' + d + '"/>';
         }
         if (!a) return;
@@ -583,9 +580,6 @@
         if (a && b && e.vers) {
           const d = LiveScreen.planMemeLieu(e, etapes[i + 1])
             ? '' : LiveScreen.planCoude(a, b);
-          /* Même ordre qu'au dessin — halo puis ruban — sinon on écrirait le
-             tracé de l'un dans l'autre. */
-          if (e.vers.on) { if (traces[it]) traces[it].setAttribute('d', d); it++; }
           if (traces[it]) traces[it].setAttribute('d', d);
           it++;
         }

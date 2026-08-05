@@ -429,8 +429,13 @@
           else voies[garde] = L.polyline(coords, style).addTo(map);
         };
 
+        /* UNE SEULE COULEUR, DEUX OPACITÉS, comme la maquette : le tronçon en
+           cours plein, celui d'après à 22 %. Il était sombre et pointillé —
+           deux traits qui ne se ressemblent pas se lisent comme deux choses
+           différentes, alors que c'est un seul trajet dont une partie n'est pas
+           encore faite. */
         pose('encours', etapes.slice(0, 2), {
-          color: '#FF4D2D', weight: 7, opacity: .9,
+          color: '#FF4D2D', weight: 7, opacity: 1,
           lineCap: 'round', lineJoin: 'round'
         });
         pose('flux', etapes.slice(0, 2), {
@@ -438,8 +443,8 @@
           lineCap: 'round', dashArray: '2 14', className: 'lm-flux'
         });
         pose('apres', etapes.slice(1), {
-          color: '#2A1A2E', weight: 5, opacity: .38,
-          lineCap: 'round', lineJoin: 'round', dashArray: '9 10'
+          color: '#FF4D2D', weight: 7, opacity: .22,
+          lineCap: 'round', lineJoin: 'round'
         });
 
         if (!bornes.length) { map.setView([CITY.lat, CITY.lng], 13); return; }

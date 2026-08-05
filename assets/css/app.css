@@ -884,18 +884,35 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
      Deux tailles de rues : les grandes avenues, et les rues secondaires plus
      étroites et plus pâles. Sans cette hiérarchie, la trame est mécanique. */
-  /* Les rues secondaires étaient à six pixels et à demi-transparence : à cette
-     finesse, chaque bord tombe entre deux pixels et la trame entière vibre —
-     on croit l'image floue alors que c'est le motif qui est trop fin. Bandes
-     plus larges, moins nombreuses, franchement blanches. */
+  /* LA TRAME DE LA MAQUETTE, à ses valeurs exactes.
+     J'avais élargi les bandes pour chasser un scintillement : le remède était
+     pire — de larges rues partout donnent des carreaux, pas une ville. Le
+     dessin d'origine est une grille FINE (un filet tous les 44 px, un plus
+     marqué tous les 132) traversée par DEUX rues larges, une seule dans chaque
+     sens. C'est ce croisement unique qui fait lire un plan : une trame
+     régulière n'est qu'un quadrillage.
+
+     Les deux rues sont deux couches sans répétition, posées à des fractions du
+     cadre — elles se placent donc d'elles-mêmes sur n'importe quelle taille
+     d'écran. */
   background-image:
-    repeating-linear-gradient(0deg,transparent 0 96px,rgba(255,255,255,.96) 96px 112px),
-    repeating-linear-gradient(90deg,transparent 0 108px,rgba(255,255,255,.96) 108px 124px),
-    repeating-linear-gradient(0deg,transparent 0 44px,rgba(255,255,255,.62) 44px 52px),
-    repeating-linear-gradient(90deg,transparent 0 48px,rgba(255,255,255,.62) 48px 56px);
+    linear-gradient(rgba(255,255,255,.9),rgba(255,255,255,.9)),
+    linear-gradient(rgba(255,255,255,.9),rgba(255,255,255,.9)),
+    linear-gradient(0deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),
+    linear-gradient(90deg,rgba(255,255,255,.85) 1.5px,transparent 1.5px),
+    linear-gradient(0deg,rgba(255,255,255,.5) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
+  background-size:
+    100% 26px, 26px 100%,
+    132px 132px, 132px 132px, 44px 44px, 44px 44px;
+  background-position:
+    0 42%, 47% 0,
+    0 0, 0 0, 0 0, 0 0;
+  background-repeat:no-repeat,no-repeat,repeat,repeat,repeat,repeat;
 }
-/* En fond d'écran : plus de cadre, plus de coins arrondis, toute la place. */
-.lv-plan.plein{height:100%;margin:0;border-radius:0}
+/* En fond d'écran : plus de cadre, plus de coins arrondis, toute la place. Les
+   deux rues larges descendent un peu, la feuille couvrant le bas. */
+.lv-plan.plein{height:100%;margin:0;border-radius:0;background-position:0 30%,47% 0,0 0,0 0,0 0,0 0}
 
 /* Le parc et le plan d'eau : deux taches qui font lire « une ville » plutôt
    qu'« un quadrillage ». Posées sous les rues, elles paraissent traversées par
@@ -907,22 +924,21 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 
 /* Le repère du SVG est étiré pour coller au cadre : sans non-scaling-stroke,
    le ruban serait épais dans un sens et fin dans l'autre. */
-.lv-route,.lv-halo{
+.lv-route{
   fill:none;stroke-linecap:round;stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
 }
-/* Le tronçon en cours : rouge plein, à angles droits, sans pointillé. Le
-   mouvement du livreur suffit à dire le sens ; un ruban qui clignote en plus
-   ferait deux choses qui bougent pour une seule information. */
-.lv-route.on{stroke:#F5372B;stroke-width:11}
-/* Ce qui reste après : des points nets plutôt qu'un tiret large et pâle. Un
-   tracé translucide et diffus se lisait comme une bavure, pas comme une
-   intention. */
-.lv-route{stroke:#2A1A2E;stroke-width:6;opacity:.42;stroke-dasharray:1 9}
-/* Le halo décolle le ruban du plan — mais serré. À vingt-deux pixels pour un
-   ruban de onze, ce n'était plus une ombre, c'était un flou : le trait
-   paraissait dédoublé et sale. */
-.lv-halo{stroke:rgba(245,55,43,.13);stroke-width:15;stroke-linecap:butt}
+/* UNE SEULE COULEUR, DEUX OPACITÉS — c'est ainsi que la maquette le fait, et
+   c'est plus juste que ce que j'avais mis.
+
+   J'avais donné au tronçon à venir une autre couleur et des pointillés : deux
+   traits qui ne se ressemblent pas se lisent comme deux choses différentes,
+   alors que c'est un seul trajet dont une partie n'est pas encore faite. Le
+   même orange à 22 % dit exactement cela, sans rien ajouter au vocabulaire. */
+.lv-route.on{stroke:#FF4D2D;stroke-width:7;opacity:1}
+.lv-route{stroke:#FF4D2D;stroke-width:7;opacity:.22}
+/* Plus de halo : le tronçon pâle joue ce rôle bien mieux qu'une ombre floue,
+   qui faisait paraître le trait dédoublé et sale. */
 
 /* ---- les repères du plan ----
    Les lieux sont des CARTES BLANCHES posées sur le plan, pas des gouttes : une
@@ -970,14 +986,24 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
    Lui n'est pas un lieu : c'est quelqu'un qui roule, et le seul élément vivant
    de l'écran. D'où le disque plein, et les deux ondes qui s'en échappent : le
    signe universel d'une position qui s'actualise. */
-.lv-pp.ici{z-index:2;width:44px;height:44px;margin:-22px 0 0 -22px}
+/* Le disque du livreur : 48 px et un scooter de 26, comme la maquette. Il en
+   faisait 44 avec un pictogramme de 25 serré dans un `em` dimensionné pour les
+   carrés des LIEUX — le dessin sortait donc du disque et paraissait coupé.
+   Ici l'`em` ne contraint plus rien : il centre, c'est tout. */
+.lv-pp.ici{z-index:2;width:48px;height:48px;margin:-24px 0 0 -24px}
 .lv-pp.ici i{
-  width:44px;height:44px;padding:0;border-radius:50%;
-  background:#F5372B;color:#fff;
-  box-shadow:0 8px 22px -6px rgba(245,55,43,.85);
+  width:48px;height:48px;padding:0;border-radius:50%;
+  background:#FF4D2D;color:#fff;overflow:visible;
+  box-shadow:0 8px 22px -6px rgba(255,77,45,.85);
 }
-.lv-pp.ici i em{width:auto;height:auto;background:none;color:#fff;border-radius:0}
-.lv-pp.ici i em svg{width:25px;height:25px}
+.lv-pp.ici i em{
+  width:auto;height:auto;background:none;color:#fff;border-radius:0;
+  display:grid;place-items:center;
+}
+.lv-pp.ici i em svg{width:26px;height:26px;display:block}
+/* Les ondes suivent la nouvelle taille du disque, sinon elles naissent
+   décentrées. */
+.lv-pp.ici u{width:48px;height:48px;margin:-24px 0 0 -24px;background:rgba(255,77,45,.26)}
 /* Les ondes : deux disques translucides qui grandissent et s'effacent. Elles
    sont sous le repère, jamais devant — on doit voir le scooter. */
 .lv-pp.ici u{
