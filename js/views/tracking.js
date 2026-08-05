@@ -142,7 +142,21 @@
         return;
       }
 
-      const canCancel = (o.status === 'pending' || o.status === 'accepted');
+      /* ANNULER TANT QU'AUCUN LIVREUR N'A PRIS LA COURSE.
+         C'était limité à « en attente » et « acceptée ». Une commande passée en
+         préparation, ou prête et sans preneur, devenait donc impossible à
+         annuler depuis l'application : le client restait devant un écran qui
+         tourne sans issue, et finissait par appeler le support pour un geste
+         qu'il pouvait faire lui-même. Or rien ne s'y oppose — la politique
+         SQL laisse le client modifier sa commande, et aucun livreur n'a encore
+         engagé de frais ni avancé d'argent.
+
+         Le partage se fait au livreur : dès qu'il est assigné, il a peut-être
+         déjà payé le restaurant de sa poche. À partir de là, l'annulation
+         passe par le support, comme avant. */
+      const sansLivreur = !o.driver_id && !o.driver;
+      const canCancel = sansLivreur &&
+        ['pending', 'accepted', 'preparing', 'ready'].indexOf(o.status) >= 0;
       const eta = etaText(o);
       const hasPos = U.hasCoords({ lat: o.address_lat, lng: o.address_lng });
       const isLive = !!o.driver && ['driver_assigned', 'delivering'].indexOf(o.status) >= 0;
@@ -243,7 +257,15 @@
             ? '<button class="btn btn-ok btn-block btn-lg" id="confirmRecep">✅ J’ai bien reçu ma commande</button>' : '') +
           (o.status === 'delivered' && o.client_confirmed
             ? '<div class="banner banner-ok">🎉 Réception confirmée. Merci d’avoir commandé sur ' + U.esc(TALABI_CONFIG.APP_NAME) + ' !</div>' : '') +
-          (canCancel ? '<button class="btn btn-danger btn-block" id="cancel">Annuler la commande</button>' : '') +
+          /* Le libellé dit POURQUOI c'est encore possible : sans cette
+             précision, un client hésite à toucher un bouton rouge de peur
+             d'être facturé, et attend une livraison qu'il ne veut plus. */
+          (canCancel
+            ? '<button class="btn btn-danger btn-block" id="cancel">' +
+                'Annuler la commande</button>' +
+              '<div class="tiny center" style="margin-top:8px">Gratuit : aucun ' +
+                'livreur n’a encore pris votre commande.</div>'
+            : '') +
           '<a class="btn btn-ghost btn-block" href="#/orders">← Mes commandes</a>' +
         '</div>' +
       '</div>';
