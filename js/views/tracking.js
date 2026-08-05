@@ -177,6 +177,7 @@
            qu'on attend, ni combien de temps, ni ce qui vient après, laisse le
            client seul devant une horloge. */
         (o.status === 'pending' ? blocEnvoyee(o) :
+         sansLivreur && o.status === 'ready' ? blocRecherche(o) :
           '<div class="card card-p" style="background:var(--brand-grad);color:#fff;border:none">' +
             '<div style="font-size:32px">' + U.statusIcon(o.status) + '</div>' +
             '<div class="h2" style="margin-top:8px">' + U.esc(U.statusLabel(o.status)) + '</div>' +
@@ -778,6 +779,80 @@
         '</div>' +
         '<b class="price">' + U.money(o.total) + '</b>' +
       '</div>' +
+    '</div>';
+  }
+
+  /* ======================================================================
+     RECHERCHE D'UN LIVREUR — les deux minutes qui décident de tout
+     ----------------------------------------------------------------------
+     Entre « commande enregistrée » et « livreur trouvé », le client était
+     devant un bandeau immobile qui disait « Prête ». Prête à quoi ? Il ne
+     savait ni qu'on cherchait quelqu'un, ni combien de temps ça prendrait,
+     ni que la course passe d'un livreur au suivant toutes les trente
+     secondes. C'est le moment où il rappelle, ou annule.
+
+     Alors on montre le mécanisme tel qu'il est : un compte à rebours de deux
+     minutes, et le nombre de livreurs déjà sollicités. Le chronomètre n'est
+     pas un délai d'expiration — la recherche continue après — c'est la
+     promesse d'une réponse claire au bout de deux minutes.
+
+     Effet de bord utile : l'horloge de app.js relance expire_orders tant
+     qu'un compte à rebours est à l'écran. Le client qui attend fait donc
+     lui-même avancer la file, même si le planificateur du serveur dort.
+     ====================================================================== */
+  function blocRecherche(o) {
+    const depart = o.search_since || o.created_at;
+    const limite = new Date(new Date(depart).getTime() + 120000).toISOString();
+    const reste  = U.secondsLeft(limite);
+    // declined_by : les livreurs qui ont laissé passer leur tour. Le client n'a
+    // pas à savoir QUI, seulement que la plateforme ne l'a pas oublié.
+    const passes = (o.declined_by || []).length;
+
+    return '<div class="card card-p ev">' +
+      '<div class="ev-haut">' +
+        '<span class="ev-ic">' + UI.icon('scooter', 30) + '</span>' +
+        '<div class="grow"><div class="h1">Recherche d’un livreur</div>' +
+          '<div class="sub">Votre commande est prête à partir. Nous prévenons ' +
+            'le livreur le plus proche du restaurant.</div></div>' +
+      '</div>' +
+
+      (reste > 0
+        ? Cmp.countdown(limite, 'Réponse dans moins de', 30)
+        : '<div class="banner banner-warn" style="margin:12px 0">' +
+            '<div class="grow"><b>La recherche continue.</b> Aucun livreur n’a ' +
+            'encore accepté. Nous continuons d’en solliciter d’autres — vous ' +
+            'pouvez aussi annuler sans frais.</div></div>') +
+
+      '<div class="ev-steps">' +
+        etapeR('fait', 'Commande enregistrée', 'Payable en espèces à la livraison',
+               U.time(o.created_at)) +
+        etapeR('ici', 'Le livreur le plus proche est prévenu',
+               'Il a 30 secondes pour accepter' +
+               (passes ? ' · ' + passes + ' livreur' + (passes > 1 ? 's' : '') +
+                         ' ' + (passes > 1 ? 'ont' : 'a') + ' passé son tour' : '')) +
+        etapeR('', 'Sinon, au suivant',
+               'La course passe au livreur suivant, du plus proche au plus ' +
+               'loin, jusqu’à ce qu’un livreur accepte') +
+      '</div>' +
+
+      '<div class="ev-pied">' +
+        '<div class="l"><b>' + U.esc((o.restaurant && o.restaurant.name) || '') + '</b>' +
+          '<span>' + U.esc(o.address_street || '') +
+            (o.address_details ? ' — ' + U.esc(o.address_details) : '') + '</span>' +
+        '</div>' +
+        '<b class="price">' + U.money(o.total) + '</b>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /* Même rangée que blocEnvoyee : les deux écrans se suivent dans le temps,
+     ils doivent se ressembler à l'œil. */
+  function etapeR(etat, titre, detail, quand) {
+    return '<div class="ev-e ' + etat + '">' +
+      '<span class="p"></span>' +
+      '<span class="tx"><b>' + U.esc(titre) + '</b>' +
+        '<span>' + detail + '</span></span>' +
+      (quand ? '<span class="h">' + U.esc(quand) + '</span>' : '') +
     '</div>';
   }
 

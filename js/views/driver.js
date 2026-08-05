@@ -773,6 +773,20 @@
           '<a class="btn btn-primary" href="#/d">Passer en ligne</a>');
         return;
       }
+      /* LE CRÉDIT À ZÉRO EXCLUT SANS RIEN DIRE.
+         La commission est prélevée à l'acceptation : le serveur ne propose donc
+         aucune course à un livreur dont le solde ne la couvre pas, et
+         claim_order la refuserait de toute façon. Sans ce message, l'écran
+         affichait « Aucune course disponible » — un livreur pouvait attendre
+         toute une soirée en croyant qu'il n'y avait pas de commandes. */
+      if ((d.credit_da || 0) <= 0) {
+        list.innerHTML = UI.empty('💳', 'Crédit épuisé',
+          'La commission est prélevée sur votre crédit quand vous acceptez une ' +
+          'course. Tant que votre solde est à zéro, aucune course ne peut vous ' +
+          'être proposée — même s’il y a des commandes en attente.',
+          '<a class="btn btn-primary" href="#/d/credit">Recharger mon crédit</a>');
+        return;
+      }
 
       /* On sait déjà, deux lignes plus haut, qu'il est validé, en ligne et
          libre : inutile de repasser par sync() et ses deux requêtes toutes

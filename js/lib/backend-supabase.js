@@ -529,7 +529,16 @@
         const d = await SB.getDriver();
         if (!d || d.validation_status !== 'approved') return [];
         q = q.eq('status', 'ready').is('driver_id', null);
-        if (d.zone_id) q = q.eq('zone_id', d.zone_id);
+        /* PAS DE FILTRE PAR QUARTIER.
+           Il y en avait un — `.eq('zone_id', d.zone_id)` — et c'était le
+           deuxième verrou de la même erreur : le quartier d'une commande est
+           celui du CLIENT, celui d'un livreur est celui qu'il a coché à
+           l'inscription. Un livreur de Centre-ville ne voyait donc que les
+           clients de Centre-ville, soit une commande sur onze. Tizi Ouzou fait
+           quelques kilomètres : c'est la distance réelle au restaurant qui
+           décide de l'ordre des propositions (voir supabase/24), pas un
+           quartier déclaré. Ce que le livreur a le droit de voir est déjà
+           tranché par la base, dans la règle de lecture des commandes. */
       }
       if (f.status) q = q.in('status', f.status);
       if (f.restaurant_id) q = q.eq('restaurant_id', f.restaurant_id);
