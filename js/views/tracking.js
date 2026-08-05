@@ -353,7 +353,15 @@
     /* Un suivi n'existe qu'entre l'attribution et la livraison. Avant, il n'y
        a rien à suivre ; après, il n'y a plus rien à voir — et une carte vide
        plein écran, sans retour possible vers le détail, est un piège. */
-    const suivable = o => ['driver_assigned', 'delivering'].indexOf(o.status) >= 0;
+    /* L'ÉCRAN RESTE OUVERT JUSQU'À LA CONFIRMATION.
+       Il se fermait dès que le livreur marquait « livrée » : le client était
+       renvoyé sur la page de commande à la seconde exacte où l'écran d'arrivée
+       — le montant à remettre, le bouton de réception — avait enfin quelque
+       chose à dire. Le seul écran conçu pour ce moment ne s'affichait donc
+       jamais. Il ne se ferme plus qu'une fois la réception confirmée. */
+    const suivable = o =>
+      ['driver_assigned', 'delivering'].indexOf(o.status) >= 0 ||
+      (o.status === 'delivered' && !o.client_confirmed);
     if (!suivable(o)) return Router.go('/order/' + params.id, true);
 
     const client = { lat: o.address_lat, lng: o.address_lng };
@@ -491,6 +499,10 @@
           o.client_confirmed = true;
           UI.ok('Merci !', 'Bon appétit 😋');
           ecran.repaint();
+          /* On laisse la confirmation à l'écran deux secondes avant de rendre
+             la main : disparaître à l'instant du geste laisse un doute sur le
+             fait qu'il ait été enregistré. */
+          setTimeout(() => Router.go('/order/' + params.id), 2000);
         };
       },
 
@@ -526,10 +538,19 @@
            L'arrivée n'est pas un statut en base : elle se déduit de la
            distance, comme les deux étapes de la timeline. Personne ne coche
            « je suis devant la porte » en portant deux sacs. */
-        const arrive = o.status === 'delivering' && (() => {
-          const t = LiveScreen.trajet(positionLivreur(), client);
-          return t && t.km < 0.15;
-        })();
+        /* Deux façons d'être arrivé, et la seconde est la plus fréquente :
+             • le livreur est à moins de cent cinquante mètres — il descend la
+               rue, on peut déjà préparer l'argent ;
+             • il a marqué la commande livrée — il est à la porte, ou déjà
+               reparti, et il ne reste qu'à confirmer.
+           La première dépend d'un GPS qui peut manquer ; la seconde n'en
+           dépend pas, et c'est elle qui garantit que cet écran s'affiche. */
+        const arrive =
+          (o.status === 'delivered' && !o.client_confirmed) ||
+          (o.status === 'delivering' && (() => {
+            const t = LiveScreen.trajet(positionLivreur(), client);
+            return t && t.km < 0.15;
+          })());
 
         if (arrive) {
           const liv2 = o.driver || {};

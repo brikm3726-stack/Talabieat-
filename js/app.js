@@ -269,10 +269,21 @@
     if (OCCUPE.some(p => ici.indexOf(p) === 0)) return;
 
     const list = await API.safe(() => API.orders({ scope: 'client' }), []);
-    const o = list.find(x => ['driver_assigned', 'delivering'].indexOf(x.status) >= 0);
-    if (!o || dejaOuvert(o.id)) return;
+    /* La livraison terminée mais pas encore confirmée compte comme un suivi à
+       ouvrir : c'est l'instant où le client doit remettre l'argent et valider
+       la réception, et c'est justement l'écran qu'il ne trouvait pas. */
+    const o = list.find(x =>
+      ['driver_assigned', 'delivering'].indexOf(x.status) >= 0 ||
+      (x.status === 'delivered' && !x.client_confirmed));
+    if (!o) return;
 
-    noterOuvert(o.id);
+    /* Deux moments distincts dans la vie d'une commande, donc deux mémoires :
+       sans ça, un client qui a suivi son livreur ne verrait jamais s'ouvrir
+       l'écran de réception — la commande étant déjà « déjà ouverte ». */
+    const cle = o.status === 'delivered' ? o.id + ':recu' : o.id;
+    if (dejaOuvert(cle)) return;
+
+    noterOuvert(cle);
     Router.go('/live/' + o.id);
   }
 
