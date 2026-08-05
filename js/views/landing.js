@@ -57,8 +57,8 @@
         /* ----------------------------------------------------- RECHERCHE */
         '<div class="h3d-search">' +
           '<span class="lo">' + UI.icon('search', 20) + '</span>' +
-          '<input id="q" placeholder="Rechercher un restaurant ou un plat…" autocomplete="off">' +
-          '<button class="btn btn-primary" id="goSearch">Rechercher</button>' +
+          '<input id="q" placeholder="' + T('Rechercher un restaurant ou un plat…') + '" autocomplete="off">' +
+          '<button class="btn btn-primary" id="goSearch">' + T('Rechercher') + '</button>' +
         '</div>' +
 
         /* ------------------------------------- LA COMMANDE EN COURS D'ABORD
@@ -72,10 +72,10 @@
 
         /* --------------------------------------------------- RACCOURCIS */
         '<div class="h3d-quick">' +
-          raccourci(UI.icon('utensils', 22), 'Choisis ton', 'restaurant', '#/restaurants') +
-          raccourci(UI.icon('cart', 22), 'Commander', 'maintenant',
+          raccourci(UI.icon('utensils', 22), T('Choisis ton'), T('restaurant'), '#/restaurants') +
+          raccourci(UI.icon('cart', 22), T('Commander'), T('maintenant'),
                     Store.cartCount ? '#/cart' : '#/restaurants') +
-          raccourci(UI.icon('scooter', 22), 'Le livreur', 't’attend',
+          raccourci(UI.icon('scooter', 22), T('Le livreur'), T('t’attend'),
                     isClient ? '#/orders' : App.lien('driver')) +
         '</div>' +
 
@@ -101,9 +101,9 @@
            deux choses différentes, et la note vit déjà sur chaque carte. */
         '<div class="section-head rc-head">' +
           '<span class="rc-head-ic">' + UI.icon('medal', 22) + '</span>' +
-          '<div class="grow"><div class="h2">Restaurants populaires</div>' +
-          '<div class="sub">Livraison à ' + U.esc(ouLabel) + '</div></div>' +
-          '<a class="rc-tout" href="#/restaurants">Tout voir ' +
+          '<div class="grow"><div class="h2">' + T('Restaurants populaires') + '</div>' +
+          '<div class="sub">' + T('Livraison à') + ' ' + U.esc(ouLabel) + '</div></div>' +
+          '<a class="rc-tout" href="#/restaurants">' + T('Tout voir') + ' ' +
             UI.icon('arrow-right', 16) + '</a>' +
         '</div>' +
         '<div id="popular">' + UI.skeletonCards(3) + '</div>' +
@@ -113,18 +113,15 @@
            fait le restaurant, pas ce que fait le client : on lui demandait de
            lire une étape où il n'a rien à faire. */
         '<div class="h3d-steps" id="h3dSteps">' +
-          '<div class="h2">Comment ça marche ?</div>' +
-          '<p class="lead">Trois étapes, et votre repas est en route.</p>' +
+          '<div class="h2">' + T('Comment ça marche ?') + '</div>' +
+          '<p class="lead">' + T('Trois étapes, et votre repas est en route.') + '</p>' +
           '<div class="rail">' +
-            step('1', 'localisation', 'Votre position',
-                 'Autorisez votre localisation et Talabi vous montre aussitôt les ' +
-                 'restaurants les plus proches de vous.') +
-            step('2', 'panier', 'Votre panier',
-                 'Parcourez les menus, ajoutez vos plats et vos suppléments, puis ' +
-                 'validez votre commande en une seule fois.') +
-            step('3', 'livreur', 'Votre livreur',
-                 'Un livreur récupère votre commande et vous l’apporte : suivez-le ' +
-                 'en direct sur la carte et payez à la réception.') +
+            step('1', 'localisation', T('Votre position'),
+                 T('Autorisez votre localisation et Talabi vous montre aussitôt les restaurants les plus proches de vous.')) +
+            step('2', 'panier', T('Votre panier'),
+                 T('Parcourez les menus, ajoutez vos plats et vos suppléments, puis validez votre commande en une seule fois.')) +
+            step('3', 'livreur', T('Votre livreur'),
+                 T('Un livreur récupère votre commande et vous l’apporte : suivez-le en direct sur la carte et payez à la réception.')) +
           '</div>' +
         '</div>' +
 
@@ -145,9 +142,9 @@
           '<div class="tiny" style="color:rgba(255,255,255,.6);margin-top:8px;max-width:320px">' +
             'Plateforme algérienne de livraison de repas. Paiement à la livraison.</div></div>' +
           '<div class="stack" style="gap:6px">' +
-            '<a href="#/restaurants">Restaurants</a>' +
+            '<a href="#/restaurants">' + T('Restaurants') + '</a>' +
             (isClient
-              ? '<a href="#/orders">Mes commandes</a><a href="#/account">Mon compte</a>'
+              ? '<a href="#/orders">' + T('Mes commandes') + '</a><a href="#/account">' + T('Mon compte') + '</a>'
               : '<a href="' + App.lien('driver') + '">Devenir livreur</a>' +
                 '<a href="' + App.lien('restaurant') + '">Inscrire mon restaurant</a>') +
             '<a href="tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')) + '">' +
@@ -276,9 +273,9 @@
       '<b>' + U.esc(valeur) + '</b><span class="lb">' + U.esc(label) + '</span></div>';
 
     view.querySelector('#heroStats').innerHTML =
-      chiffre(UI.icon('store', 20), list.length + '+', 'Restaurants') +
-      chiffre(UI.icon('pin', 20), String(Store.zones.length), 'Quartiers couverts') +
-      chiffre(UI.icon('clock', 20), '25 min', 'Livraison moyenne');
+      chiffre(UI.icon('store', 20), list.length + '+', T('Restaurants')) +
+      chiffre(UI.icon('pin', 20), String(Store.zones.length), T('Quartiers couverts')) +
+      chiffre(UI.icon('clock', 20), '25 min', T('Livraison moyenne'));
   });
 
   /* ---------------------------------------------------------- fragments */

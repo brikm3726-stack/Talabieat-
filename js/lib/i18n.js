@@ -61,6 +61,18 @@
     'Votre position': 'موقعك',
     'Votre panier': 'سلّتك',
     'Votre livreur': 'موزّعك',
+    'Mes commandes': 'طلباتي',
+    'Mon compte': 'حسابي',
+    'Quartiers couverts': 'أحياء مغطاة',
+    'Livraison moyenne': 'متوسّط التوصيل',
+    /* Les trois étapes, en entier : une phrase coupée en morceaux se traduit
+       mal, l'arabe ne place pas ses compléments dans le même ordre. */
+    'Autorisez votre localisation et Talabi vous montre aussitôt les restaurants les plus proches de vous.':
+      'اسمح بتحديد موقعك، و طلبي يوريك دغيا المطاعم القريبة منك.',
+    'Parcourez les menus, ajoutez vos plats et vos suppléments, puis validez votre commande en une seule fois.':
+      'شوف القوائم، زيد أطباقك و الإضافات، ومن بعد أكّد طلبك مرّة واحدة.',
+    'Un livreur récupère votre commande et vous l’apporte : suivez-le en direct sur la carte et payez à la réception.':
+      'الموزّع يجبد طلبك و يجيبه ليك : تبّعه مباشرة على الخريطة و ادفع كي يوصل.',
 
     /* ---- états d'une commande ---- */
     'Commande envoyée': 'تم إرسال الطلب',
