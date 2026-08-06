@@ -491,7 +491,18 @@
        « nous envoyons un code à  » — sans rien — et l'envoi partait avec une
        adresse vide, ce qui échouait avec un message en anglais. */
     const adresse = (p.email || '').trim() || API.email() || '';
-    let etape = 'demande';        // demande → code
+
+    /* DEUX CHEMINS, ET LE PLUS SIMPLE D'ABORD.
+       Il n'y avait que celui de l'email : un code envoyé, à ressaisir. C'est le
+       bon chemin quand on a oublié son mot de passe — mais quand on le connaît,
+       il oblige à attendre un email pour prouver ce qu'on vient de prouver en
+       se connectant.
+
+       Surtout, il dépendait d'un serveur SMTP extérieur. Le jour où celui-ci a
+       refusé les identifiants (erreur 535), plus personne ne pouvait changer de
+       mot de passe : l'unique porte passait par un service en panne. Le chemin
+       « mot de passe actuel » ne dépend de rien d'autre que de la base. */
+    let voie = 'actuel';          // actuel | demande → code
 
     function paint() {
       view.innerHTML = '<div class="account-page">' +
@@ -503,7 +514,30 @@
         '<div class="card card-p acc-block">' +
           bloc('lock', 'Mot de passe') +
 
-          (etape === 'demande'
+          (voie === 'actuel'
+            ? '<p class="sub">Saisissez votre mot de passe actuel, puis le nouveau. ' +
+                'Aucun email n’est nécessaire.</p>' +
+              '<form id="af" class="stack" style="margin-top:14px" novalidate>' +
+                '<div class="field"><label>Mot de passe actuel</label>' +
+                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
+                  '<input class="input" type="password" name="actuel" ' +
+                    'placeholder="Celui que vous utilisez aujourd’hui" ' +
+                    'autocomplete="current-password" required></div></div>' +
+                '<div class="field"><label>Nouveau mot de passe</label>' +
+                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
+                  '<input class="input" type="password" name="password" ' +
+                    'placeholder="6 caractères minimum" autocomplete="new-password" required></div></div>' +
+                '<div class="field"><label>Confirmer le mot de passe</label>' +
+                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
+                  '<input class="input" type="password" name="confirm" ' +
+                    'placeholder="Retapez-le" autocomplete="new-password" required></div></div>' +
+                '<button class="btn btn-primary btn-block btn-lg" type="submit">' +
+                  UI.icon('save', 18) + ' Enregistrer le nouveau mot de passe</button>' +
+              '</form>' +
+              '<button class="btn btn-ghost btn-block" id="parEmail" style="margin-top:10px">' +
+                'Je ne connais pas mon mot de passe actuel</button>'
+
+          : voie === 'demande'
             ? '<p class="sub">Pour changer votre mot de passe, nous envoyons un code à ' +
                 '<b>' + U.esc(adresse) + '</b>. Il prouve que cette boîte mail est bien la vôtre.</p>' +
               '<button class="btn btn-primary btn-block btn-lg" id="envoyer" style="margin-top:14px">' +
@@ -527,7 +561,9 @@
                   UI.icon('save', 18) + ' Enregistrer le nouveau mot de passe</button>' +
               '</form>' +
               '<button class="btn btn-ghost btn-block" id="renvoyer" style="margin-top:10px">' +
-                'Je n’ai rien reçu — renvoyer un code</button>') +
+                'Je n’ai rien reçu — renvoyer un code</button>' +
+              '<button class="btn btn-ghost btn-block" id="parActuel" style="margin-top:8px">' +
+                'Revenir au mot de passe actuel</button>') +
         '</div>' +
 
         '<div class="tiny center" style="margin-top:14px">Vous vous connectez avec Google ? ' +
@@ -542,6 +578,35 @@
       if (re) re.onclick = demander;
       const f = view.querySelector('#sf');
       if (f) f.onsubmit = enregistrer;
+
+      const fa = view.querySelector('#af');
+      if (fa) fa.onsubmit = enregistrerAvecActuel;
+      const pe = view.querySelector('#parEmail');
+      if (pe) pe.onclick = () => { voie = 'demande'; paint(); };
+      const pa = view.querySelector('#parActuel');
+      if (pa) pa.onclick = () => { voie = 'actuel'; paint(); };
+    }
+
+    /* Le chemin sans email : on redemande le mot de passe en cours. */
+    async function enregistrerAvecActuel(e) {
+      e.preventDefault();
+      const btn = this.querySelector('[type=submit]');
+      const d = UI.formData(this);
+
+      if (!d.actuel) return UI.err('Saisissez votre mot de passe actuel');
+      if ((d.password || '').length < 6) return UI.err('Mot de passe trop court', '6 caractères minimum');
+      if (d.password !== d.confirm) return UI.err('Les deux mots de passe ne correspondent pas');
+      if (d.password === d.actuel) return UI.err('Le nouveau mot de passe est identique à l’ancien');
+
+      UI.busy(btn, true, 'Vérification…');
+      try {
+        await API.changePasswordWithCurrent(d.actuel, d.password);
+        UI.ok('Mot de passe modifié', 'Il est actif dès maintenant.');
+        Router.go('/account', true);
+      } catch (err) {
+        UI.busy(btn, false);
+        UI.err(err.message);
+      }
     }
 
     async function demander() {
@@ -549,7 +614,7 @@
       UI.busy(btn, true, 'Envoi…');
       try {
         await API.sendEmailCode(adresse);
-        etape = 'code';
+        voie = 'code';
         paint();
         UI.ok('Code envoyé', 'Vérifiez votre boîte mail, et les spams.');
       } catch (e) { UI.busy(btn, false); UI.err(e.message); }

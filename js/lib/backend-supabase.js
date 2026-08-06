@@ -214,6 +214,40 @@
       return true;
     },
 
+    /* CHANGER SON MOT DE PASSE SANS PASSER PAR L'EMAIL.
+       Le code reçu par email prouve qu'on possède la boîte mail. Mais quand on
+       connaît déjà son mot de passe, on a déjà prouvé qui on est : le
+       redemander suffit, et c'est ce que font toutes les applications.
+
+       Ça compte plus qu'un confort : l'envoi d'emails dépend d'un serveur SMTP
+       extérieur. Le jour où il tombe, l'unique chemin passant par l'email
+       enfermait l'utilisateur dehors, sans aucun recours. Ce chemin-ci ne
+       dépend de rien. */
+    async changePasswordWithCurrent(current, next) {
+      const adresse = SB.email();
+      if (!adresse)
+        throw new Error("Ce compte n'a pas d'adresse email : le changement de mot de passe " +
+                        'passe par le support.');
+
+      /* On se reconnecte avec le mot de passe annoncé : c'est la seule façon de
+         le vérifier. Si c'est le bon, la session est simplement remplacée par
+         une session équivalente du même compte. */
+      const r = await sb.auth.signInWithPassword({ email: adresse, password: current });
+      if (r.error) {
+        /* Un compte ouvert avec Google n'a pas de mot de passe : Supabase
+           répond « identifiants invalides », ce qui laisserait croire à une
+           faute de frappe. On distingue les deux cas. */
+        if (/Invalid login credentials/i.test(r.error.message))
+          throw new Error('Mot de passe actuel incorrect. Si vous vous connectez avec Google, ' +
+                          'vous n’avez pas encore de mot de passe : utilisez le code par email.');
+        throw new Error(translate(r.error.message));
+      }
+      currentUser = r.data.user;
+
+      unwrap(await sb.auth.updateUser({ password: next }));
+      return true;
+    },
+
     /**
      * Se déconnecter doit TOUJOURS aboutir.
      *
