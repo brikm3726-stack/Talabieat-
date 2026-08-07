@@ -219,8 +219,14 @@
     },
 
     /* ------------------------------------------------------- sélecteurs */
-    zoneSelect(name, selected, label, required) {
-      return '<div class="field"><label>' + U.esc(label || 'Zone') + '</label>' +
+    /* `icone` : nom d'un pictogramme du jeu UI.ICONS, facultatif. Quand il est
+       donné, le champ est habillé comme les autres champs illustrés du
+       formulaire (`.input-ic`). Sans lui, la sortie est celle d'avant au
+       caractère près — les sept autres appels du projet ne changent pas. */
+    zoneSelect(name, selected, label, required, icone) {
+      const av = icone ? '<div class="input-ic"><span>' + UI.icon(icone, 17) + '</span>' : '';
+      const ap = icone ? '</div>' : '';
+      return '<div class="field"><label>' + U.esc(label || 'Zone') + '</label>' + av +
         '<select class="input" name="' + name + '" ' + (required ? 'required' : '') + '>' +
         '<option value="">— Choisir —</option>' +
         // la wilaya n'est affichée que si elle sort du périmètre habituel
@@ -228,7 +234,7 @@
           U.esc(z.name) +
           (z.wilaya && z.wilaya !== TALABI_CONFIG.DEFAULT_WILAYA ? ' (' + U.esc(z.wilaya) + ')' : '') +
           '</option>').join('') +
-        '</select></div>';
+        '</select>' + ap + '</div>';
     },
 
     categorySelect(name, selected, label) {

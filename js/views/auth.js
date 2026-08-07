@@ -50,29 +50,68 @@
 
   /* Thème des pages de compte : fond blanc-orangé, formes organiques, titre et
      formulaire à gauche, livreur à scooter en haut à droite.
-     Sous 900 px l'illustration disparaît : il n'y a plus la place. */
-  function shell(title, subtitle, inner) {
-    return '<div class="auth-page">' +
-      '<span class="auth-blob a" aria-hidden="true"></span>' +
-      '<span class="auth-blob b" aria-hidden="true"></span>' +
-      '<span class="auth-blob c" aria-hidden="true"></span>' +
+     Sous 900 px l'illustration disparaît : il n'y a plus la place.
+
+     `nuit` — variante sombre, maquette « inscription page ». La STRUCTURE est
+     exactement la même : la maquette montre le quartier et « Connexion » dans
+     la barre du haut, puis le logo et « Ajouter à l'écran d'accueil », puis le
+     titre, puis la carte du formulaire. Tout cela existait déjà. Ce qui change
+     est la peau, et le scooter qui reste visible au téléphone au lieu de
+     disparaître : c'est lui qui fait l'écran.
+     Un seul écran la demande pour l'instant (l'inscription cliente), donc un
+     paramètre plutôt qu'un test sur l'application : les autres pages de compte
+     — mot de passe oublié, saisie du code, espaces professionnels — restent
+     claires tant qu'elles n'ont pas été reprises une par une. */
+  function shell(title, subtitle, inner, nuit) {
+
+    /* LE MOT-MARQUE EN TEXTE SUR LE THÈME SOMBRE, PAS LE LOGO.
+       `assets/img/logo.jpg` est un JPEG sur fond blanc. Le thème clair le
+       fond dans la page avec `mix-blend-mode:multiply` — mais multiplier par
+       du noir donne du noir : sur fond sombre, le logo disparaîtrait
+       purement et simplement. Le mot-marque reconstruit en texte règle les
+       deux problèmes d'un coup : rien à fondre, et net à toute densité. */
+    const marque = nuit
+      ? '<span class="auth-mot" aria-label="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' +
+          '<span class="arc">' + ENT_ARC + '</span>' +
+          '<span class="mot">tala<i>bi</i></span></span>'
+      : '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' +
+          U.esc(TALABI_CONFIG.APP_NAME) + '" class="auth-logo">';
+
+    return '<div class="auth-page' + (nuit ? ' auth-nuit' : '') + '">' +
+      /* Les trois taches floues du thème clair coûtent trois `filter:blur()`
+         sur de grandes surfaces — c'est ce qui se paie en images par seconde
+         sur un téléphone d'entrée de gamme. Le thème sombre s'en passe : sa
+         lueur est un dégradé radial, dessiné une fois, gratuit ensuite. */
+      (nuit ? '' :
+        '<span class="auth-blob a" aria-hidden="true"></span>' +
+        '<span class="auth-blob b" aria-hidden="true"></span>' +
+        '<span class="auth-blob c" aria-hidden="true"></span>') +
       '<div class="auth-in">' +
         '<div class="auth-head">' +
           '<div class="auth-headtext">' +
-            '<div class="auth-brandrow">' +
-              // « multiply » : le logo est sur fond blanc, il se fond dans le fond
-              '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
-                'class="auth-logo">' +
-              boutonInstaller() +
-            '</div>' +
+            '<div class="auth-brandrow">' + marque + boutonInstaller() + '</div>' +
             '<div class="h1">' + brandify(title) + '</div>' +
             '<div class="sub" style="margin-top:8px">' + U.esc(subtitle) + '</div>' +
           '</div>' +
-          '<img class="auth-rider" src="' + U.asset('assets/img/bg/auth-rider.png') + '" alt="" aria-hidden="true">' +
+          /* Sur le thème sombre le scooter est un décor de coin, posé en CSS
+             sur la page elle-même (`.auth-nuit::before`) : un décor n'a pas à
+             occuper une colonne dans la mise en page, et un pseudo-élément ne
+             peut décaler aucun texte. */
+          (nuit ? '' :
+            '<img class="auth-rider" src="' + U.asset('assets/img/bg/auth-rider.png') + '" ' +
+              'decoding="async" alt="" aria-hidden="true">') +
         '</div>' +
         '<div class="auth-col">' + inner + '</div>' +
       '</div>' +
     '</div>';
+  }
+
+  /* Un champ avec son pictogramme à gauche, comme sur la maquette.
+     `.input-ic` existe déjà dans l'application (écran Compte) : on le réemploie
+     au lieu d'en créer un second qui aurait divergé. */
+  function champIcone(label, icone, html) {
+    return '<div class="field"><label>' + U.esc(label) + '</label>' +
+      '<div class="input-ic"><span>' + UI.icon(icone, 17) + '</span>' + html + '</div></div>';
   }
 
   /* Bouton d'installation, posé à côté du logo.
@@ -174,10 +213,13 @@
      « Se connecter » les révèle en place — mêmes champs, mêmes contrôles,
      même code de soumission qu'avant.
      ====================================================================== */
+  /* `currentColor` et non une teinte figée : l'arc suit `--brand`, qui n'a pas
+     la même valeur sur le thème clair (#FF4D2D) et sur le thème sombre
+     (#FF6500). Écrit en dur, il jurait d'un ton avec le mot qu'il coiffe. */
   const ENT_ARC =
     '<svg viewBox="0 0 132 26" aria-hidden="true">' +
       '<path d="M6 24C6 24 24 4 66 4s60 20 60 20" fill="none" ' +
-        'stroke="#FF4D2D" stroke-width="7" stroke-linecap="round"/></svg>';
+        'stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg>';
 
   const ENT_PERSONNE =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
@@ -274,8 +316,18 @@
          retirée au départ de la route, sinon le reste de l'application
          resterait sur fond noir sans ses barres. */
       document.body.classList.add('ent-open');
+      /* Le mode nuit en plus, pour deux raisons visibles à l'œil nu : la barre
+         d'état du téléphone passe au noir avec l'écran, et l'orange devient
+         celui des deux autres écrans sombres (#FF6500). Sans lui, cet écran
+         restait en #FF4D2D et le changement de ton se voyait au passage sur
+         « S'inscrire », juste à côté. */
+      UI.nuit('entree');
       const off = brancherInstall(view);
-      return () => { document.body.classList.remove('ent-open'); if (off) off(); };
+      return () => {
+        document.body.classList.remove('ent-open');
+        UI.nuit('');
+        if (off) off();
+      };
     }
 
     view.innerHTML = shell(App.titre, App.sousTitre,
@@ -335,6 +387,12 @@
     // faisait rien quand on était connecté en client).
     if (Store.isLogged) return alreadyLogged(view, role);
 
+    /* L'inscription cliente passe au thème sombre (maquette « inscription
+       page »). Les espaces professionnels gardent l'écran clair : un livreur
+       lit son téléphone en plein soleil. */
+    const nuit = App.est('client');
+    if (nuit) UI.nuit('inscription');
+
     view.innerHTML = shell(
       'Créer un compte ' + roleMot(role),
       App.est('client') ? 'Commandez vos repas préférés en quelques minutes.' : App.sousTitre,
@@ -346,27 +404,39 @@
         '<div class="tiny center">Le plus rapide : rien à remplir, ' +
           'juste votre téléphone et votre quartier ensuite.</div>' +
 
-        '<div class="row" style="gap:12px"><div style="flex:1;height:1px;background:var(--line)"></div>' +
-          '<span class="tiny">ou avec un email</span><div style="flex:1;height:1px;background:var(--line)"></div></div>' +
+        '<div class="auth-ou"><span>ou avec un email</span></div>' +
 
         '<form id="f" class="stack" novalidate>' +
-          '<div class="field"><label>Nom complet</label>' +
-            '<input class="input" name="full_name" placeholder="Ex : Amine Belkacem" autocomplete="name" required></div>' +
-          '<div class="field"><label>Adresse email</label>' +
-            '<input class="input" type="email" name="email" placeholder="exemple@gmail.com" autocomplete="email" required></div>' +
-          '<div class="field"><label>Numéro de téléphone</label>' +
-            '<input class="input" name="phone" placeholder="0555 12 34 56" inputmode="tel" autocomplete="tel" required></div>' +
-          Cmp.zoneSelect('zone_id', Store.zoneId, 'Mon quartier', true) +
-          '<div class="field"><label>Mot de passe</label>' +
-            '<input class="input" type="password" name="password" placeholder="6 caractères minimum" autocomplete="new-password" required></div>' +
-          '<button class="btn btn-primary btn-block btn-lg" type="submit">Créer mon compte</button>' +
+          champIcone('Nom complet', 'user',
+            '<input class="input" name="full_name" placeholder="Ex : Amine Belkacem" ' +
+              'autocomplete="name" required>') +
+          champIcone('Adresse email', 'mail',
+            '<input class="input" type="email" name="email" placeholder="exemple@gmail.com" ' +
+              'autocomplete="email" required>') +
+          champIcone('Numéro de téléphone', 'phone',
+            '<input class="input" name="phone" placeholder="0555 12 34 56" ' +
+              'inputmode="tel" autocomplete="tel" required>') +
+          /* Le quartier n'est pas sur la maquette, et il reste : c'est lui qui
+             décide quels restaurants livrent chez vous. Un écran plus court au
+             prix d'une adresse inconnue n'est pas un gain. */
+          Cmp.zoneSelect('zone_id', Store.zoneId, 'Mon quartier', true, 'pin') +
+          champIcone('Mot de passe', 'lock',
+            '<input class="input" type="password" name="password" id="pw" ' +
+              'placeholder="6 caractères minimum" autocomplete="new-password" required>' +
+            /* Sur un téléphone, on tape son mot de passe à l'aveugle avec un
+               clavier qui corrige tout seul : sans ce bouton, la seule façon
+               de vérifier ce qu'on a écrit est de se tromper. */
+            '<button type="button" class="champ-oeil" id="voirPw" ' +
+              'aria-label="Afficher le mot de passe" ' +
+              'title="Afficher le mot de passe">' + UI.icon('eye', 19) + '</button>') +
+          '<button class="btn btn-primary btn-block btn-lg" type="submit">S’inscrire</button>' +
         '</form>' +
 
         '<div class="tiny center">En continuant vous acceptez les conditions d’utilisation de ' +
           U.esc(TALABI_CONFIG.APP_NAME) + '.</div>' +
 
         '<div class="center tiny">Déjà inscrit ? <a href="#/login" style="color:var(--brand);font-weight:700">Se connecter</a></div>' +
-      '</div>');
+      '</div>', nuit);
 
     const notes = {
       driver:     '<div class="banner banner-warn">🛵 Votre compte livreur est vérifié par un administrateur ' +
@@ -381,6 +451,20 @@
       UI.busy(this, true, 'Redirection…');
       try { await API.signInGoogle(role); }
       catch (e) { UI.busy(this, false); UI.err(e.message); }
+    };
+
+    /* Afficher / masquer le mot de passe. Le libellé du bouton change avec
+       l'état : un lecteur d'écran qui annonce toujours « Afficher » sur un mot
+       de passe déjà affiché dit le contraire de la vérité. */
+    const oeil = view.querySelector('#voirPw');
+    const pw = view.querySelector('#pw');
+    if (oeil && pw) oeil.onclick = () => {
+      const vu = pw.type === 'text';
+      pw.type = vu ? 'password' : 'text';
+      oeil.classList.toggle('on', !vu);
+      const t = vu ? 'Afficher le mot de passe' : 'Masquer le mot de passe';
+      oeil.setAttribute('aria-label', t);
+      oeil.setAttribute('title', t);
     };
 
     view.querySelector('#f').onsubmit = async function (e) {
@@ -424,7 +508,8 @@
       }
     };
 
-    return brancherInstall(view);
+    const off = brancherInstall(view);
+    return () => { UI.nuit(''); if (off) off(); };
   });
 
   /* L'ancienne page de secours a fusionné avec /login : le formulaire email +
@@ -580,6 +665,10 @@
      quitter la page : l'inscription se termine là où elle a commencé.
      ---------------------------------------------------------------------- */
   function ecranCode(view, d, role) {
+    /* Cet écran remplace le contenu SANS changer de route : le nettoyage de
+       l'inscription ne se déclenche donc pas, et le thème sombre resterait
+       posé sur une page claire — du texte blanc sur du blanc. */
+    UI.nuit('');
     view.innerHTML = shell('Confirmez votre email',
       'Le code vient de partir par email',
       '<div class="card card-p stack">' +
@@ -655,6 +744,8 @@
      Aucun compte livreur n'est actif sans validation d'un administrateur.
      ---------------------------------------------------------------------- */
   function pendingScreen(view, role) {
+    // même raison que dans ecranCode : écran clair, sans changement de route
+    UI.nuit('');
     view.innerHTML = shell(
       'Compte créé — en attente de validation',
       'Vous ne pouvez pas encore accepter de courses',

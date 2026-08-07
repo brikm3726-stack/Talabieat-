@@ -17,6 +17,11 @@
      phrase que personne ne lit deux fois. La fonction qui coloriait ce titre
      n'a donc plus rien à colorier. */
 
+  /** Une puce du bandeau de livraison : pictogramme orange, un mot. */
+  function puce(icone, mot) {
+    return '<span class="p">' + UI.icon(icone, 14) + U.esc(mot) + '</span>';
+  }
+
   /** Un raccourci : pastille pêche, deux lignes de texte, chevron. */
   function raccourci(icone, l1, l2, href) {
     return '<a class="h3d-q" href="' + href + '">' +
@@ -42,7 +47,14 @@
        ou des restaurants : on lui propose les trois actions qui le concernent. */
     const isClient = Store.isLogged && Store.role === 'client';
 
-    view.innerHTML = '<div class="home3d">' +
+    /* L'accueil est sombre — avec compte ou sans, c'est le même écran. La
+       classe est posée AVANT d'écrire la page : sinon le crème apparaîtrait
+       le temps d'une image, et un clignotement blanc à chaque ouverture est
+       le défaut le plus visible qu'on puisse offrir. Elle est retirée par le
+       nettoyage rendu en fin de route. */
+    UI.nuit('accueil');
+
+    view.innerHTML = '<div class="home3d nuit">' +
 
       /* Le héros publicitaire est parti (maquette 1b) : une demi-page pour une
          phrase que personne ne lit deux fois, et qui repoussait le premier
@@ -55,10 +67,16 @@
       '<div class="wrap h3d-body">' +
 
         /* ----------------------------------------------------- RECHERCHE */
+        /* Le bouton est devenu rond et ne porte plus qu'une flèche. « Rechercher »
+           écrit à côté d'un champ de recherche répète ce que le champ dit déjà,
+           et ces 88 px pris en largeur manquaient au nom qu'on tape. Le titre
+           et l'aria-label disent ce que fait le bouton, pour qui ne voit pas la
+           flèche. La fonction, elle, n'a pas changé d'une ligne. */
         '<div class="h3d-search">' +
           '<span class="lo">' + UI.icon('search', 20) + '</span>' +
           '<input id="q" placeholder="Rechercher un restaurant ou un plat…" autocomplete="off">' +
-          '<button class="btn btn-primary" id="goSearch">Rechercher</button>' +
+          '<button class="h3d-go" id="goSearch" title="Rechercher" ' +
+            'aria-label="Rechercher">' + UI.icon('arrow-right', 21) + '</button>' +
         '</div>' +
 
         /* ------------------------------------- LA COMMANDE EN COURS D'ABORD
@@ -75,8 +93,12 @@
           raccourci(UI.icon('utensils', 22), 'Choisis ton', 'restaurant', '#/restaurants') +
           raccourci(UI.icon('cart', 22), 'Commander', 'maintenant',
                     Store.cartCount ? '#/cart' : '#/restaurants') +
-          raccourci(UI.icon('scooter', 22), 'Le livreur', 't’attend',
-                    isClient ? '#/orders' : App.lien('driver')) +
+          /* Le libellé suit la destination. Pour un visiteur sans compte, ce
+             raccourci ouvre l'application Livreur : « Le livreur t'attend »
+             annonçait donc une chose et en ouvrait une autre. */
+          (isClient
+            ? raccourci(UI.icon('scooter', 22), 'Le livreur', 't’attend', '#/orders')
+            : raccourci(UI.icon('scooter', 22), 'Devenir', 'livreur', App.lien('driver'))) +
         '</div>' +
 
         /* ------------------------------------------------------ CHIFFRES */
@@ -87,14 +109,37 @@
            sur l'accueil, elles renvoyaient vers cette même page — un détour
            pour arriver au même endroit. */
 
-        /* -------------------------------------------------------- PROMESSE */
-        /* Le bandeau fourni, tel quel. Le texte y est déjà composé — le
-           reconstruire en HTML par-dessus l'aurait doublé. Il part donc en
-           alt : lu par les lecteurs d'écran, et affiché si l'image manque. */
-        '<img class="h3d-banner" src="' + U.escUrl(U.asset('assets/img/bg/moto.jpg')) + '" ' +
-          'width="1693" height="586" loading="lazy" ' +
-          'alt="Livraison rapide à votre porte — fraîcheur garantie, où que vous soyez. ' +
-          'Rapide, frais, fiable.">' +
+        /* -------------------------------------------------------- PROMESSE
+           C'ÉTAIT UNE IMAGE AVEC SON TEXTE DESSINÉ DEDANS (moto.jpg,
+           1693 × 586, orange sur crème). Trois défauts, tous visibles :
+
+           — le texte était de l'image : mou dès qu'un écran l'agrandissait,
+             impossible à sélectionner, invisible pour un lecteur d'écran
+             autrement qu'en recopiant la phrase dans un `alt` ;
+           — il restait orange et crème au milieu d'un écran noir, et rien
+             ne peut le repeindre — c'est un fichier ;
+           — 86 Ko pour une phrase de six mots.
+
+           Reconstruit en texte plus une photo : net à toute densité, il suit
+           le thème, et la photo est celle de la porte d'entrée — déjà en
+           cache par le service worker, donc zéro octet de plus. */
+        '<div class="h3d-livr">' +
+          '<div class="tx">' +
+            '<div class="h2">Livraison rapide<br>' +
+              '<span class="accent">à votre porte</span></div>' +
+            '<p>Fraîcheur garantie, où que vous soyez.</p>' +
+            '<div class="pc">' +
+              puce('flame', 'Rapide') +
+              puce('sparkle', 'Frais') +
+              puce('check-circle', 'Fiable') +
+            '</div>' +
+          '</div>' +
+          /* La photo est décorative : tout ce qu'elle raconte est déjà écrit
+             à côté d'elle. Elle est donc posée en fond, hors du flux de
+             lecture, et la hauteur de la carte est réservée d'avance — la
+             page ne saute pas quand l'image arrive. */
+          '<span class="ph" aria-hidden="true"></span>' +
+        '</div>' +
 
         /* ------------------------------------------------ RESTAURANTS */
         /* La médaille dit « classement », l'étoile aurait dit « note » —
@@ -259,26 +304,43 @@
     /* -------------------------------------------------------- données */
     /* Plus de filtre par quartier : on annonce la wilaya, on ne trie plus le
        catalogue dessus. Un client qui ouvre l'accueil veut voir ce qui existe,
-       pas une liste déjà rétrécie par un réglage qu'il n'a pas fait. */
-    const list = await API.safe(() => API.restaurants({}), []);
-    Cmp.restoGrid(list.slice(0, 6), view.querySelector('#popular'));
+       pas une liste déjà rétrécie par un réglage qu'il n'a pas fait.
 
-    /* De vrais noms plutôt que des exemples inventés : un client qui voit
-       défiler une enseigne qu'il connaît sait immédiatement que la recherche
-       porte sur SA ville. On en garde quatre, mêlés à deux plats — le champ
-       cherche les deux, il faut que ça se voie. */
-    const enseignes = list.slice(0, 4).map(r => 'Ex : ' + r.name);
-    if (enseignes.length)
-      machine.mots(enseignes.concat(['Ex : pizza margherita', 'Ex : burger poulet']));
+       LE CATALOGUE NE BLOQUE PLUS LA FIN DE LA ROUTE, ET C'EST DÉLIBÉRÉ.
+       Le routeur ne reçoit le nettoyage qu'au retour de la route. Tant que
+       celle-ci attendait le réseau, quitter l'accueil pendant le chargement
+       laissait l'écran suivant peint en noir jusqu'à l'arrivée des données :
+       du texte sombre sur fond sombre, pendant une demi-seconde, à chaque
+       fois qu'on appuyait vite sur un onglet.
+       Écrire dans un conteneur déjà remplacé est sans effet — chaque
+       affichage a le sien (voir Router.render). */
+    (async function charger() {
+      const list = await API.safe(() => API.restaurants({}), []);
+      Cmp.restoGrid(list.slice(0, 6), view.querySelector('#popular'));
 
-    const chiffre = (icone, valeur, label) =>
-      '<div><span class="ic">' + icone + '</span>' +
-      '<b>' + U.esc(valeur) + '</b><span class="lb">' + U.esc(label) + '</span></div>';
+      /* De vrais noms plutôt que des exemples inventés : un client qui voit
+         défiler une enseigne qu'il connaît sait immédiatement que la recherche
+         porte sur SA ville. On en garde quatre, mêlés à deux plats — le champ
+         cherche les deux, il faut que ça se voie. */
+      const enseignes = list.slice(0, 4).map(r => 'Ex : ' + r.name);
+      if (enseignes.length)
+        machine.mots(enseignes.concat(['Ex : pizza margherita', 'Ex : burger poulet']));
 
-    view.querySelector('#heroStats').innerHTML =
-      chiffre(UI.icon('store', 20), list.length + '+', 'Restaurants') +
-      chiffre(UI.icon('pin', 20), String(Store.zones.length), 'Quartiers couverts') +
-      chiffre(UI.icon('clock', 20), '25 min', 'Livraison moyenne');
+      const chiffre = (icone, valeur, label) =>
+        '<div><span class="ic">' + icone + '</span>' +
+        '<b>' + U.esc(valeur) + '</b><span class="lb">' + U.esc(label) + '</span></div>';
+
+      const st = view.querySelector('#heroStats');
+      if (st) st.innerHTML =
+        chiffre(UI.icon('store', 20), list.length + '+', 'Restaurants') +
+        chiffre(UI.icon('pin', 20), String(Store.zones.length), 'Quartiers couverts') +
+        chiffre(UI.icon('clock', 20), '25 min', 'Livraison moyenne');
+    })();
+
+    /* Le thème sombre s'éteint en quittant l'accueil : les autres écrans de
+       l'application sont encore clairs, et les laisser en noir sur fond noir
+       les rendrait illisibles. */
+    return () => UI.nuit('');
   });
 
   /* ---------------------------------------------------------- fragments */

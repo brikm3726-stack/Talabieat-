@@ -560,6 +560,37 @@
       });
     },
 
+    /* ------------------------------------------------------------ MODE NUIT
+       Certains écrans de l'application cliente sont sombres : la porte
+       d'entrée, l'accueil, l'inscription. Trois choses doivent basculer
+       ensemble, sinon la moitié de l'écran reste claire :
+
+       1. `body.nuit` — le noir va jusqu'aux bords de la fenêtre et la barre
+          du haut change de peau. Sans lui, le crème de l'application
+          réapparaît au rebond du défilement et sur les côtés.
+       2. `body.nuit-<nom>` — ce qui n'appartient qu'à un seul écran (le
+          mot-marque dans la barre du haut n'existe que sur l'accueil).
+       3. `theme-color` — la barre d'état du téléphone. C'est le navigateur
+          qui la peint, pas nous : sans cette bascule, Android garde son
+          orange au-dessus d'un écran noir et la cassure se voit dès
+          l'ouverture.
+
+       Appeler UI.nuit('') éteint tout : c'est ce que fait le nettoyage de
+       chaque route sombre, sans quoi l'écran suivant resterait noir. */
+    nuit(nom) {
+      const b = document.body;
+      b.classList.toggle('nuit', !!nom);
+      /* On retire TOUS les `nuit-…` au lieu d'en énumérer la liste : un écran
+         sombre ajouté plus tard aurait été oublié dans l'énumération, et sa
+         classe serait restée collée au body d'un écran à l'autre. */
+      Array.prototype.slice.call(b.classList)
+        .filter(c => c.indexOf('nuit-') === 0)
+        .forEach(c => b.classList.remove(c));
+      if (nom) b.classList.add('nuit-' + nom);
+      const m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', nom ? '#050505' : '#FF4D2D');
+    },
+
     /** Lit un <form> en objet simple */
     formData(form) {
       const o = {};

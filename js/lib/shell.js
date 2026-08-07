@@ -57,6 +57,13 @@
     ]
   };
 
+  /* L'arc orange du mot-marque. En SVG et non en image : net à n'importe
+     quelle densité d'écran, et il prend la couleur qu'on lui donne. */
+  const ARC =
+    '<svg viewBox="0 0 132 26" aria-hidden="true">' +
+      '<path d="M6 24C6 24 24 4 66 4s60 20 60 20" fill="none" ' +
+        'stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg>';
+
   const Shell = {
 
     navItems() {
@@ -137,13 +144,23 @@
 
       bar.innerHTML =
         '<div class="wrap topbar-in">' +
-          /* Application client : pas de marque dans la barre. L'écran
-             d'ouverture vient de l'afficher en grand, et une pastille seule
-             au-dessus du quartier faisait une rangée pour un seul bouton.
-             La maison de la barre du bas ramène à l'accueil. */
-          (App.est('client') ? '' :
-            '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : App.accueil) + '" ' +
-              'title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' + marque + '</a>') +
+          /* Application client : le mot-marque, en TEXTE et en SVG.
+             Il est masqué par défaut (voir `.brand-nuit` dans le CSS) et ne
+             s'affiche que sur l'accueil sombre, comme sur la maquette. Les
+             autres écrans de l'application cliente gardent leur barre nue :
+             l'écran d'ouverture vient d'afficher la marque en grand, et une
+             pastille seule au-dessus du quartier faisait une rangée pour un
+             seul bouton.
+
+             En texte, et pas `assets/img/logo.jpg` : ce fichier est un JPEG
+             sur fond blanc, il aurait posé un rectangle blanc au milieu du
+             noir. Et un mot-marque en texte reste net à toute densité. */
+          (App.est('client')
+            ? '<a class="brand-nuit" href="#/" title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' +
+                '<span class="arc">' + ARC + '</span>' +
+                '<span class="mot">tala<i>bi</i></span></a>'
+            : '<a class="brand" href="#' + (Store.isLogged ? Router.homeFor(Store.role) : App.accueil) + '" ' +
+                'title="' + U.esc(TALABI_CONFIG.APP_NAME) + '">' + marque + '</a>') +
 
           /* Plus de liste de quartiers à dérouler : la barre annonce la wilaya
              où l'on se trouve, que le téléphone connaît déjà. Un appui la

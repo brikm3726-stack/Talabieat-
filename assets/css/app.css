@@ -4214,15 +4214,11 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
 }
 .acc-aide-btns .btn svg{flex:none}
 
-/* ---- bandeau « Livraison rapide » ---------------------------------------
-   Image fournie composée, texte compris. On lui donne sa largeur et sa
-   hauteur d'origine dans le HTML pour que la place soit réservée avant même
-   qu'elle arrive : sans ça, la page saute de deux centimètres au moment du
-   chargement, juste sous le pouce. */
-.h3d-banner{
-  display:block;width:100%;height:auto;margin-top:22px;
-  border-radius:20px;
-}
+/* Le bandeau « Livraison rapide » était ici : une image composée, texte
+   compris (`assets/img/bg/moto.jpg`). Il est maintenant construit en texte et
+   en CSS — voir `.h3d-livr` dans le mode nuit, en fin de fichier, et le
+   commentaire de js/views/landing.js pour les trois raisons du changement.
+   Le fichier moto.jpg reste dans le dépôt mais n'est plus chargé par personne. */
 
 /* ==========================================================================
    MES COMMANDES — fond crème et filigranes, d'après la maquette
@@ -4735,7 +4731,9 @@ html,body{overscroll-behavior-y:none}
 }
 
 /* ---- le mot-marque, en texte : net à toute densité ---- */
-.ent-mark{display:block;margin:8px auto 0;width:132px}
+/* `color` : l'arc est tracé en `currentColor`, il suit donc la couleur de
+   marque au lieu d'une teinte écrite en dur dans le SVG. */
+.ent-mark{display:block;margin:8px auto 0;width:132px;color:var(--brand)}
 .ent-mark svg{display:block;width:100%;height:auto}
 .ent-word{
   font-weight:900;font-size:40px;letter-spacing:-1.5px;line-height:1;
@@ -4910,4 +4908,461 @@ body.app-client .bottomnav .nav-dot{
   body.app-client .bottomnav a,
   body.app-client .bottomnav .cap{transition:none}
   body.app-client .bottomnav a.on .ic svg{transform:none}
+}
+
+/* ==========================================================================
+   MODE NUIT — accueil et inscription de l'application cliente
+   --------------------------------------------------------------------------
+   Maquettes « photo daceill » (accueil) et « inscription page » (inscription).
+
+   POURQUOI UN MODE, ET PAS UN THÈME GLOBAL
+
+   Ce fichier contient 319 valeurs claires écrites en dur — 169 `#fff`, 96
+   `rgba(255,255,255,…)`, 28 `#FFF`, 23 `white`, 3 `#FFFFFF`. Basculer les
+   tokens de `:root` ne donnerait donc PAS une application sombre : ça
+   donnerait du texte blanc sur des cartes restées blanches, écran par écran,
+   de façon imprévisible. Chaque surface doit être reprise à la main.
+
+   Ces surfaces sont donc reprises ici pour les DEUX écrans demandés, et pour
+   eux seuls. `body.nuit` peint le noir jusqu'aux bords de la fenêtre et
+   change la barre du haut ; `body.nuit-accueil` et `body.nuit-inscription`
+   portent ce qui n'appartient qu'à un écran. UI.nuit() les pose et les
+   retire (js/lib/ui.js), le nettoyage de chaque route les éteint.
+
+   AUCUN SQUELETTE HTML N'EST TOUCHÉ POUR LA PEINTURE.
+   Les cartes de restaurant, la barre du haut, les champs de formulaire et la
+   barre du bas gardent exactement le HTML qu'ils avaient : ce qui suit est de
+   l'apparence. Aucun lien, aucune donnée, aucune fonction ne peut casser à
+   cause d'une couleur.
+   ========================================================================== */
+body.nuit{
+  /* Les fonds et les traits de la maquette. Deux niveaux de noir et deux de
+     carte : sans cet écart, une carte posée sur le fond ne se décolle pas et
+     l'écran devient un aplat où le regard n'a plus de palier. */
+  --nuit-fond:#050505;
+  --nuit-carte:#111112;
+  --nuit-carte-2:#151517;
+  --nuit-bord:rgba(255,101,0,.15);      /* liseré orange, celui qu'on devine */
+  --nuit-bord-2:rgba(255,255,255,.075); /* liseré neutre, celui qui structure */
+  --nuit-texte:#F4F5F7;
+  --nuit-doux:#8B9099;
+
+  /* Les tokens de l'application, redéfinis pour ces écrans. C'est ce qui fait
+     suivre au passage tous les styles en ligne écrits en `var(--brand)` ou
+     `var(--line)` : ils n'ont pas eu à être réécrits. */
+  --brand:#FF6500;
+  --brand-dark:#E45A00;
+  --brand-soft:rgba(255,101,0,.13);
+  --brand-grad:linear-gradient(135deg,#FF8A3D 0%,#FF6500 56%,#E85400 100%);
+  --ink:#F4F5F7;
+  --ink-2:#C9CDD4;
+  --muted:#8B9099;
+  --line:rgba(255,255,255,.09);
+  --bg:#0C0C0D;
+  --card:#111112;
+  --ring:rgba(255,101,0,.22);
+  /* Les ombres portées claires ne se voient pas sur du noir : elles ne font
+     qu'ajouter du travail au compositeur. Elles sont remplacées par des
+     ombres noires, plus profondes et plus resserrées. */
+  --sh-1:none;
+  --sh-2:0 10px 28px -18px rgba(0,0,0,.95);
+  --sh-3:0 22px 50px -24px rgba(0,0,0,1);
+
+  background:var(--nuit-fond);
+  color:var(--nuit-texte);
+}
+
+/* ---- LES FEUILLES ET MODALES RESTENT CLAIRES ----------------------------
+   Elles sont posées PAR-DESSUS la page, pas dedans, et leur fond est écrit
+   en dur (`.sheet{background:#fff}`, `.zone-row{background:#fff}`). Sans
+   cette remise à zéro, elles héritaient du blanc du texte de nuit : du blanc
+   sur du blanc, donc un panneau de notifications vide en apparence.
+   `--brand` n'est pas remis : l'orange de nuit convient aux deux. */
+body.nuit .overlay{
+  --ink:#12141A;
+  --ink-2:#3A404D;
+  --muted:#7A8291;
+  --line:#EBE3D9;
+  --bg:#F7EDE4;
+  --card:#FFFFFF;
+  --sh-1:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.06);
+  --sh-2:0 4px 14px rgba(16,24,40,.08);
+  --sh-3:0 18px 45px -12px rgba(16,24,40,.22);
+  color:var(--ink);
+}
+body.nuit .toasts{color:#12141A}
+
+/* ---- la porte d'entrée rejoint le même orange -------------------------
+   Elle passe elle aussi en mode nuit (voir /login dans js/views/auth.js).
+   Ses tokens `--ent-*` la peignent déjà en sombre ; ne restaient que deux
+   lueurs écrites en dur dans l'ancien orange, à trois centimètres du bouton
+   « S'inscrire » qui, lui, est passé au nouveau. */
+body.nuit .ent{
+  background-image:radial-gradient(120% 55% at 50% 47%,
+                   rgba(255,101,0,.16) 0%, rgba(255,101,0,.05) 42%, transparent 70%);
+}
+body.nuit .ent-b1{box-shadow:0 10px 30px -10px rgba(255,101,0,.65)}
+
+/* ---- la barre du haut --------------------------------------------------- */
+body.nuit .topbar{
+  background:rgba(5,5,5,.82);
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+body.nuit .topbar .zone-pick{
+  background:rgba(255,255,255,.055);
+  border-color:var(--nuit-bord-2);
+  color:var(--nuit-texte);
+}
+body.nuit .topbar .icon-btn{
+  background:rgba(255,255,255,.055);
+  border-color:var(--nuit-bord-2);
+  color:var(--nuit-texte);
+}
+@media(hover:hover){ body.nuit .topbar .icon-btn:hover{background:rgba(255,255,255,.1)} }
+/* le liseré de la pastille de comptage doit être de la couleur du fond, pas
+   blanc : sinon elle porte un anneau clair au milieu du noir */
+body.nuit .topbar .badge-dot{border-color:#0A0A0B}
+body.nuit .topbar .deskmenu a{color:var(--nuit-doux)}
+body.nuit .topbar .deskmenu a.on{background:rgba(255,101,0,.14);color:var(--brand)}
+@media(hover:hover){ body.nuit .topbar .deskmenu a:hover{background:rgba(255,255,255,.06)} }
+
+/* ---- le mot-marque de la barre du haut ---------------------------------
+   Écrit dans le HTML pour toute l'application cliente, mais MASQUÉ par
+   défaut : seul l'accueil sombre le montre, comme sur la maquette. Les
+   autres écrans gardent la barre nue qu'ils avaient — rien ne change pour
+   eux, ni en place ni en apparence. */
+.brand-nuit{display:none}
+body.nuit-accueil .brand-nuit{
+  display:flex;flex-direction:column;align-items:center;
+  flex:0 1 auto;min-width:0;line-height:1;
+  text-decoration:none;color:var(--nuit-texte);
+}
+.brand-nuit .arc{display:block;width:52px;color:var(--brand);margin-bottom:-2px}
+.brand-nuit .arc svg{display:block;width:100%;height:auto}
+.brand-nuit .mot{
+  font-size:21px;font-weight:900;letter-spacing:-1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.brand-nuit .mot i{font-style:normal;color:var(--brand)}
+/* Le mot-marque, le quartier et jusqu'à trois pastilles se partagent 390 px.
+   `min-width:0` sur le quartier : sans lui, un élément de flex ne descend
+   jamais sous la largeur de son texte, l'ellipse ne sert à rien et c'est la
+   pastille du compte qui sort de l'écran — or c'est par elle qu'on se
+   déconnecte. Sous 360 px le mot-marque s'efface : il est décoratif, le
+   quartier est une information. */
+body.nuit-accueil .topbar .zone-pick{max-width:138px;min-width:0}
+@media(max-width:359px){ body.nuit-accueil .brand-nuit{display:none} }
+
+/* ---- les surfaces claires écrites en dur, reprises une par une ---------- */
+body.nuit #view .input,
+body.nuit #view select.input,
+body.nuit #view textarea.input{
+  background:var(--nuit-carte-2);
+  border-color:var(--nuit-bord-2);
+  color:var(--nuit-texte);
+}
+body.nuit #view .input::placeholder{color:#5C616A}
+body.nuit #view .input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--ring)}
+/* le chevron du menu déroulant est un SVG en donnée : sa couleur est dans
+   l'URL, il faut la réécrire */
+body.nuit #view select.input{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B9099' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+body.nuit #view .input-ic > span{background:rgba(255,101,0,.12);color:var(--brand)}
+body.nuit #view .btn-google{background:transparent;border-color:var(--nuit-bord-2);color:var(--nuit-texte)}
+body.nuit #view .btn-ghost{background:rgba(255,255,255,.05);border-color:var(--nuit-bord-2)}
+body.nuit #view .card{background:var(--nuit-carte);border-color:var(--nuit-bord-2)}
+/* `.footer{background:var(--ink)}` : le pied prenait la couleur du TEXTE pour
+   son fond. Les tokens inversés, il devenait blanc. */
+body.nuit #view .footer{background:#0A0A0B;border-top:1px solid var(--nuit-bord-2)}
+/* le squelette d'attente était un dégradé de gris clairs : trois barres
+   blanches qui clignotent au milieu du noir */
+body.nuit #view .skel{
+  background:linear-gradient(90deg,#131315 25%,#1B1B1E 50%,#131315 75%);
+  background-size:200% 100%;
+}
+
+/* ==========================================================================
+   ACCUEIL SOMBRE — maquette « photo daceill »
+   ========================================================================== */
+body.nuit .home3d{background:var(--nuit-fond)}
+
+/* ---- la recherche ---- */
+body.nuit .h3d-search{
+  background:var(--nuit-carte);
+  border:1px solid var(--nuit-bord-2);
+  border-radius:22px;padding:8px 8px 8px 16px;
+  box-shadow:0 14px 30px -24px #000;
+}
+body.nuit .h3d-search .lo{color:var(--nuit-doux)}
+body.nuit .h3d-search input{color:var(--nuit-texte)}
+body.nuit .h3d-search input::placeholder{color:#5C616A}
+
+/* Le bouton rond de la maquette. Il remplace « Rechercher » écrit en toutes
+   lettres : 88 px de largeur pris à ce qu'on tape, pour répéter ce que le
+   champ dit déjà. La zone tactile fait 46 px — sous 44, on la rate en
+   marchant. */
+.h3d-go{
+  flex:none;width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;
+  display:grid;place-items:center;color:#fff;background:var(--brand);
+  box-shadow:0 8px 20px -8px rgba(255,101,0,.85);
+  /* transform seul : ni l'ombre ni la couleur ne sont animées */
+  transition:transform .14s cubic-bezier(.22,.61,.36,1);
+}
+.h3d-go:active{transform:scale(.92)}
+
+/* ---- les trois raccourcis ---- */
+body.nuit .h3d-q{
+  background:var(--nuit-carte);
+  border-color:var(--nuit-bord-2);
+  box-shadow:0 12px 26px -24px #000;
+}
+/* Le premier porte le liseré orange. Sur la maquette c'est lui qui est
+   souligné, et une seule mise en avant met réellement en avant. */
+body.nuit .h3d-q:first-child{border-color:var(--nuit-bord)}
+body.nuit .h3d-q .ic{background:rgba(255,101,0,.12);color:var(--brand)}
+body.nuit .h3d-q .tx{color:var(--nuit-texte)}
+body.nuit .h3d-q .ch{color:#4C5158}
+
+/* ---- le bandeau de chiffres ----
+   Il était un aplat orange. Sur un écran noir, trois aplats orange
+   (chiffres, promesse, étapes) se disputaient l'attention et plus rien ne
+   ressortait. Ici c'est une carte sombre cerclée d'orange : les chiffres
+   sont en orange, le cadre les désigne, le reste respire. */
+body.nuit .h3d-stats{
+  background:linear-gradient(180deg,#121213 0%,#0B0B0C 100%);
+  border:1px solid var(--nuit-bord);
+  color:var(--nuit-texte);
+  padding:20px 8px;
+  box-shadow:0 0 0 1px rgba(255,101,0,.045),
+             0 18px 40px -28px rgba(255,101,0,.5);
+}
+/* Vide, c'est un cadre orange autour de rien pendant le chargement : on le
+   masque jusqu'à ce que les chiffres arrivent. */
+body.nuit .h3d-stats:empty{display:none}
+body.nuit .h3d-stats > div + div::before{background:rgba(255,255,255,.09)}
+body.nuit .h3d-stats .ic{background:rgba(255,101,0,.12);color:var(--brand)}
+body.nuit .h3d-stats b{color:var(--brand);font-size:21px}
+body.nuit .h3d-stats .lb{color:var(--nuit-doux);opacity:1}
+
+/* ---- la promesse de livraison ----
+   Remplace l'image `moto.jpg`, qui portait son texte dessiné dedans. Voir
+   js/views/landing.js pour le pourquoi. Le texte est du texte, la photo est
+   un décor de fond : elle ne peut donc pas décaler la page. */
+.h3d-livr{
+  position:relative;overflow:hidden;margin-top:20px;
+  display:flex;align-items:center;min-height:176px;
+  padding:18px 16px;border-radius:22px;
+  background:linear-gradient(118deg,#141415 0%,#0D0D0E 58%,#050505 100%);
+  border:1px solid var(--nuit-bord-2);
+  box-shadow:0 18px 40px -30px #000;
+}
+.h3d-livr .tx{position:relative;z-index:2;max-width:60%}
+.h3d-livr .h2{font-size:21px;line-height:1.18;font-weight:850;letter-spacing:-.02em}
+.h3d-livr .h2 .accent{color:var(--brand)}
+.h3d-livr p{margin-top:8px;font-size:12.8px;line-height:1.5;color:var(--nuit-doux)}
+.h3d-livr .pc{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.h3d-livr .p{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 11px;border-radius:999px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.085);
+  font-size:11.5px;font-weight:700;color:#E7E9EC;
+}
+.h3d-livr .p .ico{color:var(--brand)}
+/* La photo de la porte d'entrée, réemployée : elle est déjà préchargée par le
+   service worker, donc elle coûte zéro octet de plus. Le fondu vers la gauche
+   la fait entrer dans la carte au lieu d'y poser un rectangle. */
+.h3d-livr .ph{
+  position:absolute;right:-6px;top:0;bottom:0;width:54%;z-index:1;
+  background:url("../img/bg/scooter-nuit.jpg") no-repeat 52% 24%;
+  background-size:cover;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 44%);
+          mask-image:linear-gradient(90deg,transparent,#000 44%);
+}
+
+/* ---- en-tête de section ---- */
+body.nuit #view .section-head .h2{color:var(--nuit-texte)}
+body.nuit #view .section-head .sub{color:var(--nuit-doux)}
+body.nuit #view .rc-tout{background:transparent;border-color:var(--brand);color:var(--brand)}
+@media(hover:hover){ body.nuit .rc-tout:hover{background:var(--brand);color:#fff} }
+
+/* ---- les cartes de restaurant ----
+   Le HTML de `Cmp.restoCard` n'est pas touché : mêmes classes, mêmes
+   données, même navigation. Seules les surfaces changent. */
+body.nuit #view .rcard{
+  background:var(--nuit-carte);
+  border-color:var(--nuit-bord-2);
+  box-shadow:0 16px 34px -28px #000;
+}
+body.nuit .rcard.feat{
+  border:2px solid rgba(255,101,0,.5);
+  box-shadow:0 18px 40px -26px rgba(255,101,0,.35), 0 0 0 4px rgba(255,101,0,.05);
+}
+body.nuit #view .rc-haut{background:linear-gradient(105deg,#191411 0%,#221913 46%,#2A1D13 100%)}
+/* la couleur d'attente de la photo : claire, elle faisait un éclair blanc à
+   chaque carte avant l'arrivée de l'image */
+body.nuit #view .rc-photo{background-color:#17181A}
+body.nuit #view .rc-bas{background:var(--nuit-carte)}
+body.nuit #view .rc-nom{color:var(--nuit-texte)}
+body.nuit #view .rc-meta .m b{color:var(--nuit-texte)}
+body.nuit #view .rc-note,
+body.nuit #view .rc-etat{
+  background:rgba(8,8,9,.88);
+  border:1px solid rgba(255,255,255,.09);
+  color:#F3F4F6;
+}
+body.nuit #view .rc-etat{color:#4ADE80}
+body.nuit .rc-etat.ferme{color:#FF8A8A}
+/* les logos d'enseigne arrivent sur fond blanc : la tuile blanche reste, sans
+   elle ils deviendraient illisibles */
+body.nuit #view .rc-enseigne img{background:#fff}
+body.nuit #view .empty b{color:var(--nuit-texte)}
+
+/* ---- UN SEUL ORANGE SUR L'ÉCRAN ----------------------------------------
+   Trois dégradés orange différents cohabitaient sur cet écran, hérités de
+   trois maquettes successives : #F97316 pour la médaille de section et la
+   flèche des cartes, #FF6B35 pour le bloc des étapes, #FF4D2D pour la
+   marque. Côte à côte sur du noir, l'écart se voit — et c'est précisément
+   ce qui fait qu'une interface a l'air assemblée plutôt que dessinée.
+   Tout est ramené sur l'orange de la maquette, #FF6500. */
+body.nuit #view .rc-head-ic{
+  background:radial-gradient(120% 120% at 32% 24%,#FFA24D,#FF6500 62%,#E85400);
+  box-shadow:0 6px 16px -8px rgba(255,101,0,.8);
+}
+body.nuit #view .rc-go{
+  background:radial-gradient(120% 120% at 32% 24%,#FFA24D,#FF6500 62%,#E85400);
+  box-shadow:0 8px 18px -8px rgba(255,101,0,.85);
+}
+body.nuit #view .rc-haut::after{border-color:rgba(255,101,0,.5);border-right-color:transparent;border-top-color:transparent}
+body.nuit #view .h3d-steps{
+  background:linear-gradient(158deg,#FF8A3D 0%,#FF6500 46%,#E24E12 100%);
+  box-shadow:0 20px 44px -28px rgba(255,101,0,1);
+}
+
+/* ==========================================================================
+   INSCRIPTION SOMBRE — maquette « inscription page »
+   --------------------------------------------------------------------------
+   La structure de la maquette existait déjà : quartier et « Connexion » dans
+   la barre du haut, puis la marque et « Ajouter à l'écran d'accueil », puis
+   le titre, puis la carte du formulaire. Rien n'a été déplacé.
+   ========================================================================== */
+.auth-nuit{
+  background:var(--nuit-fond);
+  /* La lueur orange du coin haut-droit, en dégradé radial : un seul dessin,
+     aucun `filter:blur()` — les trois taches floues du thème clair coûtent
+     trois surfaces à flouter à chaque image. */
+  background-image:radial-gradient(120% 60% at 78% 6%,
+                   rgba(255,101,0,.20) 0%, rgba(255,101,0,.06) 40%, transparent 72%);
+}
+/* Le scooter, décor du coin haut-droit. En pseudo-élément et non en `<img>` :
+   un décor ne doit pas occuper de colonne dans la mise en page, et un
+   pseudo-élément ne peut décaler aucun texte. Le fondu en diagonale le fait
+   disparaître avant d'atteindre le titre — le texte n'est jamais posé sur la
+   photo, ce qui le rendrait illisible en plein soleil. */
+.auth-nuit::before{
+  content:'';position:absolute;right:-5%;top:0;
+  width:58%;max-width:310px;height:56%;max-height:350px;
+  z-index:0;pointer-events:none;
+  background:url("../img/bg/scooter-nuit.jpg") no-repeat 46% 6%;
+  background-size:cover;
+  -webkit-mask-image:linear-gradient(214deg,#000 20%,rgba(0,0,0,.4) 56%,transparent 80%);
+          mask-image:linear-gradient(214deg,#000 20%,rgba(0,0,0,.4) 56%,transparent 80%);
+}
+/* .auth-in est déjà `position:relative` : il passe donc au-dessus du décor
+   par simple ordre du document, sans z-index — donc sans créer de contexte
+   d'empilement, ce qui casserait le fondu du logo sur le thème clair. */
+
+.auth-nuit .auth-head{margin-bottom:18px}
+/* La marque et le bouton d'installation cèdent la place au scooter. Le
+   bouton passe à la ligne quand il ne tient plus : c'est un bouton, pas un
+   ornement, il doit rester entier et cliquable. */
+.auth-nuit .auth-brandrow{max-width:76%}
+.auth-nuit .h1{max-width:82%;color:var(--nuit-texte)}
+.auth-nuit .sub{color:var(--nuit-doux)}
+
+/* Le mot-marque en texte, à la place du logo JPEG (voir shell() dans
+   js/views/auth.js : multiplier un fond blanc par du noir donne du noir, le
+   logo disparaîtrait). */
+.auth-mot{display:flex;flex-direction:column;align-items:center;line-height:1}
+.auth-mot .arc{display:block;width:64px;color:var(--brand);margin-bottom:-3px}
+.auth-mot .arc svg{display:block;width:100%;height:auto}
+.auth-mot .mot{font-size:27px;font-weight:900;letter-spacing:-1.2px;color:var(--nuit-texte)}
+.auth-mot .mot i{font-style:normal;color:var(--brand)}
+
+/* Le bouton d'installation, en contour orange comme sur la maquette : plein,
+   il pesait autant que « S'inscrire » et on ne savait plus lequel presser. */
+.auth-nuit .btn-install{
+  background:transparent;color:var(--brand);
+  border:1.5px solid var(--brand);
+  box-shadow:none;animation:none;
+}
+.auth-nuit .btn-install:hover{transform:none;box-shadow:none}
+
+/* La carte du formulaire : liseré orange à peine visible et lueur douce, ce
+   qui la décolle du fond sans l'entourer d'un cadre. */
+.auth-nuit .auth-col > .card{
+  background:linear-gradient(180deg,#121213 0%,#0C0C0D 100%);
+  border:1px solid var(--nuit-bord);
+  border-radius:26px;
+  box-shadow:0 0 0 1px rgba(255,101,0,.04),
+             0 26px 60px -34px rgba(255,101,0,.4);
+}
+.auth-nuit .field label{color:var(--nuit-texte);font-weight:700}
+.auth-nuit .tiny{color:var(--nuit-doux)}
+.auth-nuit .input,
+.auth-nuit select.input{min-height:54px;border-radius:15px}
+
+/* Le séparateur « ou avec un email ». C'étaient deux <div> vides et un style
+   en ligne répété à trois endroits du fichier ; c'est maintenant un
+   composant, clair comme sombre. */
+.auth-ou{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12.5px}
+.auth-ou::before,
+.auth-ou::after{content:"";flex:1;height:1px;background:var(--line)}
+.auth-ou span{flex:none}
+.auth-nuit .auth-ou{color:var(--brand);font-weight:650}
+.auth-nuit .auth-ou::before,
+.auth-nuit .auth-ou::after{background:rgba(255,101,0,.3)}
+
+/* ---- afficher / masquer le mot de passe ----
+   44 px de zone tactile, à droite du champ. Sans ce bouton, la seule façon de
+   vérifier ce qu'on a tapé au clavier d'un téléphone est de se tromper. */
+.champ-oeil{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border:none;background:none;cursor:pointer;
+  display:grid;place-items:center;color:var(--muted);
+  border-radius:12px;transition:color .16s ease;
+}
+.champ-oeil.on,
+.champ-oeil:active{color:var(--brand)}
+/* le texte ne doit pas passer sous le bouton */
+.auth-nuit .input-ic .input{padding-right:52px}
+.auth-nuit .champ-oeil{color:#6B7078}
+.auth-nuit .champ-oeil.on{color:var(--brand)}
+
+/* ---- mouvement ----
+   Une seule courbe dans tout le projet, et des durées qui restent sous la
+   barre des 350 ms : au-delà, l'application paraît lente et non élégante. */
+.h3d-livr{transition:transform .2s cubic-bezier(.22,.61,.36,1)}
+
+@media(prefers-reduced-motion:reduce){
+  .h3d-go:active{transform:none}
+  .h3d-livr,.h3d-go{transition:none}
+}
+
+/* ---- grand écran ----
+   Au-delà de 760 px la promesse s'étale : sans cela, la photo occupait la
+   moitié d'une carte de 700 px de large et le texte se tassait à gauche. */
+@media(min-width:760px){
+  .h3d-livr{min-height:210px;padding:26px 24px}
+  .h3d-livr .h2{font-size:26px}
+  .h3d-livr p{font-size:14px}
+  .h3d-livr .ph{width:46%}
+  body.nuit .h3d-stats b{font-size:25px}
+}
+@media(min-width:900px){
+  /* Le décor du coin remonte et rétrécit : sur un écran large il devenait une
+     bande de photo sur toute la hauteur du titre. */
+  .auth-nuit::before{width:34%;max-width:330px;height:64%}
+  .auth-nuit .auth-brandrow,
+  .auth-nuit .h1{max-width:60%}
 }
