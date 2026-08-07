@@ -12,6 +12,10 @@
     let cat = query.cat || null;
     let mode = 'resto';   // 'resto' | 'dish'
 
+    /* Thème sombre, comme l'accueil (maquette « trer »). Posé avant d'écrire
+       la page : sinon le crème apparaîtrait le temps d'une image. */
+    UI.nuit('restaurants');
+
     view.innerHTML = '<div class="wrap page">' +
       Cmp.pageHead('Restaurants', Store.zoneName() ? 'Livraison à ' + Store.zoneName() : 'Toute la ville de Tizi Ouzou',
         '<button class="btn btn-ghost btn-sm" id="zoneBtn2">' + UI.pin(14) + ' ' + U.esc(Store.zoneName() || 'Mon quartier') + '</button>') +
@@ -153,13 +157,25 @@
     });
 
     paintCats();
-    await load();
+    /* Le chargement n'est plus attendu : le routeur ne reçoit le nettoyage
+       qu'au retour de la route, et tant qu'il attendait le réseau, quitter
+       cet écran pendant le chargement laissait le suivant peint en noir.
+       Écrire dans un conteneur déjà remplacé est sans effet — chaque
+       affichage a le sien (voir Router.render). */
+    load();
+
+    return () => UI.nuit('');
   });
 
   /* ======================================================================
      FICHE RESTAURANT
      ====================================================================== */
   Router.add('/resto/:id', async function (params, query, view) {
+    /* La fiche suit la liste. Une liste sombre qui ouvre un menu blanc, c'est
+       un éblouissement à chaque restaurant touché — et c'est le premier geste
+       que fait tout le monde après avoir choisi. */
+    UI.nuit('resto');
+
     view.innerHTML = '<div class="wrap page"><div class="skel" style="height:180px"></div>' +
       '<div class="skel" style="height:110px;margin-top:16px"></div></div>';
 
@@ -167,7 +183,9 @@
     if (!r) {
       view.innerHTML = '<div class="wrap page">' + UI.empty('🏪', 'Restaurant introuvable', '',
         '<a class="btn btn-primary" href="#/restaurants">Voir les restaurants</a>') + '</div>';
-      return;
+      // le thème doit s'éteindre même par ce chemin-là, sinon l'écran suivant
+      // reste noir
+      return () => UI.nuit('');
     }
 
     const menu = await API.safe(() => API.menuItems(r.id), []);
@@ -276,6 +294,8 @@
     }
 
     renderCartBar(view);
+
+    return () => UI.nuit('');
   });
 
   /* ---------------------------------------------------- fiche plat (sheet) */
@@ -381,11 +401,20 @@
      ====================================================================== */
   Router.add('/cart', async function (params, query, view) {
 
+    /* Thème sombre (maquette « panier 43 »). */
+    UI.nuit('panier');
+
     function paint() {
       if (!Store.cartCount) {
         view.innerHTML =
           '<div class="empty-scene"><div class="wrap">' +
-            '<img class="scene-art" src="' + U.asset('assets/img/bg/panier-vide.png') + '" alt="" aria-hidden="true">' +
+            /* L'illustration a une VERSION SOMBRE, découpée dans la maquette
+               fournie. L'ancienne est sur fond quasi blanc : le thème clair la
+               fondait dans la page avec `mix-blend-mode:multiply`, mais
+               multiplier par du noir donne du noir — sur fond sombre elle
+               n'aurait laissé qu'un rectangle éteint. */
+            '<img class="scene-art" src="' + U.asset('assets/img/bg/panier-vide-nuit.jpg') + '" ' +
+              'width="1672" height="1016" decoding="async" alt="" aria-hidden="true">' +
             '<div class="h1 scene-title">Votre panier est vide</div>' +
             '<p class="scene-sub">Ajoutez vos plats préférés parmi les meilleurs restaurants de votre ville.</p>' +
             '<div class="scene-cta">' +
@@ -464,5 +493,7 @@
     }
 
     paint();
+
+    return () => UI.nuit('');
   });
 })(window);

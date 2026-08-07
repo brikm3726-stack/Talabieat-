@@ -582,8 +582,13 @@
       b.classList.toggle('nuit', !!nom);
       /* On retire TOUS les `nuit-…` au lieu d'en énumérer la liste : un écran
          sombre ajouté plus tard aurait été oublié dans l'énumération, et sa
-         classe serait restée collée au body d'un écran à l'autre. */
-      Array.prototype.slice.call(b.classList)
+         classe serait restée collée au body d'un écran à l'autre.
+
+         On lit `className`, une simple chaîne, plutôt que de traiter
+         `classList` comme un tableau : `classList` est une DOMTokenList, et
+         les vieux WebView d'Android ne garantissent pas qu'elle se laisse
+         parcourir comme un tableau. Une chaîne, si. */
+      (b.className || '').split(/\s+/)
         .filter(c => c.indexOf('nuit-') === 0)
         .forEach(c => b.classList.remove(c));
       if (nom) b.classList.add('nuit-' + nom);

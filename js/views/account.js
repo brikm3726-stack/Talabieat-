@@ -20,7 +20,23 @@
   /* ======================================================================
      RÉGLAGES — la page d'accueil du compte
      ====================================================================== */
+  /* ---------------------------------------------------------- MODE NUIT
+     Les six écrans du compte partagent la classe `.account-page`. Le thème
+     sombre est donc posé par chacun d'eux : un onglet Compte sombre dont
+     toutes les lignes ouvrent un écran blanc, ce serait un éblouissement à
+     chaque appui.
+
+     Réservé au CLIENT. Le livreur partage ces mêmes écrans dans son
+     application, et son thème est bleu clair — il lit son téléphone en plein
+     soleil, à moto. La fonction renvoie directement le nettoyage à rendre au
+     routeur. */
+  function nuitCompte() {
+    if (App.est('client') && Store.role === 'client') UI.nuit('compte');
+    return () => UI.nuit('');
+  }
+
   Router.add('/account', async function (params, query, view) {
+    const finNuit = nuitCompte();
     const p = Store.profile || {};
     /* Seuls ceux qu'on appelle entendent une sonnerie : le client, lui, n'a
        rien à couper. Et si le module audio n'a pas pu se charger, la ligne
@@ -129,12 +145,15 @@
     }
 
     paint();
+
+    return finNuit;
   }, { auth: true });
 
   /* ======================================================================
      INFORMATIONS PERSONNELLES
      ====================================================================== */
   Router.add('/profil', async function (params, query, view) {
+    const finNuit = nuitCompte();
     const p = Store.profile || {};
 
     async function paint() {
@@ -283,6 +302,8 @@
     }
 
     await paint();
+
+    return finNuit;
   }, { auth: true });
 
   /* ======================================================================
@@ -294,6 +315,7 @@
      adresse client — et ne sait plus lequel est ouvert.
      ====================================================================== */
   Router.add('/compte', async function (params, query, view) {
+    const finNuit = nuitCompte();
     const p = Store.profile || {};
     const d = p.role === 'driver' ? (await API.safe(() => API.getDriver(), null)) : null;
 
@@ -364,6 +386,8 @@
     '</div></div>';
 
     view.querySelector('#logout').onclick = deconnexion;
+
+    return finNuit;
   }, { auth: true });
 
   /* ======================================================================
@@ -380,6 +404,7 @@
      personne qui a désinstallé l'application doit pouvoir la demander aussi.
      ====================================================================== */
   Router.add('/supprimer-compte', async function (params, query, view) {
+    const finNuit = nuitCompte();
     const p = Store.profile || {};
 
     view.innerHTML = '<div class="account-page"><div class="wrap-sm page">' +
@@ -446,12 +471,15 @@
         UI.err('Suppression impossible', e.message);
       }
     };
+
+    return finNuit;
   }, { auth: true });
 
   /* ======================================================================
      À PROPOS
      ====================================================================== */
   Router.add('/apropos', async function (params, query, view) {
+    const finNuit = nuitCompte();
     view.innerHTML = '<div class="account-page"><div class="wrap-sm page">' +
       entete('À propos') +
 
@@ -472,6 +500,8 @@
       '<div class="tiny center" style="margin-top:18px">© ' + new Date().getFullYear() + ' ' +
         U.esc(TALABI_CONFIG.APP_NAME) + '</div>' +
     '</div></div>';
+
+    return finNuit;
   }, { auth: true });
 
   /* ======================================================================
@@ -484,6 +514,7 @@
      prendrait le compte.
      ====================================================================== */
   Router.add('/securite', async function (params, query, view) {
+    const finNuit = nuitCompte();
     const p = Store.profile || {};
     /* L'adresse de la session passe devant celle du profil. `profiles.email`
        n'est qu'une copie écrite à l'inscription : elle est vide sur certains
@@ -646,6 +677,8 @@
     }
 
     paint();
+
+    return finNuit;
   }, { auth: true });
 
   /* ------------------------------------------------------------ fragments */

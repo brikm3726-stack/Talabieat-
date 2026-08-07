@@ -57,6 +57,9 @@
   Router.add('/orders', async function (params, query, view) {
     let tab = 'active';
 
+    /* Thème sombre, comme les autres onglets de la barre du bas. */
+    UI.nuit('commandes');
+
     /* Le titre de la maquette porte un petit trait orange sous « Mes ». Il
        n'est pas repris : c'est le seul élément de la page demandé en moins.
        La ligne d'explication, elle, reste — c'est bien « la sous-ligne » du
@@ -96,7 +99,17 @@
       if (!rows.length) {
         list.innerHTML =
           '<div class="empty-scene compact">' +
-            '<img class="scene-art" src="' + U.asset('assets/img/bg/commandes-vide.png') + '" alt="" aria-hidden="true">' +
+            /* L'ILLUSTRATION A CÉDÉ LA PLACE À UN PICTOGRAMME, ET C'EST
+               DÉLIBÉRÉ. `commandes-vide.png` est dessinée sur fond quasi
+               blanc : le thème clair la fondait dans la page avec
+               `mix-blend-mode:multiply`, mais multiplier par du noir donne du
+               noir — sur cet écran sombre elle n'aurait laissé qu'un
+               rectangle éteint, ou, sans le fondu, un bloc blanc au milieu de
+               la page. Le panier vide, lui, a bien reçu sa version sombre :
+               elle existait dans la maquette fournie, celle-ci non.
+               Un pictogramme dans une pastille qui rayonne est net à toute
+               densité, ne pèse rien, et dit la même chose. */
+            '<span class="scene-ic" aria-hidden="true">' + UI.icon('bag', 40) + '</span>' +
             '<div class="h2 scene-title">' +
               (tab === 'active' ? 'Aucune commande en cours' : 'Aucune commande') + '</div>' +
             '<p class="scene-sub">' +
@@ -125,7 +138,11 @@
 
     await load();
     const off = API.onChange(t => { if (t === 'orders' || t === '*') load(); });
-    return off;   // nettoyage au changement de page
+    /* DEUX CHOSES À DÉFAIRE, PAS UNE : l'abonnement temps réel ET le thème
+       sombre. En ne rendant que `off`, le noir restait collé au body après
+       avoir quitté Commandes, et l'écran suivant s'affichait en texte sombre
+       sur fond sombre. */
+    return () => { off(); UI.nuit(''); };
   }, { auth: true, roles: ['client'] });
 
   /* ======================================================================
