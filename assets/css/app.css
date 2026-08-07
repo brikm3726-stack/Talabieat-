@@ -4680,3 +4680,134 @@ html,body{overscroll-behavior-y:none}
     overscroll-behavior:contain;
   }
 }
+
+/* ==========================================================================
+   PORTE D'ENTRÉE — thème sombre premium (maquette « sinscrire »)
+   --------------------------------------------------------------------------
+   Le premier écran d'un visiteur qui n'a pas de compte. Fond noir, un scooter
+   de nuit, deux boutons, Google. Rien d'autre : c'est un carrefour, pas un
+   formulaire.
+
+   POURQUOI TOUT EST EN CSS ET EN TEXTE, ET PAS UNE IMAGE DE LA MAQUETTE
+
+   La maquette fournie fait 852 × 1846, soit du 1× : la coller comme image de
+   fond l'aurait fait agrandir 1,4 fois sur un écran de 1179 px, et tout aurait
+   été mou — le contraire du but recherché. Reconstruit en texte et en CSS, le
+   même écran est net à n'importe quelle densité, sur n'importe quel écran, pour
+   quelques kilo-octets. Seule la photo du scooter est une image, parce qu'une
+   photo ne se dessine pas en CSS.
+
+   Le mot-marque lui-même est du TEXTE : le logo du projet est un JPEG sur fond
+   blanc, il aurait dessiné un rectangle blanc au milieu du noir.
+   ========================================================================== */
+.ent{
+  /* Les tokens sont redéfinis ici et nulle part ailleurs : le reste de
+     l'application garde son thème crème, cet écran seul passe en sombre. */
+  --ent-noir:#000000;
+  --ent-fond:#0A0A0B;
+  --ent-ligne:#242427;
+  --ent-texte:#FFFFFF;
+  --ent-doux:#9AA0A8;
+
+  /* PAS DE position:fixed ICI, ET C'EST DÉLIBÉRÉ.
+     La page est animée à l'arrivée : pendant la transition, `#view > .view-in`
+     porte un `transform`, ce qui en fait le bloc conteneur de tout descendant
+     en `position:fixed`. C'est ce piège qui avait rendu l'écran de suivi
+     entièrement blanc. Un bloc normal en `min-height` obtient le même
+     résultat visuel sans en dépendre. Le noir du pourtour est porté par
+     `body.ent-open` : sans lui, le crème de l'application dépasserait sur les
+     bords et le plein écran ne serait pas plein. */
+  position:relative;
+  min-height:100vh;
+  background:var(--ent-noir);
+  color:var(--ent-texte);
+  /* Une lueur orange derrière le scooter, en dégradé radial : c'est ce qui
+     empêche le noir d'être plat. Aucun coût de rendu, aucun fichier. */
+  background-image:radial-gradient(120% 55% at 50% 47%,
+                   rgba(255,77,45,.16) 0%, rgba(255,77,45,.05) 42%, transparent 70%);
+}
+.ent-in{
+  min-height:100%;
+  max-width:440px;margin:0 auto;
+  padding:calc(26px + env(safe-area-inset-top)) 22px
+          calc(26px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+}
+
+/* ---- le mot-marque, en texte : net à toute densité ---- */
+.ent-mark{display:block;margin:8px auto 0;width:132px}
+.ent-mark svg{display:block;width:100%;height:auto}
+.ent-word{
+  font-weight:900;font-size:40px;letter-spacing:-1.5px;line-height:1;
+  margin-top:2px;
+}
+.ent-word i{font-style:normal;color:var(--brand)}
+
+.ent-t{font-size:27px;font-weight:800;letter-spacing:-.4px;margin-top:26px}
+.ent-s{
+  font-size:15px;line-height:1.55;color:var(--ent-doux);
+  margin-top:9px;max-width:19em;
+}
+
+/* ---- le scooter ----
+   aspect-ratio et non une hauteur libre : la place est réservée avant que
+   l'image n'arrive, donc la page ne saute pas au chargement. */
+.ent-art{
+  width:100%;max-width:340px;aspect-ratio:1120/1500;
+  margin:14px auto 4px;flex:0 1 auto;
+}
+.ent-art img{
+  width:100%;height:100%;object-fit:contain;display:block;
+  animation:entMonte .55s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes entMonte{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---- les boutons ---- */
+.ent-actions{width:100%;margin-top:auto;padding-top:18px;display:grid;gap:11px}
+.ent-b{
+  min-height:56px;border-radius:999px;border:1.5px solid transparent;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font:inherit;font-size:16.5px;font-weight:700;
+  cursor:pointer;text-decoration:none;
+  /* transform seul : jamais la couleur ni l'ombre, qui coûtent un rendu */
+  transition:transform .09s cubic-bezier(.22,.61,.36,1);
+  -webkit-tap-highlight-color:transparent;
+}
+.ent-b:active{transform:scale(.975)}
+.ent-b svg{width:20px;height:20px;flex:none}
+.ent-b1{background:var(--brand);color:#fff;box-shadow:0 10px 30px -10px rgba(255,77,45,.65)}
+.ent-b2{background:transparent;color:var(--brand);border-color:var(--brand)}
+.ent-b3{background:transparent;color:var(--ent-texte);border-color:var(--ent-ligne)}
+
+.ent-ou{
+  display:flex;align-items:center;gap:14px;
+  color:var(--ent-doux);font-size:13.5px;margin:3px 0;
+}
+.ent-ou::before,.ent-ou::after{content:"";flex:1;height:1px;background:var(--ent-ligne)}
+
+/* ---- le formulaire, révélé seulement si on le demande ---- */
+.ent-form{width:100%;text-align:left;animation:entMonte .3s cubic-bezier(.22,.61,.36,1) both}
+.ent-form .field label{color:var(--ent-doux);font-size:13px;font-weight:600}
+.ent-form .input{
+  background:var(--ent-fond);border-color:var(--ent-ligne);color:var(--ent-texte);
+  min-height:54px;border-radius:16px;
+}
+.ent-form .input::placeholder{color:#5C626B}
+.ent-form .input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,77,45,.18)}
+.ent-lien{color:var(--brand);font-weight:700;text-decoration:none}
+.ent-retour{
+  background:none;border:none;color:var(--ent-doux);font:inherit;font-size:14px;
+  padding:12px;cursor:pointer;width:100%
+}
+
+@media (prefers-reduced-motion: reduce){
+  .ent-art img,.ent-form{animation:none}
+  .ent-b:active{transform:none}
+}
+
+/* Le noir doit dépasser du bloc : sinon le crème de l'application apparaît
+   au rebond du défilement et sur les côtés. La classe est posée par la vue et
+   retirée à la sortie de l'écran. */
+body.ent-open{background:#000}
+body.ent-open .topbar,
+body.ent-open .bottomnav{display:none}

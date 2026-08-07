@@ -117,8 +117,166 @@
   /* ======================================================================
      CONNEXION
      ====================================================================== */
+  /* La soumission du formulaire email, partagée par les deux écrans de
+     connexion — la porte sombre du client et l'écran clair des espaces
+     professionnels. Écrite une fois : deux copies auraient divergé au premier
+     message d'erreur modifié.
+
+     `view` est passé en paramètre parce que l'écran de saisie du code en a
+     besoin pour se substituer à l'écran courant. */
+  function connexionEmailPour(view) {
+    return async function (e) {
+      e.preventDefault();
+      const btn = this.querySelector('[type=submit]');
+      const d = UI.formData(this);
+      if (!U.isEmail(d.email)) return UI.err('Adresse email invalide');
+      if (!d.password) return UI.err('Saisissez votre mot de passe');
+      UI.busy(btn, true, 'Connexion…');
+      try {
+        await API.signIn(d.email, d.password);
+        await Store.refreshProfile();
+        UI.ok('Bienvenue ' + (Store.profile.full_name || '') + ' !');
+        Router.go(afterLogin(), true);
+      } catch (err) {
+        UI.busy(btn, false);
+        // compte créé mais jamais confirmé : on l'amène au bon écran au lieu
+        // de lui répéter une erreur sans issue
+        if (/pas encore confirmé/i.test(err.message))
+          return ecranCode(view, { email: d.email }, 'client');
+        // un compte créé par Google n'a pas de mot de passe : le dire, plutôt
+        // que de laisser l'utilisateur réessayer indéfiniment
+        if (/incorrect/i.test(err.message))
+          return UI.err('Email ou mot de passe incorrect',
+            'Si vous vous êtes inscrit avec Google, utilisez le bouton Google ci-dessus.');
+        UI.err(err.message);
+      }
+    };
+  }
+
+  /* ======================================================================
+     LA PORTE D'ENTRÉE — écran sombre, maquette « sinscrire »
+     ----------------------------------------------------------------------
+     Le premier écran d'un visiteur sans compte. Un carrefour, pas un
+     formulaire : le mot-marque, un scooter de nuit, et trois chemins.
+
+     TOUT EST EN TEXTE ET EN CSS, VOLONTAIREMENT.
+     La maquette fournie fait 852 × 1846, soit du 1×. La coller en image de
+     fond l'aurait fait agrandir d'un facteur 1,4 sur un écran de 1179 px, et
+     tout aurait été mou — exactement l'inverse du but. Reconstruit, le même
+     écran est net à n'importe quelle densité pour quelques kilo-octets. Seul
+     le scooter est une photo, parce qu'une photo ne se dessine pas en CSS.
+
+     Le mot-marque aussi est du texte : `assets/img/logo.jpg` est un JPEG sur
+     fond blanc, il aurait posé un rectangle blanc au milieu du noir.
+
+     LE FORMULAIRE N'APPARAÎT QUE SI ON LE DEMANDE.
+     Trois champs affichés d'emblée sur un écran d'accueil, c'est un péage.
+     « Se connecter » les révèle en place — mêmes champs, mêmes contrôles,
+     même code de soumission qu'avant.
+     ====================================================================== */
+  const ENT_ARC =
+    '<svg viewBox="0 0 132 26" aria-hidden="true">' +
+      '<path d="M6 24C6 24 24 4 66 4s60 20 60 20" fill="none" ' +
+        'stroke="#FF4D2D" stroke-width="7" stroke-linecap="round"/></svg>';
+
+  const ENT_PERSONNE =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>' +
+      '<circle cx="12" cy="7" r="4"/></svg>';
+
+  const ENT_ENTRER =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>' +
+      '<path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>';
+
+  function porteDentree(view) {
+    let voie = 'choix';          // choix | email
+
+    function paint() {
+      view.innerHTML = '<div class="ent"><div class="ent-in">' +
+
+        '<span class="ent-mark">' + ENT_ARC + '</span>' +
+        '<div class="ent-word">tala<i>bi</i></div>' +
+
+        '<h1 class="ent-t">' + (voie === 'choix' ? 'Créer un compte' : 'Se connecter') + '</h1>' +
+        '<p class="ent-s">' + (voie === 'choix'
+          ? 'Rejoignez Talabi et faites-vous livrer vos plats préférés'
+          : 'Entrez l’email et le mot de passe de votre compte') + '</p>' +
+
+        (voie === 'choix'
+          ? '<div class="ent-art">' +
+              '<img src="' + U.asset('assets/img/bg/scooter-nuit.jpg') + '" ' +
+                'width="1120" height="1500" decoding="async" alt="" aria-hidden="true">' +
+            '</div>' +
+
+            '<div class="ent-actions">' +
+              '<a class="ent-b ent-b1" href="#/signup">' + ENT_PERSONNE + ' S’inscrire</a>' +
+              '<button class="ent-b ent-b2" id="versEmail">' + ENT_ENTRER + ' Se connecter</button>' +
+              '<div class="ent-ou">ou</div>' +
+              '<button class="ent-b ent-b3" id="gbtn">' + GOOGLE_ICON + ' Continuer avec Google</button>' +
+              (App.publique
+                ? '<button class="ent-retour" id="sansCompte">Voir les restaurants sans compte →</button>'
+                : '') +
+            '</div>'
+
+          : '<div class="ent-actions">' +
+              '<form id="f" class="ent-form stack" novalidate>' +
+                '<div class="field"><label>Adresse email</label>' +
+                  '<input class="input" type="email" name="email" placeholder="exemple@gmail.com" ' +
+                    'autocomplete="email" required></div>' +
+                '<div class="field"><label>Mot de passe</label>' +
+                  '<input class="input" type="password" name="password" placeholder="••••••••" ' +
+                    'autocomplete="current-password" required></div>' +
+                '<div style="margin:-2px 0 4px"><a class="ent-lien" style="font-size:13.5px" ' +
+                  'href="#/forgot">Mot de passe oublié ?</a></div>' +
+                '<button class="ent-b ent-b1" type="submit">' + ENT_ENTRER + ' Se connecter</button>' +
+              '</form>' +
+              '<div class="ent-ou">ou</div>' +
+              '<button class="ent-b ent-b3" id="gbtn">' + GOOGLE_ICON + ' Continuer avec Google</button>' +
+              '<button class="ent-retour" id="retour">← Retour</button>' +
+            '</div>') +
+
+      '</div></div>';
+
+      const ve = view.querySelector('#versEmail');
+      if (ve) ve.onclick = () => { voie = 'email'; paint(); };
+      const re = view.querySelector('#retour');
+      if (re) re.onclick = () => { voie = 'choix'; paint(); };
+      const sc = view.querySelector('#sansCompte');
+      if (sc) sc.onclick = () => Router.go('/');
+
+      view.querySelector('#gbtn').onclick = async function () {
+        UI.busy(this, true, 'Redirection…');
+        try { await API.signInGoogle(App.role); }
+        catch (e) { UI.busy(this, false); UI.err(e.message); }
+      };
+
+      const f = view.querySelector('#f');
+      if (f) f.onsubmit = connexionEmailPour(view);
+    }
+
+    paint();
+  }
+
   Router.add('/login', async function (params, query, view) {
     if (Store.isLogged) return Router.go(Router.homeFor(Store.role), true);
+
+    /* L'application cliente reçoit la porte d'entrée sombre. Les espaces
+       professionnels gardent l'écran clair : leurs utilisateurs y arrivent avec
+       un compte déjà créé par l'administration, ils n'ont pas de carrefour à
+       traverser — et un livreur doit lire son écran en plein soleil. */
+    if (App.publique) {
+      porteDentree(view);
+      /* La classe peint le noir jusqu'aux bords et masque les deux barres :
+         cet écran est une porte, pas une page de l'application. Elle est
+         retirée au départ de la route, sinon le reste de l'application
+         resterait sur fond noir sans ses barres. */
+      document.body.classList.add('ent-open');
+      const off = brancherInstall(view);
+      return () => { document.body.classList.remove('ent-open'); if (off) off(); };
+    }
 
     view.innerHTML = shell(App.titre, App.sousTitre,
       '<div class="card card-p stack">' +
@@ -158,32 +316,7 @@
       catch (e) { UI.busy(this, false); UI.err(e.message); }
     };
 
-    view.querySelector('#f').onsubmit = async function (e) {
-      e.preventDefault();
-      const btn = this.querySelector('[type=submit]');
-      const d = UI.formData(this);
-      if (!U.isEmail(d.email)) return UI.err('Adresse email invalide');
-      if (!d.password) return UI.err('Saisissez votre mot de passe');
-      UI.busy(btn, true, 'Connexion…');
-      try {
-        await API.signIn(d.email, d.password);
-        await Store.refreshProfile();
-        UI.ok('Bienvenue ' + (Store.profile.full_name || '') + ' !');
-        Router.go(afterLogin(), true);
-      } catch (err) {
-        UI.busy(btn, false);
-        // compte créé mais jamais confirmé : on l'amène au bon écran au lieu
-        // de lui répéter une erreur sans issue
-        if (/pas encore confirmé/i.test(err.message))
-          return ecranCode(view, { email: d.email }, 'client');
-        // un compte créé par Google n'a pas de mot de passe : le dire, plutôt
-        // que de laisser l'utilisateur réessayer indéfiniment
-        if (/incorrect/i.test(err.message))
-          return UI.err('Email ou mot de passe incorrect',
-            'Si vous vous êtes inscrit avec Google, utilisez le bouton Google ci-dessus.');
-        UI.err(err.message);
-      }
-    };
+    view.querySelector('#f').onsubmit = connexionEmailPour(view);
 
     return brancherInstall(view);
   });
