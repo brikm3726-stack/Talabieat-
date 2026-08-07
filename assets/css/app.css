@@ -4811,3 +4811,103 @@ html,body{overscroll-behavior-y:none}
 body.ent-open{background:#000}
 body.ent-open .topbar,
 body.ent-open .bottomnav{display:none}
+
+/* ==========================================================================
+   BARRE DE NAVIGATION — thème sombre premium (application cliente)
+   --------------------------------------------------------------------------
+   Le squelette HTML ne change pas d'un pixel : `.ic`, `.cap`, `.marque`,
+   `.lb`, l'onde au doigt et la classe `.on` sont produits par
+   Shell.renderNav() et restent tels quels. Tout ce qui suit est de
+   l'apparence — donc aucune fonction, aucun lien, aucun badge ne peut casser.
+
+   Portée `body.app-client` : l'application livreur garde sa barre bleue, la
+   console d'administration la sienne. Une seule application change de peau.
+
+   CE QUI FAIT LE « PREMIUM » ICI, ET CE QUI L'AURAIT TUÉ
+   La tentation est d'empiler flou, dégradés et ombres colorées. Sur un
+   téléphone d'entrée de gamme, chacun de ces effets se paie à chaque image
+   affichée, et une barre qui saccade au défilement ruine l'impression qu'elle
+   cherchait à donner. D'où : un seul flou (déjà présent), des ombres fixes
+   jamais animées, et le mouvement confié exclusivement à `transform` et
+   `opacity`. `contain:layout paint` isole la barre du reste de la page.
+   ========================================================================== */
+body.app-client{
+  --nv-fond:rgba(14,14,16,.72);       /* verre sombre, pas noir opaque */
+  --nv-bord:rgba(255,101,0,.16);      /* bordure à peine teintée d'orange */
+  --nv-inactif:#8B9099;
+  --nv-actif:#FF6500;
+}
+
+body.app-client .bottomnav{
+  background:var(--nv-fond);
+  border:1px solid var(--nv-bord);
+  border-radius:28px;
+  /* Trois ombres : une pour décoller du fond, une pour la profondeur, une
+     très diffuse et légèrement orangée pour la lueur. Aucune n'est animée. */
+  box-shadow:
+    0 1px 1px rgba(0,0,0,.55),
+    0 12px 28px -14px rgba(0,0,0,.85),
+    0 -1px 40px -18px rgba(255,101,0,.30);
+}
+
+body.app-client .bottomnav a{
+  color:var(--nv-inactif);
+  transition:color .22s cubic-bezier(.22,.61,.36,1);
+}
+body.app-client .bottomnav a.on{color:var(--nv-actif)}
+
+/* La pastille derrière l'icône active : elle grandit depuis le centre, en
+   transform seul. C'est elle l'indicateur — discret, et jamais un aplat. */
+body.app-client .bottomnav .cap{
+  background:rgba(255,101,0,.13);
+  border:1px solid rgba(255,101,0,.28);
+  transition:transform .24s cubic-bezier(.22,.61,.36,1),
+             opacity .24s cubic-bezier(.22,.61,.36,1);
+}
+body.app-client .bottomnav a.on .cap{
+  background:rgba(255,101,0,.16);
+  border-color:rgba(255,101,0,.45);
+  /* la lueur : fixe, donc gratuite */
+  box-shadow:0 0 0 1px rgba(255,101,0,.10),
+             0 6px 22px -8px rgba(255,101,0,.75);
+}
+
+/* L'icône active se soulève d'un cheveu. Un pixel suffit : au-delà, l'œil
+   voit un décalage et non une réponse. */
+body.app-client .bottomnav a.on .ic svg{
+  transform:translateY(-1.5px) scale(1.06);
+  filter:drop-shadow(0 0 6px rgba(255,101,0,.55));
+}
+
+body.app-client .bottomnav .lb{
+  color:var(--nv-inactif);
+  letter-spacing:.1px;
+}
+body.app-client .bottomnav a.on .lb{color:var(--nv-actif)}
+
+/* Le trait sous l'onglet actif, en dernier recours de lisibilité : quelqu'un
+   qui distingue mal l'orange du gris doit voir lequel est actif. */
+body.app-client .bottomnav a.on::after{
+  background:var(--nv-actif);
+  box-shadow:0 0 8px rgba(255,101,0,.9);
+}
+
+/* L'onde au doigt, en clair sur fond sombre — invisible autrement. */
+body.app-client .nav-onde{background:rgba(255,101,0,.22)}
+
+/* Le compteur du panier : orange plein, chiffre blanc, aucun contour. */
+body.app-client .bottomnav .nav-badge{
+  background:var(--nv-actif);color:#fff;
+  border:2px solid #0E0E10;
+  box-shadow:0 2px 10px -3px rgba(255,101,0,.9);
+}
+body.app-client .bottomnav .nav-dot{
+  background:var(--nv-actif);
+  box-shadow:0 0 0 2px #0E0E10, 0 0 10px rgba(255,101,0,.9);
+}
+
+@media (prefers-reduced-motion: reduce){
+  body.app-client .bottomnav a,
+  body.app-client .bottomnav .cap{transition:none}
+  body.app-client .bottomnav a.on .ic svg{transform:none}
+}
