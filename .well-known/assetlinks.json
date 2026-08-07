@@ -15,6 +15,17 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
+      "package_name": "shop.talabi.twa",
+      "sha256_cert_fingerprints": [
+        "06:FD:A6:C1:F1:24:99:3A:15:93:93:71:B4:1D:43:A2:EA:FB:7B:E7:03:9B:AD:C5:C2:9A:3D:C8:4A:B6:E4:CC",
+        "75:9B:66:A7:F3:04:5B:17:24:97:3D:2F:8E:C7:14:66:8B:6D:60:93:0F:D6:2F:E4:37:17:7F:FD:46:90:B5:0E"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
       "package_name": "shop.talabi.livreur",
       "sha256_cert_fingerprints": [
         "41:82:16:1D:9C:7A:DB:27:F9:7D:10:9D:72:BE:DD:33:93:78:0E:9F:93:DB:D5:EC:CC:7A:39:5A:61:A0:F4:7E"
