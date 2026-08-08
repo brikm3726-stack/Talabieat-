@@ -6312,3 +6312,44 @@ body.app-client{
    en bas. On peint donc la fenêtre en noir dès le départ, dans l'application
    cliente uniquement. */
 body.app-client{background-color:#050505}
+
+/* ==========================================================================
+   LA BARRE DU BAS DEVIENT OPAQUE — LE « TROU » N'EN ÉTAIT PAS UN
+   --------------------------------------------------------------------------
+   Sur iPhone, une bande noire semblait s'ouvrir sous la rangée d'icônes. La
+   barre touchait pourtant déjà le bord : c'était son FOND TRANSLUCIDE qui
+   trompait l'œil.
+
+   Le verre laissait voir ce qu'il y a derrière. Derrière les icônes, le
+   contenu de la page — une carte de restaurant, donc du clair. Derrière sa
+   partie basse, plus rien que le noir du fond. Même verre, deux tons, et une
+   frontière nette au milieu de la barre qu'on lit comme un trou.
+
+   Le fond devient donc OPAQUE, d'un seul ton du haut jusqu'au bord de
+   l'écran. Et `backdrop-filter` part avec : flouter ce qu'on ne verra plus
+   coûtait un calcul à chaque image, sur un élément présent en permanence.
+   Sur un téléphone d'entrée de gamme, c'est le genre de dépense qui se lit en
+   images perdues pendant le défilement.
+
+   Le remplissage du bas se resserre aussi : 6 px plus la zone réservée aux
+   gestes suffisent à ne rien mettre sous la barre du système, là où 9 px
+   ajoutaient du vide sans raison.
+   ========================================================================== */
+body.app-client .bottomnav{
+  background:#0E0E10;
+  -webkit-backdrop-filter:none;
+          backdrop-filter:none;
+  padding:8px 4px calc(6px + env(safe-area-inset-bottom));
+  border-top:1px solid rgba(255,255,255,.07);
+}
+/* L'anneau qui détache le cercle du panier doit être du même ton que la barre,
+   sinon il dessine un halo plus clair autour de lui. */
+body.app-client .bottomnav a[data-p="/cart"] .ic{
+  box-shadow:
+    0 7px 18px -4px rgba(255,101,0,.8),
+    0 0 0 6px #0E0E10;
+}
+/* La réserve suit : 72 px de barre plus la zone des gestes. */
+body.app-client{
+  --nav-h:calc(72px + env(safe-area-inset-bottom));
+}
