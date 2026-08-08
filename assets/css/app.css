@@ -6283,3 +6283,32 @@ body.nuit #view input[type="date"]::-webkit-calendar-picker-indicator{
 
 /* La porte d'entrée sombre gérait déjà sa zone du haut (`.ent-in`). Les pages
    sombres, elles, commencent sous la barre : rien à réserver de plus. */
+
+/* ==========================================================================
+   LA PLACE RÉSERVÉE EN BAS DOIT INCLURE LA ZONE DES GESTES
+   --------------------------------------------------------------------------
+   `--nav-h` est la hauteur que chaque page réserve sous son contenu pour ne
+   pas passer derrière la barre du bas. Elle valait un nombre fixe — 86 px —
+   alors que la barre mesure désormais 74 px PLUS la zone réservée aux gestes
+   du téléphone, que la barre absorbe dans son remplissage.
+
+   Sur un iPhone à barre de gestes, cette zone fait 34 px : le dernier bouton
+   de chaque page se retrouvait donc masqué d'autant. Et la barre du panier
+   (`.sticky-bar`), qui se pose à `bottom:var(--nav-h)`, se posait 34 px trop
+   bas — c'est-à-dire par-dessus la navigation.
+
+   En la calculant, la réserve suit l'appareil : 78 px là où il n'y a rien à
+   éviter, 112 sur un iPhone récent. Une seule valeur à maintenir.
+   ========================================================================== */
+body.app-client{
+  --nav-h:calc(78px + env(safe-area-inset-bottom));
+}
+
+/* Le fond du pourtour, pour les deux zones réservées.
+   `html` n'a pas de fond propre : c'est celui de `body` que le navigateur
+   étale sur toute la fenêtre. Il est déjà noir sur les écrans sombres — mais
+   pendant le tout premier affichage, avant que la classe `nuit` ne soit
+   posée, c'est le crème qui apparaissait une fraction de seconde en haut et
+   en bas. On peint donc la fenêtre en noir dès le départ, dans l'application
+   cliente uniquement. */
+body.app-client{background-color:#050505}
