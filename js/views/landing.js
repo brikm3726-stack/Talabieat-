@@ -67,16 +67,23 @@
       '<div class="wrap h3d-body">' +
 
         /* ----------------------------------------------------- RECHERCHE */
-        /* Le bouton est devenu rond et ne porte plus qu'une flèche. « Rechercher »
-           écrit à côté d'un champ de recherche répète ce que le champ dit déjà,
-           et ces 88 px pris en largeur manquaient au nom qu'on tape. Le titre
-           et l'aria-label disent ce que fait le bouton, pour qui ne voit pas la
-           flèche. La fonction, elle, n'a pas changé d'une ligne. */
+        /* ---- la barre de recherche, d'après la maquette « new theme accueil »
+           LA LOUPE EST LE BOUTON DE RECHERCHE, et le rond orange à droite mène
+           aux réglages. C'est ce que montre la maquette, et le pictogramme le
+           dit : des curseurs de réglage, pas une flèche.
+
+           La loupe devient donc un vrai <button> et non un décor : sans ça,
+           quelqu'un qui tape « pizza » puis cherche où appuyer ne trouverait
+           qu'un bouton qui l'emmène ailleurs. La touche Entrée cherche aussi. */
         '<div class="h3d-search">' +
-          '<span class="lo">' + UI.icon('search', 20) + '</span>' +
+          '<button class="lo" id="goSearch" title="Rechercher" ' +
+            'aria-label="Rechercher">' + UI.icon('search', 20) + '</button>' +
           '<input id="q" placeholder="Rechercher un restaurant ou un plat…" autocomplete="off">' +
-          '<button class="h3d-go" id="goSearch" title="Rechercher" ' +
-            'aria-label="Rechercher">' + UI.icon('arrow-right', 21) + '</button>' +
+          /* Les réglages quittent la barre du haut, où ils doublonnaient
+             l'onglet Compte. Ils prennent la place que la maquette leur donne :
+             au bout du champ de recherche, en pastille orange. */
+          '<a class="h3d-go" href="#/account" title="Réglages" ' +
+            'aria-label="Réglages">' + UI.icon('settings', 21) + '</a>' +
         '</div>' +
 
         /* ------------------------------------- LA COMMANDE EN COURS D'ABORD

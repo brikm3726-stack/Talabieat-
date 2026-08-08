@@ -5903,3 +5903,174 @@ body.nuit #view .leaflet-control-attribution a{color:var(--nuit-doux)}
 
 /* ---- une dernière surface partagée ---- */
 body.nuit #view .ocode{background-color:rgba(255,255,255,.07);color:var(--nuit-texte)}
+
+/* ==========================================================================
+   MAQUETTE « NEW THEME ACCUEIL » — en-tête et barre du bas
+   --------------------------------------------------------------------------
+   Huit points demandés, dans l'ordre où on les voit :
+
+   1. le mot-marque au centre, en haut
+   2. le quartier en pastille noire, plus petite
+   3. la cloche en rond noir, pictogramme blanc, point orange
+   4. les réglages en pastille orange au bout du champ de recherche
+   5. la recherche descendue
+   6. la barre du bas remplit toute la case, plus rien en dessous
+   7. tous les onglets dans un seul bloc
+   8. le panier dans un cercle orange saillant
+   ========================================================================== */
+
+/* ---- 1. LE MOT-MARQUE AU CENTRE ----------------------------------------
+   Sorti du flux et centré sur la barre. Il ne pousse donc plus le quartier
+   vers la droite, et sa largeur ne dépend plus de ce qu'il y a autour.
+
+   `transform` sur cet élément : sans danger ici. Un transform fait de son
+   porteur le repère de tout `position:fixed` qu'il contient — c'est le piège
+   qui avait rendu l'écran de suivi entièrement blanc. `.brand-nuit` ne
+   contient que deux spans et un SVG. */
+body.nuit .topbar-in{position:relative}
+body.nuit .brand-nuit{
+  display:flex;flex-direction:column;align-items:center;
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  line-height:1;text-decoration:none;color:var(--nuit-texte);
+  pointer-events:auto;
+}
+body.nuit .brand-nuit .arc{width:62px;margin-bottom:-4px}
+body.nuit .brand-nuit .mot{font-size:26px;letter-spacing:-1.3px}
+/* Il apparaît sur TOUS les onglets, plus seulement l'accueil : c'est
+   désormais le centre de la barre, et une barre dont le centre se vide en
+   changeant d'onglet donne l'impression que l'application a changé. */
+body.nuit-accueil .brand-nuit,
+body.nuit-restaurants .brand-nuit,
+body.nuit-panier .brand-nuit,
+body.nuit-commandes .brand-nuit,
+body.nuit-compte .brand-nuit{display:flex}
+
+/* ---- 2. LE QUARTIER, PLUS PETIT ET PLUS NOIR --------------------------- */
+body.nuit .topbar .zone-pick{
+  background-color:#0E0E0F;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:999px;
+  padding:6px 11px 6px 9px;
+  font-size:12.5px;font-weight:650;
+  max-width:132px;min-width:0;
+  color:var(--nuit-texte);
+}
+body.nuit .topbar .zone-pick .pin-ic{color:var(--brand)}
+/* Sous 380 px, le mot-marque centré et le quartier finiraient par se
+   toucher : c'est le quartier qui rétrécit, il a une ellipse. */
+@media(max-width:379px){
+  body.nuit .topbar .zone-pick{max-width:104px;font-size:12px}
+  body.nuit .brand-nuit .mot{font-size:23px}
+}
+
+/* ---- 3. LA CLOCHE : ROND NOIR, PICTOGRAMME BLANC, POINT ORANGE -------- */
+body.nuit .topbar .icon-btn{
+  width:42px;height:42px;border-radius:50%;
+  background-color:#0E0E0F;
+  border:1px solid rgba(255,255,255,.1);
+  color:#FFFFFF;
+}
+/* Le compteur devient le point de la maquette quand il n'y a rien à
+   compter d'utile, et garde son chiffre au-delà : « 3 » en dit plus que
+   « il y a du nouveau », et ça ne coûte pas une pastille de plus. */
+body.nuit .topbar .badge-dot{
+  top:-2px;right:-2px;border-width:2px;border-color:#050505;
+}
+
+/* ---- 4. LES RÉGLAGES EN PASTILLE ORANGE, AU BOUT DE LA RECHERCHE ------
+   `.h3d-go` était le bouton de recherche ; c'est maintenant le lien vers les
+   réglages, et la loupe à gauche est devenue le bouton de recherche. Le style
+   ne change pas — un rond orange de 46 px, au-dessus du minimum de 44 px sous
+   lequel on rate sa cible en marchant. */
+.h3d-go{text-decoration:none}
+body.nuit .h3d-search .lo{
+  background:none;border:none;padding:0;margin:0;cursor:pointer;
+  color:var(--nuit-doux);
+  display:grid;place-items:center;
+  width:30px;height:30px;flex:none;
+  transition:color .16s ease;
+}
+body.nuit .h3d-search .lo:active{color:var(--brand)}
+
+/* ---- 5. LA RECHERCHE DESCEND ------------------------------------------ */
+body.nuit-accueil .h3d-search{margin-top:16px}
+
+/* ==========================================================================
+   6, 7 et 8. LA BARRE DU BAS — UN SEUL BLOC QUI REMPLIT LA CASE
+   --------------------------------------------------------------------------
+   Elle flottait à 14 px des bords, et la page se voyait par-dessous. La
+   maquette la veut posée au bord, occupant toute la largeur, avec rien en
+   dessous — d'où `left:0 / right:0 / bottom:0` et des coins arrondis
+   seulement en haut.
+
+   `env(safe-area-inset-bottom)` passe dans le remplissage intérieur et non
+   plus dans la position : sur un téléphone à barre de gestes, la rangée
+   d'icônes remonte au-dessus de la zone réservée pendant que le fond, lui,
+   descend jusqu'au bord. Sans ça, ou la barre flotte, ou les icônes sont
+   sous le doigt du système.
+   ========================================================================== */
+body.app-client{
+  /* La place réservée en bas des pages grandit d'autant : la barre est plus
+     haute qu'avant puisqu'elle absorbe la zone de sécurité. Sans ce
+     changement, le dernier bouton de chaque page passerait dessous. */
+  --nav-h:76px;
+}
+body.app-client .bottomnav{
+  left:0;right:0;bottom:0;
+  height:auto;min-height:64px;
+  padding:7px 4px calc(7px + env(safe-area-inset-bottom));
+  border-radius:22px 22px 0 0;
+  border-left:none;border-right:none;border-bottom:none;
+  border-top:1px solid var(--nv-bord);
+  box-shadow:
+    0 -1px 1px rgba(0,0,0,.5),
+    0 -10px 30px -14px rgba(0,0,0,.9),
+    0 -1px 44px -18px rgba(255,101,0,.28);
+}
+
+/* ---- 8. LE PANIER DANS UN CERCLE ORANGE SAILLANT ----------------------
+   Désigné par `data-p="/cart"`, pas par sa position : la barre compte cinq
+   onglets pour un client connecté et quatre pour un visiteur, et le panier
+   n'est pas au même rang dans les deux cas… mais son chemin, lui, ne change
+   jamais. */
+body.app-client .bottomnav a[data-p="/cart"]{
+  overflow:visible;             /* le cercle dépasse en haut */
+  justify-content:flex-end;
+  padding-bottom:2px;
+}
+/* L'onde au doigt est supprimée sur cet onglet : sans découpage pour la
+   contenir, elle s'échapperait en carré autour du cercle. */
+body.app-client .bottomnav a[data-p="/cart"] .nav-onde{display:none}
+body.app-client .bottomnav a[data-p="/cart"] .ic{
+  position:absolute;top:-19px;left:50%;transform:translateX(-50%);
+  width:54px;height:54px;border-radius:50%;
+  background:radial-gradient(120% 120% at 32% 24%,#FFA24D,#FF6500 62%,#E85400);
+  box-shadow:
+    0 6px 16px -4px rgba(255,101,0,.75),
+    0 0 0 5px #0E0E10;          /* l'anneau qui détache le cercle de la barre */
+  color:#FFFFFF;
+}
+body.app-client .bottomnav a[data-p="/cart"] .ic svg{width:26px;height:26px}
+/* Sa capsule n'a plus lieu d'être : le cercle EST la mise en avant. */
+body.app-client .bottomnav a[data-p="/cart"] .cap{display:none}
+body.app-client .bottomnav a[data-p="/cart"] .lb{margin-top:0}
+/* Actif, le cercle ne change pas de couleur — il est déjà plein. C'est son
+   libellé et le trait sous lui qui disent qu'on y est. */
+body.app-client .bottomnav a[data-p="/cart"].on .ic svg{transform:none}
+/* Le compteur se pose sur le bord du cercle, en blanc sur orange : un badge
+   orange sur un cercle orange ne se verrait pas. */
+body.app-client .bottomnav a[data-p="/cart"] .nav-badge{
+  top:-2px;right:-2px;
+  background:#FFFFFF;color:#E85400;
+  border:2px solid #E85400;
+}
+
+/* Le cercle mange de la hauteur : les autres onglets gardent leur place, mais
+   la rangée doit laisser passer le débord. */
+body.app-client .bottomnav a{overflow:hidden}
+body.app-client .bottomnav{overflow:visible}
+
+@media(prefers-reduced-motion:reduce){
+  body.nuit .h3d-search .lo{transition:none}
+}
