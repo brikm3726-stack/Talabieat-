@@ -390,7 +390,10 @@
     /* L'inscription cliente passe au thème sombre (maquette « inscription
        page »). Les espaces professionnels gardent l'écran clair : un livreur
        lit son téléphone en plein soleil. */
-    const nuit = App.est('client');
+    /* Le sombre n'est plus imposé : il suit la préférence de l'utilisateur
+       (interrupteur dans Réglages). Sans ce test, l'inscription resterait
+       noire alors que tout le reste serait passé au clair. */
+    const nuit = App.est('client') && UI.sombreVoulu();
     if (nuit) UI.nuit('inscription');
 
     view.innerHTML = shell(

@@ -101,6 +101,28 @@
           porte('#/securite', 'lock', 'Sécurité',
                 'Modifier mon mot de passe, vérifié par email') +
 
+          /* ---- mode sombre ----
+             Un interrupteur, comme la sonnerie juste en dessous : deux
+             réglages du même genre doivent se manipuler pareil.
+
+             Réservé à l'application cliente : c'est la seule dont les écrans
+             ont une version sombre. L'espace livreur est bleu clair de bout en
+             bout, volontairement — on le lit à moto, en plein soleil. */
+          (App.est('client')
+            ? '<div class="card card-p acc-secu" style="cursor:default">' +
+                '<span class="ic">' + UI.icon(UI.sombreVoulu() ? 'sound' : 'image', 20) + '</span>' +
+                '<span class="grow"><b>Mode sombre</b>' +
+                  '<span class="tiny">' +
+                    (UI.sombreVoulu()
+                      ? 'Fond noir — reposant le soir et économe en batterie'
+                      : 'Fond clair — plus lisible en plein soleil') +
+                  '</span></span>' +
+                '<label class="switch"><input type="checkbox" id="sombre"' +
+                  (UI.sombreVoulu() ? ' checked' : '') + '>' +
+                  '<span class="track"><span class="knob"></span></span></label>' +
+              '</div>'
+            : '') +
+
           /* ---- sonnerie ---- */
           (sonnerie
             ? '<div class="card card-p acc-secu" style="cursor:default">' +
@@ -169,6 +191,18 @@
           '<button class="btn btn-block btn-lg" id="logout">' +
             UI.icon('logout', 18) + ' Se déconnecter</button></div>' +
       '</div></div>';
+
+      /* Le changement de thème se voit tout de suite : on réaffiche l'écran
+         courant. Router.render() rejoue la route, qui repose ou non les
+         classes sombres selon la nouvelle préférence — aucune vue n'a besoin
+         de connaître le thème, c'est UI.nuit() qui décide. */
+      const sw = view.querySelector('#sombre');
+      if (sw) sw.onchange = function () {
+        UI.choisirSombre(this.checked);
+        UI.ok(this.checked ? 'Mode sombre activé' : 'Mode clair activé');
+        Shell.renderTop();
+        Router.render();
+      };
 
       const son = view.querySelector('#son');
       if (son) son.onchange = function () {

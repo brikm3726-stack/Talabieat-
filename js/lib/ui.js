@@ -577,7 +577,33 @@
 
        Appeler UI.nuit('') éteint tout : c'est ce que fait le nettoyage de
        chaque route sombre, sans quoi l'écran suivant resterait noir. */
+    /* ---------------------------------------------------- PRÉFÉRENCE DE THÈME
+       Sombre par défaut : c'est le thème dessiné pour cette application, celui
+       des maquettes. Le clair reste entier — c'est le thème d'origine, jamais
+       supprimé — pour qui lit mal sur fond noir, ou qui travaille en plein
+       soleil.
+
+       Le choix est gardé sur l'appareil et non sur le compte : il dépend de
+       l'écran qu'on a en main et de la lumière autour, pas de qui on est. Un
+       même client sur son téléphone et sur celui d'un ami n'attend pas le même
+       réglage. */
+    sombreVoulu() {
+      try { return localStorage.getItem('talabi.theme') !== 'clair'; }
+      catch (e) { return true; }        // navigation privée : on garde le sombre
+    },
+
+    choisirSombre(on) {
+      try { localStorage.setItem('talabi.theme', on ? 'sombre' : 'clair'); } catch (e) {}
+      const b = document.body;
+      b.classList.toggle('pref-sombre', !!on);
+      b.classList.toggle('pref-clair', !on);
+    },
+
     nuit(nom) {
+      /* Le thème clair choisi, les écrans sombres redeviennent les écrans
+         d'origine : il suffit de ne pas poser les classes. Rien d'autre ne
+         change — aucune vue n'a besoin de savoir quel thème est actif. */
+      if (nom && !UI.sombreVoulu()) nom = '';
       const b = document.body;
       b.classList.toggle('nuit', !!nom);
       /* On retire TOUS les `nuit-…` au lieu d'en énumérer la liste : un écran
@@ -634,4 +660,14 @@
   };
 
   w.UI = UI;
+
+  /* La préférence est posée sur <body> AVANT tout affichage. La couleur de la
+     fenêtre entière en dépend (voir `.pref-sombre` dans le CSS) : sans cette
+     ligne, un aplat crème apparaîtrait une fraction de seconde derrière
+     l'écran d'ouverture d'une application sombre — et l'inverse pour qui a
+     choisi le clair. Les scripts sont en fin de <body>, donc il existe. */
+  try {
+    const sombre = UI.sombreVoulu();
+    document.body.classList.add(sombre ? 'pref-sombre' : 'pref-clair');
+  } catch (e) {}
 })(window);

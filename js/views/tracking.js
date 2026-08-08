@@ -109,7 +109,10 @@
                elle existait dans la maquette fournie, celle-ci non.
                Un pictogramme dans une pastille qui rayonne est net à toute
                densité, ne pèse rien, et dit la même chose. */
-            '<span class="scene-ic" aria-hidden="true">' + UI.icon('bag', 40) + '</span>' +
+            (UI.sombreVoulu()
+              ? '<span class="scene-ic" aria-hidden="true">' + UI.icon('bag', 40) + '</span>'
+              : '<img class="scene-art" src="' + U.asset('assets/img/bg/commandes-vide.png') + '" ' +
+                  'alt="" aria-hidden="true">') +
             '<div class="h2 scene-title">' +
               (tab === 'active' ? 'Aucune commande en cours' : 'Aucune commande') + '</div>' +
             '<p class="scene-sub">' +

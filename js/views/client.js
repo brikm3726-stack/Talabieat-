@@ -408,13 +408,19 @@
       if (!Store.cartCount) {
         view.innerHTML =
           '<div class="empty-scene"><div class="wrap">' +
-            /* L'illustration a une VERSION SOMBRE, découpée dans la maquette
-               fournie. L'ancienne est sur fond quasi blanc : le thème clair la
-               fondait dans la page avec `mix-blend-mode:multiply`, mais
+            /* DEUX ILLUSTRATIONS, UNE PAR THÈME, et c'est nécessaire.
+               La version claire est dessinée sur fond quasi blanc : le thème
+               clair la fond dans la page avec `mix-blend-mode:multiply`, mais
                multiplier par du noir donne du noir — sur fond sombre elle
-               n'aurait laissé qu'un rectangle éteint. */
-            '<img class="scene-art" src="' + U.asset('assets/img/bg/panier-vide-nuit.jpg') + '" ' +
-              'width="1672" height="1016" decoding="async" alt="" aria-hidden="true">' +
+               n'aurait laissé qu'un rectangle éteint. La version sombre est
+               découpée dans la maquette fournie ; posée sur du crème, elle
+               ferait à l'inverse un bloc noir. Chacune ne va que sur son
+               thème, donc on choisit selon la préférence. */
+            (UI.sombreVoulu()
+              ? '<img class="scene-art" src="' + U.asset('assets/img/bg/panier-vide-nuit.jpg') + '" ' +
+                  'width="1672" height="1016" decoding="async" alt="" aria-hidden="true">'
+              : '<img class="scene-art" src="' + U.asset('assets/img/bg/panier-vide.png') + '" ' +
+                  'decoding="async" alt="" aria-hidden="true">') +
             '<div class="h1 scene-title">Votre panier est vide</div>' +
             '<p class="scene-sub">Ajoutez vos plats préférés parmi les meilleurs restaurants de votre ville.</p>' +
             '<div class="scene-cta">' +
