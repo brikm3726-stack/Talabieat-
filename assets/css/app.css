@@ -6074,3 +6074,78 @@ body.app-client .bottomnav{overflow:visible}
 @media(prefers-reduced-motion:reduce){
   body.nuit .h3d-search .lo{transition:none}
 }
+
+/* ==========================================================================
+   RÉGLAGES D'APRÈS « NEW THEME ACCUEIL » — second passage
+   ========================================================================== */
+
+/* ---- LE CERCLE DU PANIER ÉTAIT COUPÉ, ET VOICI PAR QUOI ----------------
+   `.bottomnav` porte `contain: layout paint`. La containment `paint` DÉCOUPE
+   tout ce qui dépasse de la boîte, exactement comme `overflow:hidden` — mon
+   `overflow:visible` ne pouvait rien contre elle. C'est elle qui rognait le
+   cercle par le haut.
+
+   On garde `layout`, qui isole vraiment la barre : ce qui bouge dedans ne
+   provoque plus de recalcul de la page. On abandonne `paint`, dont le gain est
+   marginal ici puisque `translateZ(0)` donne déjà à la barre sa propre couche
+   de composition. Un bouton visible vaut mieux qu'une optimisation qu'on ne
+   mesure pas. */
+body.app-client .bottomnav{
+  contain:layout;
+  overflow:visible;
+}
+
+/* ---- LA BARRE PLUS HAUTE ----------------------------------------------- */
+body.app-client{ --nav-h:86px; }
+body.app-client .bottomnav{
+  min-height:74px;
+  padding:9px 4px calc(9px + env(safe-area-inset-bottom));
+  border-radius:26px 26px 0 0;
+}
+body.app-client .bottomnav .ic{width:56px;height:34px}
+body.app-client .bottomnav .ic svg{width:25px;height:25px}
+body.app-client .bottomnav .lb{font-size:11.5px}
+
+/* ---- LE CERCLE DU PANIER, PLUS GRAND ET ENTIER -------------------------
+   58 px, remonté de 24 px. La barre faisant 74 px, il dépasse d'un tiers et
+   reste posé dessus : c'est ce chevauchement qui le fait lire comme le bouton
+   principal, et non comme un cinquième onglet. */
+body.app-client .bottomnav a[data-p="/cart"]{
+  overflow:visible;
+  justify-content:flex-end;
+  padding-bottom:3px;
+}
+body.app-client .bottomnav a[data-p="/cart"] .ic{
+  position:absolute;top:-24px;left:50%;transform:translateX(-50%);
+  width:58px;height:58px;border-radius:50%;
+  background:radial-gradient(120% 120% at 32% 24%,#FFA24D,#FF6500 62%,#E85400);
+  box-shadow:
+    0 7px 18px -4px rgba(255,101,0,.8),
+    0 0 0 6px #0E0E10;
+  color:#FFFFFF;
+}
+body.app-client .bottomnav a[data-p="/cart"] .ic svg{width:28px;height:28px}
+
+/* ---- LE MOT-MARQUE PLUS GRAND ----------------------------------------- */
+body.nuit .brand-nuit .arc{width:74px;margin-bottom:-5px}
+body.nuit .brand-nuit .mot{font-size:31px;letter-spacing:-1.6px}
+@media(max-width:379px){
+  body.nuit .brand-nuit .arc{width:64px}
+  body.nuit .brand-nuit .mot{font-size:26px}
+}
+
+/* ---- LE QUARTIER : BLANC DANS LE NOIR --------------------------------
+   L'épingle passe en blanc comme le pictogramme de la cloche. Les deux
+   boutons de la barre du haut se répondent alors : même noir, même filet,
+   même blanc. L'orange y était le seul point de couleur d'une rangée qui
+   n'en demande pas — il reste pour ce qui compte, plus bas. */
+body.nuit .topbar .zone-pick{
+  color:#FFFFFF;
+  padding:7px 12px 7px 10px;
+  font-size:13px;
+}
+body.nuit .topbar .zone-pick .pin-ic,
+body.nuit .topbar .zone-pick svg{color:#FFFFFF}
+
+/* ---- LA RECHERCHE DESCEND ENCORE ------------------------------------- */
+body.nuit-accueil .h3d-search{margin-top:30px}
