@@ -6149,3 +6149,45 @@ body.nuit .topbar .zone-pick svg{color:#FFFFFF}
 
 /* ---- LA RECHERCHE DESCEND ENCORE ------------------------------------- */
 body.nuit-accueil .h3d-search{margin-top:30px}
+
+/* ==========================================================================
+   LE BOUTON DU QUARTIER — BLANC DANS LE NOIR, SANS AUCUN ORANGE
+   --------------------------------------------------------------------------
+   Deux choses le repeignaient en orange, et mes règles précédentes n'en
+   attrapaient aucune :
+
+   1. `body.app-client .topbar .zone-pick{background:var(--brand-grad)}` — le
+      RACCOURCI `background` pose une image de fond. Mes règles ne posaient
+      qu'un `background-color` : la couleur passait bien en noir, et le dégradé
+      orange restait dessiné par-dessus. C'est le même piège que pour les
+      logos de catégories, à l'envers.
+
+   2. `box-shadow:0 8px 18px -8px rgba(255,107,53,.85)` — une lueur orange
+      autour du bouton, que rien n'avait jamais annulée.
+
+   D'où le raccourci `background` employé ici : sur ce bouton c'est justement
+   ce qu'il faut, puisqu'il n'y a aucun cadrage d'image à préserver. Et
+   `box-shadow:none` explicitement.
+
+   Cette règle est la dernière du fichier sur ce sélecteur : elle remplace les
+   trois passages précédents plutôt que d'ajouter une quatrième couche.
+   ========================================================================== */
+body.nuit .topbar .zone-pick{
+  background:#0E0E0F;
+  box-shadow:none;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:999px;
+  color:#FFFFFF;
+  font-size:13px;font-weight:650;
+  padding:7px 13px 7px 11px;
+  max-width:132px;min-width:0;
+  gap:7px;
+}
+body.nuit .topbar .zone-pick svg{stroke:#FFFFFF;color:#FFFFFF}
+body.nuit .topbar .zone-pick .pin-ic{color:#FFFFFF}
+body.nuit .topbar .zone-pick .spinner{
+  border-color:rgba(255,255,255,.4);border-top-color:#FFFFFF;
+}
+@media(max-width:379px){
+  body.nuit .topbar .zone-pick{max-width:108px;font-size:12px;padding:6px 11px 6px 9px}
+}
