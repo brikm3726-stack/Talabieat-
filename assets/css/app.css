@@ -6388,3 +6388,230 @@ body.app-driver .splash::before{
   position:fixed;
   top:0;right:0;bottom:0;left:0;
 }
+
+/* ==========================================================================
+   THÈME CLAIR — PORTE D'ENTRÉE ET ACCUEIL
+   --------------------------------------------------------------------------
+   Maquettes « inscription clair » et « acueil clair ».
+
+   Le thème clair d'origine est CRÈME (--bg:#F7EDE4). Ces deux maquettes-ci
+   sont d'un blanc franc, avec des cartes blanches que seuls un filet très
+   fin et une ombre douce détachent du fond. C'est un autre parti, et il ne
+   concerne que ces deux écrans : le reste de l'application garde son crème
+   jusqu'à ce qu'on le reprenne aussi.
+
+   D'où l'accroche `body.pref-clair.ecran-…` : `ecran-<nom>` est posé par
+   UI.nuit() quel que soit le thème, `pref-clair` par la préférence. La
+   conjonction des deux désigne exactement « cet écran, en clair ».
+   ========================================================================== */
+body.app-client.pref-clair{
+  --jr-fond:#F7F8FA;        /* le gris à peine gris qui fait ressortir le blanc */
+  --jr-carte:#FFFFFF;
+  --jr-bord:#ECEEF2;
+  --jr-bord-or:rgba(255,101,0,.32);
+  --jr-texte:#16181D;
+  --jr-doux:#6B7280;
+  --jr-ombre:0 1px 2px rgba(16,24,40,.04), 0 8px 22px -14px rgba(16,24,40,.16);
+}
+
+/* ==========================================================================
+   PORTE D'ENTRÉE CLAIRE — maquette « inscription clair »
+   ========================================================================== */
+body.pref-clair .ent{
+  --ent-noir:#FFFFFF;
+  --ent-fond:#F7F8FA;
+  --ent-ligne:#E6E8EC;
+  --ent-texte:#16181D;
+  --ent-doux:#6B7280;
+  background:#FFFFFF;
+  /* La lueur orange du thème sombre n'a pas de sens ici : sur du blanc elle
+     ferait une tache. La maquette claire n'a aucun halo. */
+  background-image:none;
+}
+/* Le noir posé sur le pourtour par `body.ent-open` doit suivre, sinon la page
+   est blanche et ses bords restent noirs. */
+body.pref-clair.ent-open{background:#FFFFFF}
+
+body.pref-clair .ent-word{color:var(--jr-texte, #16181D)}
+body.pref-clair .ent-t{color:#16181D}
+body.pref-clair .ent-s{color:#6B7280}
+/* Le petit trait orange sous l'accroche, comme sur la maquette. Il sépare le
+   titre de l'explication mieux qu'une marge de plus. */
+body.pref-clair .ent-s::after{
+  content:'';display:block;width:76px;height:3px;border-radius:2px;
+  background:var(--brand);margin:14px auto 0;
+}
+
+/* La photo claire est plus large que haute : son cadre change de proportion,
+   sinon elle flotterait au milieu d'un vide réservé pour l'autre. */
+body.pref-clair .ent-art{aspect-ratio:1586/1400;max-width:390px}
+
+/* Les trois boutons de la maquette : orange plein, orange en contour, puis une
+   carte blanche pour Google. */
+body.pref-clair .ent-b1{
+  background:var(--brand);color:#fff;
+  box-shadow:0 12px 26px -10px rgba(255,101,0,.55);
+}
+body.pref-clair .ent-b2{background:#fff;color:var(--brand);border-color:var(--brand)}
+body.pref-clair .ent-b3{
+  background:#fff;color:#16181D;border-color:var(--jr-bord, #ECEEF2);
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 6px 18px -12px rgba(16,24,40,.2);
+}
+body.pref-clair .ent-ou{color:#9AA0A8}
+body.pref-clair .ent-ou::before,
+body.pref-clair .ent-ou::after{background:#E6E8EC}
+body.pref-clair .ent-retour{color:#6B7280}
+body.pref-clair .ent-form .field label{color:#374151}
+body.pref-clair .ent-form .input{
+  background:#fff;border-color:#E6E8EC;color:#16181D;
+}
+body.pref-clair .ent-form .input::placeholder{color:#9AA0A8}
+
+/* ==========================================================================
+   ACCUEIL CLAIR — maquette « acueil clair »
+   ========================================================================== */
+body.pref-clair.ecran-accueil{background:var(--jr-fond)}
+body.pref-clair.ecran-accueil .home3d{background:var(--jr-fond)}
+
+/* ---- la barre du haut : blanche, mot-marque au centre ---- */
+body.pref-clair.ecran-accueil .topbar{
+  background:rgba(255,255,255,.92);
+  border-bottom:1px solid var(--jr-bord);
+}
+body.pref-clair.ecran-accueil .topbar-in{position:relative}
+/* Le mot-marque est écrit dans le HTML pour toute l'application mais masqué
+   par défaut. En clair aussi, l'accueil le montre — centré, comme la maquette. */
+body.pref-clair.ecran-accueil .brand-nuit{
+  display:flex;flex-direction:column;align-items:center;
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  line-height:1;text-decoration:none;color:#16181D;
+}
+body.pref-clair.ecran-accueil .brand-nuit .arc{width:74px;color:var(--brand);margin-bottom:-5px}
+body.pref-clair.ecran-accueil .brand-nuit .arc svg{display:block;width:100%;height:auto}
+body.pref-clair.ecran-accueil .brand-nuit .mot{
+  font-size:31px;font-weight:900;letter-spacing:-1.6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+body.pref-clair.ecran-accueil .brand-nuit .mot i{font-style:normal;color:var(--brand)}
+@media(max-width:379px){
+  body.pref-clair.ecran-accueil .brand-nuit .arc{width:64px}
+  body.pref-clair.ecran-accueil .brand-nuit .mot{font-size:26px}
+}
+
+/* Le quartier : pastille blanche cerclée, épingle orange — l'orange plein du
+   thème d'origine écrasait tout le reste de la rangée. */
+body.pref-clair.ecran-accueil .topbar .zone-pick{
+  background:#fff;box-shadow:none;
+  border:1px solid var(--jr-bord);border-radius:999px;
+  color:#16181D;font-size:13px;font-weight:650;
+  padding:7px 13px 7px 11px;max-width:132px;min-width:0;gap:7px;
+}
+body.pref-clair.ecran-accueil .topbar .zone-pick svg{stroke:var(--brand);color:var(--brand)}
+body.pref-clair.ecran-accueil .topbar .zone-pick .pin-ic{color:var(--brand)}
+/* La cloche : rond blanc cerclé, pictogramme sombre, point orange. */
+body.pref-clair.ecran-accueil .topbar .icon-btn{
+  width:42px;height:42px;border-radius:50%;
+  background:#fff;border:1px solid var(--jr-bord);color:#374151;
+  box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-accueil .topbar .badge-dot{
+  top:-2px;right:-2px;border-width:2px;border-color:#fff;
+}
+
+/* ---- la recherche ---- */
+body.pref-clair.ecran-accueil .h3d-search{
+  background:#fff;border:1px solid var(--jr-bord);
+  border-radius:22px;padding:8px 8px 8px 16px;
+  box-shadow:var(--jr-ombre);
+  margin-top:30px;
+}
+body.pref-clair.ecran-accueil .h3d-search .lo{
+  background:none;border:none;padding:0;cursor:pointer;
+  color:#374151;display:grid;place-items:center;width:30px;height:30px;flex:none;
+}
+body.pref-clair.ecran-accueil .h3d-search input{color:#16181D}
+body.pref-clair.ecran-accueil .h3d-search input::placeholder{color:#9AA0A8}
+
+/* ---- les trois raccourcis ---- */
+body.pref-clair.ecran-accueil .h3d-q{
+  background:#fff;border:1px solid var(--jr-bord);box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-accueil .h3d-q .ic{background:#FFF3EB;color:var(--brand)}
+body.pref-clair.ecran-accueil .h3d-q .tx{color:#16181D}
+body.pref-clair.ecran-accueil .h3d-q .ch{color:#B6BCC6}
+
+/* ---- le bandeau de chiffres : carte blanche cerclée d'orange ----
+   Il était un APLAT ORANGE dans le thème d'origine. Sur une page blanche, cet
+   aplat était le seul bloc coloré et écrasait tout ; la maquette en fait une
+   carte blanche que l'orange se contente de cercler. */
+body.pref-clair.ecran-accueil .h3d-stats{
+  background:#fff;border:1px solid var(--jr-bord-or);
+  box-shadow:0 1px 2px rgba(255,101,0,.05), 0 10px 26px -18px rgba(255,101,0,.35);
+  color:#16181D;padding:20px 8px;
+}
+body.pref-clair.ecran-accueil .h3d-stats:empty{display:none}
+body.pref-clair.ecran-accueil .h3d-stats > div + div::before{background:var(--jr-bord)}
+body.pref-clair.ecran-accueil .h3d-stats .ic{background:#F3F4F6;color:var(--brand)}
+body.pref-clair.ecran-accueil .h3d-stats b{color:var(--brand);font-size:26px}
+body.pref-clair.ecran-accueil .h3d-stats .lb{color:var(--jr-doux);opacity:1}
+
+/* ---- la promesse de livraison : carte blanche, photo claire ----
+   La photo de nuit est un scooter noir sur fond noir : elle ferait un bloc
+   sombre sur cette carte blanche. Celle-ci est découpée dans la maquette
+   claire, et son fondu vers la gauche la fait entrer dans la carte. */
+body.pref-clair.ecran-accueil .h3d-livr{
+  background:#fff;border:1px solid var(--jr-bord);
+  box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-accueil .h3d-livr .h2{color:#16181D}
+body.pref-clair.ecran-accueil .h3d-livr p{color:var(--jr-doux)}
+body.pref-clair.ecran-accueil .h3d-livr .p{
+  background:#fff;border:1px solid var(--jr-bord);color:#374151;
+  box-shadow:0 1px 2px rgba(16,24,40,.04);
+}
+body.pref-clair.ecran-accueil .h3d-livr .ph{
+  background-image:url("../img/bg/scooter-bandeau-jour.jpg");
+  background-position:46% 30%;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 40%);
+          mask-image:linear-gradient(90deg,transparent,#000 40%);
+}
+
+/* ---- en-tête de section et cartes de restaurant ---- */
+body.pref-clair.ecran-accueil .section-head .h2{color:#16181D}
+body.pref-clair.ecran-accueil .section-head .sub{color:var(--jr-doux)}
+body.pref-clair.ecran-accueil .rc-tout{
+  background:#fff;border:1.5px solid var(--brand);color:var(--brand);
+}
+body.pref-clair.ecran-accueil .rcard{
+  background:#fff;border:1px solid var(--jr-bord);box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-accueil .rc-bas{background:#fff}
+body.pref-clair.ecran-accueil .rc-haut{
+  background:linear-gradient(105deg,#FFF9F4 0%,#FFF4EA 46%,#FFEFE2 100%);
+}
+
+/* ---- la barre du bas : blanche, flottante, panier en cercle orange ----
+   Même géométrie que le thème sombre — elle remplit la case et le panier
+   dépasse — mais en blanc. Une seule construction à maintenir. */
+body.pref-clair .bottomnav{
+  background:#FFFFFF;
+  -webkit-backdrop-filter:none;
+          backdrop-filter:none;
+  border-top:1px solid var(--jr-bord, #ECEEF2);
+  box-shadow:
+    0 -1px 1px rgba(16,24,40,.04),
+    0 -10px 30px -18px rgba(16,24,40,.25);
+}
+body.pref-clair .bottomnav .cap{border-color:rgba(255,101,0,.28)}
+body.pref-clair .bottomnav a{color:#8A9099}
+body.pref-clair .bottomnav a.on{color:var(--brand)}
+/* L'anneau du cercle du panier prend le blanc de la barre : au ton du sombre,
+   il aurait dessiné une bague noire. */
+body.pref-clair .bottomnav a[data-p="/cart"] .ic{
+  box-shadow:
+    0 7px 18px -4px rgba(255,101,0,.5),
+    0 0 0 6px #FFFFFF;
+}
+body.pref-clair .bottomnav a[data-p="/cart"] .nav-badge{
+  background:#fff;color:#E85400;border:2px solid #E85400;
+}

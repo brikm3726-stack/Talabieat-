@@ -600,12 +600,18 @@
     },
 
     nuit(nom) {
-      /* Le thème clair choisi, les écrans sombres redeviennent les écrans
-         d'origine : il suffit de ne pas poser les classes. Rien d'autre ne
-         change — aucune vue n'a besoin de savoir quel thème est actif. */
-      if (nom && !UI.sombreVoulu()) nom = '';
       const b = document.body;
-      b.classList.toggle('nuit', !!nom);
+      /* DEUX FAMILLES DE CLASSES, ET C'EST NÉCESSAIRE.
+
+         `ecran-<nom>` dit QUEL écran est affiché, quel que soit le thème.
+         `nuit` et `nuit-<nom>` disent en plus qu'il est sombre.
+
+         Sans la première, le thème clair n'aurait aucun moyen de se distinguer
+         d'un écran à l'autre : les maquettes claires de l'accueil et de la
+         porte d'entrée demandent des surfaces différentes du reste de
+         l'application, et il faut pouvoir les désigner. */
+      const sombre = !!nom && UI.sombreVoulu();
+      b.classList.toggle('nuit', sombre);
       /* On retire TOUS les `nuit-…` au lieu d'en énumérer la liste : un écran
          sombre ajouté plus tard aurait été oublié dans l'énumération, et sa
          classe serait restée collée au body d'un écran à l'autre.
@@ -615,9 +621,10 @@
          les vieux WebView d'Android ne garantissent pas qu'elle se laisse
          parcourir comme un tableau. Une chaîne, si. */
       (b.className || '').split(/\s+/)
-        .filter(c => c.indexOf('nuit-') === 0)
+        .filter(c => c.indexOf('nuit-') === 0 || c.indexOf('ecran-') === 0)
         .forEach(c => b.classList.remove(c));
-      if (nom) b.classList.add('nuit-' + nom);
+      if (nom)    b.classList.add('ecran-' + nom);
+      if (sombre) b.classList.add('nuit-' + nom);
       /* On mémorise la couleur d'origine à la première bascule et on la
          restaure ensuite. Écrire une valeur en dur ici imposerait l'orange du
          client aux deux autres applications, qui ont chacune la leur. */
@@ -634,7 +641,7 @@
            secondes d'ouverture, donc jamais pendant les essais. */
         UI._themeInitial = (v === '#E95403') ? '#050505' : v;
       }
-      m.setAttribute('content', nom ? '#050505' : UI._themeInitial);
+      m.setAttribute('content', sombre ? '#050505' : UI._themeInitial);
     },
 
     /** Lit un <form> en objet simple */

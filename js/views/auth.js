@@ -248,9 +248,17 @@
           : 'Entrez l’email et le mot de passe de votre compte') + '</p>' +
 
         (voie === 'choix'
+          /* DEUX PHOTOS, UNE PAR THÈME, et aucune ne va sur l'autre : celle
+             de nuit est un scooter noir sur fond noir, celle de jour un
+             scooter blanc dans une rue blanche. Échangées, chacune ferait un
+             rectangle qui jure au milieu de la page. Toutes deux découpées
+             dans les maquettes fournies. */
           ? '<div class="ent-art">' +
-              '<img src="' + U.asset('assets/img/bg/scooter-nuit.jpg') + '" ' +
-                'width="1120" height="1500" decoding="async" alt="" aria-hidden="true">' +
+              (UI.sombreVoulu()
+                ? '<img src="' + U.asset('assets/img/bg/scooter-nuit.jpg') + '" ' +
+                    'width="1120" height="1500" decoding="async" alt="" aria-hidden="true">'
+                : '<img src="' + U.asset('assets/img/bg/scooter-jour.jpg') + '" ' +
+                    'width="1586" height="1400" decoding="async" alt="" aria-hidden="true">') +
             '</div>' +
 
             '<div class="ent-actions">' +
@@ -390,11 +398,15 @@
     /* L'inscription cliente passe au thème sombre (maquette « inscription
        page »). Les espaces professionnels gardent l'écran clair : un livreur
        lit son téléphone en plein soleil. */
-    /* Le sombre n'est plus imposé : il suit la préférence de l'utilisateur
-       (interrupteur dans Réglages). Sans ce test, l'inscription resterait
-       noire alors que tout le reste serait passé au clair. */
+    /* UI.nuit() est appelée SANS CONDITION : c'est elle qui décide du thème,
+       et elle nomme l'écran (`ecran-inscription`) dans les deux cas — ce nom
+       est ce qui permet au CSS clair de désigner cet écran-ci. Ne l'appeler
+       qu'en sombre laissait l'écran anonyme la moitié du temps.
+
+       `nuit` ne sert plus qu'à `shell()`, pour choisir entre le mot-marque en
+       texte et le logo, et entre le scooter de nuit et les taches floues. */
     const nuit = App.est('client') && UI.sombreVoulu();
-    if (nuit) UI.nuit('inscription');
+    if (App.est('client')) UI.nuit('inscription');
 
     view.innerHTML = shell(
       'Créer un compte ' + roleMot(role),
