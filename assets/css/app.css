@@ -6277,9 +6277,18 @@ body.nuit #view input[type="date"]::-webkit-calendar-picker-indicator{
    défiler derrière l'horloge. Il est déjà porté par `.topbar` elle-même : le
    remplissage étant à l'intérieur de la boîte, le fond le couvre. */
 
-/* L'écran d'ouverture occupe déjà tout l'écran, mais son contenu était centré
-   sur la fenêtre entière — donc légèrement haut sur un téléphone à encoche. */
-.splash{padding-top:env(safe-area-inset-top)}
+/* L'ÉCRAN D'OUVERTURE NE DOIT SURTOUT PAS AVOIR DE REMPLISSAGE EN HAUT.
+   J'en avais mis un pour centrer son contenu sous l'encoche. Mesuré sur une
+   capture d'iPhone 14 Pro : l'affiche s'arrêtait 59,3 pt avant le bas de
+   l'écran — exactement env(safe-area-inset-top) — et le fond de la page
+   apparaissait en dessous. Le remplissage raccourcit la boîte, et l'image,
+   en « cover », remplit consciencieusement la boîte raccourcie.
+
+   Cette affiche est une image plein cadre : elle n'a aucun texte à protéger de
+   l'encoche, donc rien à réserver. C'est le CONTENU centré — le logo et le
+   sous-titre des applications professionnelles — qui doit descendre, pas la
+   boîte. Le client et le livreur masquent ce contenu de toute façon. */
+.splash .center{padding-top:env(safe-area-inset-top)}
 
 /* La porte d'entrée sombre gérait déjà sa zone du haut (`.ent-in`). Les pages
    sombres, elles, commencent sous la barre : rien à réserver de plus. */
