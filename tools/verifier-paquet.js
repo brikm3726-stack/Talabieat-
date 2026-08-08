@@ -48,8 +48,13 @@ if (/\.zip$/i.test(cible)) {
   const d = path.join(temp, 'zip');
   fs.mkdirSync(d);
   unzip(cible, ['*.aab'], d);
-  const trouve = fs.readdirSync(d).find(f => /\.aab$/i.test(f));
+  const tous = fs.readdirSync(d).filter(f => /\.aab$/i.test(f));
+  /* PWABuilder livre parfois DEUX paquets : le signé et le « -unsigned ». On
+     prend le signé, sinon on annonce clairement qu'il n'y a que l'autre —
+     Play refuse un paquet non signé. */
+  const trouve = tous.find(f => !/unsigned/i.test(f)) || tous[0];
   if (!trouve) { console.error('Aucun .aab dans cette archive.'); process.exit(2); }
+  if (tous.length > 1) console.log('archive contient : ' + tous.join(', '));
   aab = path.join(d, trouve);
   console.log('archive  : ' + path.basename(cible));
 }

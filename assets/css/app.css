@@ -5745,3 +5745,161 @@ body.nuit #view .input-code{background-color:var(--nuit-carte-2);color:var(--nui
   body.nuit #view .qty button:hover{background-color:var(--brand);color:#fff;border-color:var(--brand)}
   body.nuit #view .add-btn:hover{background-color:var(--brand);color:#fff}
 }
+
+/* ==========================================================================
+   MODE NUIT — COMMANDER / PAIEMENT, et SUIVI D'UNE COMMANDE
+   --------------------------------------------------------------------------
+   Les deux derniers écrans du parcours client. Ce sont aussi les deux plus
+   sensibles : l'un est celui où l'on paie, l'autre celui qu'on garde ouvert en
+   attendant son repas. Un éclair blanc à l'un de ces deux moments est le plus
+   mal placé de tous.
+
+   Même méthode que les onglets : aucun squelette HTML touché, seules les
+   surfaces changent, et chaque règle corrige une valeur claire écrite en dur.
+   ========================================================================== */
+
+/* ==========================================================================
+   COMMANDER / PAIEMENT
+   ========================================================================== */
+body.nuit #view .ck-head .sub{color:var(--nuit-doux)}
+body.nuit #view .ck-back{
+  background-color:var(--nuit-carte-2);
+  border-color:var(--nuit-bord-2);
+  color:var(--nuit-texte);
+}
+/* la couleur d'attente de la carte, avant l'arrivée des tuiles */
+body.nuit #view .ck-map{background-color:#141416}
+body.nuit #view .ck-adr b{color:var(--nuit-texte)}
+body.nuit #view .ck-adr .ic{background-color:rgba(255,101,0,.12);color:var(--brand)}
+body.nuit #view .ck-changer{background-color:rgba(255,255,255,.07);color:var(--nuit-texte)}
+body.nuit #view .ck-t{color:var(--nuit-texte)}
+body.nuit #view .ck-note{background-color:var(--nuit-carte-2);border-color:var(--nuit-bord-2)}
+/* les suggestions de note (« sans oignon », « sonner deux fois »…) */
+body.nuit #view .ck-prop{
+  background-color:var(--nuit-carte-2);
+  border-color:var(--nuit-bord-2);
+  color:var(--nuit-doux);
+}
+body.nuit #view .ck-tel .ic{background-color:rgba(255,255,255,.07);color:var(--nuit-doux)}
+body.nuit #view .ck-num{color:var(--nuit-texte)}
+/* « numéro vérifié » : le vert pâle devient un vert translucide, et son texte
+   passe en clair — les deux vont ensemble, sinon c'est du vert sur du vert */
+body.nuit #view .ck-ok{background-color:rgba(18,183,106,.16);color:#4ADE80}
+body.nuit #view .ck-pay{border-color:var(--nuit-bord-2);background-color:var(--nuit-carte)}
+body.nuit #view .ck-pay.on{border-color:var(--brand);background-color:rgba(255,101,0,.1)}
+body.nuit #view .ck-pay .ck-radio{border-color:var(--nuit-bord-2)}
+body.nuit #view .ck-bientot{background-color:rgba(255,255,255,.07);color:var(--nuit-doux)}
+body.nuit #view .ck-somme span:first-child{color:var(--nuit-texte)}
+body.nuit #view .ck-delai{color:var(--nuit-doux)}
+body.nuit #view .ck-vide b{color:var(--nuit-texte)}
+
+/* La barre du bas de l'écran de paiement. Son dégradé partait du crème de
+   l'application (`rgba(247,237,228,0)`) : sur du noir, il dessinait un voile
+   beige au-dessus du bouton. Il ne sert qu'à une chose — que le contenu qui
+   défile ne se coupe pas net sous le bouton — donc il doit partir du fond
+   réel de la page, pas d'une couleur écrite en dur. */
+body.nuit .ck-bas{
+  background:linear-gradient(180deg, rgba(5,5,5,0), #050505 26%);
+}
+body.nuit #view .ck-cta{box-shadow:0 14px 30px -12px rgba(255,101,0,.85)}
+body.nuit #view .ck-cta:disabled{box-shadow:none}
+
+/* ==========================================================================
+   SUIVI D'UNE COMMANDE
+   ========================================================================== */
+/* ---- la frise des étapes ----
+   Les jalons franchis restent orange pleins, celui en cours reste creux avec
+   son anneau qui bat : c'est la FORME qui porte l'information, pas la
+   couleur — un utilisateur sur trois distingue mal l'orange du gris. */
+body.nuit #view .tl-step.done::before{background:linear-gradient(#FF6500,#FFA24D)}
+body.nuit #view .tl-step.done .tl-dot{
+  background:radial-gradient(120% 120% at 32% 24%,#FFB067,#FF6500 58%,#E85400);
+  box-shadow:inset 0 1.5px 2px rgba(255,255,255,.45), 0 3px 10px rgba(255,101,0,.45);
+}
+/* Le jalon en cours était BLANC PLEIN : sur du noir, c'était le point le plus
+   lumineux de l'écran, et il attirait l'œil plus fort que le reste de la
+   frise. Il devient creux et sombre, cerclé d'orange. */
+body.nuit #view .tl-step.active .tl-dot{
+  background-color:var(--nuit-fond);
+  border:3px solid var(--brand);
+  color:var(--brand);
+}
+body.nuit #view .tl-txt b{color:var(--nuit-texte)}
+body.nuit #view .tl-txt span{color:var(--nuit-doux)}
+
+/* ---- les pastilles et bandeaux propres à cet écran ----
+   Ils étaient en pêche très pâle avec un texte brun. Les deux se reprennent
+   ensemble. */
+body.nuit #view .suivi-page .tag-ok{background-color:rgba(255,101,0,.16);color:#FFA24D}
+body.nuit #view .suivi-page .banner-ok{background-color:rgba(255,101,0,.13);color:#FFA24D}
+body.nuit #view .suivi-page .btn-ok{
+  background:linear-gradient(135deg,#FFA24D,#FF6500 52%,#E85400);
+  box-shadow:0 10px 24px -10px rgba(255,101,0,.8);
+}
+
+/* ---- la frise des évènements ---- */
+body.nuit #view .ev-ic{background-color:rgba(18,183,106,.16);color:#4ADE80}
+body.nuit #view .ev-e .p{background-color:var(--nuit-carte)}
+body.nuit #view .ev-e.fait::before{background:#2F9E63}
+body.nuit #view .ev-e.fait .p{background-color:#4ADE80;box-shadow:inset 0 0 0 2.5px #4ADE80}
+body.nuit #view .ev-e .tx b{color:var(--nuit-texte)}
+body.nuit #view .ev-e .tx span,
+body.nuit #view .ev-e .h{color:var(--nuit-doux)}
+body.nuit #view .ev-pied .l b{color:var(--nuit-texte)}
+body.nuit #view .ev-pied .l span{color:var(--nuit-doux)}
+
+/* ---- le compte à rebours ---- */
+body.nuit #view .cdown.urgent{background-color:rgba(240,68,56,.16);color:#FF8A8A}
+
+/* ==========================================================================
+   LES CARTES LEAFLET
+   --------------------------------------------------------------------------
+   Les tuiles d'OpenStreetMap sont claires par nature : il n'existe pas de
+   version sombre gratuite. Posées telles quelles sur ces écrans, elles
+   dessinent un rectangle éblouissant au milieu du noir.
+
+   On inverse donc les tuiles, et RIEN D'AUTRE. Le filtre est appliqué au seul
+   `.leaflet-tile-pane` : les épingles, le tracé du trajet et les étiquettes
+   vivent dans d'autres calques (`marker-pane`, `overlay-pane`) et gardent donc
+   leurs vraies couleurs. Sans cette précision, l'orange du livreur devient
+   bleu et le repère du restaurant disparaît.
+
+   `hue-rotate(180deg)` après l'inversion remet les couleurs dans le bon sens :
+   sans lui, les routes jaunes deviennent violettes et l'eau devient sable.
+
+   COÛT : le filtre est recalculé une fois par tuile, pas à chaque image — ce
+   n'est pas une animation. Il reste réservé aux cartes de ces deux écrans, qui
+   font 150 à 240 px de haut. Le suivi en direct plein écran (`/live/:id`) n'a
+   pas ce mode et garde ses tuiles normales : filtrer une carte plein écran
+   pendant qu'on la fait glisser se paierait en saccades sur un téléphone
+   d'entrée de gamme.
+   ========================================================================== */
+body.nuit #view .map-preview,
+body.nuit #view .live-map,
+body.nuit #view .ck-map{
+  border-color:var(--nuit-bord-2);
+  background-color:#141416;
+}
+body.nuit #view .map-preview .leaflet-tile-pane,
+body.nuit #view .live-map .leaflet-tile-pane,
+body.nuit #view .ck-map .leaflet-tile-pane{
+  filter:invert(1) hue-rotate(180deg) brightness(.88) contrast(.92) saturate(.85);
+}
+body.nuit #view .leaflet-container{background-color:#141416}
+/* les commandes de zoom sont deux boutons blancs : ils sautent aux yeux */
+body.nuit #view .leaflet-bar a,
+body.nuit #view .leaflet-control-zoom a{
+  background-color:rgba(12,12,13,.92);
+  color:var(--nuit-texte);
+  border-bottom-color:var(--nuit-bord-2);
+}
+body.nuit #view .leaflet-control-attribution{
+  background-color:rgba(12,12,13,.8);
+  color:var(--nuit-doux);
+}
+body.nuit #view .leaflet-control-attribution a{color:var(--nuit-doux)}
+/* l'étiquette posée à côté d'une épingle : elle reste claire et opaque, c'est
+   ce qui la rend lisible par-dessus n'importe quelle carte */
+
+/* ---- une dernière surface partagée ---- */
+body.nuit #view .ocode{background-color:rgba(255,255,255,.07);color:var(--nuit-texte)}

@@ -149,6 +149,9 @@
      SUIVI D'UNE COMMANDE
      ====================================================================== */
   Router.add('/order/:id', async function (params, query, view) {
+    /* Thème sombre, comme l'onglet Commandes d'où l'on arrive. */
+    UI.nuit('suivi');
+
     view.innerHTML = '<div class="wrap-sm page"><div class="skel" style="height:300px"></div></div>';
 
     async function load() {
@@ -373,7 +376,10 @@
       if (cur && cur.status !== currentStatus) load();
     }, 20000);
 
-    return () => { off(); clearInterval(guard); stopLive(); };
+    /* Quatre choses à défaire : l'abonnement temps réel, le filet de
+       sécurité, le suivi en direct — et le thème sombre. En oublier un seul
+       laisse l'écran suivant en texte sombre sur fond sombre. */
+    return () => { off(); clearInterval(guard); stopLive(); UI.nuit(''); };
   }, { auth: true });
 
   /* ======================================================================

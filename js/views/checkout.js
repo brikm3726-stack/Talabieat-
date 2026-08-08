@@ -8,6 +8,12 @@
 
     if (!Store.cartCount) return Router.go('/cart', true);
 
+    /* Thème sombre, comme le panier d'où l'on arrive. Posé avant tout appel
+       réseau : sinon le crème apparaîtrait le temps du chargement des
+       adresses, et un éclair blanc au moment de payer est le pire endroit
+       pour en avoir un. */
+    UI.nuit('commander');
+
     const addresses = await API.safe(() => API.addresses(), []);
     let selected = addresses.find(a => a.is_default) || addresses[0] || null;
     /* La liste des adresses est repliée par défaut : on ne l'ouvre que si l'on
@@ -306,6 +312,8 @@
     }
 
     paint();
+
+    return () => UI.nuit('');
   }, { auth: true, roles: ['client'] });
 
   /* ======================================================================
