@@ -6362,3 +6362,29 @@ body.app-client .bottomnav a[data-p="/cart"] .ic{
 body.app-client{
   --nav-h:calc(72px + env(safe-area-inset-bottom));
 }
+
+/* ==========================================================================
+   L'AFFICHE D'OUVERTURE SE CALE SUR L'ÉCRAN, PLUS SUR SA BOÎTE
+   --------------------------------------------------------------------------
+   Retirer le remplissage a corrigé la cause, mais laissait le mécanisme
+   intact : l'affiche était calée sur la boîte de `.splash`, et cette boîte
+   dépend de tout ce qu'on lui ajoute — un remplissage, une bordure, et
+   `display:grid`, qui fait du `::before` un élément de grille dont le repère
+   n'est plus le même. Mesuré sur iPhone 14 Pro, l'affiche s'arrêtait à la
+   hauteur du CONTENU (792,7 pt) et non de la boîte (852 pt).
+
+   `position:fixed` sur l'affiche elle-même : son repère devient la fenêtre du
+   navigateur, un point final. Ni remplissage, ni bordure, ni grille ne peuvent
+   plus la raccourcir. C'est la seule mesure qui ferme le sujet plutôt que de
+   corriger un symptôme.
+
+   Le cas particulier reste couvert : pendant la sortie, `.splash` porte un
+   `transform`. Un ancêtre transformé devient le repère de ses descendants
+   fixes — c'est le piège habituel, et ici c'est exactement ce qu'on veut :
+   l'affiche grandit avec l'écran qu'elle quitte au lieu de rester figée.
+   ========================================================================== */
+body.app-client .splash::before,
+body.app-driver .splash::before{
+  position:fixed;
+  top:0;right:0;bottom:0;left:0;
+}
