@@ -57,8 +57,55 @@
   Router.add('/orders', async function (params, query, view) {
     let tab = 'active';
 
-    /* Thème sombre, comme les autres onglets de la barre du bas. */
+    /* Thème sombre ou clair : UI.nuit() décide, et nomme l'écran dans les
+       deux cas. */
     UI.nuit('commandes');
+
+    /* ---- LE VISITEUR SANS COMPTE EST ACCUEILLI, PAS RENVOYÉ ----
+       La garde `auth:true` a été retirée de cette route : elle renvoyait vers
+       la connexion sans un mot, et un visiteur qui touche « Commandes » se
+       retrouvait devant un formulaire sans comprendre pourquoi. Il voit
+       maintenant l'écran, il comprend à quoi il sert, et il décide.
+
+       Le rôle reste protégé plus bas : un livreur connecté n'a rien à faire
+       ici, c'est la garde `roles` qui s'en charge — elle ne s'applique qu'aux
+       personnes connectées. */
+    if (!Store.isLogged) {
+      view.innerHTML = '<div class="orders-page">' +
+        '<span class="ord-decor" aria-hidden="true">' +
+          '<i style="top:6%;left:-4%">'     + UI.icon('burger', 120)   + '</i>' +
+          '<i style="top:2%;right:-6%">'    + UI.icon('pizza', 130)    + '</i>' +
+          '<i style="bottom:16%;left:-5%">' + UI.icon('cart', 110)     + '</i>' +
+          '<i style="bottom:6%;right:-4%">' + UI.icon('utensils', 115) + '</i>' +
+        '</span>' +
+        '<div class="wrap-sm page">' +
+          '<div class="h1">Mes <span class="accent">commandes</span></div>' +
+          '<p class="sub ord-sub">Suivez vos commandes en cours et consultez votre historique</p>' +
+          '<div class="empty-scene compact">' +
+            '<span class="scene-ic" aria-hidden="true">' + UI.icon('package', 40) + '</span>' +
+            '<div class="h2 scene-title">Connectez-vous pour voir vos commandes</div>' +
+            '<p class="scene-sub">Vos commandes en cours et votre historique vous ' +
+              'attendent ici. Suivez votre livreur sur la carte, retrouvez ce que ' +
+              'vous avez commandé, et recommandez en deux touches.</p>' +
+            '<div class="scene-cta">' +
+              '<a class="btn btn-primary btn-lg" id="versConnexion" href="#/login">' +
+                UI.icon('user', 19) + ' Se connecter</a>' +
+              '<a class="btn btn-ghost btn-lg" href="#/restaurants">' +
+                'Voir les restaurants</a>' +
+            '</div>' +
+          '</div>' +
+        '</div></div>';
+
+      /* Après la connexion, on revient ICI et non à l'accueil : c'est ce que
+         la personne voulait voir. Le mécanisme existe déjà — auth.js le lit à
+         la connexion (voir afterLogin). */
+      const vc = view.querySelector('#versConnexion');
+      if (vc) vc.onclick = () => {
+        try { sessionStorage.setItem('talabi.after_login', '/orders'); } catch (e) {}
+      };
+
+      return () => UI.nuit('');
+    }
 
     /* Le titre de la maquette porte un petit trait orange sous « Mes ». Il
        n'est pas repris : c'est le seul élément de la page demandé en moins.
@@ -146,7 +193,10 @@
        avoir quitté Commandes, et l'écran suivant s'affichait en texte sombre
        sur fond sombre. */
     return () => { off(); UI.nuit(''); };
-  }, { auth: true, roles: ['client'] });
+    /* `auth` retiré, `roles` conservé : la garde de rôle ne s'applique qu'aux
+       personnes connectées (voir js/lib/router.js), donc un visiteur passe et
+       un livreur est renvoyé chez lui. C'est exactement ce qu'on veut. */
+  }, { roles: ['client'] });
 
   /* ======================================================================
      SUIVI D'UNE COMMANDE

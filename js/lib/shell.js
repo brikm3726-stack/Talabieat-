@@ -15,10 +15,21 @@
       { p: '/orders',        i: 'package',  l: 'Commandes' },
       { p: '/account',       i: 'user',     l: 'Compte' }
     ],
+    /* CINQ RUBRIQUES POUR UN VISITEUR AUSSI, ET DANS LE MÊME ORDRE.
+       Il n'en avait que quatre : « Commandes » n'apparaissait qu'après la
+       connexion. La barre changeait donc de forme au moment où l'on se
+       connecte — le panier passait de la 3e à la 3e place mais la 4e devenait
+       la 5e, et le pouce ne retrouvait plus ses repères. Surtout, un visiteur
+       n'avait aucun moyen de savoir que l'application suit les commandes : la
+       rubrique qui le dit était cachée derrière l'inscription qu'elle sert à
+       justifier.
+       L'écran, lui, l'accueille sans compte et lui propose de se connecter —
+       voir /orders dans js/views/tracking.js. */
     guest: [
       { p: '/',              i: 'home',     l: 'Accueil' },
       { p: '/restaurants',   i: 'burger',   l: 'Restaurants' },
       { p: '/cart',          i: 'cart',     l: 'Panier', badge: 'cart' },
+      { p: '/orders',        i: 'package',  l: 'Commandes' },
       { p: '/login',         i: 'user',     l: 'Connexion' }
     ],
     /* Visiteur d'un espace professionnel (resto/, livreur/, admin/) :

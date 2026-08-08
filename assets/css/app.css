@@ -6615,3 +6615,57 @@ body.pref-clair .bottomnav a[data-p="/cart"] .ic{
 body.pref-clair .bottomnav a[data-p="/cart"] .nav-badge{
   background:#fff;color:#E85400;border:2px solid #E85400;
 }
+
+/* ==========================================================================
+   LA PHOTO DE LA PORTE D'ENTRÉE N'EST PLUS ENCADRÉE
+   --------------------------------------------------------------------------
+   Elle était posée dans une boîte de 390 px centrée, avec `object-fit:contain`.
+   Sur la maquette claire, le scooter occupe TOUTE la largeur et son décor se
+   confond avec la page : il n'y a aucun cadre à voir. La mienne dessinait un
+   rectangle, parce que le fond de la photo (#E8E8E8 à #F5F5F5, mesuré sur ses
+   coins) est un gris que le blanc de la page ne rejoint pas.
+
+   Deux gestes, et il faut les deux :
+
+   1. LA PHOTO SORT DES MARGES. `.ent-in` a 22 px de remplissage de chaque
+      côté ; on les annule par une marge négative exacte plutôt qu'avec des
+      unités de fenêtre — `100vw` compte la barre de défilement là où il y en
+      a une, et déborderait de quelques pixels sur un ordinateur.
+
+   2. SES BORDS SE DISSOLVENT. Un masque efface les quatre côtés en dégradé :
+      il n'y a plus de frontière à voir, donc plus de cadre. C'est ce qui rend
+      la jointure invisible malgré l'écart de gris — et ça marche quel que
+      soit le blanc exact de la page.
+
+   `cover` remplace `contain` : la photo remplit sa largeur au lieu d'y flotter.
+   ========================================================================== */
+body.pref-clair .ent-art{
+  width:calc(100% + 44px);
+  max-width:none;
+  margin:6px -22px 0;
+  aspect-ratio:1586/1400;
+  flex:0 0 auto;
+}
+body.pref-clair .ent-art img{
+  width:100%;height:100%;
+  object-fit:cover;
+  object-position:50% 42%;
+  -webkit-mask-image:
+    linear-gradient(90deg,transparent 0,#000 14%,#000 86%,transparent 100%),
+    linear-gradient(180deg,transparent 0,#000 12%,#000 84%,transparent 100%);
+  -webkit-mask-composite:source-in;
+          mask-image:
+    linear-gradient(90deg,transparent 0,#000 14%,#000 86%,transparent 100%),
+    linear-gradient(180deg,transparent 0,#000 12%,#000 84%,transparent 100%);
+          mask-composite:intersect;
+}
+/* Le fond de la page prend le gris du décor de la photo au lieu du blanc pur :
+   avec le masque, la dissolution devient alors imperceptible. */
+body.pref-clair .ent{background:#F6F6F7}
+body.pref-clair.ent-open{background:#F6F6F7}
+
+/* La photo mange de la largeur : le titre et l'accroche restent au centre,
+   mais on resserre un peu leur écart pour que l'écran tienne sans défilement
+   sur un téléphone court. */
+body.pref-clair .ent-t{margin-top:20px}
+body.pref-clair .ent-actions{padding-top:12px}
