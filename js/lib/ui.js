@@ -597,7 +597,17 @@
          client aux deux autres applications, qui ont chacune la leur. */
       const m = document.querySelector('meta[name="theme-color"]');
       if (!m) return;
-      if (UI._themeInitial === undefined) UI._themeInitial = m.getAttribute('content');
+      if (UI._themeInitial === undefined) {
+        const v = m.getAttribute('content');
+        /* #E95403 est l'orange du bas de l'affiche d'ouverture, posé dans
+           index.html pour que la bande peinte par iOS sous la fenêtre s'y
+           confonde. Ce n'est PAS la couleur de repos de l'application, et
+           js/app.js la remplace dès que l'affiche s'efface. La mémoriser
+           ferait revenir un bandeau orange sous une application sombre —
+           ce qui n'arriverait qu'aux rares écrans affichés pendant les cinq
+           secondes d'ouverture, donc jamais pendant les essais. */
+        UI._themeInitial = (v === '#E95403') ? '#050505' : v;
+      }
       m.setAttribute('content', nom ? '#050505' : UI._themeInitial);
     },
 

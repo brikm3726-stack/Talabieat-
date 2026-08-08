@@ -3,10 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
-<!-- Noir et non orange : toute l'application cliente est sombre. C'est cette
-     couleur que le téléphone peint derrière sa barre d'état, et un bandeau
-     orange au-dessus d'un écran noir se voit comme une cassure. -->
-<meta name="theme-color" content="#050505">
+<!-- L'ORANGE DU BAS DE L'AFFICHE, ET NON LE NOIR DE L'APPLICATION.
+
+     Mesuré sur un iPhone 14 Pro : la fenêtre du navigateur fait 59 pt de moins
+     que l'écran, et iOS peint cette bande lui-même — avec CETTE couleur. Aucun
+     CSS ne peut l'atteindre : elle est en dehors de la page.
+
+     L'affiche d'ouverture se termine par une courbe orange (#E95403 mesuré sur
+     sa dernière rangée). En donnant la même teinte à la bande, la jointure
+     disparaît : on voit une affiche qui va jusqu'au bord.
+
+     js/app.js repasse au noir de la page dès que l'affiche s'efface — sinon
+     c'est un bandeau orange qui resterait au-dessus d'une application sombre. -->
+<meta name="theme-color" content="#E95403">
 <meta name="description" content="Talabi — Commandez vos repas préférés en ligne et faites-vous livrer rapidement partout dans la ville de Tizi Ouzou.">
 <title>Talabi — Livraison de repas à domicile</title>
 
