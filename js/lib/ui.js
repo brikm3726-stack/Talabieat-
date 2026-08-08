@@ -592,8 +592,13 @@
         .filter(c => c.indexOf('nuit-') === 0)
         .forEach(c => b.classList.remove(c));
       if (nom) b.classList.add('nuit-' + nom);
+      /* On mémorise la couleur d'origine à la première bascule et on la
+         restaure ensuite. Écrire une valeur en dur ici imposerait l'orange du
+         client aux deux autres applications, qui ont chacune la leur. */
       const m = document.querySelector('meta[name="theme-color"]');
-      if (m) m.setAttribute('content', nom ? '#050505' : '#FF4D2D');
+      if (!m) return;
+      if (UI._themeInitial === undefined) UI._themeInitial = m.getAttribute('content');
+      m.setAttribute('content', nom ? '#050505' : UI._themeInitial);
     },
 
     /** Lit un <form> en objet simple */

@@ -6245,3 +6245,41 @@ body.nuit #view input[type="date"]::-webkit-calendar-picker-indicator{
   filter:invert(1) brightness(1.6);
   opacity:.75;cursor:pointer;
 }
+
+/* ==========================================================================
+   REMPLIR L'ÉCRAN JUSQU'AU BORD DU HAUT
+   --------------------------------------------------------------------------
+   Il restait une bande vide au-dessus de l'application : la zone de l'encoche
+   sur iPhone, celle de la barre d'état sur Android. Trois choses la causaient,
+   et il fallait les trois.
+
+   1. `apple-mobile-web-app-status-bar-style` valait « default » : iOS
+      dessinait sa propre barre opaque au-dessus de la page. Passé à
+      « black-translucent » (index.html), la page monte jusqu'au bord.
+
+   2. `theme_color` valait l'orange de la marque. C'est la couleur que le
+      téléphone peint derrière sa barre d'état — un bandeau orange au-dessus
+      d'un écran noir se voit comme une cassure. Passée au noir de la page.
+
+   3. LA BARRE DU HAUT NE RÉSERVAIT PAS LA ZONE. C'est l'objet de la règle
+      ci-dessous. Une fois le contenu monté jusqu'au bord, l'heure et la
+      batterie se posent PAR-DESSUS : sans ce remplissage, le nom du quartier
+      passait sous l'horloge et le mot-marque sous l'encoche.
+
+   `env(safe-area-inset-top)` vaut 0 partout où il n'y a rien à éviter — un
+   ordinateur, un Android sans encoche : la barre garde alors exactement la
+   hauteur qu'elle avait. Rien n'est perdu là où il n'y a rien à gagner.
+   ========================================================================== */
+.topbar{
+  padding-top:env(safe-area-inset-top);
+}
+/* Le fond de la barre doit couvrir la zone réservée, sinon on voit la page
+   défiler derrière l'horloge. Il est déjà porté par `.topbar` elle-même : le
+   remplissage étant à l'intérieur de la boîte, le fond le couvre. */
+
+/* L'écran d'ouverture occupe déjà tout l'écran, mais son contenu était centré
+   sur la fenêtre entière — donc légèrement haut sur un téléphone à encoche. */
+.splash{padding-top:env(safe-area-inset-top)}
+
+/* La porte d'entrée sombre gérait déjà sa zone du haut (`.ent-in`). Les pages
+   sombres, elles, commencent sous la barre : rien à réserver de plus. */

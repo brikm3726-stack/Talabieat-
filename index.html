@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
-<meta name="theme-color" content="#FF4D2D">
+<!-- Noir et non orange : toute l'application cliente est sombre. C'est cette
+     couleur que le téléphone peint derrière sa barre d'état, et un bandeau
+     orange au-dessus d'un écran noir se voit comme une cassure. -->
+<meta name="theme-color" content="#050505">
 <meta name="description" content="Talabi — Commandez vos repas préférés en ligne et faites-vous livrer rapidement partout dans la ville de Tizi Ouzou.">
 <title>Talabi — Livraison de repas à domicile</title>
 
@@ -15,7 +18,14 @@
 <!-- iOS ignore le manifeste : ces trois balises sont le seul moyen de lui dire
      d'ouvrir Talabi en plein écran, sans la barre d'adresse de Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<!-- « black-translucent » : SANS LUI, L'APPLICATION NE REMPLIT PAS L'ÉCRAN.
+     Avec « default », iOS dessine sa propre barre d'état opaque au-dessus de la
+     page : sur un iPhone à encoche, il reste une bande vide en haut, et le
+     contenu ne passe jamais dessous. Traduit, il laisse la page monter jusqu'au
+     bord — l'heure et la batterie se posent alors PAR-DESSUS, d'où le
+     `padding-top: env(safe-area-inset-top)` de la barre du haut, sans lequel le
+     nom du quartier finirait caché sous l'horloge. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Talabi">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
