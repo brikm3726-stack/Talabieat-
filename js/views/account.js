@@ -17,6 +17,31 @@
   const VEHICULES = ['moto', 'voiture', 'velo', 'autre'];
   const VEHICULE_ICON = { moto: 'scooter', voiture: 'car', velo: 'bike', autre: 'package' };
 
+  /* Deux valeurs, en minuscules côté base — c'est ce que la contrainte
+     `profiles_gender_chk` accepte (voir supabase/28_genre_et_naissance.sql).
+     Les libellés affichés sont séparés des valeurs stockées : traduire l'écran
+     un jour ne devra pas changer une seule ligne de la base. */
+  const GENRES = [
+    { v: 'homme', t: 'Homme', i: 'user' },
+    { v: 'femme', t: 'Femme', i: 'user' }
+  ];
+
+  /* L'âge affiché sous la date de naissance. Il n'est jamais stocké : un âge
+     en base est faux le lendemain de l'anniversaire. Le calcul retire une
+     année si l'anniversaire n'est pas encore passé cette année-ci — sans quoi
+     quelqu'un né en décembre se verrait vieilli de douze mois dès janvier. */
+  function ageTexte(iso) {
+    if (!iso) return 'Renseignez-la si vous le souhaitez.';
+    const n = new Date(String(iso).slice(0, 10));
+    if (isNaN(n.getTime())) return '';
+    const h = new Date();
+    let a = h.getFullYear() - n.getFullYear();
+    const m = h.getMonth() - n.getMonth();
+    if (m < 0 || (m === 0 && h.getDate() < n.getDate())) a--;
+    if (a < 0 || a > 130) return 'Cette date ne semble pas correcte.';
+    return a + ' an' + (a > 1 ? 's' : '');
+  }
+
   /* ======================================================================
      RÉGLAGES — la page d'accueil du compte
      ====================================================================== */
@@ -56,11 +81,23 @@
 
         '<div class="stack acc-reglages" style="gap:10px">' +
 
-          /* 1 ---- mon compte ---- */
+          /* 1 ---- mon compte ----
+             Sa description parlait d'« informations personnelles », or c'est
+             désormais le rôle de la porte suivante. Cet écran-ci répond à une
+             autre question, et à une seule : quel compte suis-je en train
+             d'utiliser. */
           porte('#/compte', 'user', 'Mon compte',
-                'Vos informations personnelles et votre identité') +
+                'Quel compte est ouvert, et depuis quand') +
 
-          /* 2 ---- sécurité ---- */
+          /* 2 ---- informations personnelles ----
+             L'ÉCRAN EXISTAIT DÉJÀ ET N'ÉTAIT RELIÉ À RIEN. `/profil` se
+             tapait à la main dans l'adresse, ou s'atteignait par l'avatar de
+             la barre du haut — que la maquette a fait disparaître. Sans cette
+             porte, plus aucun moyen de changer son nom ou son quartier. */
+          porte('#/profil', 'pencil', 'Informations personnelles',
+                'Nom, genre, âge, quartier et adresses de livraison') +
+
+          /* 3 ---- sécurité ---- */
           porte('#/securite', 'lock', 'Sécurité',
                 'Modifier mon mot de passe, vérifié par email') +
 
@@ -161,6 +198,23 @@
       const d = p.role === 'driver' ? (p.driver || await API.safe(() => API.getDriver(), {}) || {}) : {};
       const verrou = U.phoneLock(p);
       let vehicule = d.vehicle || 'moto';
+      /* Le genre se choisit comme le véhicule : deux cartes, pas un menu
+         déroulant. Sur deux valeurs, un menu demande deux gestes là où deux
+         cartes en demandent un — et on voit son choix sans l'ouvrir. */
+      let genre = p.gender || '';
+
+      /* LES DEUX CHAMPS N'APPARAISSENT QUE SI LA BASE LES CONNAÎT.
+         `getProfile` lit la ligne entière (`select('*')`) : si la migration
+         28_genre_et_naissance.sql n'a pas encore été exécutée, ces clés sont
+         absentes de l'objet — et non pas nulles. Ce test suffit donc à savoir
+         où en est la base.
+
+         Sans lui, quelqu'un remplirait son genre et son enregistrement
+         échouerait sur une erreur de PostgREST incompréhensible. Là, les deux
+         champs n'existent tout simplement pas encore, et tout le reste de
+         l'écran fonctionne. Ils apparaîtront d'eux-mêmes après la migration,
+         sans rien redéployer. */
+      const baseAJour = !!p && ('gender' in p) && ('birth_date' in p);
 
       view.innerHTML = '<div class="account-page">' +
         '<span class="acc-dots a" aria-hidden="true"></span>' +
@@ -174,6 +228,39 @@
             '<div class="field"><label>Nom complet</label>' +
               '<div class="input-ic"><span>' + UI.icon('user', 17) + '</span>' +
               '<input class="input" name="full_name" value="' + U.esc(p.full_name || '') + '" required></div></div>' +
+
+            /* ---- genre et date de naissance (clients) ----
+               Deux renseignements, jamais des conditions : on peut commander
+               sans les remplir. D'où l'absence de `required` et la mention
+               « facultatif », qui évite de faire hésiter quelqu'un devant un
+               champ qu'il n'a pas envie de remplir. */
+            (p.role === 'client' && baseAJour
+              ? '<div class="field acc-full"><label>Genre ' +
+                  '<span class="tiny">(facultatif)</span></label>' +
+                  '<div class="grid grid-2" style="gap:9px" id="genre">' +
+                    GENRES.map(g =>
+                      '<div class="role-card' + (genre === g.v ? ' on' : '') + '" data-g="' + g.v + '">' +
+                        '<div class="ic">' + UI.icon(g.i, 20) + '</div>' +
+                        '<div class="grow"><b>' + U.esc(g.t) + '</b></div>' +
+                        '<div data-gcheck style="color:var(--brand);font-weight:800">' +
+                          (genre === g.v ? '✓' : '') + '</div></div>').join('') +
+                  '</div></div>' +
+
+                /* UNE DATE, PAS UN NOMBRE. Un âge saisi en chiffres est faux
+                   dès le lendemain de l'anniversaire et rien ne peut le
+                   rattraper ; la date reste vraie et l'âge s'en déduit. Le
+                   même geste pour l'utilisateur, et l'âge s'affiche à côté
+                   pour qu'il vérifie d'un coup d'œil. */
+                '<div class="field"><label>Date de naissance ' +
+                  '<span class="tiny">(facultatif)</span></label>' +
+                  '<div class="input-ic"><span>' + UI.icon('calendar', 17) + '</span>' +
+                  '<input class="input" type="date" name="birth_date" id="bdate" ' +
+                    'max="' + U.esc(new Date().toISOString().slice(0, 10)) + '" ' +
+                    'value="' + U.esc((p.birth_date || '').slice(0, 10)) + '"></div>' +
+                  '<div class="hint" id="ageHint">' + ageTexte(p.birth_date) + '</div>' +
+                '</div>'
+              : '') +
+
             '<div class="field"><label>Téléphone</label>' +
               '<div class="input-ic"><span>' + UI.icon(verrou.bloque ? 'lock' : 'phone', 17) + '</span>' +
               '<input class="input" name="phone" inputmode="tel" placeholder="Entrez votre numéro" value="' +
@@ -207,18 +294,20 @@
                 '<input class="input" name="plate" placeholder="Ex : 16-1234-118" value="' + U.esc(d.plate || '') + '"></div>'
             : '') +
 
-          '<button class="btn btn-primary btn-block btn-lg" type="submit">' +
-            UI.icon('save', 18) + ' Enregistrer les modifications</button>' +
-          (verrou.bloque ? '' :
-            '<div class="tiny center" style="margin-top:2px">Une fois modifié, le téléphone sera bloqué 30 jours.</div>') +
-        '</form>' +
+          /* ---- adresses (clients) ----
+             ELLES SONT MAINTENANT DANS LE FORMULAIRE, avant le bouton
+             d'enregistrement : c'est l'ordre demandé, et il est plus juste —
+             on remplit son identité, puis où l'on habite, puis on enregistre.
 
-        /* ---- adresses (clients) ---- */
-        (p.role === 'client'
-          ? '<div class="card card-p acc-block" style="margin-top:16px">' +
+             Tous les boutons de ce bloc portent `type="button"`. Sans ça, à
+             l'intérieur d'un <form>, un bouton sans type VAUT « submit » :
+             toucher le crayon d'une adresse aurait enregistré le profil au
+             lieu de l'ouvrir. Le bloc était dehors, le piège dormait. */
+          (p.role === 'client'
+            ? '<div class="divider"></div>' +
             '<div class="row-between" style="margin-bottom:14px">' +
               bloc('pin', 'Adresses de livraison') +
-              '<button class="btn btn-soft btn-sm" id="addAddr">' + UI.icon('plus', 16) +
+              '<button type="button" class="btn btn-soft btn-sm" id="addAddr">' + UI.icon('plus', 16) +
                 ' Ajouter</button></div>' +
             (addresses.length
               ? '<div class="stack" style="gap:9px">' + addresses.map(a =>
@@ -232,20 +321,46 @@
                         (U.hasCoords(a) ? ' • <a class="addr-map" target="_blank" rel="noopener" href="' +
                           U.gmapsPin(a.lat, a.lng) + '">carte ' + UI.icon('link', 12) + '</a>' : '') + '</div></div>' +
                     '<div class="row" style="gap:8px">' +
-                      '<button class="icon-round" data-ae="' + U.esc(a.id) + '" title="Modifier">' +
+                      '<button type="button" class="icon-round" data-ae="' + U.esc(a.id) + '" title="Modifier">' +
                         UI.icon('pencil', 17) + '</button>' +
-                      '<button class="icon-round danger" data-ad="' + U.esc(a.id) + '" title="Supprimer">' +
+                      '<button type="button" class="icon-round danger" data-ad="' + U.esc(a.id) + '" title="Supprimer">' +
                         UI.icon('trash', 17) + '</button></div>' +
                   '</div>').join('') + '</div>'
               : '<div class="tiny">Aucune adresse enregistrée. Ajoutez-en une depuis ' +
-                'votre position : c’est le point que le livreur ouvrira dans Google Maps.</div>') +
-          '</div>'
-          : '') +
+                'votre position : c’est le point que le livreur ouvrira dans Google Maps.</div>')
+            : '') +
+
+          /* ---- et tout en bas, l'enregistrement ---- */
+          '<button class="btn btn-primary btn-block btn-lg" type="submit" style="margin-top:4px">' +
+            UI.icon('save', 18) + ' Enregistrer</button>' +
+          (verrou.bloque ? '' :
+            '<div class="tiny center" style="margin-top:2px">Une fois modifié, le téléphone sera bloqué 30 jours.</div>') +
+        '</form>' +
 
       '</div></div>';
 
       /* ------------------------------------------------------ actions */
       UI.bindImageFields(view);
+
+      /* ---- le genre : deux cartes, un seul choix ----
+         Le même geste que pour le véhicule du livreur, volontairement : deux
+         listes qui se ressemblent doivent se manipuler pareil. Un second appui
+         sur la carte déjà choisie l'annule — sans ça, quelqu'un qui a touché
+         par erreur ne pourrait plus revenir à « non renseigné ». */
+      view.querySelectorAll('[data-g]').forEach(el => el.onclick = () => {
+        genre = (genre === el.dataset.g) ? '' : el.dataset.g;
+        view.querySelectorAll('[data-g]').forEach(x => {
+          const on = x.dataset.g === genre;
+          x.classList.toggle('on', on);
+          x.querySelector('[data-gcheck]').textContent = on ? '✓' : '';
+        });
+      });
+
+      /* L'âge se recalcule à chaque changement de date : on vérifie ce qu'on a
+         saisi sans attendre l'enregistrement. */
+      const bd = view.querySelector('#bdate');
+      const ah = view.querySelector('#ageHint');
+      if (bd && ah) bd.oninput = () => { ah.textContent = ageTexte(bd.value); };
 
       view.querySelectorAll('[data-v]').forEach(el => el.onclick = () => {
         vehicule = el.dataset.v;
@@ -264,13 +379,33 @@
         // le champ verrouillé n'arrive pas dans le formulaire : on n'envoie
         // donc rien que le serveur refuserait
         if (f.phone && !U.isPhoneDZ(f.phone)) return UI.err('Numéro invalide');
+        /* La date est facultative, mais si elle est là elle doit être
+           plausible : la contrainte SQL refuserait l'année 2998 avec un
+           message que personne ne comprendrait. */
+        if (f.birth_date) {
+          const n = new Date(f.birth_date);
+          if (isNaN(n.getTime()) || n >= new Date() || n.getFullYear() < 1900)
+            return UI.err('Date de naissance invalide', 'Elle doit être dans le passé.');
+        }
 
         UI.busy(btn, true);
         try {
-          await API.updateProfile({
+          const patch = {
             full_name: f.full_name, phone: f.phone,
             zone_id: f.zone_id, avatar_url: f.avatar_url
-          });
+          };
+          /* Le genre ne vient pas du formulaire — c'est une carte, pas un
+             champ — donc il est joint depuis la variable qui le suit.
+
+             Et les deux champs ne partent QUE si la base les connaît : envoyer
+             une colonne inexistante fait échouer l'enregistrement entier, nom
+             et téléphone compris. Tant que la migration n'est pas passée,
+             l'écran continue donc de fonctionner comme avant. */
+          if (baseAJour) {
+            patch.gender = genre;
+            patch.birth_date = f.birth_date || '';
+          }
+          await API.updateProfile(patch);
           if (p.role === 'driver')
             await API.saveDriver({ vehicle: vehicule, plate: f.plate, zone_id: f.zone_id });
           await Store.refreshProfile();

@@ -6191,3 +6191,57 @@ body.nuit .topbar .zone-pick .spinner{
 @media(max-width:379px){
   body.nuit .topbar .zone-pick{max-width:108px;font-size:12px;padding:6px 11px 6px 9px}
 }
+
+/* ==========================================================================
+   LES ÉCRANS DU COMPTE REMPLISSENT L'ÉCRAN
+   --------------------------------------------------------------------------
+   Il restait un vide noir entre la dernière carte et la barre du bas. La page
+   avait bien la hauteur de l'écran — `min-height` était là — mais son contenu
+   se tassait en haut, et le bouton « Se déconnecter » flottait au milieu de
+   nulle part.
+
+   Le remède n'est pas d'étirer les cartes : une carte deux fois plus haute
+   pour la même ligne de texte ne remplit pas l'écran, elle le gaspille. C'est
+   la COLONNE qui devient élastique, et ce qui doit finir en bas y est poussé.
+
+   `margin-top:auto` sur le dernier bloc : dans une colonne flexible, cette
+   marge absorbe toute la place restante. Le contenu garde sa taille, la
+   déconnexion se cale au bas de l'écran, et sur une page longue rien ne
+   change — il n'y a plus de place à absorber.
+   ========================================================================== */
+body.nuit .account-page{
+  display:flex;flex-direction:column;
+}
+body.nuit .account-page > .wrap-sm{
+  flex:1 0 auto;
+  display:flex;flex-direction:column;
+  width:100%;
+}
+/* Ce qui doit toucher le bas de l'écran, écran par écran. */
+body.nuit .account-page .acc-logout,
+body.nuit .account-page .acc-supp{
+  margin-top:auto;
+  padding-top:20px;
+}
+/* La liste des réglages garde sa taille : c'est l'espace APRÈS elle qui
+   s'étire, pas les cartes. */
+body.nuit .account-page .acc-reglages{flex:0 0 auto}
+
+/* Sur les écrans de formulaire — informations personnelles, sécurité — le
+   dernier élément est la carte elle-même. Elle ne s'étire pas non plus : on
+   pousse simplement le peu qui reste sous elle. */
+body.nuit .account-page > .wrap-sm > :last-child{margin-bottom:0}
+
+/* ---- le genre : deux cartes côte à côte, comme le véhicule du livreur ---- */
+body.nuit #view .role-card[data-g]{cursor:pointer}
+body.nuit #view .role-card[data-g] .ic{color:var(--nuit-doux)}
+body.nuit #view .role-card[data-g].on .ic{color:var(--brand)}
+
+/* La date de naissance : le sélecteur natif d'Android affiche son texte en
+   noir tant qu'on ne le repeint pas, et le petit calendrier du navigateur est
+   noir aussi — invisible sur un champ sombre. */
+body.nuit #view input[type="date"]{color:var(--nuit-texte)}
+body.nuit #view input[type="date"]::-webkit-calendar-picker-indicator{
+  filter:invert(1) brightness(1.6);
+  opacity:.75;cursor:pointer;
+}

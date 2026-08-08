@@ -291,7 +291,17 @@
 
     async updateProfile(patch) {
       const body = {};
-      ['full_name', 'phone', 'zone_id', 'avatar_url'].forEach(k => { if (patch[k] !== undefined) body[k] = k === 'phone' ? U.normPhone(patch[k]) : patch[k]; });
+      /* `gender` et `birth_date` : voir supabase/28_genre_et_naissance.sql.
+         Une chaîne vide arrive du formulaire quand le champ n'a pas été
+         rempli ; elle est convertie en null, sinon Postgres refuse '' comme
+         date et la contrainte du genre refuse '' comme valeur. */
+      ['full_name', 'phone', 'zone_id', 'avatar_url', 'gender', 'birth_date']
+        .forEach(k => {
+          if (patch[k] === undefined) return;
+          if (k === 'phone') { body[k] = U.normPhone(patch[k]); return; }
+          if (k === 'gender' || k === 'birth_date') { body[k] = patch[k] || null; return; }
+          body[k] = patch[k];
+        });
 
       // Téléphone figé 30 jours. Le garde-fou définitif est le trigger SQL
       // (08_phone_lock.sql) ; ce contrôle-ci sert à donner un message clair.
