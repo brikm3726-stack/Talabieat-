@@ -7051,3 +7051,31 @@ body.app-client .topbar{
   padding-bottom:8px;
 }
 body.app-client .topbar-in{height:auto;min-height:56px}
+
+/* ==========================================================================
+   « VOUS ÊTES À TIZI OUZOU » PASSE SOUS LE MOT-MARQUE
+   --------------------------------------------------------------------------
+   Elle apparaît dans `#toasts`, fixé à 14 px du haut de la fenêtre : elle se
+   posait donc PAR-DESSUS la barre du haut, et recouvrait le mot-marque au
+   moment précis où l'application vient de trouver la ville. On masquait
+   l'identité pour annoncer la position.
+
+   Le conteneur descend sous la barre. Sa hauteur n'est pas écrite en dur : elle
+   est calculée avec la même expression que le remplissage de la barre — un
+   plancher de 14 px, davantage si le système réserve de la place. Les deux
+   restent donc d'accord sur un iPhone à îlot comme sur un Android sans encoche,
+   et une seule valeur à corriger si la barre change de taille un jour.
+
+   Tous les messages descendent, pas seulement celui-ci : un message qui
+   recouvre l'en-tête est un défaut, quel que soit son texte.
+   ========================================================================== */
+body.app-client{
+  /* hauteur totale de la barre du haut : remplissage + rangée + bas */
+  --barre-h:calc(max(14px, env(safe-area-inset-top)) + 64px);
+}
+body.app-client .toasts{
+  top:calc(var(--barre-h) + 10px);
+}
+/* La porte d'entrée masque la barre du haut (`body.ent-open`) : sans ce retour
+   à la normale, les messages y flotteraient dans le vide. */
+body.app-client.ent-open .toasts{top:14px}
