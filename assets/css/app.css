@@ -4623,7 +4623,11 @@ body.role-admin .top-actions .icon-btn{border-color:#2A2E38}
   transform:translateZ(0);
   -webkit-backface-visibility:hidden;
           backface-visibility:hidden;
-  contain:layout paint;
+  /* `paint` decoupe comme `overflow:hidden` — et la pastille du compteur
+     depasse de 3 px en haut de son onglet : elle y etait rognee dans les
+     espaces professionnels, exactement comme cote client. `layout` seul
+     garde l'isolation utile sans rien couper. */
+  contain:layout;
 }
 /* la barre est centrée par transform sur tablette : la promotion de couche
    doit s'ajouter à ce centrage, pas l'écraser */
