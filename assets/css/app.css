@@ -7005,9 +7005,6 @@ body.pref-clair .topbar .zone-pick{
   gap:6px;
   max-width:none;width:auto;
   min-height:38px;
-  /* Descendu de quelques pixels, comme demandé. Il s'aligne alors sur la
-     base du mot-marque plutôt que sur son centre optique. */
-  margin-top:6px;
 }
 body.pref-clair .topbar .zone-pick span{overflow:visible;text-overflow:clip}
 body.pref-clair .topbar .zone-pick svg{stroke:var(--brand);color:var(--brand)}
@@ -7016,9 +7013,6 @@ body.pref-clair .topbar .zone-pick .spinner{
   border-color:rgba(255,101,0,.35);border-top-color:var(--brand);
 }
 
-/* La cloche descend d'autant, sinon les deux bouts de la rangée ne sont plus
-   sur la même ligne. */
-body.pref-clair .topbar .icon-btn{margin-top:6px}
 
 /* Et le mot-marque s'affiche sur TOUS les écrans clairs, pour la même raison
    qu'on vient d'énoncer : l'énumération laissait des trous. */
@@ -7028,3 +7022,32 @@ body.app-client.pref-clair .brand-nuit{
   line-height:1;text-decoration:none;color:#16181D;
 }
 body.app-client.pref-clair .topbar-in{position:relative}
+
+/* ==========================================================================
+   LA RANGÉE DU HAUT NE COLLE PLUS AU BORD DE L'ÉCRAN
+   --------------------------------------------------------------------------
+   « Je ne le vois pas » : le bouton du quartier n'était pas mal placé, il
+   passait SOUS la barre d'état du téléphone. Le décalage de 6 px que j'avais
+   posé sur lui seul ne pouvait pas régler ça — et il désalignait la pastille de
+   la cloche au passage. Les deux sont retirés.
+
+   La cause : `padding-top: env(safe-area-inset-top)` seul. Cette valeur vaut 0
+   partout où le système ne réserve rien — un Android sans encoche, un
+   ordinateur, et une application ouverte dans un navigateur qui place déjà sa
+   page sous la barre d'état. La rangée se retrouvait alors à `y=0`, c'est-à-dire
+   contre le bord, et l'horloge passait par-dessus.
+
+   `max()` donne un plancher : au moins 14 px d'air, et davantage là où le
+   système l'exige. Sur un iPhone à îlot dynamique on garde les 59 px
+   nécessaires ; sur un Android sans encoche on gagne les 14 px qui manquaient.
+   Une seule expression pour les deux cas, et rien à deviner sur l'appareil.
+
+   La rangée gagne aussi un peu de hauteur : 60 px suffisaient pour trois
+   pastilles, pas pour le mot-marque de 31 px que les maquettes mettent au
+   centre.
+   ========================================================================== */
+body.app-client .topbar{
+  padding-top:max(14px, env(safe-area-inset-top));
+  padding-bottom:8px;
+}
+body.app-client .topbar-in{height:auto;min-height:56px}
