@@ -233,14 +233,45 @@
       '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>' +
       '<path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>';
 
+  /* ------------------------------------------ LE MOT-MARQUE S'ÉCRIT (4 s)
+     Chaque lettre est un élément à part, avec son rang : c'est le rang qui
+     décale son entrée dans le CSS. Sans découpage, on ne pourrait animer que le
+     mot entier, et un mot entier qui apparaît d'un coup n'a rien d'une écriture.
+
+     `bi` reste orange, comme dans le `<i>` d'origine — la classe `or` remplace
+     la balise, parce qu'il faut de toute façon un élément par lettre.
+
+     Le mot est annoncé une fois pour les lecteurs d'écran, et les lettres leur
+     sont cachées : six lettres épelées une à une ne se comprennent pas. */
+  const ENT_LETTRES = [['t', 0], ['a', 0], ['l', 0], ['a', 0], ['b', 1], ['i', 1]];
+
+  function motQuiSecrit() {
+    return '<div class="ent-word" aria-label="talabi">' +
+      '<span class="ent-w-in" aria-hidden="true">' +
+        ENT_LETTRES.map((l, i) =>
+          '<span class="ent-l' + (l[1] ? ' or' : '') + '" style="--i:' + i + '">' +
+            l[0] + '</span>').join('') +
+        '<span class="ent-cur"></span>' +
+      '</span></div>';
+  }
+
   function porteDentree(view) {
     let voie = 'choix';          // choix | email
 
+    /* L'écriture ne joue qu'à l'ouverture. `paint()` est rappelé quand on passe
+       au formulaire de connexion : sans ce garde-fou, les quatre secondes
+       repartiraient à chaque aller-retour entre les deux voies, et une animation
+       qu'on a déjà vue devient une attente. */
+    let dejaEcrit = false;
+
     function paint() {
-      view.innerHTML = '<div class="ent"><div class="ent-in">' +
+      const anime = !dejaEcrit;
+      dejaEcrit = true;
+
+      view.innerHTML = '<div class="ent' + (anime ? ' ent-anim' : '') + '"><div class="ent-in">' +
 
         '<span class="ent-mark">' + ENT_ARC + '</span>' +
-        '<div class="ent-word">tala<i>bi</i></div>' +
+        motQuiSecrit() +
 
         '<h1 class="ent-t">' + (voie === 'choix' ? 'Créer un compte' : 'Se connecter') + '</h1>' +
         '<p class="ent-s">' + (voie === 'choix'

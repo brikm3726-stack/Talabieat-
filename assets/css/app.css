@@ -7639,3 +7639,108 @@ body.nuit .sheet-foot #add::before{
   -webkit-mask:var(--ic-panier) center/contain no-repeat;
           mask:var(--ic-panier) center/contain no-repeat;
 }
+
+/* ==========================================================================
+   « TALABI » S'ÉCRIT SUR LA PORTE D'ENTRÉE — 4 SECONDES
+   --------------------------------------------------------------------------
+   Le budget des quatre secondes, et pourquoi il est découpé ainsi :
+
+     0,12 → 1,05 s   l'arc se TRACE. C'est un vrai tracé, pas un fondu : le
+                     chemin SVG est transformé en un tiret unique plus long que
+                     lui (`stroke-dasharray`), puis décalé hors de sa propre
+                     ligne (`stroke-dashoffset`), et on ramène ce décalage à
+                     zéro. Le trait sort donc de la pointe, comme un feutre.
+     0,90 → 3,12 s   les six lettres. Chacune s'ouvre de la gauche vers la
+                     droite sous le curseur, décalée de 0,34 s sur la
+                     précédente. L'arc n'est pas encore fini quand la première
+                     lettre commence : c'est ce chevauchement de 150 ms qui
+                     fait un geste continu au lieu de deux animations à la
+                     suite.
+     0,90 → 3,15 s   le curseur orange glisse d'un bout à l'autre du mot puis
+                     s'éteint là où l'écriture s'arrête.
+     3,20 → 4,00 s   la pose : une lueur orange monte et redescend sous le mot
+                     fini. C'est elle qui ferme les quatre secondes — sans
+                     elle, l'animation s'arrêterait net à 3,15 s.
+
+   L'ANIMATION EST SOUS `.ent-anim`, posée par le JavaScript à la première
+   peinture seulement. La porte d'entrée se repeint quand on passe au formulaire
+   de connexion : sans cette accroche, les quatre secondes repartiraient à
+   chaque aller-retour.
+
+   Rien ici n'est propre à un thème : la couleur du mot est déjà décidée
+   ailleurs, et une écriture n'a pas de teinte.
+   ========================================================================== */
+
+/* La coquille du mot : c'est elle qui porte le curseur, et elle doit faire la
+   largeur du texte, pas celle de la colonne — sinon le curseur partirait du
+   bord de l'écran. `inline-block` la ramène à la largeur des lettres, et le
+   centrage de `.ent-in` continue de s'appliquer, inchangé. */
+.ent-w-in{position:relative;display:inline-block}
+.ent-l{display:inline-block}
+.ent-l.or{color:var(--brand)}
+
+/* ---- le tracé de l'arc ---- */
+.ent-anim .ent-mark svg path{
+  /* 150 dépasse la longueur réelle du chemin (~135) : le tiret couvre donc tout
+     le trait, et un tiret plus long ne se voit pas — alors qu'un tiret trop
+     court laisserait un bout de trait déjà dessiné au départ. */
+  stroke-dasharray:150;
+  stroke-dashoffset:150;
+  animation:entTrace .93s cubic-bezier(.42,.72,.28,1) .12s both;
+}
+@keyframes entTrace{ to{ stroke-dashoffset:0 } }
+
+/* ---- les lettres ----
+   L'ouverture se fait au `clip-path`, pas à l'opacité : une lettre qui se
+   dévoile de gauche à droite est une lettre qu'on écrit, une lettre qui apparaît
+   en fondu est une lettre qui s'allume. Les débords sont négatifs en haut et en
+   bas pour ne pas raser les jambages du « b » ni le point du « i ». */
+.ent-anim .ent-l{
+  animation:entEcrit .52s cubic-bezier(.3,.78,.36,1) both;
+  animation-delay:calc(.9s + var(--i) * .34s);
+}
+@keyframes entEcrit{
+  from{ clip-path:inset(-14% 100% -22% -6%); opacity:0 }
+  30% { opacity:1 }
+  to  { clip-path:inset(-14% -8% -22% -6%); opacity:1 }
+}
+
+/* ---- le curseur ----
+   Une barre orange qui avance le long du mot. Elle ne s'arrête pas à chaque
+   lettre : un curseur qui saute par crans donne une machine, un curseur qui
+   glisse donne une main. */
+.ent-cur{
+  position:absolute;top:4%;bottom:0;left:0;width:3px;
+  border-radius:2px;background:var(--brand);
+  box-shadow:0 0 12px rgba(255,101,0,.95);
+  opacity:0;pointer-events:none;
+}
+.ent-anim .ent-cur{
+  animation:entCurseur 2.25s cubic-bezier(.34,.7,.36,1) .9s both;
+}
+@keyframes entCurseur{
+  0%  { left:0;    opacity:0 }
+  7%  { opacity:1 }
+  88% { left:100%; opacity:1 }
+  100%{ left:100%; opacity:0 }
+}
+
+/* ---- la pose ---- */
+.ent-anim .ent-w-in{
+  animation:entPose .8s ease-out 3.2s both;
+}
+@keyframes entPose{
+  0%  { filter:drop-shadow(0 0 0 rgba(255,101,0,0)) }
+  45% { filter:drop-shadow(0 0 16px rgba(255,101,0,.5)) }
+  100%{ filter:drop-shadow(0 0 0 rgba(255,101,0,0)) }
+}
+
+/* Qui a demandé moins de mouvement voit le mot écrit, tout simplement. Le
+   curseur disparaît : seul, immobile au milieu du mot, il ressemblerait à un
+   défaut d'affichage. */
+@media(prefers-reduced-motion:reduce){
+  .ent-anim .ent-mark svg path{animation:none;stroke-dashoffset:0}
+  .ent-anim .ent-l,
+  .ent-anim .ent-w-in{animation:none}
+  .ent-cur{display:none}
+}
