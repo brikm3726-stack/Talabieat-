@@ -9212,3 +9212,243 @@ body.nuit .nt-f-n{background:rgba(255,255,255,.10)}
   .nt-stat b{font-size:17px}
   .nt-act{font-size:11.5px;gap:5px}
 }
+
+/* ==========================================================================
+   MON COMPTE
+   --------------------------------------------------------------------------
+   Sixième écran sur les mêmes briques : en-tête, boutons et jetons viennent du
+   lot `prem-`. Seul ce qui n'existe que là est écrit ici.
+
+   La carte de profil est blanche sur une page blanche, comme sur Sécurité et
+   Informations personnelles : une seule grande carte se lit très bien à l'ombre
+   et au liseré. Les groupes de lignes, eux, sont en gris à peine gris — parce
+   qu'il y en a trois, et que trois cartes blanches sur du blanc ne se
+   distinguent plus les unes des autres.
+   ========================================================================== */
+.mc{background:var(--prem-fond)}
+.mc .acc-dots{display:none}
+
+/* ---- carte de profil ---- */
+.mc-carte{
+  margin-top:20px;padding:24px 20px 22px;
+  border-radius:28px;
+  background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet),
+             0 2px 6px rgba(16,24,40,.04),
+             0 22px 48px -26px rgba(16,24,40,.3);
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+}
+/* Deux ronds concentriques : une bordure en dégradé n'existe pas en CSS, et
+   `border-image` ne suit pas les coins arrondis. Le liseré est donc le fond du
+   rond extérieur, et l'image se pose dessus avec 3 px de retrait. */
+.mc-photo{
+  position:relative;
+  width:106px;height:106px;border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(140deg,#FFB067 0%,#FF6B00 52%,#FF3D57 100%);
+  box-shadow:0 12px 30px -12px rgba(255,77,60,.55);
+}
+.mc-photo-img{
+  width:100px;height:100px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--prem-champ) center/cover no-repeat;
+  color:var(--prem-doux);
+  font-size:34px;font-weight:900;letter-spacing:-.02em;
+  overflow:hidden;
+}
+/* Le badge de confirmation. Il n'est posé que si l'adresse est réellement
+   confirmée : son anneau est de la couleur de la carte, pour qu'il paraisse
+   découpé dedans plutôt que collé dessus. */
+.mc-photo-b{
+  position:absolute;right:-1px;bottom:2px;
+  width:30px;height:30px;border-radius:50%;
+  display:grid;place-items:center;
+  background:#0F9D58;color:#fff;
+  box-shadow:0 0 0 3.5px var(--prem-carte), 0 3px 10px -3px rgba(15,157,88,.7);
+}
+.mc-nom{
+  margin-top:14px;
+  font-size:23px;font-weight:900;letter-spacing:-.03em;line-height:1.15;
+  color:var(--prem-titre);overflow-wrap:anywhere;
+}
+.mc-role{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:9px;padding:6px 13px;
+  border-radius:999px;
+  background:rgba(255,107,0,.10);color:var(--prem-or);
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.22);
+  font-size:12px;font-weight:800;
+}
+.mc-anc{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:10px;
+  font-size:12.5px;font-weight:700;color:var(--prem-doux);
+}
+.mc-anc svg{opacity:.7}
+.mc-modif{max-width:320px;margin-top:18px;text-decoration:none}
+
+/* ---- les quatre chiffres ----
+   Deux par deux : à quatre de front, « Total dépensé » et son montant se
+   couperaient au milieu sur un téléphone de 360 px. */
+.mc-tuiles{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px}
+.mc-tuile{
+  padding:15px 14px;border-radius:22px;
+  background:var(--prem-champ);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  display:flex;flex-direction:column;gap:6px;
+}
+.mc-tuile-ic{
+  width:34px;height:34px;border-radius:12px;
+  display:grid;place-items:center;
+  color:var(--prem-or);background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+}
+.mc-tuile b{
+  font-size:20px;font-weight:900;color:var(--prem-titre);
+  letter-spacing:-.03em;line-height:1.1;
+  font-variant-numeric:tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.mc-tuile > span:last-child{
+  font-size:11.5px;font-weight:750;color:var(--prem-doux);line-height:1.25;
+}
+
+/* ---- étiquettes et groupes ---- */
+.mc-lab{
+  margin:26px 0 10px 4px;
+  font-size:11.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--prem-doux);
+}
+.mc-grp{
+  border-radius:24px;overflow:hidden;
+  background:var(--prem-champ);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+}
+.mc-l{
+  display:flex;align-items:center;gap:13px;width:100%;
+  padding:15px 16px;
+  border:0;background:none;
+  color:var(--prem-titre);text-decoration:none;
+  font:inherit;text-align:left;cursor:pointer;
+  transition:background .14s;
+}
+/* Le séparateur ne part pas du bord : il commence après l'icône. Un trait pleine
+   largeur découperait la liste en tranches ; celui-ci dit « ligne suivante ». */
+.mc-l + .mc-l{box-shadow:inset 0 1px 0 var(--prem-filet)}
+.mc-l:not(.fixe):active{background:rgba(16,24,40,.045)}
+.mc-l.fixe{cursor:default}
+.mc-l-ic{
+  flex:none;width:40px;height:40px;border-radius:14px;
+  display:grid;place-items:center;
+  color:var(--prem-titre);background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+}
+.mc-l-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mc-l-txt b{font-size:14.5px;font-weight:750;line-height:1.3}
+.mc-l-txt span{
+  font-size:12.5px;color:var(--prem-doux);line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.mc-l-chev{flex:none;color:var(--prem-doux);opacity:.5;display:grid}
+.mc-verif{
+  flex:none;display:inline-flex;align-items:center;gap:4px;
+  padding:5px 9px;border-radius:999px;
+  background:rgba(15,157,88,.12);color:#0F9D58;
+  font-size:10.5px;font-weight:800;
+}
+
+/* ==========================================================================
+   ZONE SENSIBLE
+   --------------------------------------------------------------------------
+   Les deux gestes sont ensemble mais PAS semblables, et c'est tout le sujet :
+   se déconnecter se défait en se reconnectant, supprimer son compte ne se défait
+   pas. Le premier est cerclé d'orange, le second posé sur un rouge très pâle.
+   Les dessiner pareil serait la faute la plus coûteuse de cet écran.
+   ========================================================================== */
+.mc-zone{
+  margin-top:30px;padding:16px;
+  border-radius:24px;
+  background:var(--prem-champ);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  display:flex;flex-direction:column;gap:11px;
+}
+.mc-zone-t{
+  display:flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--prem-doux);
+}
+.mc-zone-t svg{color:#C2410C;opacity:.9}
+.mc-sortie,.mc-suppr{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;min-height:54px;
+  border-radius:20px;
+  font:inherit;font-size:15px;font-weight:800;
+  cursor:pointer;text-decoration:none;
+  transition:transform .16s, background .16s;
+}
+.mc-sortie{
+  border:1.5px solid rgba(255,107,0,.5);
+  background:var(--prem-carte);color:var(--prem-or);
+}
+.mc-sortie:active{transform:scale(.985);background:rgba(255,107,0,.07)}
+.mc-suppr{
+  border:1.5px solid rgba(217,58,31,.22);
+  background:rgba(217,58,31,.07);color:#C2410C;
+  font-size:14.5px;
+}
+.mc-suppr:active{transform:scale(.985);background:rgba(217,58,31,.13)}
+.mc-zone-n{
+  margin:0;text-align:center;
+  font-size:11.5px;line-height:1.45;color:var(--prem-doux);
+}
+
+/* ---- apparition ---- */
+.mc .prem-tete,.mc-carte,.mc-tuiles,.mc-lab,.mc-grp,.mc-zone{
+  animation:mcMonte .44s cubic-bezier(.22,.75,.3,1) both;
+}
+.mc-carte{animation-delay:.06s}
+.mc-tuiles{animation-delay:.12s}
+.mc-lab{animation-delay:.16s}
+.mc-grp{animation-delay:.19s}
+.mc-zone{animation-delay:.24s}
+@keyframes mcMonte{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+@media(prefers-reduced-motion:reduce){
+  .mc .prem-tete,.mc-carte,.mc-tuiles,.mc-lab,.mc-grp,.mc-zone{animation:none}
+  .mc-sortie:active,.mc-suppr:active{transform:none}
+}
+
+/* ==========================================================================
+   LE MÊME ÉCRAN EN SOMBRE — les six jetons suffisent, à trois exceptions
+   ========================================================================== */
+body.nuit #view .mc-carte{
+  box-shadow:inset 0 0 0 1px var(--prem-filet), 0 24px 56px -30px rgba(0,0,0,1);
+}
+body.nuit #view .mc-photo-img{color:#868C95}
+body.nuit #view .mc-l:not(.fixe):active{background:rgba(255,255,255,.05)}
+body.nuit #view .mc-verif{background:rgba(18,183,106,.16);color:#4ADE80}
+body.nuit #view .mc-zone-t svg{color:#FF9A8A}
+body.nuit #view .mc-suppr{
+  border-color:rgba(255,138,138,.26);
+  background:rgba(255,138,138,.08);color:#FF9A8A;
+}
+body.nuit #view .mc-suppr:active{background:rgba(255,138,138,.15)}
+body.nuit #view .mc-sortie{color:#FF8A3D;border-color:rgba(255,107,0,.45)}
+
+/* ==========================================================================
+   ÉCRANS ÉTROITS ET TABLETTES
+   ========================================================================== */
+@media(max-width:379px){
+  .mc-carte{padding:20px 15px 18px;border-radius:24px}
+  .mc-photo{width:92px;height:92px}
+  .mc-photo-img{width:86px;height:86px;font-size:29px}
+  .mc-nom{font-size:20px}
+  .mc-tuile{padding:13px 12px;border-radius:19px}
+  .mc-tuile b{font-size:17px}
+  .mc-tuile > span:last-child{font-size:10.5px}
+}
+@media(min-width:620px){
+  .mc .wrap-sm{max-width:560px}
+  /* À cette largeur, les quatre chiffres tiennent sur une ligne. */
+  .mc-tuiles{grid-template-columns:repeat(4,1fr)}
+}

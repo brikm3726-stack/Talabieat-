@@ -183,6 +183,18 @@
         notamment), et c'est elle que les écrans affichent. */
     email() { return (currentUser && currentUser.email) || null; },
 
+    /* L adresse est-elle confirmee ? Supabase le sait deja : la session porte
+       email_confirmed_at des que le lien de confirmation a ete suivi. Personne
+       ne le lisait — d ou l absence de badge "verifie" jusqu ici. C est une
+       donnee reelle, pas une supposition : elle vaut donc un badge.
+
+       confirmed_at est lu en second : les anciens projets Supabase ne
+       renseignent que celui-la. */
+    emailConfirmed() {
+      if (!currentUser) return false;
+      return !!(currentUser.email_confirmed_at || currentUser.confirmed_at);
+    },
+
     async sendEmailCode(email) {
       /* Sans ce repli, une adresse vide partait au serveur et l'erreur
          revenait en anglais, incompréhensible : l'utilisateur voyait

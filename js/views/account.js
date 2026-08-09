@@ -731,6 +731,20 @@
       /* Le raccourci « Mes adresses » descend dans la page au lieu de changer
          d'écran : elles sont dans ce formulaire, et les sortir dans un écran à
          part obligerait à enregistrer avant d'y aller. */
+      /* Arrivée depuis « Mes adresses » de l'écran Mon compte : on descend
+         directement au bon endroit. Le repère est CONSOMMÉ, pas seulement lu —
+         sans quoi chaque retour sur cet écran ferait sauter la page vers le bas
+         sans qu'on ait rien demandé. */
+      let versAdr = false;
+      try {
+        versAdr = sessionStorage.getItem('talabi.vers_adresses') === '1';
+        if (versAdr) sessionStorage.removeItem('talabi.vers_adresses');
+      } catch (e) {}
+      if (versAdr) {
+        const ancre = view.querySelector('#adrAncre');
+        if (ancre) setTimeout(() => ancre.scrollIntoView({ behavior: 'smooth', block: 'start' }), 260);
+      }
+
       const va = view.querySelector('#ipVersAdr');
       if (va) va.onclick = e => {
         e.preventDefault();
@@ -841,6 +855,212 @@
   }, { auth: true });
 
   /* ======================================================================
+     MON COMPTE — ÉCRAN DU CLIENT
+     ----------------------------------------------------------------------
+     Sixième écran sur le même jeu de briques : `prem-tete`, `prem-go`,
+     `prem-go2` et les six jetons de couleur viennent du lot commun. Seul ce qui
+     n'existe que là est écrit ici.
+
+     CE QUE LE BRIEF DEMANDAIT ET QUI N'EXISTE PAS :
+
+     - « Niveau utilisateur : Client Premium, Gold » : il n'y a pas de paliers.
+       Inventer un « Gold » sur un compte qui n'en a pas fait douter du reste de
+       la carte — c'est la seule ligne qu'on ne peut pas vérifier soi-même.
+     - « Points fidélité », « Récompenses », « Économies réalisées » : aucun
+       programme, aucune remise. Les quatre tuiles comptent donc quatre choses
+       réelles, toutes tirées des commandes.
+     - « Talabi Plus » : pas d'abonnement, et le paiement en espèces à la
+       livraison ne permet aucun encaissement récurrent.
+     - « Moyens de paiement » : on paie à la réception, il n'y a rien à
+       enregistrer.
+     - « Langue et région » : l'application cliente n'existe qu'en français, et
+       ne livre qu'à Tizi Ouzou.
+     - « Centre d'aide » et « Conditions d'utilisation » : ces deux pages
+       n'existent pas. Le support, lui, existe — téléphone et email.
+
+     CE QUI EXISTAIT ET QUE PERSONNE NE LISAIT : Supabase sait depuis toujours si
+     l'adresse a été confirmée (`email_confirmed_at` sur la session). Le badge
+     « vérifié » du brief est donc réel sur l'email. Il n'y en a pas sur le
+     téléphone : aucun code SMS n'est envoyé, et un badge qui ne vérifie rien est
+     un mensonge affiché en vert.
+     ====================================================================== */
+
+  /* Les quatre chiffres, tous comptés sur les commandes de la personne. Rendus
+     à part de l'affichage pour que le calcul se lise d'un coup — et pour qu'on
+     voie qu'aucun n'est une estimation. */
+  function mcChiffres(commandes) {
+    const finies = commandes.filter(o => o.status === 'delivered');
+    const encours = commandes.filter(o =>
+      ['pending', 'accepted', 'preparing', 'ready', 'driver_assigned', 'delivering']
+        .indexOf(o.status) >= 0);
+    const restos = {};
+    finies.forEach(o => { if (o.restaurant && o.restaurant.id) restos[o.restaurant.id] = 1; });
+    return {
+      finies: finies.length,
+      encours: encours.length,
+      /* Seules les commandes LIVRÉES comptent dans le total dépensé : une
+         commande annulée n'a rien coûté, et l'inclure gonflerait un chiffre que
+         la personne peut recompter elle-même sur son historique. */
+      depense: finies.reduce((s, o) => s + (+o.total || 0), 0),
+      restos: Object.keys(restos).length
+    };
+  }
+
+  function mcTuile(icone, cle, valeur) {
+    return '<div class="mc-tuile">' +
+      '<span class="mc-tuile-ic">' + UI.icon(icone, 19) + '</span>' +
+      '<b>' + valeur + '</b>' +
+      '<span>' + U.esc(cle) + '</span>' +
+    '</div>';
+  }
+
+  /* Une ligne d'information : elle ne mène nulle part, elle montre. Le badge
+     n'apparaît que si l'on sait vraiment. */
+  function mcInfo(icone, cle, valeur, badge) {
+    return '<div class="mc-l fixe">' +
+      '<span class="mc-l-ic">' + UI.icon(icone, 19) + '</span>' +
+      '<span class="mc-l-txt"><b>' + U.esc(cle) + '</b>' +
+        '<span>' + U.esc(valeur || '—') + '</span></span>' +
+      (badge ? '<span class="mc-verif">' + UI.icon('check', 13) + ' Vérifié</span>' : '') +
+    '</div>';
+  }
+
+  function mcPorte(o) {
+    const dedans =
+      '<span class="mc-l-ic' + (o.ton ? ' ' + o.ton : '') + '">' + UI.icon(o.icone, 19) + '</span>' +
+      '<span class="mc-l-txt"><b>' + U.esc(o.titre) + '</b>' +
+        (o.sous ? '<span>' + U.esc(o.sous) + '</span>' : '') + '</span>' +
+      '<span class="mc-l-chev">' + UI.icon('chevron', 18) + '</span>';
+    if (o.id) return '<button type="button" class="mc-l" id="' + o.id + '">' + dedans + '</button>';
+    return '<a class="mc-l" href="' + o.href + '"' +
+      (o.neuf ? ' target="_blank" rel="noopener"' : '') + '>' + dedans + '</a>';
+  }
+
+  function mcLab(t) { return '<div class="mc-lab">' + U.esc(t) + '</div>'; }
+  function mcGrp(l) { return '<div class="mc-grp">' + l.filter(Boolean).join('') + '</div>'; }
+
+  /* « Membre depuis » en mois, pas en date : sur cette carte, ce qui compte est
+     l'ancienneté. Le premier mois se dit « ce mois-ci » — « depuis 0 mois » ne
+     veut rien dire. */
+  function mcAnciennete(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const h = new Date();
+    let mois = (h.getFullYear() - d.getFullYear()) * 12 + (h.getMonth() - d.getMonth());
+    if (h.getDate() < d.getDate()) mois--;
+    if (mois < 1) return 'Membre depuis ce mois-ci';
+    if (mois < 12) return 'Membre depuis ' + mois + ' mois';
+    const ans = Math.floor(mois / 12);
+    return 'Membre depuis ' + ans + ' an' + (ans > 1 ? 's' : '');
+  }
+
+  function mcEcran(p, chiffres, emailOk) {
+    return '<div class="account-page prem mc">' +
+      '<div class="wrap-sm page">' +
+
+      '<header class="prem-tete">' +
+        '<a class="prem-retour" href="#/account" aria-label="Retour aux réglages">' +
+          UI.icon('chevron', 19) + '</a>' +
+        '<span class="prem-vignette" aria-hidden="true">' + UI.icon('user', 25) + '</span>' +
+        '<div class="prem-tete-txt">' +
+          '<h1 class="prem-h1">Mon compte</h1>' +
+          '<p class="prem-sub">Gérez votre profil et vos préférences</p>' +
+        '</div>' +
+      '</header>' +
+
+      /* ---- carte de profil ---- */
+      '<div class="mc-carte">' +
+        '<div class="mc-photo">' +
+          '<span class="mc-photo-img"' +
+            (p.avatar_url ? ' style="background-image:url(' + U.escUrl(p.avatar_url) + ')"' : '') +
+            '>' + (p.avatar_url ? '' : U.esc(U.initials(p.full_name || '?'))) + '</span>' +
+          /* Le badge n'est posé que si l'adresse est réellement confirmée. */
+          (emailOk ? '<span class="mc-photo-b" title="Adresse email confirmée">' +
+            UI.icon('check', 14) + '</span>' : '') +
+        '</div>' +
+        '<div class="mc-nom">' + U.esc(p.full_name || 'Votre profil') + '</div>' +
+        '<div class="mc-role">' + UI.icon('user', 13) + ' ' +
+          U.esc(ROLE_LABEL[p.role] || p.role) + '</div>' +
+        (mcAnciennete(p.created_at)
+          ? '<div class="mc-anc">' + UI.icon('calendar', 14) + ' ' +
+            U.esc(mcAnciennete(p.created_at)) + '</div>' : '') +
+        '<a class="prem-go mc-modif" href="#/profil">' + UI.icon('pencil', 18) +
+          ' Modifier le profil</a>' +
+      '</div>' +
+
+      /* ---- quatre chiffres ---- */
+      '<div class="mc-tuiles">' +
+        mcTuile('package',  'Commandes livrées', chiffres.finies) +
+        mcTuile('clock',    'En cours',          chiffres.encours) +
+        mcTuile('wallet',   'Total dépensé',     U.esc(U.money(chiffres.depense))) +
+        mcTuile('store',    'Restaurants',       chiffres.restos) +
+      '</div>' +
+
+      /* ---- identité ---- */
+      mcLab('Identité') +
+      mcGrp([
+        mcInfo('mail', 'Email', p.email, emailOk),
+        mcInfo('phone', 'Téléphone', p.phone, false),
+        mcInfo('calendar', 'Compte créé le', p.created_at ? U.dt(p.created_at) : '', false)
+      ]) +
+
+      /* ---- réglages ---- */
+      mcLab('Paramètres du compte') +
+      mcGrp([
+        mcPorte({ href: '#/profil', icone: 'pencil', titre: 'Informations personnelles',
+                  sous: 'Nom, photo, genre, âge et quartier' }),
+        mcPorte({ href: '#/securite', icone: 'lock', titre: 'Sécurité et mot de passe',
+                  sous: 'Changer mon mot de passe' }),
+        /* Les adresses vivent DANS « Informations personnelles » : ce raccourci
+           y descend directement, sinon les deux lignes mèneraient au même
+           endroit sans qu'on comprenne pourquoi il y en a deux. */
+        mcPorte({ id: 'mcAdr', icone: 'pin', titre: 'Mes adresses',
+                  sous: 'Où vous faire livrer' }),
+        mcPorte({ id: 'mcNotif', icone: 'bell', titre: 'Notifications',
+                  sous: 'Voir et gérer vos avis' })
+      ]) +
+
+      /* ---- aide ---- */
+      mcLab('Aide') +
+      mcGrp([
+        mcPorte({ href: 'tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')),
+                  icone: 'headset', titre: 'Appeler le support',
+                  sous: TALABI_CONFIG.SUPPORT_PHONE }),
+        (TALABI_CONFIG.SUPPORT_EMAIL
+          ? mcPorte({ href: 'mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL),
+                      icone: 'mail', titre: 'Écrire au support',
+                      sous: TALABI_CONFIG.SUPPORT_EMAIL })
+          : ''),
+        /* La fiche Play de l'application cliente. C'est un vrai lien, vérifiable
+           — le paquet est `shop.talabi.client`. */
+        mcPorte({ href: 'https://play.google.com/store/apps/details?id=shop.talabi.client',
+                  neuf: true, icone: 'sparkle', titre: 'Noter l’application',
+                  sous: 'Sur Google Play' }),
+        mcPorte({ href: U.escUrl(U.asset('confidentialite.html')), neuf: true,
+                  icone: 'shield', titre: 'Confidentialité',
+                  sous: 'Quelles données, pourquoi, et comment les effacer' })
+      ]) +
+
+      /* ---- zone à part ----
+         Les deux gestes irréversibles, ensemble mais pas semblables : se
+         déconnecter se défait en se reconnectant, supprimer son compte ne se
+         défait pas. Le second est donc dessiné autrement, et son écran demande
+         une seconde confirmation avant d'agir. */
+      '<div class="mc-zone">' +
+        '<div class="mc-zone-t">' + UI.icon('warn', 15) + ' Zone sensible</div>' +
+        '<button type="button" class="mc-sortie" id="logout">' + UI.icon('logout', 18) +
+          ' Se déconnecter</button>' +
+        '<a class="mc-suppr" href="#/supprimer-compte">' + UI.icon('trash', 17) +
+          ' Supprimer mon compte</a>' +
+        '<p class="mc-zone-n">La suppression est définitive et vous sera reconfirmée ' +
+          'sur l’écran suivant.</p>' +
+      '</div>' +
+
+      '</div></div>';
+  }
+
+  /* ======================================================================
      MON COMPTE — qui je suis sur la plateforme, et comment en sortir
      ----------------------------------------------------------------------
      C'est le seul écran qui répond à « quel compte suis-je en train
@@ -852,6 +1072,31 @@
     const finNuit = nuitCompte();
     const p = Store.profile || {};
     const d = p.role === 'driver' ? (await API.safe(() => API.getDriver(), null)) : null;
+
+    /* Le nouvel écran ne vaut que pour le client : le livreur voit ici son
+       statut de validation, et son écran reste celui d'avant. */
+    if (App.est('client') && p.role === 'client') {
+      const cmds = await API.safe(() => API.orders({ scope: 'client' }), []);
+      const emailOk = !!(API.emailConfirmed && API.emailConfirmed());
+      view.innerHTML = mcEcran(p, mcChiffres(cmds), emailOk);
+
+      view.querySelector('#logout').onclick = deconnexion;
+
+      const cl = view.querySelector('#mcNotif');
+      if (cl) cl.onclick = Shell.notifPanel;
+
+      /* « Mes adresses » descend directement sur le bloc des adresses de
+         l'écran suivant. Le repère passe par sessionStorage plutôt que par
+         l'adresse : le routeur ne lit pas de paramètre après un chemin en
+         dièse, et un faux paramètre ignoré est un piège pour plus tard. */
+      const ad = view.querySelector('#mcAdr');
+      if (ad) ad.onclick = () => {
+        try { sessionStorage.setItem('talabi.vers_adresses', '1'); } catch (e) {}
+        Router.go('/profil');
+      };
+
+      return finNuit;
+    }
 
     const ligne = (icone, titre, valeur) =>
       '<div class="acc-link" style="cursor:default">' +
