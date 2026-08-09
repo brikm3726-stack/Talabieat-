@@ -374,86 +374,346 @@
       });
     },
 
-    /* -------------------------------------------------------- notifications */
+    /* -------------------------------------------------------- notifications
+       ------------------------------------------------------------------------
+       CE QUE LE BRIEF DEMANDAIT ET QUI N'EXISTE PAS DANS TALABI :
+
+       - Filtres « Promotions », « Favoris », « Récompenses » : il n'y a ni
+         promotions, ni favoris, ni programme de fidélité. Aucun avis de ces
+         types n'est jamais écrit en base — les quatorze types existants
+         concernent tous les commandes, la livraison ou le compte. Un filtre qui
+         ne peut rien montrer se touche une fois, puis plus jamais, et fait
+         douter des autres.
+       - « Paramètres des notifications » : aucun réglage n'existe. Ni par type,
+         ni par canal.
+       - Statistiques « Promotions : 4 » et « Récompenses : 2 » : mêmes absents.
+         Les trois tuiles comptent donc ce qui est réellement là.
+       - « Appui long : plus d'options » : ses seules options seraient ouvrir,
+         marquer comme lu et supprimer — que la touche et les deux glissements
+         font déjà. Un menu qui répète trois gestes ajoute une étape.
+
+       CE QUI EXISTE ET QUE PERSONNE N'UTILISAIT : la politique `notif_delete`
+       autorise depuis toujours chacun à supprimer ses propres avis. Il ne
+       manquait que l'appel. « Tout supprimer » et le glissement vers la gauche
+       marchent donc pour de vrai, sans migration.
+
+       UN CHANGEMENT DE COMPORTEMENT, ASSUMÉ. Le panneau marquait tout comme lu
+       AUTOMATIQUEMENT 1,5 seconde après son ouverture. Cela rendait décoratifs
+       à la fois l'état « non lu » et le bouton qui l'efface : la pastille
+       s'éteignait parce qu'on avait laissé le panneau ouvert, pas parce qu'on
+       avait vu quelque chose. Le marquage est désormais explicite — par le
+       bouton, ou par un glissement sur une ligne. « Non lu » veut dire « je n'ai
+       pas encore regardé », ce qui est le seul sens utile.
+       ------------------------------------------------------------------------ */
+
     async notifPanel() {
-      const nb = Store.unread || 0;
+      let filtre = 'tout';
+      let liste = [];
+
       const m = UI.sheet({
-        title: 'Notifications',
-        subtitle: nb ? (nb > 1 ? nb + ' non lues' : '1 non lue') : 'Tout est à jour',
-        icon: '<span class="notif-tete-ic">' + UI.icon('bell', 19) + '</span>',
-        body: '<div id="nlist">' +
-              '<div class="skel" style="height:72px;margin-bottom:10px;border-radius:16px"></div>' +
-              '<div class="skel" style="height:72px;border-radius:16px"></div></div>',
-        footer: nb ? '<button class="btn btn-ghost btn-block" id="markAll">' +
-                     UI.icon('check', 17) + ' Tout marquer comme lu</button>' : ''
+        /* En-tête à part : le titre, le sous-titre, le badge et les actions
+           demandent plus de place que n'en offre l'en-tête standard. Le bouton
+           de fermeture porte `data-x`, ce qui suffit à UI.sheet pour le brancher
+           — la mécanique du panneau, de l'historique et du retour du téléphone
+           reste exactement celle de toutes les autres feuilles. */
+        title: false,
+        body: '<div class="nt"><div id="ntCorps"></div></div>'
       });
 
-      const list = await API.safe(() => API.notifications(40), []);
-      const box = m.el.querySelector('#nlist');
+      const corps = m.el.querySelector('#ntCorps');
 
-      if (!list.length) {
-        box.innerHTML = '<div class="notif-vide">' +
-          '<div class="notif-vide-ic">' + UI.icon('bell', 30) + '</div>' +
-          '<b>Rien pour le moment</b>' +
-          '<p>Vous serez prévenu ici à chaque étape de vos commandes.</p></div>';
-      } else {
-        box.style.margin = '-18px -18px -6px';
-        /* Les avis sont regroupés par jour : « aujourd'hui » d'abord. Sans
-           ces repères, quinze lignes d'affilée se lisent comme un mur, et
-           « il y a 3 h » ne dit plus rien à côté de « il y a 3 j ». */
-        let jour = '';
-        box.innerHTML = '<div class="notif-liste">' + list.map(n => {
-          const j = U.dayLabel ? U.dayLabel(n.created_at) : '';
-          let tete = '';
-          if (j && j !== jour) { jour = j; tete = '<div class="notif-jour">' + U.esc(j) + '</div>'; }
-          return tete +
-            '<button type="button" class="notif-item' + (n.is_read ? '' : ' unread') + '"' +
-              ' data-o="' + U.esc(n.order_id || '') + '" data-t="' + U.esc(n.type || '') + '">' +
-              iconFor(n.type) +
-              '<span class="notif-txt">' +
-                '<span class="notif-h">' + U.esc(n.title) + '</span>' +
-                (n.body ? '<span class="notif-b">' + U.esc(n.body) + '</span>' : '') +
-                '<span class="notif-t">' + U.esc(U.ago(n.created_at)) + '</span>' +
-              '</span>' +
-              (n.is_read ? '' : '<span class="notif-neuf" aria-label="Non lu"></span>') +
-              (n.order_id ? '<span class="notif-fl">' + UI.icon('chevron', 16) + '</span>' : '') +
-            '</button>';
-        }).join('') + '</div>';
+      function tete(nonLues, stats) {
+        return '<header class="nt-tete">' +
+          '<span class="nt-ic" aria-hidden="true">' + UI.icon('bell', 21) + '</span>' +
+          '<div class="nt-tete-txt">' +
+            '<h2>Notifications' +
+              (nonLues ? '<span class="nt-badge">' + (nonLues > 99 ? '99+' : nonLues) + '</span>' : '') +
+            '</h2>' +
+            '<p>Restez informé de vos commandes et activités</p>' +
+          '</div>' +
+          '<button type="button" class="nt-x" data-x aria-label="Fermer">' +
+            '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" ' +
+              'stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+          '</button>' +
+        '</header>' +
 
-        box.querySelectorAll('[data-o]').forEach(el => el.onclick = () => {
-          const id = el.dataset.o, t = el.dataset.t;
+        /* Trois chiffres, tous comptés sur la liste chargée. Aucun n'est une
+           estimation, et aucun ne mesure ce qui n'existe pas. */
+        '<div class="nt-stats">' +
+          '<div class="nt-stat"><span class="k">' + UI.icon('package', 17) + ' Commandes</span>' +
+            '<b>' + stats.commandes + '</b></div>' +
+          '<div class="nt-stat"><span class="k">' + UI.icon('navigation', 17) + ' Livraison</span>' +
+            '<b>' + stats.livraison + '</b></div>' +
+          '<div class="nt-stat"><span class="k">' + UI.icon('bell', 17) + ' Non lues</span>' +
+            '<b>' + stats.nonLues + '</b></div>' +
+        '</div>';
+      }
+
+      function actions(nonLues, total) {
+        return '<div class="nt-actions">' +
+          '<button type="button" class="nt-act" id="ntTout"' + (nonLues ? '' : ' disabled') + '>' +
+            UI.icon('check', 16) + ' Tout marquer comme lu</button>' +
+          '<button type="button" class="nt-act rouge" id="ntVider"' + (total ? '' : ' disabled') + '>' +
+            UI.icon('trash', 16) + ' Tout supprimer</button>' +
+        '</div>';
+      }
+
+      function filtres(compte) {
+        return '<div class="nt-filtres" id="ntFiltres">' +
+          NT_FILTRES.map(f => {
+            const n = f[0] === 'tout' ? liste.length : compte[f[0]] || 0;
+            return '<button type="button" class="nt-f' + (filtre === f[0] ? ' on' : '') + '" ' +
+              'data-f="' + f[0] + '" aria-pressed="' + (filtre === f[0] ? 'true' : 'false') + '">' +
+              UI.icon(f[2], 16) + ' ' + f[1] +
+              '<span class="nt-f-n">' + n + '</span></button>';
+          }).join('') +
+        '</div>';
+      }
+
+      /* Une ligne. Le glissement demande trois couches : les deux actions
+         posées au fond, la carte par-dessus, et un conteneur qui découpe. Sans
+         le découpage, les deux actions dépasseraient de chaque côté au repos. */
+      function ligne(n) {
+        const a = avisDe(n.type);
+        return '<div class="nt-glis" data-id="' + U.esc(n.id) + '">' +
+          '<span class="nt-fond gauche" aria-hidden="true">' + UI.icon('check', 19) + ' Lu</span>' +
+          '<span class="nt-fond droite" aria-hidden="true">' + UI.icon('trash', 19) + ' Supprimer</span>' +
+          '<button type="button" class="nt-c' + (n.is_read ? '' : ' neuf') + '" ' +
+            'data-o="' + U.esc(n.order_id || '') + '" data-t="' + U.esc(n.type || '') + '">' +
+            '<span class="nt-c-ic t-' + a[1] + '">' + UI.icon(a[0], 21) + '</span>' +
+            '<span class="nt-c-txt">' +
+              '<span class="nt-c-h">' + U.esc(n.title) + '</span>' +
+              (n.body ? '<span class="nt-c-b">' + U.esc(n.body) + '</span>' : '') +
+              '<span class="nt-c-t">' + U.esc(U.ago(n.created_at)) + '</span>' +
+            '</span>' +
+            (n.is_read ? '' : '<span class="nt-point" aria-label="Non lu"></span>') +
+            (n.order_id ? '<span class="nt-c-fl">' + UI.icon('chevron', 17) + '</span>' : '') +
+          '</button>' +
+        '</div>';
+      }
+
+      function vide(filtré) {
+        return '<div class="nt-vide">' +
+          '<div class="nt-scene" aria-hidden="true">' +
+            '<span class="nt-scene-ombre"></span>' +
+            '<span class="nt-scene-cloche">' + UI.icon('bell', 46) + '</span>' +
+            '<span class="nt-bulle a">' + UI.icon('package', 20) + '</span>' +
+            '<span class="nt-bulle b">' + UI.icon('sparkle', 18) + '</span>' +
+          '</div>' +
+          '<div class="nt-vide-t">' +
+            (filtré ? 'Rien dans cette catégorie' : 'Aucune notification') + '</div>' +
+          '<p class="nt-vide-s">' +
+            (filtré ? 'Changez de filtre pour voir le reste.'
+                    : 'Les nouvelles activités apparaîtront ici.') + '</p>' +
+          (filtré ? '' : '<button type="button" class="nt-go" id="ntExplorer">' +
+            UI.icon('utensils', 19) + ' Explorer Talabi</button>') +
+        '</div>';
+      }
+
+      function peindre() {
+        const compte = {};
+        liste.forEach(n => { const f = ntFamille(n.type); compte[f] = (compte[f] || 0) + 1; });
+        const nonLues = liste.filter(n => !n.is_read).length;
+        const stats = {
+          commandes: compte.commandes || 0,
+          livraison: compte.livraison || 0,
+          nonLues: nonLues
+        };
+
+        const vues = filtre === 'tout' ? liste : liste.filter(n => ntFamille(n.type) === filtre);
+
+        let html = tete(nonLues, stats) + actions(nonLues, liste.length) + filtres(compte);
+
+        if (!vues.length) {
+          html += vide(filtre !== 'tout');
+        } else {
+          let groupe = '';
+          html += '<div class="nt-liste">' + vues.map(n => {
+            const g = ntGroupe(n.created_at);
+            let entete = '';
+            if (g !== groupe) { groupe = g; entete = '<div class="nt-jour">' + U.esc(g) + '</div>'; }
+            return entete + ligne(n);
+          }).join('') + '</div>';
+        }
+
+        corps.innerHTML = html;
+        brancher();
+      }
+
+      /* ---- les gestes ----
+         Un glissement et une touche partent du même appui : on ne décide qu'au
+         mouvement. En deçà de 10 px on ne bouge rien, et un déplacement plus
+         vertical qu'horizontal laisse la liste défiler — sinon le panneau se
+         bloquerait dès qu'on tente de le parcourir. */
+      function glissement(boite) {
+        const carte = boite.querySelector('.nt-c');
+        if (!carte) return;
+        let x0 = 0, y0 = 0, dx = 0, actif = false, decide = false;
+
+        carte.addEventListener('pointerdown', e => {
+          if (e.pointerType === 'mouse' && e.button !== 0) return;
+          x0 = e.clientX; y0 = e.clientY; dx = 0; actif = true; decide = false;
+          carte.style.transition = 'none';
+        });
+
+        carte.addEventListener('pointermove', e => {
+          if (!actif) return;
+          const ax = e.clientX - x0, ay = e.clientY - y0;
+          if (!decide) {
+            if (Math.abs(ax) < 10 && Math.abs(ay) < 10) return;
+            /* La direction est fixée une fois pour toutes au premier
+               dépassement : un doigt qui part de travers ne doit pas faire
+               hésiter la ligne entre glisser et défiler. */
+            decide = true;
+            if (Math.abs(ay) > Math.abs(ax)) { actif = false; return; }
+            try { carte.setPointerCapture(e.pointerId); } catch (err) {}
+          }
+          dx = Math.max(-140, Math.min(140, ax));
+          carte.style.transform = 'translateX(' + dx + 'px)';
+          boite.classList.toggle('vers-droite', dx > 0);
+          boite.classList.toggle('vers-gauche', dx < 0);
+        });
+
+        const relacher = async () => {
+          if (!actif) { remettre(); return; }
+          actif = false;
+          const id = boite.dataset.id;
+          const seuil = 78;
+          if (dx >= seuil)  { remettre(); await marquerUne(id); return; }
+          if (dx <= -seuil) { await supprimerUne(id, boite); return; }
+          remettre();
+        };
+        const remettre = () => {
+          carte.style.transition = 'transform .22s cubic-bezier(.3,.8,.3,1)';
+          carte.style.transform = '';
+          boite.classList.remove('vers-droite', 'vers-gauche');
+        };
+        carte.addEventListener('pointerup', relacher);
+        carte.addEventListener('pointercancel', () => { actif = false; remettre(); });
+
+        /* Un glissement ne doit pas ouvrir la commande : on n'ouvre que si le
+           doigt n'a pratiquement pas bougé. */
+        carte.addEventListener('click', () => {
+          if (Math.abs(dx) > 6) return;
+          const id = carte.dataset.o, t = carte.dataset.t;
           if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
-          /* La navigation attend que le panneau ait rendu son entrée
-             d'historique : sinon le « retour » de l'écran qu'on vient
-             d'ouvrir ramènerait sur cet écran-ci, pas sur le précédent. */
           m.close(id ? () => Router.go(targetFor(id, t)) : null);
         });
       }
 
-      const tout = m.el.querySelector('#markAll');
-      if (tout) tout.onclick = async () => {
-        /* Les pastilles s'éteignent tout de suite, sous le doigt : attendre
-           le serveur pour un geste dont l'issue ne fait aucun doute donne
-           l'impression que le bouton n'a pas répondu. */
-        m.el.querySelectorAll('.notif-item.unread').forEach(el => {
-          el.classList.remove('unread');
-          const p = el.querySelector('.notif-neuf'); if (p) p.remove();
-        });
-        tout.disabled = true;
-        await API.safe(() => API.markNotificationsRead());
+      async function marquerUne(id) {
+        const n = liste.find(x => String(x.id) === String(id));
+        if (!n || n.is_read) return;
+        n.is_read = true;                       // l'affichage suit tout de suite
+        peindre();
+        await API.safe(() => API.markNotificationsRead([id]));
         await Store.refreshUnread();
         Shell.renderTop();
-        UI.ok('Notifications marquées comme lues');
-      };
+      }
 
-      // marquer lu à l'ouverture (après un court délai, comme les vraies apps)
-      setTimeout(async () => {
-        await API.safe(() => API.markNotificationsRead());
+      async function supprimerUne(id, boite) {
+        boite.classList.add('part');
+        /* On attend la fin de l'animation avant de retirer la ligne : sans ce
+           délai, elle disparaît d'un coup et on ne voit pas ce qui s'est passé. */
+        await new Promise(r => setTimeout(r, 200));
+        liste = liste.filter(x => String(x.id) !== String(id));
+        peindre();
+        try { await API.deleteNotifications([id]); }
+        catch (e) { UI.err('Suppression impossible', e.message); charger(); }
         await Store.refreshUnread();
         Shell.renderTop();
-      }, 1500);
+      }
+
+      function brancher() {
+        corps.querySelectorAll('.nt-glis').forEach(glissement);
+
+        corps.querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
+          if (b.dataset.f === filtre) return;
+          filtre = b.dataset.f;
+          peindre();
+        });
+
+        const tout = corps.querySelector('#ntTout');
+        if (tout) tout.onclick = async () => {
+          tout.disabled = true;
+          liste.forEach(n => { n.is_read = true; });
+          peindre();
+          await API.safe(() => API.markNotificationsRead());
+          await Store.refreshUnread();
+          Shell.renderTop();
+          UI.ok('Notifications marquées comme lues');
+        };
+
+        const vider = corps.querySelector('#ntVider');
+        if (vider) vider.onclick = async () => {
+          /* Une suppression totale se confirme : c'est le seul geste de ce
+             panneau qu'on ne peut pas défaire. */
+          if (!(await UI.confirm('Tout supprimer ?',
+                'Vos ' + liste.length + ' notification' + (liste.length > 1 ? 's' : '') +
+                ' seront effacées. Vos commandes, elles, ne changent pas.',
+                'Tout supprimer', true))) return;
+          const avant = liste.slice();
+          liste = [];
+          peindre();
+          try { await API.deleteNotifications(); UI.ok('Notifications supprimées'); }
+          catch (e) { liste = avant; peindre(); UI.err('Suppression impossible', e.message); }
+          await Store.refreshUnread();
+          Shell.renderTop();
+        };
+
+        const exp = corps.querySelector('#ntExplorer');
+        if (exp) exp.onclick = () => m.close(() => Router.go('/restaurants'));
+      }
+
+      async function charger() {
+        liste = await API.safe(() => API.notifications(40), []);
+        peindre();
+      }
+
+      corps.innerHTML = '<div class="nt-chargement">' +
+        '<div class="skel nt-skel"></div><div class="skel nt-skel"></div>' +
+        '<div class="skel nt-skel"></div></div>';
+      await charger();
     }
   };
+
+  /* Les cinq groupes de dates. `U.dayLabel` en donne d'autres — le nom du jour
+     de la semaine, puis la date — ce qui convient à une commande mais fait une
+     vingtaine de sections sur un historique d'avis. Un regroupement plus large
+     est écrit ici, pour cet écran seulement. */
+  function ntGroupe(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return 'Plus ancien';
+    const jour = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const ecart = Math.round((jour(new Date()) - jour(d)) / 86400000);
+    if (ecart <= 0) return 'Aujourd’hui';
+    if (ecart === 1) return 'Hier';
+    if (ecart < 7) return 'Cette semaine';
+    if (ecart < 31) return 'Ce mois-ci';
+    return 'Plus ancien';
+  }
+
+  /* Les familles servent aux filtres ET aux statistiques : une seule table de
+     correspondance, sinon un avis compterait dans « Commandes » et se
+     retrouverait sous le filtre « Livraison ». */
+  const NT_FAMILLE = {
+    new_order: 'commandes', accepted: 'commandes', preparing: 'commandes',
+    ready: 'commandes', rejected: 'commandes', cancelled: 'commandes',
+    delivered: 'commandes',
+    delivery_available: 'livraison', driver_assigned: 'livraison',
+    delivering: 'livraison', no_driver: 'livraison',
+    restaurant_status: 'compte', restaurant_pending: 'compte',
+    driver_status: 'compte'
+  };
+  function ntFamille(t) { return NT_FAMILLE[t] || 'compte'; }
+
+  const NT_FILTRES = [
+    ['tout',      'Toutes',    'inbox'],
+    ['commandes', 'Commandes', 'package'],
+    ['livraison', 'Livraison', 'navigation'],
+    ['compte',    'Compte',    'user']
+  ];
+
 
   /* Où mène une notification.
      Le rôle ne suffit pas : un livreur prévenu qu'une COURSE EST À PRENDRE

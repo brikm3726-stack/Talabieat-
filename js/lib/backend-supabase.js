@@ -751,6 +751,24 @@
       return res.count || 0;
     },
 
+    /* Supprimer des avis. Sans `ids`, tout l'historique de la personne y passe.
+
+       LA BASE L'AUTORISAIT DÉJÀ : la politique `notif_delete` de 02_security.sql
+       laisse chacun supprimer ses propres lignes. Il ne manquait que l'appel —
+       aucune migration à jouer, aucune règle à ajouter.
+
+       Le filtre sur `user_id` est écrit ici EN PLUS de la politique. Il est
+       redondant, et c'est voulu : une politique qu'on modifie un jour par erreur
+       ne doit pas transformer ce bouton en effaceur de la table entière. */
+    async deleteNotifications(ids) {
+      if (!currentUser) return;
+      let q = sb.from('notifications').delete().eq('user_id', currentUser.id);
+      if (ids) q = q.in('id', ids);
+      const res = await q;
+      if (res.error) throw new Error(res.error.message);
+      emit('notifications');
+    },
+
     async markNotificationsRead(ids) {
       if (!currentUser) return;
       let q = sb.from('notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false);

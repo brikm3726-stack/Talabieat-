@@ -2960,97 +2960,6 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
   body:not(.role-admin) tr:hover td{background:#FCFDFF}
 }
 
-/* ==========================================================================
-   NOTIFICATIONS
-   --------------------------------------------------------------------------
-   Une notification n'est pas une ligne de tableau : c'est une nouvelle. Elle
-   se lit en un coup d'œil, dans cet ordre — le dessin dit QUOI, sa teinte dit
-   si c'est bon ou mauvais, le titre dit de quelle commande il s'agit, l'heure
-   dit si c'est encore d'actualité.
-
-   Les émojis d'avant venaient du téléphone, pas de nous : ni la même
-   épaisseur, ni la même couleur, ni le même centrage d'un appareil à l'autre.
-   Ce sont maintenant nos propres tracés, sur la même grille que le reste.
-   ========================================================================== */
-.notif-tete-ic{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;
-  flex:none;color:var(--brand);background:var(--brand-soft);
-  border:1px solid color-mix(in srgb,var(--brand) 22%,transparent)}
-
-.notif-liste{display:flex;flex-direction:column}
-
-/* Repère de jour. Volontairement PAS collant : le panneau défile d'un seul
-   bloc, en-tête comprise, et deux éléments collés au même bord se recouvrent.
-   Un séparateur qui passe suffit — la liste n'est jamais très longue. */
-.notif-jour{
-  padding:13px 18px 6px;font-size:11.5px;font-weight:800;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--muted);background:var(--bg)}
-.notif-jour + .notif-item{border-top:1px solid var(--line)}
-
-.notif-item{
-  display:flex;align-items:flex-start;gap:13px;width:100%;
-  padding:13px 16px;text-align:left;cursor:pointer;
-  background:none;border:0;border-bottom:1px solid var(--line);
-  font:inherit;color:inherit;position:relative;
-  transition:background .16s ease,transform .12s ease}
-.notif-item:last-child{border-bottom:0}
-@media(hover:hover){.notif-item:hover{background:var(--bg)}}
-/* L'enfoncement remplace le survol là où il n'existe pas — sur un téléphone,
-   c'est le seul retour possible entre l'appui et l'ouverture de la page. */
-.notif-item:active{transform:scale(.985);background:var(--bg)}
-
-/* Non lu : un liseré orange à gauche plutôt qu'un fond coloré sur toute la
-   ligne. Le fond teintait le texte et rendait la colonne bruyante dès qu'il y
-   avait trois avis d'affilée. */
-.notif-item.unread{background:color-mix(in srgb,var(--brand-soft) 55%,#fff)}
-.notif-item.unread::before{
-  content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;
-  border-radius:0 3px 3px 0;background:var(--brand)}
-
-.notif-ic{
-  width:40px;height:40px;border-radius:14px;flex:none;
-  display:grid;place-items:center;
-  background:var(--tone-bg);color:var(--tone);
-  border:1px solid color-mix(in srgb,var(--tone) 20%,transparent);
-  box-shadow:0 1px 2px rgba(15,23,42,.05)}
-.notif-ic .ico{stroke-width:2}
-
-/* Les quatre teintes. On n'en veut pas plus : au-delà, la couleur cesse
-   d'être un signal et redevient de la décoration. */
-.notif-ic.t-or   {--tone:#E8590C;--tone-bg:#FFF2E6}
-.notif-ic.t-vert {--tone:#0F9D58;--tone-bg:#E8F7EF}
-.notif-ic.t-bleu {--tone:#1E6FD9;--tone-bg:#E9F1FE}
-.notif-ic.t-rouge{--tone:#D64545;--tone-bg:#FDECEC}
-.notif-ic.t-gris {--tone:#64748B;--tone-bg:#F1F5F9}
-
-.notif-txt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
-.notif-h{font-size:14.5px;font-weight:750;line-height:1.3}
-.notif-b{font-size:13px;color:var(--muted);line-height:1.42;
-  /* deux lignes au plus : au-delà, le détail est dans la commande elle-même */
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.notif-t{font-size:11.5px;color:var(--muted);opacity:.8;margin-top:2px;font-weight:600}
-
-/* La pastille du non-lu et la flèche occupent la même colonne de droite :
-   l'une signale, l'autre invite. */
-.notif-neuf{width:8px;height:8px;border-radius:50%;background:var(--brand);
-  flex:none;margin-top:7px;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
-.notif-fl{flex:none;color:var(--muted);opacity:.45;margin-top:9px;display:grid}
-.notif-item.unread .notif-fl{opacity:.65}
-
-.notif-vide{text-align:center;padding:34px 18px 26px}
-.notif-vide-ic{width:64px;height:64px;border-radius:22px;margin:0 auto 14px;
-  display:grid;place-items:center;color:var(--brand);background:var(--brand-soft)}
-.notif-vide b{display:block;font-size:15.5px}
-.notif-vide p{margin:6px auto 0;max-width:280px;font-size:13.5px;color:var(--muted);line-height:1.5}
-
-@media(prefers-color-scheme:dark){
-  .notif-ic{box-shadow:none}
-  .notif-ic.t-or   {--tone:#FFA45B;--tone-bg:rgba(232,89,12,.16)}
-  .notif-ic.t-vert {--tone:#4ADE80;--tone-bg:rgba(15,157,88,.16)}
-  .notif-ic.t-bleu {--tone:#7BB0FF;--tone-bg:rgba(30,111,217,.16)}
-  .notif-ic.t-rouge{--tone:#FF8A8A;--tone-bg:rgba(214,69,69,.16)}
-  .notif-ic.t-gris {--tone:#94A3B8;--tone-bg:rgba(148,163,184,.14)}
-}
-
 /* ------------------------------------------------- changement de page
    Une page qui apparaît d'un coup se lit comme un à-coup, même quand elle est
    instantanée. Le fondu ne sert pas à faire joli : il donne à l'œil le temps
@@ -7202,23 +7111,6 @@ body.pref-clair .bottomnav a[data-p="/cart"] .nav-badge{
 .opt-row input{width:18px;height:18px;accent-color:var(--brand)}
 
 /* ==========================================================================
-   LES TEINTES DES VIGNETTES DE NOTIFICATION SUIVENT LE BOUTON, PAS LE SYSTÈME
-   --------------------------------------------------------------------------
-   Elles n'avaient de version sombre que sous `@media(prefers-color-scheme:
-   dark)`, c'est-à-dire d'après le réglage du TÉLÉPHONE. Or Talabi a son propre
-   bouton depuis la v13x : quelqu'un dont le téléphone est en clair et qui
-   allume le mode sombre dans l'application recevait des vignettes pâles sur un
-   panneau noir. La règle média reste — elle sert au cas où — et voici son
-   équivalent gouverné par le bouton.
-   ========================================================================== */
-body.nuit .notif-ic{box-shadow:none}
-body.nuit .notif-ic.t-or   {--tone:#FFA45B;--tone-bg:rgba(232,89,12,.18)}
-body.nuit .notif-ic.t-vert {--tone:#4ADE80;--tone-bg:rgba(15,157,88,.18)}
-body.nuit .notif-ic.t-bleu {--tone:#7BB0FF;--tone-bg:rgba(30,111,217,.18)}
-body.nuit .notif-ic.t-rouge{--tone:#FF8A8A;--tone-bg:rgba(214,69,69,.18)}
-body.nuit .notif-ic.t-gris {--tone:#94A3B8;--tone-bg:rgba(148,163,184,.16)}
-
-/* ==========================================================================
    MODALES SOMBRES — LES FONDS ÉCRITS EN DUR
    --------------------------------------------------------------------------
    La palette de `body.nuit .overlay` est passée en sombre juste avant, mais une
@@ -7299,54 +7191,6 @@ body.nuit .overlay .qty button{
 }
 body.nuit .overlay .qty button:hover{background-color:rgba(255,101,0,.18);color:#fff}
 body.nuit .overlay .qty b{color:#F4F5F7}
-
-/* ==========================================================================
-   PANNEAU DE NOTIFICATIONS SOMBRE — maquette « 357 »
-   ========================================================================== */
-body.nuit .notif-tete-ic{
-  background:rgba(255,101,0,.13);color:#FF8A3D;
-  box-shadow:0 0 0 1px rgba(255,101,0,.34), 0 0 22px -4px rgba(255,101,0,.6);
-}
-/* Les repères de jour : une bande à peine plus sombre que les lignes, pour
-   qu'ils séparent sans peser. Un titre gris clair en petites capitales suffit à
-   dire « nouveau bloc » ; un aplat coloré le dirait trop fort. */
-body.nuit .notif-jour{
-  background:#0F1013;color:#8B9099;
-  border-top:1px solid rgba(255,255,255,.06);
-  border-bottom:1px solid rgba(255,255,255,.06);
-}
-body.nuit .notif-jour + .notif-item{border-top:0}
-body.nuit .notif-item{
-  background-color:#131417;
-  border-bottom-color:rgba(255,255,255,.06);
-}
-/* Non lue : le fond monte d'un cran et la barre orange s'allume sur le bord
-   gauche. Deux signaux pour la même chose, et c'est voulu — la barre se voit du
-   coin de l'œil en faisant défiler, le fond se lit quand on s'arrête. */
-body.nuit .notif-item.unread{background-color:#181A1E}
-body.nuit .notif-item.unread::before{
-  background:#FF6500;
-  box-shadow:0 0 12px rgba(255,101,0,.85);
-}
-body.nuit .notif-item:hover{background-color:#1C1E23}
-body.nuit .notif-item:active{background-color:#1C1E23}
-body.nuit .notif-h{color:#F4F5F7}
-body.nuit .notif-b{color:#9AA0A9}
-body.nuit .notif-t{color:#71767F}
-body.nuit .notif-neuf{background:#FF6500;box-shadow:0 0 9px rgba(255,101,0,.9)}
-body.nuit .notif-fl{color:#8B9099}
-body.nuit .notif-vide-ic{background:rgba(255,101,0,.12);color:#FF8A3D}
-body.nuit .notif-vide b{color:#F4F5F7}
-body.nuit .notif-vide p{color:#8B9099}
-/* « Tout marquer comme lu » : cerclé d'orange, écrit en orange. C'est la seule
-   action du panneau — la règle générale des boutons fantômes l'aurait rendu
-   gris parmi le gris. */
-body.nuit .sheet-foot #markAll{
-  background:transparent;
-  border:1.5px solid rgba(255,101,0,.55);
-  color:#FF8A3D;font-weight:800;
-}
-body.nuit .sheet-foot #markAll svg{stroke:#FF8A3D}
 
 /* ==========================================================================
    FICHE PLAT SOMBRE — maquette « 358 »
@@ -8986,4 +8830,385 @@ body.nuit #view .ip-carte{
 }
 @media(min-width:620px){
   .ip .wrap-sm{max-width:560px}
+}
+
+/* ==========================================================================
+   PANNEAU DE NOTIFICATIONS
+   --------------------------------------------------------------------------
+   Le panneau vit dans une feuille (`UI.sheet`), pas dans une page : il n'a donc
+   pas de barre du bas, et son en-tête est ici plutôt que dans celle du panneau
+   standard — le titre, le sous-titre, le badge et trois tuiles de statistiques
+   ne tiennent pas dans une rangée de 44 px.
+
+   L'ancien panneau — 58 règles — a été retiré du fichier, pas recouvert. Du CSS
+   mort fait douter, la fois suivante, de ce qui s'applique vraiment.
+
+   Les six jetons sont ceux des autres écrans premium : `.nt` porte `prem` par
+   héritage du panneau ? NON — une feuille est ailleurs dans l'arbre, elle ne
+   traverse pas `#view`. Les jetons sont donc redéclarés ici, et le thème sombre
+   n'en réécrit que six.
+   ========================================================================== */
+.nt{
+  --nt-fond:#FFFFFF;
+  --nt-carte:#F5F6F8;
+  --nt-filet:rgba(16,24,40,.08);
+  --nt-titre:#0E1013;
+  --nt-doux:#6B7280;
+  --nt-or:#FF6B00;
+  background:var(--nt-fond);
+  color:var(--nt-titre);
+  /* La feuille a son propre remplissage ; ici on le reprend à zéro pour que les
+     repères de jour et les fonds de glissement aillent d'un bord à l'autre. */
+  margin:-18px;
+  padding:0 0 6px;
+}
+
+/* ---- en-tête ----
+   Collante : la liste peut faire vingt lignes, et le bouton de fermeture doit
+   rester atteignable sans remonter. */
+.nt-tete{
+  position:sticky;top:0;z-index:3;
+  display:flex;align-items:flex-start;gap:12px;
+  padding:18px 18px 14px;
+  background:rgba(255,255,255,.82);
+  -webkit-backdrop-filter:blur(18px) saturate(170%);
+          backdrop-filter:blur(18px) saturate(170%);
+  border-bottom:1px solid var(--nt-filet);
+}
+.nt-ic{
+  flex:none;width:44px;height:44px;border-radius:15px;
+  display:grid;place-items:center;color:#fff;
+  background:linear-gradient(140deg,#FF8A3D 0%,#FF6B00 55%,#FF3D57 100%);
+  box-shadow:0 8px 20px -9px rgba(255,77,60,.7);
+}
+.nt-tete-txt{flex:1;min-width:0}
+.nt-tete-txt h2{
+  margin:0;display:flex;align-items:center;gap:9px;
+  font-size:21px;font-weight:900;letter-spacing:-.03em;line-height:1.15;
+}
+.nt-badge{
+  min-width:24px;height:22px;padding:0 7px;
+  display:inline-grid;place-items:center;
+  border-radius:999px;
+  background:#D93A1F;color:#fff;
+  font-size:12px;font-weight:900;line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.nt-tete-txt p{margin:5px 0 0;font-size:12.5px;line-height:1.4;color:var(--nt-doux)}
+.nt-x{
+  flex:none;width:38px;height:38px;border-radius:13px;
+  display:grid;place-items:center;
+  border:0;background:var(--nt-carte);color:var(--nt-titre);
+  box-shadow:inset 0 0 0 1px var(--nt-filet);
+  cursor:pointer;transition:transform .16s;
+}
+.nt-x:active{transform:scale(.92)}
+
+/* ---- statistiques ----
+   Trois chiffres comptés sur la liste chargée. Le dégradé est très pâle : c'est
+   un rappel, pas une carte à part entière. */
+.nt-stats{
+  display:flex;margin:14px 18px 0;
+  border-radius:24px;overflow:hidden;
+  background:linear-gradient(120deg,rgba(255,107,0,.09),rgba(255,61,87,.05));
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.14);
+}
+.nt-stat{
+  flex:1;min-width:0;padding:13px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;
+}
+.nt-stat + .nt-stat{box-shadow:inset 1px 0 0 rgba(255,107,0,.14)}
+.nt-stat .k{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--nt-doux);white-space:nowrap;
+}
+.nt-stat .k svg{opacity:.75;flex:none}
+.nt-stat b{font-size:19px;font-weight:900;color:var(--nt-titre);font-variant-numeric:tabular-nums}
+
+/* ---- actions rapides ---- */
+.nt-actions{display:flex;gap:9px;margin:12px 18px 0}
+.nt-act{
+  flex:1;min-width:0;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:46px;padding:0 12px;
+  border:0;border-radius:16px;
+  background:var(--nt-carte);color:var(--nt-titre);
+  box-shadow:inset 0 0 0 1px var(--nt-filet);
+  font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;
+  transition:transform .16s, color .16s;
+}
+.nt-act svg{flex:none;opacity:.8}
+.nt-act:active{transform:scale(.96)}
+.nt-act.rouge{color:#C2410C}
+/* Éteint quand il n'y a rien à faire : rien à marquer, rien à supprimer. */
+.nt-act:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ---- filtres ----
+   Une rangée qui défile plutôt qu'une grille : quatre capsules avec leurs
+   compteurs ne tiennent pas sur 320 px, et les serrer les rendrait illisibles. */
+.nt-filtres{
+  display:flex;gap:8px;
+  margin:14px 0 0;padding:0 18px 4px;
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.nt-filtres::-webkit-scrollbar{display:none}
+.nt-f{
+  flex:none;
+  display:inline-flex;align-items:center;gap:7px;
+  min-height:40px;padding:0 14px;
+  border:0;border-radius:999px;
+  background:var(--nt-carte);color:var(--nt-doux);
+  box-shadow:inset 0 0 0 1px var(--nt-filet);
+  font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;
+  transition:transform .16s, color .2s, background .2s, box-shadow .2s;
+}
+.nt-f svg{flex:none;opacity:.85}
+.nt-f:active{transform:scale(.96)}
+.nt-f-n{
+  min-width:19px;padding:0 5px;border-radius:999px;
+  background:rgba(16,24,40,.07);
+  font-size:11px;font-weight:900;line-height:19px;text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.nt-f.on{
+  color:#fff;
+  background:linear-gradient(100deg,#FF6B00 0%,#FF5230 55%,#FF3D57 100%);
+  box-shadow:0 7px 18px -9px rgba(255,77,60,.85);
+}
+.nt-f.on .nt-f-n{background:rgba(255,255,255,.24)}
+
+/* ---- repères de jour ----
+   Volontairement PAS collants : l'en-tête l'est déjà, et deux éléments collés au
+   même bord se recouvrent. */
+.nt-jour{
+  padding:16px 18px 7px;
+  font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--nt-doux);
+}
+.nt-liste{display:flex;flex-direction:column}
+
+/* ---- une ligne, et son glissement ----
+   Trois couches : les deux actions au fond, la carte par-dessus, et le
+   conteneur qui découpe. Sans le découpage, les deux fonds dépasseraient de
+   chaque côté au repos. */
+.nt-glis{
+  position:relative;overflow:hidden;
+  margin:0 14px 9px;border-radius:20px;
+  transition:height .2s, opacity .2s, transform .2s;
+}
+.nt-fond{
+  position:absolute;top:0;bottom:0;
+  display:flex;align-items:center;gap:8px;
+  padding:0 18px;
+  font-size:12.5px;font-weight:800;color:#fff;
+  opacity:0;transition:opacity .14s;
+}
+.nt-fond.gauche{left:0;right:0;justify-content:flex-start;background:#0F9D58}
+.nt-fond.droite{left:0;right:0;justify-content:flex-end;background:#D9483B}
+.nt-glis.vers-droite .nt-fond.gauche{opacity:1}
+.nt-glis.vers-gauche .nt-fond.droite{opacity:1}
+/* La ligne qui part : elle s'efface en glissant, pour qu'on voie ce qui vient
+   de se passer. Sans ce temps, elle disparaîtrait d'un coup. */
+.nt-glis.part{opacity:0;transform:translateX(-40%)}
+
+.nt-c{
+  position:relative;z-index:1;
+  display:flex;align-items:flex-start;gap:12px;width:100%;
+  padding:14px 15px;
+  border:0;border-radius:20px;
+  background:var(--nt-carte);color:var(--nt-titre);
+  font:inherit;text-align:left;cursor:pointer;
+  box-shadow:inset 0 0 0 1px var(--nt-filet);
+  touch-action:pan-y;                 /* le doigt garde le défilement vertical */
+  transition:box-shadow .18s;
+}
+.nt-c:active{box-shadow:inset 0 0 0 1px var(--nt-filet), 0 0 0 3px rgba(255,107,0,.10)}
+/* NON LUE : trois signaux, et c'est voulu. Le liseré orange se voit du coin de
+   l'œil en faisant défiler, le fond se remarque quand on s'arrête, le point dit
+   précisément laquelle. Un seul des trois suffirait à un œil attentif ; les
+   trois ensemble se voient sans attention. */
+.nt-c.neuf{
+  background:linear-gradient(120deg,rgba(255,107,0,.08),rgba(255,61,87,.03));
+  box-shadow:inset 0 0 0 1.5px rgba(255,107,0,.32);
+}
+.nt-c-ic{
+  flex:none;width:42px;height:42px;border-radius:15px;
+  display:grid;place-items:center;
+  color:var(--tone,#64748B);
+  background:var(--tone-bg,rgba(100,116,139,.12));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tone,#64748B) 20%,transparent);
+}
+/* Chaque type d'avis a sa teinte, et la teinte porte le sens avant la lecture :
+   vert, ça a avancé ; orange, ça bouge maintenant ; rouge, c'est arrêté. */
+.nt-c-ic.t-or   {--tone:#E8590C;--tone-bg:rgba(232,89,12,.11)}
+.nt-c-ic.t-vert {--tone:#0F9D58;--tone-bg:rgba(15,157,88,.11)}
+.nt-c-ic.t-bleu {--tone:#1E6FD9;--tone-bg:rgba(30,111,217,.11)}
+.nt-c-ic.t-rouge{--tone:#D64545;--tone-bg:rgba(214,69,69,.11)}
+.nt-c-ic.t-gris {--tone:#64748B;--tone-bg:rgba(100,116,139,.11)}
+
+.nt-c-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.nt-c-h{font-size:14.5px;font-weight:800;line-height:1.3}
+.nt-c-b{
+  font-size:12.8px;color:var(--nt-doux);line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.nt-c-t{font-size:11.5px;font-weight:700;color:var(--nt-doux);opacity:.8;margin-top:2px}
+.nt-point{
+  flex:none;width:9px;height:9px;border-radius:50%;margin-top:6px;
+  background:var(--nt-or);
+  box-shadow:0 0 0 3px rgba(255,107,0,.16);
+}
+.nt-c-fl{flex:none;color:var(--nt-doux);opacity:.45;margin-top:9px;display:grid}
+
+/* ---- chargement ---- */
+.nt-chargement{display:flex;flex-direction:column;gap:10px;padding:18px}
+.nt-skel{height:74px;border-radius:20px}
+
+/* ==========================================================================
+   ÉTAT VIDE
+   --------------------------------------------------------------------------
+   CE N'EST PAS UN RENDU 3D et il ne faut pas le prétendre : une cloche
+   vectorielle dans un disque, deux pastilles qui flottent autour, et une ombre
+   qui se resserre quand l'ensemble monte. C'est l'ombre qui donne la hauteur,
+   pas le déplacement — un objet qui monte avec une ombre fixe glisse.
+
+   Les trois durées diffèrent (4,2 s / 3,5 s / 5 s) : identiques, tout monterait
+   d'un bloc comme un ascenseur.
+   ========================================================================== */
+.nt-vide{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:14px 22px 26px;
+}
+.nt-scene{position:relative;width:190px;height:170px;margin:8px auto 2px}
+.nt-scene-cloche{
+  position:absolute;left:50%;top:14%;
+  width:104px;height:104px;margin-left:-52px;
+  display:grid;place-items:center;border-radius:50%;
+  color:var(--nt-or);
+  background:linear-gradient(150deg,rgba(255,107,0,.16),rgba(255,61,87,.07));
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.24),
+             0 18px 40px -18px rgba(255,77,60,.5);
+  animation:ntFlotte 4.2s ease-in-out infinite;
+}
+.nt-scene-ombre{
+  position:absolute;left:50%;bottom:8%;
+  width:46%;height:11px;transform:translateX(-50%);
+  border-radius:50%;
+  background:radial-gradient(closest-side,rgba(16,24,40,.22),transparent 78%);
+  animation:ntOmbre 4.2s ease-in-out infinite;
+}
+.nt-bulle{
+  position:absolute;
+  width:44px;height:44px;border-radius:15px;
+  display:grid;place-items:center;
+  background:var(--nt-fond);color:var(--nt-or);
+  box-shadow:0 10px 24px -12px rgba(16,24,40,.4), inset 0 0 0 1px var(--nt-filet);
+}
+.nt-bulle.a{top:2%;left:2%;  animation:ntFlotte 3.5s ease-in-out infinite}
+.nt-bulle.b{top:44%;right:0; animation:ntFlotte 5s ease-in-out .3s infinite}
+@keyframes ntFlotte{
+  0%,100%{ transform:translateY(0) }
+  50%    { transform:translateY(-10px) }
+}
+@keyframes ntOmbre{
+  0%,100%{ transform:translateX(-50%) scaleX(1);   opacity:.85 }
+  50%    { transform:translateX(-50%) scaleX(.82); opacity:.5 }
+}
+/* La cloche est centrée par une marge négative : le déplacement de l'animation
+   se ferait sinon depuis un `translateX(-50%)` qu'elle écraserait. */
+.nt-vide-t{
+  margin-top:12px;
+  font-size:19px;font-weight:900;letter-spacing:-.02em;color:var(--nt-titre);
+}
+.nt-vide-s{
+  margin:8px auto 0;max-width:24em;
+  font-size:13.5px;line-height:1.55;color:var(--nt-doux);
+}
+.nt-go{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;max-width:300px;height:56px;margin-top:20px;
+  border:0;border-radius:28px;
+  background:linear-gradient(100deg,#FF6B00 0%,#FF5230 52%,#FF3D57 100%);
+  color:#fff;font:inherit;font-size:15px;font-weight:850;cursor:pointer;
+  box-shadow:0 14px 30px -12px rgba(255,77,60,.75);
+  transition:transform .17s cubic-bezier(.34,1.3,.64,1);
+}
+.nt-go:active{transform:scale(.97)}
+
+/* ---- apparition ----
+   Les lignes montent l'une après l'autre, 55 ms d'écart, plafonné à six : au
+   delà, la liste se déroulerait et on attendrait la dernière. */
+.nt-tete,.nt-stats,.nt-actions,.nt-filtres,.nt-glis,.nt-vide{
+  animation:ntMonte .4s cubic-bezier(.22,.75,.3,1) both;
+}
+.nt-stats{animation-delay:.05s}
+.nt-actions{animation-delay:.09s}
+.nt-filtres{animation-delay:.13s}
+.nt-vide{animation-delay:.14s}
+.nt-glis:nth-child(1),.nt-glis:nth-child(2){animation-delay:.16s}
+.nt-glis:nth-child(3),.nt-glis:nth-child(4){animation-delay:.21s}
+.nt-glis:nth-child(5),.nt-glis:nth-child(6){animation-delay:.26s}
+.nt-glis:nth-child(n+7){animation-delay:.3s}
+@keyframes ntMonte{ from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:none} }
+
+@media(prefers-reduced-motion:reduce){
+  .nt-tete,.nt-stats,.nt-actions,.nt-filtres,.nt-glis,.nt-vide{animation:none}
+  .nt-scene-cloche,.nt-scene-ombre,.nt-bulle{animation:none}
+  .nt-x:active,.nt-act:active,.nt-f:active,.nt-go:active{transform:none}
+  .nt-glis,.nt-fond{transition:none}
+}
+
+/* ==========================================================================
+   LE MÊME PANNEAU EN SOMBRE
+   --------------------------------------------------------------------------
+   Six variables, et deux exceptions qui ne peuvent pas en être : l'en-tête
+   translucide, et l'ombre de la scène — une ombre noire sur du noir ne dit rien
+   de la hauteur, elle doit passer en orange.
+   ========================================================================== */
+body.nuit .nt{
+  --nt-fond:#131417;
+  --nt-carte:#1A1C1F;
+  --nt-filet:rgba(255,255,255,.08);
+  --nt-titre:#F4F5F7;
+  --nt-doux:#868C95;
+}
+body.nuit .nt-tete{background:rgba(19,20,23,.8)}
+body.nuit .nt-stats{
+  background:linear-gradient(120deg,rgba(255,107,0,.14),rgba(255,61,87,.06));
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.18);
+}
+body.nuit .nt-stat + .nt-stat{box-shadow:inset 1px 0 0 rgba(255,107,0,.18)}
+body.nuit .nt-act.rouge{color:#FF9A8A}
+body.nuit .nt-f-n{background:rgba(255,255,255,.10)}
+body.nuit .nt-c.neuf{
+  background:linear-gradient(120deg,rgba(255,107,0,.14),rgba(255,61,87,.05));
+  box-shadow:inset 0 0 0 1.5px rgba(255,107,0,.4);
+}
+/* Les teintes des vignettes remontent en clair : sur du noir, un vert foncé ne
+   se distingue plus d'un gris. Elles suivent le BOUTON de thème et non le
+   réglage du téléphone — quelqu'un dont le système est en clair et qui allume le
+   mode sombre ici recevait sinon des vignettes pâles sur un panneau noir. */
+body.nuit .nt-c-ic.t-or   {--tone:#FFA45B;--tone-bg:rgba(232,89,12,.18)}
+body.nuit .nt-c-ic.t-vert {--tone:#4ADE80;--tone-bg:rgba(15,157,88,.18)}
+body.nuit .nt-c-ic.t-bleu {--tone:#7BB0FF;--tone-bg:rgba(30,111,217,.18)}
+body.nuit .nt-c-ic.t-rouge{--tone:#FF8A8A;--tone-bg:rgba(214,69,69,.18)}
+body.nuit .nt-c-ic.t-gris {--tone:#94A3B8;--tone-bg:rgba(148,163,184,.16)}
+body.nuit .nt-scene-ombre{
+  background:radial-gradient(closest-side,rgba(255,107,0,.22),transparent 78%);
+}
+body.nuit .nt-f-n{background:rgba(255,255,255,.10)}
+
+/* ==========================================================================
+   ÉCRANS ÉTROITS
+   ========================================================================== */
+@media(max-width:379px){
+  .nt-tete{padding:16px 14px 12px}
+  .nt-tete-txt h2{font-size:19px}
+  .nt-stats,.nt-actions{margin-left:14px;margin-right:14px}
+  .nt-filtres{padding-left:14px;padding-right:14px}
+  .nt-glis{margin-left:10px;margin-right:10px}
+  .nt-stat .k{font-size:9.5px}
+  .nt-stat b{font-size:17px}
+  .nt-act{font-size:11.5px;gap:5px}
 }
