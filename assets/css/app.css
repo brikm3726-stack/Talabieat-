@@ -1536,151 +1536,6 @@ body.lv-open #view > .view-in{animation:none;transform:none}
   .av-et button,.av-comp{transition:none}
 }
 
-/* ==========================================================================
-   VALIDER LA COMMANDE — d'après la maquette 2b
-   --------------------------------------------------------------------------
-   Un seul écran au lieu d'un formulaire : la position d'abord, la note
-   ensuite, le paiement, le total. C'est l'ordre dans lequel on se pose les
-   questions — et non l'ordre dans lequel une base de données les stocke.
-
-   Le bouton quitte le bas du document pour une barre qui ne bouge plus : sur
-   un long écran, il fallait faire défiler tout le récapitulatif pour
-   l'atteindre, alors que c'est le seul geste de la page.
-   ========================================================================== */
-.ck-page{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
-
-.ck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.ck-back{
-  width:40px;height:40px;flex:none;border-radius:14px;
-  background:#fff;border:1px solid var(--line);color:var(--ink);
-  display:grid;place-items:center;cursor:pointer;
-  transition:transform .16s cubic-bezier(.22,1,.36,1);
-}
-.ck-back:active{transform:scale(.93)}
-.ck-head .h1{font-size:24px;font-weight:850;letter-spacing:-.035em}
-.ck-head .sub{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:1px}
-
-/* ---- la position : la carte devant l'adresse ----
-   Une adresse écrite se vérifie mal ; un repère sur un plan se vérifie d'un
-   coup d'œil. C'est pour ça que la carte passe devant. */
-.ck-lieu{overflow:hidden;border-radius:22px}
-.ck-map{height:158px;background:#E8DFD2}
-.ck-map-vide{
-  display:grid;place-items:center;align-content:center;gap:8px;
-  color:var(--muted);font-size:12.5px;font-weight:600;text-align:center;
-}
-.ck-adr{display:flex;align-items:flex-start;gap:10px;padding:14px 15px}
-.ck-adr .ic{
-  width:34px;height:34px;flex:none;border-radius:11px;
-  background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;
-}
-.ck-adr b{display:block;font-size:14.5px;font-weight:750}
-.ck-adr .tiny{display:block;color:var(--muted);margin-top:2px}
-.ck-changer{
-  flex:none;padding:8px 13px;border-radius:11px;border:none;cursor:pointer;
-  background:var(--bg);color:var(--ink-2);font-size:12px;font-weight:750;
-}
-.ck-changer:active{transform:scale(.95)}
-.ck-liste{padding:0 15px 15px;display:flex;flex-direction:column;gap:9px}
-.ck-vide{padding:16px;text-align:center}
-.ck-vide b{display:block;font-size:15.5px}
-.ck-vide .sub{margin:6px 0 14px}
-
-.ck-bloc{margin-top:12px;border-radius:22px}
-.ck-t{font-size:13px;font-weight:800;letter-spacing:.02em;margin-bottom:10px}
-
-/* ---- la note, et deux réponses toutes faites ----
-   Un rectangle vide ne dit pas ce qu'on y met. Les deux propositions donnent
-   une réponse à écrire, et elles s'ajoutent à ce qui est déjà là. */
-.ck-note{min-height:64px;resize:vertical;background:var(--bg);border-color:transparent}
-.ck-props{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
-.ck-prop{
-  padding:8px 12px;border-radius:999px;cursor:pointer;
-  background:#fff;border:1px solid var(--line);
-  font-size:11.5px;font-weight:650;color:var(--ink-2);
-  transition:transform .16s ease,border-color .16s ease,color .16s ease;
-}
-.ck-prop:active{transform:scale(.95);border-color:var(--brand);color:var(--brand)}
-
-/* ---- le numéro : un champ qui ne ressemble pas à un champ ----
-   Il est presque toujours déjà rempli et presque jamais modifié. Un encadré
-   gris invitant à écrire attirait l'attention sur la seule ligne qui n'en
-   demandait pas. */
-.ck-tel{display:flex;align-items:center;gap:11px}
-.ck-tel .ic{
-  width:34px;height:34px;flex:none;border-radius:11px;
-  background:var(--bg);color:var(--ink-2);display:grid;place-items:center;
-}
-.ck-num{
-  width:100%;border:none;background:transparent;padding:0;
-  font-size:14.5px;font-weight:750;color:var(--ink);
-}
-.ck-num:focus{outline:none}
-.ck-tel .tiny{display:block;color:var(--muted);margin-top:1px}
-.ck-ok{
-  flex:none;display:inline-flex;align-items:center;gap:5px;
-  padding:6px 10px;border-radius:999px;
-  background:#E7F8F0;color:#067647;font-size:11px;font-weight:800;
-}
-
-/* ---- paiement : ce qui existe, et ce qui viendra ---- */
-.ck-pay{
-  display:flex;align-items:center;gap:11px;
-  padding:12px 13px;border-radius:16px;border:1px solid var(--line);
-  font-size:14px;font-weight:600;
-}
-.ck-pay + .ck-pay{margin-top:8px}
-.ck-pay .ck-radio{
-  width:21px;height:21px;flex:none;border-radius:50%;
-  border:2px solid var(--line);display:grid;place-items:center;
-}
-.ck-pay.on{border:1.5px solid var(--brand);background:#FFF6F3}
-.ck-pay.on .ck-radio{border-color:var(--brand)}
-.ck-pay.on .ck-radio::after{
-  content:'';width:11px;height:11px;border-radius:50%;background:var(--brand);
-}
-.ck-pay.on b{font-size:14px;font-weight:800;color:var(--brand)}
-/* Éteinte plutôt que cachée : un client qui ne voit pas la carte bancaire se
-   demande si Talabi la prend. Marquée « Bientôt », il sait à quoi s'en tenir. */
-.ck-pay.off{opacity:.5}
-.ck-bientot{
-  padding:4px 9px;border-radius:7px;background:var(--bg);
-  font-size:10.5px;font-weight:700;color:var(--muted);
-}
-
-.ck-total .oline{font-size:13.5px}
-.ck-somme{display:flex;align-items:center;justify-content:space-between}
-.ck-somme span:first-child{font-size:16px;font-weight:800}
-.ck-somme .price{font-size:19px;font-weight:800;color:var(--brand)}
-
-/* ---- la barre du bas ----
-   Le dégradé au-dessus n'est pas décoratif : sans lui, le contenu qui défile
-   se coupe net sous le bouton, comme derrière une bande de scotch. */
-/* z-index 71 : au-dessus de la barre de navigation, qui est à 70. Sans ça, le
-   seul bouton de la page passait dessous et devenait à moitié intouchable.
-   Et la navigation s'efface pendant la validation : à cette étape il n'y a
-   qu'une chose à faire, et proposer quatre sorties invite à en changer d'avis
-   pour rien. Les navigateurs sans :has gardent leur barre — le bouton reste
-   au-dessus, donc rien n'est bloqué. */
-body:has(.ck-page) .bottomnav{display:none}
-.ck-bas{
-  position:fixed;left:0;right:0;bottom:0;z-index:71;
-  padding:14px 16px calc(16px + env(safe-area-inset-bottom));
-  background:linear-gradient(180deg,rgba(247,237,228,0),var(--bg) 26%);
-}
-@media(min-width:640px){
-  .ck-bas{left:50%;right:auto;transform:translateX(-50%);width:520px;max-width:100%}
-}
-.ck-delai{
-  display:flex;align-items:center;justify-content:center;gap:7px;
-  margin-bottom:10px;font-size:11.5px;font-weight:500;color:var(--muted);
-}
-.ck-cta{
-  border-radius:20px;gap:10px;
-  box-shadow:0 14px 30px -12px rgba(255,77,45,.85);
-}
-.ck-cta:disabled{box-shadow:none}
-
 /* ---------------------------------------------------------------- misc */
 .empty{text-align:center;padding:46px 20px;color:var(--muted)}
 .empty .ic{font-size:44px;margin-bottom:12px;opacity:.65}
@@ -5478,52 +5333,6 @@ body.nuit #view .input-code{background-color:var(--nuit-carte-2);color:var(--nui
    Même méthode que les onglets : aucun squelette HTML touché, seules les
    surfaces changent, et chaque règle corrige une valeur claire écrite en dur.
    ========================================================================== */
-
-/* ==========================================================================
-   COMMANDER / PAIEMENT
-   ========================================================================== */
-body.nuit #view .ck-head .sub{color:var(--nuit-doux)}
-body.nuit #view .ck-back{
-  background-color:var(--nuit-carte-2);
-  border-color:var(--nuit-bord-2);
-  color:var(--nuit-texte);
-}
-/* la couleur d'attente de la carte, avant l'arrivée des tuiles */
-body.nuit #view .ck-map{background-color:#141416}
-body.nuit #view .ck-adr b{color:var(--nuit-texte)}
-body.nuit #view .ck-adr .ic{background-color:rgba(255,101,0,.12);color:var(--brand)}
-body.nuit #view .ck-changer{background-color:rgba(255,255,255,.07);color:var(--nuit-texte)}
-body.nuit #view .ck-t{color:var(--nuit-texte)}
-body.nuit #view .ck-note{background-color:var(--nuit-carte-2);border-color:var(--nuit-bord-2)}
-/* les suggestions de note (« sans oignon », « sonner deux fois »…) */
-body.nuit #view .ck-prop{
-  background-color:var(--nuit-carte-2);
-  border-color:var(--nuit-bord-2);
-  color:var(--nuit-doux);
-}
-body.nuit #view .ck-tel .ic{background-color:rgba(255,255,255,.07);color:var(--nuit-doux)}
-body.nuit #view .ck-num{color:var(--nuit-texte)}
-/* « numéro vérifié » : le vert pâle devient un vert translucide, et son texte
-   passe en clair — les deux vont ensemble, sinon c'est du vert sur du vert */
-body.nuit #view .ck-ok{background-color:rgba(18,183,106,.16);color:#4ADE80}
-body.nuit #view .ck-pay{border-color:var(--nuit-bord-2);background-color:var(--nuit-carte)}
-body.nuit #view .ck-pay.on{border-color:var(--brand);background-color:rgba(255,101,0,.1)}
-body.nuit #view .ck-pay .ck-radio{border-color:var(--nuit-bord-2)}
-body.nuit #view .ck-bientot{background-color:rgba(255,255,255,.07);color:var(--nuit-doux)}
-body.nuit #view .ck-somme span:first-child{color:var(--nuit-texte)}
-body.nuit #view .ck-delai{color:var(--nuit-doux)}
-body.nuit #view .ck-vide b{color:var(--nuit-texte)}
-
-/* La barre du bas de l'écran de paiement. Son dégradé partait du crème de
-   l'application (`rgba(247,237,228,0)`) : sur du noir, il dessinait un voile
-   beige au-dessus du bouton. Il ne sert qu'à une chose — que le contenu qui
-   défile ne se coupe pas net sous le bouton — donc il doit partir du fond
-   réel de la page, pas d'une couleur écrite en dur. */
-body.nuit .ck-bas{
-  background:linear-gradient(180deg, rgba(5,5,5,0), #050505 26%);
-}
-body.nuit #view .ck-cta{box-shadow:0 14px 30px -12px rgba(255,101,0,.85)}
-body.nuit #view .ck-cta:disabled{box-shadow:none}
 
 /* ==========================================================================
    SUIVI D'UNE COMMANDE
@@ -9516,3 +9325,406 @@ body.nuit #view .mc-sortie{color:#FF8A3D;border-color:rgba(255,107,0,.45)}
 .ip-genres.fige .ip-genre{cursor:default}
 .ip-genres.fige .ip-genre:not(.on){opacity:.45}
 .ip-genres.fige .ip-genre:active{transform:none}
+
+/* ==========================================================================
+   VALIDATION DE COMMANDE
+   --------------------------------------------------------------------------
+   Septième écran sur les mêmes briques : en-tête, champs, boutons et jetons
+   viennent du lot `prem-`. Seul ce qui n'existe que là est écrit ici.
+
+   L'ancien écran — 73 règles — a été retiré du fichier, pas recouvert.
+
+   UN CHANGEMENT DE STRUCTURE : la barre du bas était MASQUÉE sur cet écran
+   (`body:has(.ck-page) .bottomnav{display:none}`). Le brief la demande visible
+   avec Panier allumé, et c'est mieux ainsi — quelqu'un qui change d'avis en
+   remplissant son adresse ne doit pas être coincé. Le bouton de confirmation se
+   pose donc AU-DESSUS d'elle, et la page réserve la hauteur des deux.
+   ========================================================================== */
+.ck{background:var(--prem-fond)}
+.ck .acc-dots{display:none}
+/* La page doit dépasser la barre du bas ET la barre de confirmation, sinon le
+   récapitulatif finit sous le bouton et on ne lit jamais son total. */
+.ck .page{padding-bottom:calc(var(--nav-h) + 108px + env(safe-area-inset-bottom))}
+
+/* ---- le plan et l'adresse, dans une seule carte ----
+   L'adresse est SOUS le plan et dans le même bloc : deux cartes séparées
+   laisseraient croire qu'elles parlent de deux choses. */
+.ck-lieu{
+  margin-top:18px;
+  border-radius:28px;overflow:hidden;
+  background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet),
+             0 2px 6px rgba(16,24,40,.04),
+             0 22px 48px -26px rgba(16,24,40,.3);
+}
+.ck-map{
+  height:190px;width:100%;
+  background:var(--prem-champ);
+  /* La carte Leaflet pose ses tuiles en absolu : sans `position:relative` ici,
+     elles se caleraient sur la page entière. */
+  position:relative;z-index:0;
+}
+.ck-map.vide{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
+  color:var(--prem-doux);font-size:12.5px;font-weight:700;text-align:center;
+}
+.ck-adr{display:flex;align-items:center;gap:12px;padding:14px 15px}
+.ck-adr-ic{
+  flex:none;width:40px;height:40px;border-radius:14px;
+  display:grid;place-items:center;
+  color:var(--prem-or);background:rgba(255,107,0,.10);
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.20);
+}
+.ck-adr-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ck-adr-txt b{font-size:14.5px;font-weight:850;color:var(--prem-titre)}
+.ck-adr-txt span{
+  font-size:12.5px;color:var(--prem-doux);line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.ck-changer{
+  flex:none;min-height:38px;padding:0 14px;
+  border:0;border-radius:999px;
+  background:var(--prem-champ);color:var(--prem-titre);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;
+  transition:transform .16s;
+}
+.ck-changer:active{transform:scale(.95)}
+.ck-liste{
+  display:flex;flex-direction:column;gap:9px;
+  padding:0 15px 15px;
+}
+.ck-ajout{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  min-height:46px;
+  border:1.5px dashed rgba(255,107,0,.4);border-radius:16px;
+  background:none;color:var(--prem-or);
+  font:inherit;font-size:13.5px;font-weight:800;cursor:pointer;
+  transition:transform .16s, background .16s;
+}
+.ck-ajout:active{transform:scale(.98);background:rgba(255,107,0,.07)}
+.ck-vide{
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:20px 18px 22px;
+}
+.ck-vide b{font-size:16px;font-weight:850;color:var(--prem-titre)}
+.ck-vide p{
+  margin:8px 0 0;max-width:26em;
+  font-size:13px;line-height:1.55;color:var(--prem-doux);
+}
+.ck-vide .prem-go{margin-top:18px;max-width:320px}
+.ck-vide .prem-go2{max-width:320px}
+
+/* ---- avertissement « adresse sans position » ---- */
+.ck-avert{
+  display:flex;align-items:center;gap:12px;
+  margin-top:12px;padding:14px 15px;
+  border-radius:20px;
+  background:rgba(245,165,36,.10);
+  box-shadow:inset 0 0 0 1px rgba(245,165,36,.26);
+}
+.ck-avert-ic{flex:none;color:#C77700;display:grid}
+.ck-avert-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ck-avert-txt b{font-size:13.5px;font-weight:850;color:var(--prem-titre)}
+.ck-avert-txt span{font-size:12px;line-height:1.4;color:var(--prem-doux)}
+.ck-avert-b{
+  flex:none;min-height:40px;padding:0 14px;
+  border:0;border-radius:999px;
+  background:#C77700;color:#fff;
+  font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;
+  transition:transform .16s;
+}
+.ck-avert-b:active{transform:scale(.95)}
+
+/* ==========================================================================
+   HORS ZONE
+   --------------------------------------------------------------------------
+   Deux issues RÉELLES, et c'est tout le sujet : un message qui dit « trop loin »
+   sans rien proposer laisse devant un bouton gris, sans savoir quoi faire.
+   ========================================================================== */
+.ck-hors{
+  margin-top:12px;padding:18px 16px 16px;
+  border-radius:20px;text-align:center;
+  background:rgba(255,107,0,.08);
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.24);
+}
+.ck-hors-ic{
+  width:48px;height:48px;border-radius:16px;margin:0 auto;
+  display:grid;place-items:center;
+  color:#fff;background:linear-gradient(140deg,#FF8A3D,#FF6B00 55%,#FF3D57);
+  box-shadow:0 8px 20px -9px rgba(255,77,60,.7);
+}
+.ck-hors-t{
+  margin-top:12px;
+  font-size:17px;font-weight:900;letter-spacing:-.02em;color:var(--prem-titre);
+}
+.ck-hors-s{
+  margin:7px auto 0;max-width:28em;
+  font-size:13px;line-height:1.55;color:var(--prem-titre);opacity:.82;
+}
+.ck-hors-b{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+.ck-hors-a{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;
+  border:1.5px solid rgba(255,107,0,.34);border-radius:16px;
+  background:var(--prem-carte);color:var(--prem-or);
+  font:inherit;font-size:13.5px;font-weight:800;
+  text-decoration:none;cursor:pointer;
+  transition:transform .16s;
+}
+.ck-hors-a:active{transform:scale(.98)}
+
+/* ---- trois chiffres de la course ---- */
+.ck-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.ck-m{
+  padding:13px 10px;border-radius:20px;text-align:center;
+  background:var(--prem-champ);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+}
+.ck-m-ic{
+  width:32px;height:32px;border-radius:11px;
+  display:grid;place-items:center;
+  color:var(--prem-or);background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+}
+.ck-m b{
+  font-size:15px;font-weight:900;color:var(--prem-titre);
+  letter-spacing:-.02em;white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.ck-m > span:last-child{
+  font-size:10.5px;font-weight:750;color:var(--prem-doux);line-height:1.2;
+}
+
+/* ---- les cartes de formulaire ---- */
+.ck-carte{
+  margin-top:12px;padding:16px;
+  border-radius:24px;
+  background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet), 0 14px 34px -26px rgba(16,24,40,.28);
+}
+.ck-t{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:13px;
+  font-size:14.5px;font-weight:850;color:var(--prem-titre);
+}
+.ck-t svg{color:var(--prem-or);flex:none}
+.ck-note{
+  min-height:84px;height:auto;padding:13px 15px;
+  line-height:1.5;resize:vertical;
+}
+.ck-props{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.ck-prop{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:40px;padding:0 13px;
+  border:0;border-radius:999px;
+  background:var(--prem-champ);color:var(--prem-titre);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  font:inherit;font-size:12.5px;font-weight:750;cursor:pointer;
+  transition:transform .16s, color .16s, box-shadow .16s;
+}
+.ck-prop svg{color:var(--prem-or);flex:none;opacity:.85}
+.ck-prop:active{transform:scale(.95)}
+
+/* ---- paiement ---- */
+.ck-pay{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 15px;border-radius:20px;
+  border:1.5px solid var(--prem-filet);
+  background:var(--prem-champ);
+}
+.ck-pay + .ck-pay{margin-top:9px}
+.ck-pay-ic{
+  flex:none;width:40px;height:40px;border-radius:14px;
+  display:grid;place-items:center;
+  color:var(--prem-doux);background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+}
+.ck-pay-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ck-pay-txt b{font-size:14px;font-weight:800;color:var(--prem-titre)}
+.ck-pay-txt span{font-size:12px;line-height:1.35;color:var(--prem-doux)}
+.ck-pay-c{
+  flex:none;width:26px;height:26px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--prem-or);color:#fff;
+}
+/* La méthode retenue : liseré orange et fond dégradé très sourd. C'est le même
+   habillage que la carte de genre choisie sur Informations personnelles — deux
+   choix uniques dans l'application doivent se manipuler et se lire pareil. */
+.ck-pay.on{
+  border-color:var(--prem-or);
+  background:linear-gradient(170deg,rgba(255,107,0,.13),rgba(255,61,87,.05));
+  box-shadow:0 0 0 3px rgba(255,107,0,.10);
+}
+.ck-pay.on .ck-pay-ic{background:var(--prem-or);color:#fff}
+/* Éteinte : montrée plutôt que cachée. Un client qui ne voit pas la carte se
+   demande si Talabi la prendra un jour ; en la voyant marquée « bientôt », il
+   sait à quoi s'en tenir. */
+.ck-pay.off{opacity:.5}
+.ck-bientot{
+  flex:none;padding:5px 10px;border-radius:999px;
+  background:var(--prem-champ);color:var(--prem-doux);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+}
+
+/* ---- récapitulatif ---- */
+.ck-ligne{display:flex;align-items:flex-start;gap:10px;padding:7px 0}
+.ck-ligne .q{
+  flex:none;min-width:26px;
+  font-size:13px;font-weight:900;color:var(--prem-or);
+  font-variant-numeric:tabular-nums;
+}
+.ck-ligne .n{
+  flex:1;min-width:0;
+  font-size:13.5px;font-weight:700;color:var(--prem-titre);line-height:1.35;
+  display:flex;flex-direction:column;gap:3px;
+}
+.ck-ligne .p{
+  flex:none;font-size:13.5px;font-weight:800;color:var(--prem-titre);
+  font-variant-numeric:tabular-nums;
+}
+.ck-var{
+  display:inline-block;padding:2px 8px;border-radius:999px;
+  background:var(--prem-champ);color:var(--prem-doux);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  font-size:10.5px;font-weight:800;
+}
+.ck-ligne .o{font-size:11.5px;font-weight:650;color:var(--prem-doux)}
+.ck-trait{height:1px;background:var(--prem-filet);margin:11px 0}
+.ck-som{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:4px 0;
+  font-size:13px;color:var(--prem-doux);
+}
+.ck-som span:last-child{font-weight:750;color:var(--prem-titre)}
+.ck-som.total{font-size:16px;font-weight:900;color:var(--prem-titre)}
+.ck-som.total b{
+  font-size:20px;font-weight:900;color:var(--prem-or);
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+}
+
+/* ==========================================================================
+   LA BARRE DE CONFIRMATION
+   --------------------------------------------------------------------------
+   Fixée au-dessus de la barre du bas : le geste reste à portée de pouce sans
+   qu'on ait à faire défiler tout le récapitulatif, et sans recouvrir les
+   onglets. Le dégradé de fond évite que le texte de la page ne passe derrière un
+   bord net.
+   ========================================================================== */
+.ck-bas{
+  position:fixed;left:0;right:0;z-index:71;
+  bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) - 8px);
+  padding:14px 16px 12px;
+  background:linear-gradient(180deg,transparent, var(--prem-fond) 34%);
+}
+.ck-delai{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  margin-bottom:10px;
+  font-size:11.5px;font-weight:700;color:var(--prem-doux);
+}
+.ck-delai svg{opacity:.75;flex:none}
+.ck-cta{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  width:100%;height:65px;
+  border:0;border-radius:32px;
+  background:linear-gradient(100deg,#FF6B00 0%,#FF5230 52%,#FF3D57 100%);
+  color:#fff;font:inherit;font-size:16px;font-weight:850;
+  cursor:pointer;
+  box-shadow:0 16px 34px -12px rgba(255,77,60,.78);
+  transition:transform .17s cubic-bezier(.34,1.3,.64,1), box-shadow .17s, filter .17s;
+}
+.ck-cta:active{transform:scale(.978);box-shadow:0 9px 22px -10px rgba(255,77,60,.85)}
+/* Le montant dans le bouton : on confirme un chiffre, pas une intention. */
+.ck-cta-m{
+  padding:6px 13px;border-radius:999px;
+  background:rgba(255,255,255,.22);
+  font-size:15px;font-weight:900;
+  font-variant-numeric:tabular-nums;
+}
+.ck-cta:disabled{
+  cursor:not-allowed;filter:grayscale(1);opacity:.45;
+  box-shadow:none;transform:none;
+}
+
+/* ---- les repères de la carte ----
+   Dessinés en HTML par MapPicker (`L.divIcon`) : le marqueur bleu de Leaflet est
+   le même sur tous les sites du monde, et rien n'y dit lequel des deux points
+   est chez vous. Ils sont habillés ici, donc ils suivent le thème. */
+.mp-repere{
+  border-radius:50%;
+  box-shadow:0 3px 10px -2px rgba(16,24,40,.5);
+}
+.mp-repere.moi{
+  background:linear-gradient(140deg,#FF8A3D,#FF6B00 55%,#FF3D57);
+  border:3px solid #fff;
+}
+.mp-repere.resto{
+  background:#16181D;
+  border:3px solid #fff;
+  width:26px !important;height:26px !important;
+  margin:4px 0 0 4px;
+}
+
+/* ---- apparition ---- */
+.ck .prem-tete,.ck-lieu,.ck-mini,.ck-carte,.ck-hors,.ck-avert{
+  animation:ckMonte .42s cubic-bezier(.22,.61,.36,1) both;
+}
+.ck-lieu{animation-delay:.06s}
+.ck-avert,.ck-hors{animation-delay:.1s}
+.ck-mini{animation-delay:.13s}
+.ck-carte:nth-of-type(1){animation-delay:.17s}
+.ck-carte:nth-of-type(2){animation-delay:.21s}
+.ck-carte:nth-of-type(n+3){animation-delay:.25s}
+@keyframes ckMonte{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+@media(prefers-reduced-motion:reduce){
+  .ck .prem-tete,.ck-lieu,.ck-mini,.ck-carte,.ck-hors,.ck-avert{animation:none}
+  .ck-cta:active,.ck-prop:active,.ck-changer:active,.ck-ajout:active,
+  .ck-hors-a:active,.ck-avert-b:active{transform:none}
+}
+
+/* ==========================================================================
+   LE MÊME ÉCRAN EN SOMBRE — les jetons suffisent, à quatre exceptions
+   ========================================================================== */
+body.nuit #view .ck-lieu{
+  box-shadow:inset 0 0 0 1px var(--prem-filet), 0 24px 56px -30px rgba(0,0,0,1);
+}
+body.nuit #view .ck-map{background:#141416}
+body.nuit #view .ck-avert{
+  background:rgba(247,144,9,.13);
+  box-shadow:inset 0 0 0 1px rgba(247,144,9,.28);
+}
+body.nuit #view .ck-avert-ic{color:#FDBA5C}
+body.nuit #view .ck-avert-b{background:#B45309}
+body.nuit #view .ck-hors{
+  background:rgba(255,107,0,.12);
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.28);
+}
+body.nuit #view .ck-pay.on{
+  background:linear-gradient(170deg,rgba(255,107,0,.20),rgba(255,61,87,.07));
+  box-shadow:0 0 0 3px rgba(255,107,0,.13);
+}
+/* Le fond dégradé de la barre doit finir sur le NOIR de la page, sinon on voit
+   un rectangle plus clair sous le bouton. */
+body.nuit .ck-bas{background:linear-gradient(180deg,transparent,#050505 34%)}
+body.nuit #view .mp-repere.resto{background:#F4F5F7;border-color:#0E0E10}
+body.nuit #view .mp-repere.moi{border-color:#0E0E10}
+
+/* ==========================================================================
+   ÉCRANS ÉTROITS ET TABLETTES
+   ========================================================================== */
+@media(max-width:379px){
+  .ck-mini{gap:7px}
+  .ck-m{padding:11px 6px;border-radius:17px}
+  .ck-m b{font-size:13px}
+  .ck-m > span:last-child{font-size:9.5px}
+  .ck-cta{height:60px;font-size:15px;gap:9px}
+  .ck-cta-m{font-size:14px;padding:5px 11px}
+  .ck-map{height:165px}
+}
+@media(min-width:620px){
+  .ck .wrap-sm{max-width:560px}
+  .ck-bas{max-width:592px;margin:0 auto}
+}

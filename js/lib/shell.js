@@ -92,6 +92,11 @@
        autre entrée du menu ne correspond mieux. */
     isActive(p) {
       const cur = Router.path().split('?')[0];
+      /* L'écran de validation appartient au panier : on y arrive depuis lui, et
+         c'est de lui qu'on parle. Sans cette équivalence, AUCUN onglet n'était
+         allumé pendant qu'on remplit son adresse — et une barre du bas sans
+         onglet actif donne l'impression d'avoir quitté l'application. */
+      if (p === '/cart' && cur === '/checkout') return true;
       if (cur === p) return true;
       if (p === '/' || cur.indexOf(p + '/') !== 0) return false;
       return !Shell.navItems().some(x =>

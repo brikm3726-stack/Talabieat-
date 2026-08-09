@@ -4,6 +4,25 @@
 (function (w) {
   'use strict';
 
+  /* Les quatre consignes toutes prêtes. Elles ÉCRIVENT dans la note au lieu
+     de la remplacer : « Laisser à la porte » et un numéro d'étage se cumulent
+     très bien, et quelqu'un qui en touche deux ne doit pas perdre la première. */
+  const CK_PROPS = [
+    ['pin',     'Laisser à la porte'],
+    ['phone',   'M’appeler en arrivant'],
+    ['bell',    'Sonner'],
+    ['store',   'Laisser à la réception']
+  ];
+
+  /* Une mini-carte de la course : un chiffre, ce qu'il mesure. */
+  function ckMini(icone, cle, valeur) {
+    return '<div class="ck-m">' +
+      '<span class="ck-m-ic">' + UI.icon(icone, 18) + '</span>' +
+      '<b>' + valeur + '</b>' +
+      '<span>' + U.esc(cle) + '</span>' +
+    '</div>';
+  }
+
   Router.add('/checkout', async function (params, query, view) {
 
     if (!Store.cartCount) return Router.go('/cart', true);
@@ -15,6 +34,16 @@
     UI.nuit('commander');
 
     const addresses = await API.safe(() => API.addresses(), []);
+
+    /* Le restaurant est demandé UNE FOIS, pour trois choses que le panier ne
+       retient pas : sa note, son temps de préparation et sa position. C'est une
+       requête de plus, mais elle remplace trois chiffres inventés — et sans
+       elle, les mini-cartes afficheraient des tirets.
+
+       `API.safe` avec `null` en repli : si l'appel échoue, l'écran s'affiche
+       quand même et les trois chiffres montrent un tiret. Une commande ne doit
+       pas devenir impossible parce qu'une note n'a pas pu être lue. */
+    const resto = await API.safe(() => API.restaurant(Store.cart.restaurant_id), null);
     let selected = addresses.find(a => a.is_default) || addresses[0] || null;
     /* La liste des adresses est repliée par défaut : on ne l'ouvre que si l'on
        veut changer. Voir la note dans paint(). */
@@ -43,173 +72,227 @@
          déclencheur PostgreSQL qui l'applique : mieux vaut le dire avant. */
       const verrou = U.phoneLock(Store.profile);
 
-      view.innerHTML = '<div class="wrap-sm page ck-page">' +
+      /* Le numéro affiché : celui de l'adresse s'il en a un, celui du profil
+         sinon. Et sa validité, qui ne mesure que le FORMAT. */
+      const telInitial = (selected && selected.phone) || Store.profile.phone || '';
+      const telOk = U.isPhoneDZ(telInitial);
 
-        /* ---- l'en-tête de la maquette 2b : la question, puis l'étape ---- */
-        '<div class="ck-head">' +
-          '<button class="ck-back" id="ckBack" aria-label="Retour">' +
-            '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-              'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
-              '<path d="M15 18l-6-6 6-6"/></svg></button>' +
-          '<div class="grow"><div class="h1">Où livrer ?</div>' +
-            '<div class="sub">Dernière étape · ' +
-              U.esc(Store.cart.restaurant_name || '') + '</div></div>' +
-        '</div>' +
+      view.innerHTML = '<div class="account-page prem ck">' +
+        '<div class="wrap-sm page">' +
 
-        /* ---- LA POSITION D'ABORD : la carte, puis l'adresse ----
+        /* ---- l'en-tête commune aux écrans premium ---- */
+        '<header class="prem-tete">' +
+          '<button class="prem-retour" id="ckBack" aria-label="Retour">' +
+            UI.icon('chevron', 19) + '</button>' +
+          '<span class="prem-vignette" aria-hidden="true">' + UI.icon('scooter', 25) + '</span>' +
+          '<div class="prem-tete-txt">' +
+            '<h1 class="prem-h1">Où livrer ?</h1>' +
+            '<p class="prem-sub">Dernière étape avant votre commande</p>' +
+          '</div>' +
+        '</header>' +
+
+        /* ---- LA POSITION D'ABORD : le plan, puis l'adresse ----
            Une adresse écrite se vérifie mal ; un repère sur un plan se vérifie
            d'un coup d'œil. C'est pour ça que la carte passe devant. */
-        '<div class="card ck-lieu">' +
+        '<div class="ck-lieu">' +
           (selected && U.hasCoords(selected)
             ? '<div class="ck-map" id="ckMap"></div>'
-            : '<div class="ck-map ck-map-vide">' + UI.icon('pin', 30) +
+            : '<div class="ck-map vide">' + UI.icon('pin', 30) +
               '<span>Aucune position sur cette adresse</span></div>') +
+
           (addresses.length
             ? '<div class="ck-adr">' +
-                '<span class="ic">' + UI.icon('pin', 19) + '</span>' +
-                '<div class="grow">' +
+                '<span class="ck-adr-ic">' + UI.icon('pin', 20) + '</span>' +
+                '<div class="ck-adr-txt">' +
                   '<b>' + U.esc((selected && selected.label) || 'Adresse') + '</b>' +
-                  '<span class="tiny">' +
-                    U.esc((selected && selected.street) || '') +
-                    (liv.km != null ? ' · ' + liv.km + ' km du restaurant' : '') +
-                  '</span>' +
+                  '<span>' + U.esc((selected && selected.street) || '') +
+                    (selected && selected.details ? ' — ' + U.esc(selected.details) : '') + '</span>' +
                 '</div>' +
-                '<button class="ck-changer" id="ckChanger">' +
-                  (listeOuverte ? 'Fermer' : 'Changer') + '</button>' +
+                '<button type="button" class="ck-changer" id="ckChanger">' +
+                  (listeOuverte ? 'Fermer' : 'Modifier') + '</button>' +
               '</div>' +
               (listeOuverte
                 ? '<div class="ck-liste" id="addrList">' +
                     addresses.map(addrRow).join('') +
-                    '<button class="btn btn-soft btn-block btn-sm" id="addAddr">' +
-                      '+ Nouvelle adresse</button>' +
+                    '<button type="button" class="ck-ajout" id="addAddr">' +
+                      UI.icon('plus', 16) + ' Nouvelle adresse</button>' +
                   '</div>'
                 : '')
             : '<div class="ck-vide">' +
                 '<b>Où doit-on vous livrer ?</b>' +
-                '<p class="sub">Activez votre localisation : le livreur saura ' +
-                  'exactement où vous trouver et ouvrira l’itinéraire dans Google Maps.</p>' +
-                '<button class="btn btn-primary btn-block btn-lg" id="geoNow">' +
-                  UI.icon('navigation', 18) + ' Activer ma localisation</button>' +
-                '<button class="btn btn-ghost btn-block btn-sm" id="pickNow" style="margin-top:9px">' +
+                '<p>Activez votre localisation : le livreur saura exactement où vous ' +
+                  'trouver et ouvrira l’itinéraire dans Google Maps.</p>' +
+                '<button type="button" class="prem-go" id="geoNow">' +
+                  UI.icon('navigation', 19) + ' Activer ma localisation</button>' +
+                '<button type="button" class="prem-go2" id="pickNow">' +
                   'Ou placer le repère à la main</button>' +
               '</div>') +
         '</div>' +
 
         /* ---- position manquante sur l'adresse choisie ---- */
         (selected && !U.hasCoords(selected)
-          ? '<div class="banner banner-warn" style="margin-top:12px">' +
-            '<div class="grow">' + UI.pin(14) + ' Cette adresse n’a pas de position GPS — le livreur risque de vous chercher.</div>' +
-            '<button class="btn btn-primary btn-sm" id="fixGeo">Activer</button></div>'
+          ? '<div class="ck-avert">' +
+              '<span class="ck-avert-ic">' + UI.icon('warn', 21) + '</span>' +
+              '<div class="ck-avert-txt"><b>Adresse sans position</b>' +
+                '<span>Le livreur risque de vous chercher. Une position, et il ' +
+                  'ouvre l’itinéraire directement.</span></div>' +
+              '<button type="button" class="ck-avert-b" id="fixGeo">Activer</button>' +
+            '</div>'
           : '') +
 
-        /* ---- distance et tarif : annoncés avant de payer, jamais après ---- */
+        /* ---- HORS ZONE ----
+           Deux issues réelles, pas un message qui laisse sans rien faire :
+           changer d'adresse, ou aller voir des restaurants plus proches. */
         (liv.horsZone
-          ? '<div class="banner banner-warn" style="margin-top:12px">🛵 <div class="grow">' +
-              '<b>Trop loin pour être livré</b><br>Cette adresse est à environ <b>' + liv.km +
-              ' km</b> du restaurant, au-delà des ' +
-              U.esc(String((Store.settings && Store.settings.max_km) || 15)) +
-              ' km que nous couvrons. Choisissez une autre adresse ou un restaurant plus proche.' +
-            '</div></div>'
-          : liv.km != null
-            ? '<div class="banner banner-info" style="margin-top:12px">🛵 <div class="grow">' +
-                'Environ <b>' + liv.km + ' km</b> entre le restaurant et vous — ' +
-                'livraison à <b>' + U.money(liv.fee) + '</b>' +
-                (liv.loin ? ' <span class="tiny">(tarif longue distance)</span>' : '') +
-              '</div></div>'
-            : '') +
+          ? '<div class="ck-hors">' +
+              '<span class="ck-hors-ic">' + UI.icon('scooter', 24) + '</span>' +
+              '<div class="ck-hors-t">Hors zone de livraison</div>' +
+              '<p class="ck-hors-s">Cette adresse est à environ <b>' + liv.km +
+                ' km</b> du restaurant, au-delà des ' +
+                U.esc(String((Store.settings && Store.settings.max_km) || 15)) +
+                ' km que nous couvrons aujourd’hui.</p>' +
+              '<div class="ck-hors-b">' +
+                '<button type="button" class="ck-hors-a" id="ckAutre">' +
+                  UI.icon('pin', 17) + ' Choisir une autre adresse</button>' +
+                '<a class="ck-hors-a" href="#/restaurants">' +
+                  UI.icon('utensils', 17) + ' Restaurants plus proches</a>' +
+              '</div>' +
+            '</div>'
+          : '') +
+
+        /* ---- TROIS CHIFFRES DE LA COURSE ----
+           Le temps vient de `U.deliveryFor`, la même fonction que l'écran
+           Commandes : deux calculs séparés finiraient par annoncer deux durées
+           différentes pour la même course. La préparation du restaurant s'y
+           ajoute — ce qu'attend le client, c'est son repas, pas le scooter. */
+        '<div class="ck-mini">' +
+          ckMini('clock', 'Livraison estimée',
+            (liv.minutes != null
+              ? '~ ' + (liv.minutes + (resto && +resto.prep_time_min ? +resto.prep_time_min : 0)) + ' min'
+              : '—')) +
+          ckMini('navigation', 'Distance', liv.km != null ? liv.km + ' km' : '—') +
+          ckMini('medal', 'Note du resto',
+            (resto && +resto.rating) ? (+resto.rating).toFixed(1) + ' / 5' : '—') +
+        '</div>' +
 
         /* ---- AIDER LE LIVREUR À VOUS TROUVER ----
-           « Note pour le livreur » décrivait le champ ; ce titre-là dit à quoi
-           il sert. Et les deux propositions donnent une réponse à écrire, au
-           lieu d'un rectangle vide devant lequel on ne trouve rien à dire. */
-        '<div class="card card-p ck-bloc">' +
-          '<div class="ck-t">Aider le livreur à vous trouver</div>' +
-          '<textarea class="input ck-note" id="note" rows="2" ' +
-            'placeholder="Ex : 3e étage, porte à droite. Sonner deux fois."></textarea>' +
+           « Note pour le livreur » décrivait le champ ; ce titre-là dit à quoi il
+           sert. Et les quatre propositions donnent une réponse à écrire, au lieu
+           d'un rectangle vide devant lequel on ne trouve rien à dire. */
+        '<div class="ck-carte">' +
+          '<div class="ck-t">' + UI.icon('navigation', 18) +
+            ' Aider le livreur à vous trouver</div>' +
+          '<textarea class="prem-input ck-note" id="note" rows="3" ' +
+            'placeholder="Appartement, étage, porte, interphone…"></textarea>' +
           '<div class="ck-props">' +
-            '<button type="button" class="ck-prop" data-prop="Laisser à la porte">Laisser à la porte</button>' +
-            '<button type="button" class="ck-prop" data-prop="M’appeler en arrivant">M’appeler en arrivant</button>' +
+            CK_PROPS.map(p =>
+              '<button type="button" class="ck-prop" data-prop="' + U.esc(p[1]) + '">' +
+                UI.icon(p[0], 15) + ' ' + U.esc(p[1]) + '</button>').join('') +
           '</div>' +
         '</div>' +
 
-        /* ---- le numéro, et le verrou annoncé ---- */
-        '<div class="card card-p ck-bloc">' +
-          '<div class="ck-tel">' +
-            '<span class="ic">' + UI.icon('phone', 19) + '</span>' +
-            '<div class="grow">' +
-              '<input class="ck-num" id="phone" inputmode="tel" placeholder="0555 12 34 56" value="' +
-                U.esc((selected && selected.phone) || Store.profile.phone || '') + '">' +
-              (verrou.bloque
-                ? '<span class="tiny">Modifiable dans ' + verrou.jours + ' jour' +
-                  (verrou.jours > 1 ? 's' : '') + '</span>'
-                : '<span class="tiny">Le livreur vous appellera sur ce numéro</span>') +
+        /* ---- le numéro ----
+           L'indicateur dit « valide », pas « vérifié ». Il ne teste que le
+           FORMAT : Talabi n'envoie aucun code SMS, et écrire « vérifié » sous un
+           numéro que personne n'a confirmé est un mensonge affiché en vert. */
+        '<div class="ck-carte">' +
+          '<div class="ck-t">' + UI.icon('phone', 18) + ' Votre numéro</div>' +
+          '<div class="prem-champ">' +
+            '<div class="prem-boite">' +
+              '<span class="prem-ic">' + UI.icon('phone', 18) + '</span>' +
+              '<input class="prem-input" id="phone" inputmode="tel" ' +
+                'placeholder="0X XX XX XX XX" value="' +
+                U.esc(telInitial) + '">' +
             '</div>' +
-            (U.isPhoneDZ((selected && selected.phone) || Store.profile.phone || '')
-              ? '<span class="ck-ok">' + UI.icon('check', 13) + ' Vérifié</span>' : '') +
+            '<span class="prem-aide' + (telOk ? ' ok' : '') + '" id="ckTelAide">' +
+              (verrou.bloque
+                ? 'Modifiable dans ' + verrou.jours + ' jour' + (verrou.jours > 1 ? 's' : '') +
+                  ' — le livreur vous appellera dessus'
+                : telOk ? 'Le livreur vous appellera sur ce numéro'
+                        : 'Numéro algérien : 0X XX XX XX XX') + '</span>' +
           '</div>' +
         '</div>' +
 
-        /* ---- PAIEMENT : ce qui existe, et ce qui viendra ----
-           La carte bancaire est montrée éteinte plutôt que cachée. Un client
-           qui ne la voit pas se demande si Talabi la prend ; en la voyant
-           marquée « Bientôt », il sait à quoi s'en tenir. */
-        '<div class="card card-p ck-bloc">' +
-          '<div class="ck-t">Paiement</div>' +
+        /* ---- PAIEMENT ----
+           Les espèces sont le seul moyen en service. La carte est montrée ÉTEINTE
+           plutôt que cachée : un client qui ne la voit pas se demande si Talabi la
+           prend un jour ; en la voyant marquée « bientôt », il sait à quoi s'en
+           tenir. Rien sur un portefeuille Talabi, en revanche — il n'existe ni
+           dans le code ni dans les projets. */
+        '<div class="ck-carte">' +
+          '<div class="ck-t">' + UI.icon('wallet', 18) + ' Mode de paiement</div>' +
           '<div class="ck-pay on">' +
-            '<span class="ck-radio"></span>' +
-            '<span class="grow">Espèces à la réception</span>' +
-            '<b>' + U.money(t.total) + '</b>' +
+            '<span class="ck-pay-ic">' + UI.icon('wallet', 20) + '</span>' +
+            '<div class="ck-pay-txt"><b>Espèces à la réception</b>' +
+              '<span>Vous payez le livreur à la remise du repas</span></div>' +
+            '<span class="ck-pay-c">' + UI.icon('check', 15) + '</span>' +
           '</div>' +
           '<div class="ck-pay off">' +
-            '<span class="ck-radio"></span>' +
-            '<span class="grow">Carte Edahabia / CIB</span>' +
+            '<span class="ck-pay-ic">' + UI.icon('receipt', 20) + '</span>' +
+            '<div class="ck-pay-txt"><b>Carte CIB / Edahabia</b>' +
+              '<span>Paiement en ligne par SATIM</span></div>' +
             '<span class="ck-bientot">Bientôt</span>' +
           '</div>' +
         '</div>' +
 
         /* ---- le compte, ligne à ligne ---- */
-        '<div class="card card-p ck-bloc ck-total">' +
+        '<div class="ck-carte ck-recap">' +
+          '<div class="ck-t">' + UI.icon('receipt', 18) + ' Récapitulatif</div>' +
           Store.cart.items.map(l =>
-            '<div class="oline"><span class="l"><b>' + l.quantity + '×</b> ' + U.esc(l.name) +
-            (l.variant ? ' <span class="tag tag-muted">' + U.esc(l.variant.name) + '</span>' : '') +
-            ((l.options && l.options.length) ? '<br><span class="tiny">+ ' + U.esc(l.options.map(o => o.name).join(', ')) + '</span>' : '') +
-            '</span><span>' + U.money(Store.lineTotal(l)) + '</span></div>').join('') +
-          '<div class="divider"></div>' +
-          '<div class="oline"><span class="l">' + Store.cartCount + ' article' +
+            '<div class="ck-ligne">' +
+              '<span class="q">' + l.quantity + '×</span>' +
+              '<span class="n">' + U.esc(l.name) +
+                (l.variant ? ' <span class="ck-var">' + U.esc(l.variant.name) + '</span>' : '') +
+                ((l.options && l.options.length)
+                  ? '<span class="o">+ ' + U.esc(l.options.map(o => o.name).join(', ')) + '</span>' : '') +
+              '</span>' +
+              '<span class="p">' + U.money(Store.lineTotal(l)) + '</span>' +
+            '</div>').join('') +
+          '<div class="ck-trait"></div>' +
+          '<div class="ck-som"><span>' + Store.cartCount + ' article' +
             (Store.cartCount > 1 ? 's' : '') + '</span><span>' + U.money(t.subtotal) + '</span></div>' +
-          '<div class="oline"><span class="l">Livraison' +
+          '<div class="ck-som"><span>Frais de livraison' +
             (liv.km != null ? ' · ' + liv.km + ' km' : '') + '</span><span>' +
             U.money(t.delivery_fee) + '</span></div>' +
-          '<div class="divider"></div>' +
-          '<div class="ck-somme"><span>Total</span>' +
-            '<span class="price">' + U.money(t.total) + '</span></div>' +
+          '<div class="ck-trait"></div>' +
+          '<div class="ck-som total"><span>Total à payer</span>' +
+            '<b>' + U.money(t.total) + '</b></div>' +
         '</div>' +
 
         /* ---- LA BARRE DU BAS : le geste, toujours à portée de pouce ----
            Le bouton était en bas du document : sur un long écran, il fallait
-           faire défiler tout le récapitulatif pour l'atteindre. Il ne bouge
-           plus, et le délai de réponse du restaurant est annoncé juste
-           au-dessus — c'est la question qu'on se pose avant d'appuyer. */
+           faire défiler tout le récapitulatif pour l'atteindre. Il ne bouge plus,
+           et le délai de réponse du restaurant est annoncé juste au-dessus —
+           c'est la question qu'on se pose avant d'appuyer. */
         '<div class="ck-bas">' +
           '<div class="ck-delai">' + UI.icon('clock', 14) + ' ' +
             U.esc(Store.cart.restaurant_name || 'Le restaurant') +
             ' répond sous ' + U.respondMinutes(Store.settings) + ' minutes</div>' +
-          '<button class="btn btn-primary btn-block btn-lg ck-cta" id="confirm"' +
-            (liv.horsZone ? ' disabled' : '') + '>' +
+          '<button class="ck-cta" id="confirm"' + (liv.horsZone ? ' disabled' : '') + '>' +
             (liv.horsZone
               ? 'Adresse hors zone de livraison'
-              : 'Commander · ' + U.money(t.total) +
-                '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-                  'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
-                  '<path d="M4.5 12h15"/><path d="m13.2 5.4 6.6 6.6-6.6 6.6"/></svg>') +
+              : '<span>Confirmer la commande</span>' +
+                '<span class="ck-cta-m">' + U.money(t.total) + '</span>') +
           '</button>' +
         '</div>' +
-      '</div>';
+
+      '</div></div>';
 
       /* La vraie carte du projet, pas une esquisse : c'est le même
          MapPicker.preview que partout ailleurs, sur la position choisie. */
+      /* La vraie carte du projet, avec deux repères et la zone couverte : on
+         voit d'un coup si l'on est dedans, ce qu'un nombre de kilomètres ne
+         montre pas. Le vol d'approche dit où l'on se trouve dans la ville avant
+         de resserrer sur la rue — un plan qui s'ouvre déjà zoomé ne montre que
+         du bitume. */
       const mp = view.querySelector('#ckMap');
-      if (mp && selected) MapPicker.preview(mp, selected.lat, selected.lng);
+      if (mp && selected) MapPicker.preview(mp, selected.lat, selected.lng, {
+        resto: (Store.cart.lat != null && Store.cart.lng != null)
+          ? { lat: Store.cart.lat, lng: Store.cart.lng,
+              nom: Store.cart.restaurant_name || '' } : null,
+        rayonKm: (Store.settings && +Store.settings.max_km) || 15,
+        zoom: 15, vol: true
+      });
 
       view.querySelector('#ckBack').onclick = () => Router.back();
 
@@ -264,6 +347,23 @@
           if (i >= 0) addresses[i] = saved;
           selected = saved; paint();
         }, p);
+      };
+
+      /* Hors zone : « choisir une autre adresse » ouvre la liste au lieu de
+         renvoyer ailleurs. C'est le geste que la personne veut faire. */
+      const au = view.querySelector('#ckAutre');
+      if (au) au.onclick = () => { listeOuverte = true; paint(); };
+
+      /* La validité du numéro se relit à la frappe : on voit qu'on s'est trompé
+         d'un chiffre avant d'appuyer sur Confirmer, pas après. */
+      const tel = view.querySelector('#phone');
+      const telAide = view.querySelector('#ckTelAide');
+      if (tel && telAide && !verrou.bloque) tel.oninput = () => {
+        const bon = U.isPhoneDZ(tel.value);
+        telAide.textContent = bon ? 'Le livreur vous appellera sur ce numéro'
+          : tel.value ? 'Ce numéro ne ressemble pas à un numéro algérien'
+          : 'Numéro algérien : 0X XX XX XX XX';
+        telAide.className = 'prem-aide' + (bon ? ' ok' : tel.value ? ' non' : '');
       };
 
       view.querySelector('#confirm').onclick = submit;

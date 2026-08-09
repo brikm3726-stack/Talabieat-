@@ -559,18 +559,71 @@
     },
 
     /** Petite carte non modifiable, pour afficher une position */
-    preview(container, lat, lng) {
+    /**
+     * Aperçu non interactif d'une position.
+     *
+     * `opts` est facultatif — les appels à trois arguments gardent exactement
+     * l'ancien comportement :
+     *   opts.resto   { lat, lng, nom }  le restaurant, en second repère
+     *   opts.rayonKm  nombre            la zone couverte, tracée autour du resto
+     *   opts.zoom     nombre            zoom d'arrivée (16 par défaut)
+     *   opts.vol      booléen           approche zoomée, une seule fois
+     */
+    preview(container, lat, lng, opts) {
       if (!container || !U.hasCoords({ lat: lat, lng: lng })) return null;
+      const o = opts || {};
 
       chargerLeaflet().then(ok => {
         if (!ok) return;
+        const zoom = o.zoom || 16;
         const map = L.map(container, {
           zoomControl: false, dragging: false, scrollWheelZoom: false,
           doubleClickZoom: false, touchZoom: false, keyboard: false,
           attributionControl: true
-        }).setView([+lat, +lng], 16);
+        }).setView([+lat, +lng], o.vol ? Math.max(11, zoom - 3) : zoom);
         L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT }).addTo(map);
-        L.marker([+lat, +lng]).addTo(map);
+
+        /* Des repères en HTML plutôt que le marqueur bleu par défaut de Leaflet :
+           celui-ci est le même sur tous les sites du monde, et rien ne dit
+           lequel des deux points est chez vous. Le CSS les habille (`.mp-repere`),
+           donc ils suivent le thème sans qu'on écrive une couleur ici. */
+        const repere = (cls, dedans) => L.divIcon({
+          className: 'mp-repere ' + cls,
+          html: dedans,
+          iconSize: [34, 34], iconAnchor: [17, 17]
+        });
+
+        /* La zone AVANT les repères : un cercle dessiné après les recouvrirait. */
+        if (o.resto && U.hasCoords(o.resto) && o.rayonKm) {
+          L.circle([+o.resto.lat, +o.resto.lng], {
+            radius: o.rayonKm * 1000,
+            color: '#FF6B00', weight: 1.5, opacity: .55,
+            fillColor: '#FF6B00', fillOpacity: .07,
+            interactive: false
+          }).addTo(map);
+        }
+
+        if (o.resto && U.hasCoords(o.resto)) {
+          L.marker([+o.resto.lat, +o.resto.lng], {
+            icon: repere('resto', ''), interactive: false,
+            title: o.resto.nom || ''
+          }).addTo(map);
+        }
+
+        L.marker([+lat, +lng], { icon: repere('moi', ''), interactive: false }).addTo(map);
+
+        /* Le vol d'approche : une seule fois, à l'arrivée sur l'écran. Il dit où
+           l'on se trouve dans la ville avant de resserrer sur la rue — un plan
+           qui s'ouvre déjà zoomé ne montre que du bitume. Leaflet l'anime par
+           transformations, ce qui reste peu coûteux ; il est coupé si l'on a
+           demandé moins de mouvement. */
+        const doux = !(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        if (o.vol && doux) {
+          setTimeout(() => map.flyTo([+lat, +lng], zoom, { duration: 1.2 }), 380);
+        } else if (o.vol) {
+          map.setView([+lat, +lng], zoom);
+        }
+
         setTimeout(() => map.invalidateSize(), 250);
       });
 

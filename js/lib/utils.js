@@ -294,11 +294,26 @@
       const kmNear = s.near_km     != null ? +s.near_km     : 10;
       const kmMax  = s.max_km      != null ? +s.max_km      : 15;
 
+      /* Le temps de TRAJET, en minutes. 22 km/h est la vitesse moyenne d'un
+         scooter en ville — feux et attentes comprises, pas la vitesse de pointe.
+         Le plancher de 6 minutes existe parce qu'aucune course ne se fait en deux
+         minutes même à 500 mètres : il faut sortir, trouver la porte, monter.
+
+         Il vit ICI et non dans les vues : l'écran Commandes et l'écran de
+         validation doivent annoncer la MÊME durée pour la même course. Deux
+         calculs séparés finissent toujours par diverger, et c'est le genre
+         d'écart qu'un client remarque. */
+      const minutesDe = (d) => (d == null || !isFinite(d))
+        ? null : Math.max(6, Math.round(d / 22 * 60));
+
       // distance inconnue : on annonce le tarif de base plutôt que le plus cher
-      if (km == null || !isFinite(km)) return { fee: proche, km: null, horsZone: false, loin: false };
-      if (km > kmMax) return { fee: loin, km: km, horsZone: true, loin: true };
+      if (km == null || !isFinite(km))
+        return { fee: proche, km: null, minutes: null, horsZone: false, loin: false };
+      if (km > kmMax)
+        return { fee: loin, km: km, minutes: minutesDe(km), horsZone: true, loin: true };
       const estLoin = km > kmNear;
-      return { fee: estLoin ? loin : proche, km: km, horsZone: false, loin: estLoin };
+      return { fee: estLoin ? loin : proche, km: km, minutes: minutesDe(km),
+               horsZone: false, loin: estLoin };
     },
 
     /** Calcule les montants d'une commande */
