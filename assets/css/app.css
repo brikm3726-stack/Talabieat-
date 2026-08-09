@@ -4977,23 +4977,36 @@ body.nuit{
   color:var(--nuit-texte);
 }
 
-/* ---- LES FEUILLES ET MODALES RESTENT CLAIRES ----------------------------
-   Elles sont posées PAR-DESSUS la page, pas dedans, et leur fond est écrit
-   en dur (`.sheet{background-color:#fff}`, `.zone-row{background-color:#fff}`). Sans
-   cette remise à zéro, elles héritaient du blanc du texte de nuit : du blanc
-   sur du blanc, donc un panneau de notifications vide en apparence.
-   `--brand` n'est pas remis : l'orange de nuit convient aux deux. */
+/* ---- LES FEUILLES ET MODALES PASSENT EN SOMBRE ---------------------------
+   Elles restaient claires, et c'était un choix : leur fond est écrit en dur
+   (`.sheet{background:#fff}`), donc le texte blanc de la nuit donnait du blanc
+   sur du blanc — un panneau de notifications vide en apparence. Remettre la
+   palette claire réglait la lisibilité en une règle.
+
+   Mais c'était un pansement, pas un thème : une application entièrement noire
+   qui ouvre un panneau blanc éblouit à chaque fois, et c'est justement le
+   panneau qu'on ouvre le plus (notifications, choix d'un plat).
+
+   La palette devient donc sombre POUR DE BON, et les fonds écrits en dur sont
+   repris un par un juste après. C'est plus de lignes, mais c'est la seule
+   manière : une variable ne peut rien contre un `#fff` littéral.
+
+   `color-scheme:dark` fait le reste — cases à cocher, boutons radio, barres de
+   défilement et sélecteurs natifs se dessinent en sombre sans une ligne de
+   CSS. Sans lui, chaque case aurait été un carré blanc sur du noir. */
 body.nuit .overlay{
-  --ink:#12141A;
-  --ink-2:#3A404D;
-  --muted:#7A8291;
-  --line:#EBE3D9;
-  --bg:#F7EDE4;
-  --card:#FFFFFF;
-  --sh-1:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.06);
-  --sh-2:0 4px 14px rgba(16,24,40,.08);
-  --sh-3:0 18px 45px -12px rgba(16,24,40,.22);
+  color-scheme:dark;
+  --ink:#F4F5F7;
+  --ink-2:#C9CDD4;
+  --muted:#8B9099;
+  --line:rgba(255,255,255,.10);
+  --bg:#131417;
+  --card:#17181B;
+  --sh-1:none;
+  --sh-2:0 10px 28px -18px rgba(0,0,0,.95);
+  --sh-3:0 22px 50px -24px rgba(0,0,0,1);
   color:var(--ink);
+  background:rgba(4,5,7,.72);
 }
 body.nuit .toasts{color:#12141A}
 
@@ -5394,12 +5407,16 @@ body.nuit{
   --info-soft:rgba(59,130,246,.16);
   --danger-soft:rgba(240,68,56,.15);
 }
-body.nuit .overlay{
-  --ok-soft:#E7F8F0;
-  --warn-soft:#FFF6E6;
-  --info-soft:#EAF2FF;
-  --danger-soft:#FEECEB;
-}
+/* Les étiquettes gardent les teintes translucides de la nuit — celles de
+   `body.nuit` juste au-dessus — et leur texte est relevé en clair, exactement
+   comme dans #view. Les deux vont ensemble : un fond translucide sous un texte
+   vert foncé écrit en dur ne se lit pas. */
+body.nuit .overlay .tag-ok,     body.nuit .overlay .banner-ok    {color:#4ADE80}
+body.nuit .overlay .tag-warn,   body.nuit .overlay .banner-warn  {color:#FDBA5C}
+body.nuit .overlay .tag-info,   body.nuit .overlay .banner-info  {color:#8AB6FF}
+body.nuit .overlay .tag-danger, body.nuit .overlay .banner-danger{color:#FF8A8A}
+body.nuit .overlay .tag-muted{background-color:rgba(255,255,255,.07);color:var(--muted)}
+body.nuit .overlay .btn-danger{background-color:rgba(240,68,56,.15);color:#FF8A8A}
 body.nuit #view .tag-ok,     body.nuit #view .banner-ok    {color:#4ADE80}
 body.nuit #view .tag-warn,   body.nuit #view .banner-warn  {color:#FDBA5C}
 body.nuit #view .tag-info,   body.nuit #view .banner-info  {color:#8AB6FF}
@@ -7410,4 +7427,215 @@ body.app-client .bottomnav a[data-p="/cart"] .nav-badge{
 body.pref-clair .bottomnav a[data-p="/cart"] .nav-badge{
   background:#D93A1F;color:#FFFFFF;border:0;
   box-shadow:0 0 0 2.5px #FFFFFF, 0 3px 9px rgba(16,24,40,.3);
+}
+
+/* ==========================================================================
+   MESURES SORTIES DE L'ATTRIBUT « STYLE » — FICHE PLAT
+   --------------------------------------------------------------------------
+   Mêmes valeurs qu'avant, au pixel près : c'est un déplacement, pas un
+   changement. Un style en ligne l'emporte sur toute feuille — tant que la
+   bordure et le remplissage des lignes de choix étaient écrits dans le HTML,
+   aucun thème ne pouvait les redessiner.
+
+   Les deux listes de la fiche plat portent maintenant la même classe. Elles se
+   ressemblaient déjà à l'œil — un cadre arrondi, une case à gauche, un prix à
+   droite — mais l'une avait une classe et l'autre non : le format se laissait
+   désigner, les suppléments non.
+   ========================================================================== */
+.dish-hero{
+  height:170px;border-radius:16px;margin-bottom:14px;
+  background:#F2EDE5 center/cover no-repeat;
+}
+.opt-lab{margin-bottom:10px}
+.opt-row{padding:11px 13px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer}
+.opt-row input{width:18px;height:18px;accent-color:var(--brand)}
+
+/* ==========================================================================
+   LES TEINTES DES VIGNETTES DE NOTIFICATION SUIVENT LE BOUTON, PAS LE SYSTÈME
+   --------------------------------------------------------------------------
+   Elles n'avaient de version sombre que sous `@media(prefers-color-scheme:
+   dark)`, c'est-à-dire d'après le réglage du TÉLÉPHONE. Or Talabi a son propre
+   bouton depuis la v13x : quelqu'un dont le téléphone est en clair et qui
+   allume le mode sombre dans l'application recevait des vignettes pâles sur un
+   panneau noir. La règle média reste — elle sert au cas où — et voici son
+   équivalent gouverné par le bouton.
+   ========================================================================== */
+body.nuit .notif-ic{box-shadow:none}
+body.nuit .notif-ic.t-or   {--tone:#FFA45B;--tone-bg:rgba(232,89,12,.18)}
+body.nuit .notif-ic.t-vert {--tone:#4ADE80;--tone-bg:rgba(15,157,88,.18)}
+body.nuit .notif-ic.t-bleu {--tone:#7BB0FF;--tone-bg:rgba(30,111,217,.18)}
+body.nuit .notif-ic.t-rouge{--tone:#FF8A8A;--tone-bg:rgba(214,69,69,.18)}
+body.nuit .notif-ic.t-gris {--tone:#94A3B8;--tone-bg:rgba(148,163,184,.16)}
+
+/* ==========================================================================
+   MODALES SOMBRES — LES FONDS ÉCRITS EN DUR
+   --------------------------------------------------------------------------
+   La palette de `body.nuit .overlay` est passée en sombre juste avant, mais une
+   variable ne peut rien contre un `#fff` littéral : `.sheet`, `.sheet-head`,
+   `.sheet-foot`, `.zone-row`, `.qty button`, `.input`, `.chip`, `.icon-btn`,
+   `.btn-ghost` écrivent leur blanc en dur. Il faut les reprendre un par un.
+
+   Tout est sous `body.nuit` : le thème clair n'est pas touché d'une
+   déclaration, et les espaces professionnels — restaurateur, livreur,
+   administration — ne posent jamais cette classe, donc leurs modales restent
+   claires comme leurs écrans.
+   ========================================================================== */
+body.nuit .sheet{
+  background:#131417;
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 -24px 64px -24px rgba(0,0,0,1);
+}
+body.nuit .sheet-head{
+  background:#16181B;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+body.nuit .sheet-foot{
+  background:#16181B;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+body.nuit .sheet-head .h3{color:#F4F5F7}
+body.nuit .sheet-head .tiny{color:#8B9099}
+/* La vignette de l'en-tête : orange sur orange sourd, avec la lueur qui sort
+   de derrière — la même écriture que le bouton du quartier sur l'accueil. */
+body.nuit .sheet-ic{
+  background:rgba(255,101,0,.14);color:#FF8A3D;
+  box-shadow:0 0 0 1px rgba(255,101,0,.30), 0 0 20px -4px rgba(255,101,0,.55);
+}
+body.nuit .overlay .icon-btn{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.10);
+  color:#E6E8EC;
+}
+body.nuit .overlay .btn-ghost{
+  background:rgba(255,255,255,.05);
+  border-color:rgba(255,255,255,.12);
+  color:#E6E8EC;
+}
+body.nuit .overlay .input,
+body.nuit .overlay select.input,
+body.nuit .overlay textarea.input{
+  background-color:#1B1D21;
+  border-color:rgba(255,255,255,.12);
+  color:#F4F5F7;
+}
+body.nuit .overlay .input::placeholder{color:#6C7280}
+body.nuit .overlay .chip{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.10);
+  color:#D7DAE0;
+}
+body.nuit .overlay .card{background:#1A1C20;border-color:rgba(255,255,255,.08)}
+body.nuit .overlay .divider{background:rgba(255,255,255,.09)}
+body.nuit .overlay .sub{color:#9AA0A9}
+body.nuit .overlay .price{color:#FF8A3D}
+body.nuit .overlay .g-ic{background-color:#1F2125}
+body.nuit .overlay .skel{background:linear-gradient(90deg,#1A1C20,#22252A,#1A1C20)}
+/* Le choix du quartier et la recherche d'adresse ouvrent aussi des feuilles. */
+body.nuit .overlay .zone-row{background-color:#1A1C20;border-color:rgba(255,255,255,.08)}
+body.nuit .overlay .zone-row.on .ic{background-color:rgba(255,101,0,.16)}
+body.nuit .overlay .zone-foot .chip-round{background-color:rgba(255,255,255,.06)}
+body.nuit .overlay .mp-results:not(:empty),
+body.nuit .overlay .mp-loc{background-color:#1A1C20}
+body.nuit .overlay .av-comp{background-color:#1A1C20}
+
+/* Le compteur de quantité du pied de page : deux cercles au liseré fin plutôt
+   que deux pastilles blanches, et le nombre en clair entre les deux. */
+body.nuit .overlay .qty{background-color:rgba(255,255,255,.04)}
+body.nuit .overlay .qty button{
+  background-color:transparent;
+  border:1px solid rgba(255,255,255,.16);
+  color:#E6E8EC;
+}
+body.nuit .overlay .qty button:hover{background-color:rgba(255,101,0,.18);color:#fff}
+body.nuit .overlay .qty b{color:#F4F5F7}
+
+/* ==========================================================================
+   PANNEAU DE NOTIFICATIONS SOMBRE — maquette « 357 »
+   ========================================================================== */
+body.nuit .notif-tete-ic{
+  background:rgba(255,101,0,.13);color:#FF8A3D;
+  box-shadow:0 0 0 1px rgba(255,101,0,.34), 0 0 22px -4px rgba(255,101,0,.6);
+}
+/* Les repères de jour : une bande à peine plus sombre que les lignes, pour
+   qu'ils séparent sans peser. Un titre gris clair en petites capitales suffit à
+   dire « nouveau bloc » ; un aplat coloré le dirait trop fort. */
+body.nuit .notif-jour{
+  background:#0F1013;color:#8B9099;
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+body.nuit .notif-jour + .notif-item{border-top:0}
+body.nuit .notif-item{
+  background-color:#131417;
+  border-bottom-color:rgba(255,255,255,.06);
+}
+/* Non lue : le fond monte d'un cran et la barre orange s'allume sur le bord
+   gauche. Deux signaux pour la même chose, et c'est voulu — la barre se voit du
+   coin de l'œil en faisant défiler, le fond se lit quand on s'arrête. */
+body.nuit .notif-item.unread{background-color:#181A1E}
+body.nuit .notif-item.unread::before{
+  background:#FF6500;
+  box-shadow:0 0 12px rgba(255,101,0,.85);
+}
+body.nuit .notif-item:hover{background-color:#1C1E23}
+body.nuit .notif-item:active{background-color:#1C1E23}
+body.nuit .notif-h{color:#F4F5F7}
+body.nuit .notif-b{color:#9AA0A9}
+body.nuit .notif-t{color:#71767F}
+body.nuit .notif-neuf{background:#FF6500;box-shadow:0 0 9px rgba(255,101,0,.9)}
+body.nuit .notif-fl{color:#8B9099}
+body.nuit .notif-vide-ic{background:rgba(255,101,0,.12);color:#FF8A3D}
+body.nuit .notif-vide b{color:#F4F5F7}
+body.nuit .notif-vide p{color:#8B9099}
+/* « Tout marquer comme lu » : cerclé d'orange, écrit en orange. C'est la seule
+   action du panneau — la règle générale des boutons fantômes l'aurait rendu
+   gris parmi le gris. */
+body.nuit .sheet-foot #markAll{
+  background:transparent;
+  border:1.5px solid rgba(255,101,0,.55);
+  color:#FF8A3D;font-weight:800;
+}
+body.nuit .sheet-foot #markAll svg{stroke:#FF8A3D}
+
+/* ==========================================================================
+   FICHE PLAT SOMBRE — maquette « 358 »
+   ========================================================================== */
+body.nuit .dish-hero{background-color:#1B1D21}
+/* « FORMAT », « SUPPLÉMENTS » : la maquette n'en fait pas des titres mais des
+   étiquettes — petites capitales espacées, en gris. Elles nomment un groupe,
+   elles ne rivalisent pas avec le nom du plat en haut. */
+body.nuit .opt-lab{
+  font-size:11.5px;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:#8B9099;
+}
+body.nuit .opt-lab .tiny{
+  font-size:10.5px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:#6C7280;
+}
+body.nuit .opt-row{
+  background-color:#1A1C20;
+  border-color:rgba(255,255,255,.07);
+  color:#E9EBEF;
+}
+/* La ligne choisie s'éclaire par l'intérieur : un dégradé orange très sourd du
+   haut vers le bas, un liseré franc, une lueur basse. `:has()` lit l'état du
+   bouton radio lui-même — il n'y a donc aucune classe à poser en JavaScript, et
+   rien à resynchroniser quand on change de format. */
+body.nuit .opt-row:has(input:checked){
+  background-image:linear-gradient(180deg,rgba(255,101,0,.17),rgba(255,101,0,.04));
+  border-color:#FF6500;
+  box-shadow:0 0 0 1px rgba(255,101,0,.32), 0 8px 22px -12px rgba(255,101,0,.55);
+}
+body.nuit .opt-row .tiny{color:#8B9099}
+/* Le bouton d'ajout reçoit le chariot de la maquette. Dessiné par masque, donc
+   sous `body.nuit` uniquement : posé dans le HTML, il apparaîtrait aussi en
+   clair, et la maquette claire ne le montre pas. */
+body.nuit .overlay{
+  --ic-panier:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4h2.2l2.5 10.6h10.5l2.3-7.6H6'/%3E%3Ccircle cx='9.5' cy='19' r='1.6'/%3E%3Ccircle cx='17' cy='19' r='1.6'/%3E%3C/svg%3E");
+}
+body.nuit .sheet-foot #add::before{
+  content:'';width:19px;height:19px;flex:none;
+  background:currentColor;
+  -webkit-mask:var(--ic-panier) center/contain no-repeat;
+          mask:var(--ic-panier) center/contain no-repeat;
 }

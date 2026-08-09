@@ -315,26 +315,32 @@
     UI.sheet({
       title: item.name,
       body:
+        /* Les mesures passent en classes — `.dish-hero`, `.opt-lab`, `.opt-row`,
+           aux mêmes valeurs. Un style en ligne l'emporte sur toute feuille :
+           tant que la bordure et le remplissage des lignes étaient écrits ici,
+           aucun thème ne pouvait les redessiner. Les deux listes portent
+           désormais la MÊME classe : le format et les suppléments se ressemblent
+           déjà à l'œil, ils doivent se désigner pareil. */
         (item.image_url
-          ? '<div style="height:170px;border-radius:16px;background:#F2EDE5 center/cover no-repeat;background-image:url(' + U.escUrl(item.image_url) + ');margin-bottom:14px"></div>'
+          ? '<div class="dish-hero" style="background-image:url(' + U.escUrl(item.image_url) + ')"></div>'
           : '') +
         (item.description ? '<p class="sub" style="margin-bottom:14px">' + U.esc(item.description) + '</p>' : '') +
         (formats.length
-          ? '<div class="h3" style="margin-bottom:10px">Format</div><div class="stack" style="gap:8px;margin-bottom:16px">' +
+          ? '<div class="h3 opt-lab">Format</div><div class="stack" style="gap:8px;margin-bottom:16px">' +
             formats.map((v, i) =>
-              '<label class="row-between opt-row" style="padding:11px 13px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer">' +
+              '<label class="row-between opt-row">' +
                 '<span class="row" style="gap:10px"><input type="radio" name="fmt" data-fmt="' + i + '"' +
-                  (i === 0 ? ' checked' : '') + ' style="width:18px;height:18px;accent-color:var(--brand)">' +
+                  (i === 0 ? ' checked' : '') + '>' +
                 U.esc(v.name) + '</span>' +
                 '<b class="price">' + U.money(v.price) + '</b>' +
               '</label>').join('') + '</div>'
           : '<div class="h2 price" style="margin-bottom:14px">' + U.money(item.price) + '</div>') +
         (opts.length
-          ? '<div class="h3" style="margin-bottom:10px">Suppléments <span class="tiny">(facultatif)</span></div>' +
+          ? '<div class="h3 opt-lab">Suppléments <span class="tiny">(facultatif)</span></div>' +
             '<div class="stack" style="gap:8px">' +
             opts.map((o, i) =>
-              '<label class="row-between" style="padding:11px 13px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer">' +
-                '<span class="row" style="gap:10px"><input type="checkbox" data-opt="' + i + '" style="width:18px;height:18px;accent-color:var(--brand)">' +
+              '<label class="row-between opt-row">' +
+                '<span class="row" style="gap:10px"><input type="checkbox" data-opt="' + i + '">' +
                 U.esc(o.name) + '</span>' +
                 '<b class="' + (o.extra_price ? 'price' : 'tiny') + '">' + (o.extra_price ? '+ ' + U.money(o.extra_price) : 'Gratuit') + '</b>' +
               '</label>').join('') + '</div>'
