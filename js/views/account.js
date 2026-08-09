@@ -1511,6 +1511,31 @@
         this.setAttribute('aria-label', cache ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
       });
 
+      /* LES BOUTONS D'ABORD, ET SANS CONDITION.
+
+         Ils étaient accrochés à la fin de cette fonction, APRÈS le garde-fou
+         `if (!neuf) return;` qui protège l'indicateur de force. Or l'écran
+         « nous envoyons un code » n'a aucun champ de mot de passe : `#secNew`
+         y est absent, la fonction sortait aussitôt, et plus rien n'était
+         branché. « Recevoir le code » ne répondait pas, et on ne pouvait même
+         plus revenir en arrière.
+
+         Un garde-fou ne doit protéger que ce qui le concerne. Celui-ci ne
+         garde plus que le mesureur de force, qui est le seul à avoir besoin du
+         champ. */
+      const env = view.querySelector('#envoyer');
+      if (env) env.onclick = demander;
+      const re = view.querySelector('#renvoyer');
+      if (re) re.onclick = demander;
+      const fs = view.querySelector('#sf');
+      if (fs) fs.onsubmit = enregistrer;
+      const fa = view.querySelector('#af');
+      if (fa) fa.onsubmit = enregistrerAvecActuel;
+      const pe = view.querySelector('#parEmail');
+      if (pe) pe.onclick = () => { voie = 'demande'; paint(); };
+      const pa = view.querySelector('#parActuel');
+      if (pa) pa.onclick = () => { voie = 'actuel'; paint(); };
+
       const neuf = view.querySelector('#secNew');
       const conf = view.querySelector('#secConf');
       const boite = view.querySelector('#secForce');
@@ -1555,18 +1580,6 @@
       if (conf) conf.oninput = revoir;
       revoir();
 
-      const env = view.querySelector('#envoyer');
-      if (env) env.onclick = demander;
-      const re = view.querySelector('#renvoyer');
-      if (re) re.onclick = demander;
-      const fs = view.querySelector('#sf');
-      if (fs) fs.onsubmit = enregistrer;
-      const fa = view.querySelector('#af');
-      if (fa) fa.onsubmit = enregistrerAvecActuel;
-      const pe = view.querySelector('#parEmail');
-      if (pe) pe.onclick = () => { voie = 'demande'; paint(); };
-      const pa = view.querySelector('#parActuel');
-      if (pa) pa.onclick = () => { voie = 'actuel'; paint(); };
     }
 
     /* Les contrôles restent DANS les fonctions d'envoi, en plus de la
