@@ -511,18 +511,13 @@
         const moyPrep = prep.length
           ? Math.round(prep.reduce((a, r) => a + (+r.prep_time_min), 0) / prep.length) : 0;
         const trajet = (U.deliveryFor(3, Store.settings).minutes || 0);
-        const notes = list.filter(r => +r.rating_count > 0);
-        const poids = notes.reduce((a, r) => a + (+r.rating_count), 0);
-        const moyNote = poids
-          ? (notes.reduce((a, r) => a + (+r.rating) * (+r.rating_count), 0) / poids) : 0;
 
         st.innerHTML =
           chiffre(UI.icon('store', 20), list.length + (list.length > 1 ? '+' : ''), 'Restaurants') +
           chiffre(UI.icon('pin', 20), String(Store.zones.length), 'Quartiers couverts') +
           (moyPrep
-            ? chiffre(UI.icon('clock', 20), '~ ' + (moyPrep + trajet) + ' min', 'Livraison moyenne') : '') +
-          (moyNote
-            ? chiffre(UI.icon('medal', 20), moyNote.toFixed(1) + ' / 5', 'Note moyenne') : '');
+            ? chiffre(UI.icon('clock', 20), (moyPrep + trajet) + ' min', 'Livraison moyenne') : '') +
+          '';
       }
     })();
 

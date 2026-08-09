@@ -9814,15 +9814,17 @@ body.nuit #view .mp-repere.moi{border-color:#0E0E10}
 .h3d-cats{margin:18px -16px 4px;padding:0 16px}
 .h3d-cats .cat-scroll{padding-bottom:4px}
 
-/* ---- la quatrième tuile de chiffres ----
-   Trois tenaient sur une ligne, quatre non : elles passent en deux par deux
-   sous 420 px, plutôt que de se serrer jusqu'à couper « Quartiers couverts ». */
-@media(max-width:419px){
-  .h3d-stats{flex-wrap:wrap}
-  .h3d-stats > div{flex:1 1 calc(50% - 1px)}
-  /* Le séparateur vertical n'a plus de sens sur deux rangées. */
-  .h3d-stats > div + div::before{display:none}
-}
+/* ---- les chiffres restent à TROIS, sur une seule ligne ----
+   J'avais ajouté une quatrième tuile — la note moyenne — et écrit une requête
+   média pour les répartir deux par deux en dessous de 420 px. Elle ne pouvait
+   pas marcher : `.h3d-stats` est une GRILLE à trois colonnes fixes, et
+   `flex-wrap` comme `flex` y sont purement ignorés. La quatrième tuile passait
+   donc seule à la ligne, et les trois autres se serraient jusqu'à couper
+   « 33 min » en « 33 m ».
+
+   La tuile est retirée et la requête média avec elle. Une règle qui ne peut pas
+   s'appliquer est pire qu'une règle absente : elle laisse croire que le cas est
+   traité. */
 
 /* ==========================================================================
    LE MÊME EN THÈME CLAIR
