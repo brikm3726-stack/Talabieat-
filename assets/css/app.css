@@ -6690,6 +6690,8 @@ body.pref-clair .ent-actions{padding-top:12px}
 body.pref-clair.ecran-restaurants .topbar,
 body.pref-clair.ecran-commandes .topbar,
 body.pref-clair.ecran-compte .topbar,
+body.pref-clair.ecran-resto .topbar,
+body.pref-clair.ecran-panier .topbar,
 body.pref-clair.ecran-inscription .topbar{
   background:rgba(255,255,255,.94);
   border-bottom:1px solid var(--jr-bord);
@@ -6697,6 +6699,8 @@ body.pref-clair.ecran-inscription .topbar{
 body.pref-clair.ecran-restaurants .topbar-in,
 body.pref-clair.ecran-commandes .topbar-in,
 body.pref-clair.ecran-compte .topbar-in,
+body.pref-clair.ecran-resto .topbar-in,
+body.pref-clair.ecran-panier .topbar-in,
 body.pref-clair.ecran-inscription .topbar-in{position:relative}
 
 /* Le mot-marque au centre, sur ces écrans aussi : les quatre maquettes le
@@ -6705,6 +6709,8 @@ body.pref-clair.ecran-inscription .topbar-in{position:relative}
 body.pref-clair.ecran-restaurants .brand-nuit,
 body.pref-clair.ecran-commandes .brand-nuit,
 body.pref-clair.ecran-compte .brand-nuit,
+body.pref-clair.ecran-resto .brand-nuit,
+body.pref-clair.ecran-panier .brand-nuit,
 body.pref-clair.ecran-inscription .brand-nuit{
   display:flex;flex-direction:column;align-items:center;
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -6733,6 +6739,8 @@ body.pref-clair .topbar .zone-pick .pin-ic{color:var(--brand)}
 body.pref-clair.ecran-restaurants .topbar .icon-btn,
 body.pref-clair.ecran-commandes .topbar .icon-btn,
 body.pref-clair.ecran-compte .topbar .icon-btn,
+body.pref-clair.ecran-resto .topbar .icon-btn,
+body.pref-clair.ecran-panier .topbar .icon-btn,
 body.pref-clair.ecran-inscription .topbar .icon-btn{
   width:44px;height:44px;border-radius:15px;
   background:#fff;border:1px solid rgba(255,101,0,.28);
@@ -7080,3 +7088,262 @@ body.app-client .toasts{
 /* La porte d'entrée masque la barre du haut (`body.ent-open`) : sans ce retour
    à la normale, les messages y flotteraient dans le vide. */
 body.app-client.ent-open .toasts{top:14px}
+
+/* ==========================================================================
+   MESURES SORTIES DE L'ATTRIBUT « STYLE » — FICHE RESTAURANT
+   --------------------------------------------------------------------------
+   Ces trois règles ne changent rien à ce qui s'affiche : elles reprennent, au
+   pixel près, ce que le HTML portait en ligne. Le déplacement est le point :
+   un style en ligne l'emporte sur toute feuille, sans exception et sans
+   `!important` possible côté thème. Tant qu'il était là, la couverture, le
+   bouton retour et la fiche qui la chevauche étaient hors d'atteinte — on ne
+   pouvait pas les redessiner en clair sans les redessiner aussi en sombre.
+   ========================================================================== */
+.rp-cover{aspect-ratio:auto;height:190px;border-radius:0}
+.rp-back{position:absolute;top:14px;left:14px}
+.rp-fiche{margin-top:-38px;position:relative;z-index:2}
+
+/* ==========================================================================
+   LE COMPTEUR DU PANIER SE LISAIT MAL — ET C'ÉTAIT GÉOMÉTRIQUE
+   --------------------------------------------------------------------------
+   La pastille faisait 18 px de haut avec `line-height:18px`… et 2 px de
+   bordure de chaque côté. Le projet est en `box-sizing:border-box` : la
+   bordure se prend SUR les 18 px, il ne restait donc que 14 px de hauteur
+   intérieure pour une ligne de texte de 18. Le chiffre débordait de sa propre
+   boîte, décentré vers le bas, dans 10,5 px de corps. D'où « on ne le voit pas
+   bien » : il n'était pas caché, il était mal posé et minuscule.
+
+   Trois corrections, et il faut les trois :
+
+   1. LA BORDURE DEVIENT UN ANNEAU. `box-shadow: 0 0 0 2px` se dessine EN
+      DEHORS de la boîte : l'anneau reste, la place intérieure revient. C'est
+      la règle générale à retenir — une bordure sur une pastille de 18 px lui
+      coûte le quart de sa hauteur.
+   2. LE CENTRAGE PASSE EN FLEX. `line-height` calé sur une hauteur qu'on
+      remesure ensuite est un accord fragile ; `place-items:center` centre quoi
+      qu'il arrive, à 1 chiffre comme à « 99+ ».
+   3. ELLE GRANDIT. 22 px et 12,5 px de corps en 900 : un compteur qu'on lit
+      d'un coup d'œil, sans chercher.
+
+   L'orange du chiffre passe de #E85400 à #B83A00 : sur blanc, le premier
+   donnait 3,4 contre 1, sous le minimum lisible pour du petit texte. Le second
+   dépasse 5 contre 1, et reste franchement orange.
+
+   CE CORRECTIF VAUT POUR LES DEUX THÈMES, et c'est voulu : le défaut est une
+   erreur de mesure, pas une couleur. Le réparer en clair seulement aurait
+   laissé le sombre avec le chiffre de travers.
+   ========================================================================== */
+body.app-client .bottomnav .nav-badge{
+  display:grid;place-items:center;
+  min-width:22px;height:22px;padding:0 6px;
+  font-size:12.5px;font-weight:900;line-height:1;
+  font-variant-numeric:tabular-nums;
+  border:0;                      /* remplacée par l'anneau, voir plus bas */
+}
+/* Sur le cercle orange saillant : pastille blanche, chiffre orange sombre,
+   anneau orange qui la détache du cercle sans lui prendre de place. */
+body.app-client .bottomnav a[data-p="/cart"] .nav-badge{
+  top:-3px;right:-3px;
+  border:0;                     /* voir l anneau : la bordure lui coûtait 4 px */
+  background:#FFFFFF;color:#B83A00;
+  box-shadow:0 0 0 2px #E85400, 0 2px 7px rgba(0,0,0,.3);
+}
+body.pref-clair .bottomnav a[data-p="/cart"] .nav-badge{
+  background:#FFFFFF;color:#B83A00;
+  border:0;
+  box-shadow:0 0 0 2px #E85400, 0 2px 7px rgba(16,24,40,.28);
+}
+
+/* Les onglets de catégories collent sous la barre du haut, et cette barre ne
+   mesure plus 60 px depuis qu'elle réserve l'encoche : `top:60px` la faisait
+   passer DERRIÈRE. Même expression que partout ailleurs, une seule vérité. */
+body.app-client .menu-tabs{top:var(--barre-h);scroll-margin-top:var(--barre-h)}
+
+/* ==========================================================================
+   THÈME CLAIR — FICHE RESTAURANT (maquette « 355 »)
+   --------------------------------------------------------------------------
+   L'écran est accroché par `body.pref-clair.ecran-resto` : `ecran-resto` est
+   posé par UI.nuit() dans les deux thèmes, `pref-clair` seulement quand le
+   mode sombre est éteint. La conjonction ne peut pas s'appliquer en sombre.
+
+   Le parti de la maquette est celui des écrans du dossier « nv » : un gris à
+   peine gris derrière, des cartes blanches détachées par un liseré fin et une
+   ombre basse. La liste des restaurants est déjà dessinée comme ça — c'est
+   d'ailleurs le défaut signalé : on touchait une carte claire et la fiche
+   s'ouvrait dans l'ancien crème.
+   ========================================================================== */
+body.pref-clair.ecran-resto{background:var(--jr-fond)}
+
+/* ---- la couverture n'est plus à fond perdu ----
+   Elle est encadrée de 16 px et arrondie à 22 : la maquette la montre posée
+   SUR le fond, pas soudée à la barre du haut. */
+body.pref-clair.ecran-resto .rp-cover{
+  margin:14px 16px 0;height:196px;
+  border-radius:22px;overflow:hidden;
+  background-color:#EFF1F4;
+  box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-resto .rp-back{
+  top:12px;left:12px;
+  width:42px;height:42px;border-radius:14px;
+  background:#fff;border:1px solid var(--jr-bord);color:#16181D;
+  box-shadow:0 2px 8px rgba(16,24,40,.18);
+  font-size:19px;
+}
+body.pref-clair.ecran-resto .closed-ov{
+  background:rgba(16,18,29,.42);
+  font-size:12.5px;letter-spacing:.14em;
+}
+
+/* ---- la fiche du restaurant ---- */
+body.pref-clair.ecran-resto .card{
+  background:#fff;border:1px solid var(--jr-bord);
+  border-radius:22px;box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-resto .rp-fiche{margin-top:-30px}
+body.pref-clair.ecran-resto .h2{color:#16181D;letter-spacing:-.02em;font-weight:800}
+body.pref-clair.ecran-resto .resto-meta{color:var(--jr-doux)}
+body.pref-clair.ecran-resto .resto-meta b{color:#16181D}
+body.pref-clair.ecran-resto .tag-muted{background:#F3F4F6;color:#6B7280}
+body.pref-clair.ecran-resto .tag-ok{background:#E8F7EF;color:#0F9D58}
+body.pref-clair.ecran-resto .divider{background:var(--jr-bord)}
+body.pref-clair.ecran-resto .tiny{color:var(--jr-doux)}
+body.pref-clair.ecran-resto .tiny b{color:#16181D}
+body.pref-clair.ecran-resto .sub{color:var(--jr-doux)}
+/* L'épingle de l'adresse en orange : c'est le seul repère coloré de ce bloc
+   d'informations, et il désigne ce qui compte le plus — où c'est. */
+body.pref-clair.ecran-resto .tiny .pin-ic,
+body.pref-clair.ecran-resto .tiny svg{color:var(--brand);stroke:var(--brand)}
+
+/* ---- l'avis « restaurant fermé » ----
+   La maquette n'en fait pas un bandeau jaune mais une carte blanche à texte
+   orange : sur ce fond, un aplat de couleur pleine crierait plus fort que la
+   fiche du restaurant elle-même, alors qu'il ne dit qu'un horaire. */
+body.pref-clair.ecran-resto .banner-warn{
+  background:#fff;border:1px solid rgba(255,101,0,.26);
+  border-radius:18px;color:#C2410C;
+  box-shadow:var(--jr-ombre);
+}
+
+/* ---- les onglets de catégories ---- */
+body.pref-clair.ecran-resto .menu-tabs{
+  background:var(--jr-fond);
+  border-bottom:1px solid var(--jr-bord);
+}
+body.pref-clair.ecran-resto .chip{
+  background:#fff;border:1px solid var(--jr-bord);color:#374151;
+  font-weight:700;box-shadow:0 1px 2px rgba(16,24,40,.04);
+}
+body.pref-clair.ecran-resto .chip-n{background:#F3F4F6;color:#6B7280;font-weight:800}
+body.pref-clair.ecran-resto .chip.on{
+  background:#16181D;border-color:#16181D;color:#fff;
+  box-shadow:0 6px 16px -8px rgba(16,24,40,.6);
+}
+body.pref-clair.ecran-resto .chip.on .chip-n{background:rgba(255,255,255,.2);color:#fff}
+
+/* ---- le titre de section et les plats ---- */
+body.pref-clair.ecran-resto .section-head .h3{color:#16181D;font-weight:800}
+body.pref-clair.ecran-resto .dish{
+  background:#fff;border:1px solid var(--jr-bord);
+  border-radius:20px;box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-resto .dish-img{
+  border-radius:16px;background-color:#F3F4F6;border:1px solid var(--jr-bord);
+}
+body.pref-clair.ecran-resto .dish-name{color:#16181D;font-weight:800}
+body.pref-clair.ecran-resto .dish-desc{color:var(--jr-doux)}
+body.pref-clair.ecran-resto .price{color:#E8422A}
+/* Le « + » : rond, orange pâle, signe orange — la maquette en fait une touche
+   discrète, pas un bouton d'action principale. */
+body.pref-clair.ecran-resto .add-btn{
+  border-radius:50%;background:#FFF1EA;color:#E8422A;
+  border:1px solid rgba(255,101,0,.22);
+}
+
+/* ==========================================================================
+   THÈME CLAIR — PANIER (maquette « 356 »)
+   ========================================================================== */
+body.pref-clair.ecran-panier{background:var(--jr-fond)}
+body.pref-clair.ecran-panier .h1{color:#16181D;letter-spacing:-.03em;font-weight:900}
+body.pref-clair.ecran-panier .sub{color:var(--jr-doux)}
+
+/* ---- « Vider » ----
+   La maquette en fait une capsule blanche à corbeille orange, pas un bouton
+   rouge. Il retire des plats : il doit rester sobre, sinon il attire le doigt
+   plus que « Continuer la commande ».
+
+   La corbeille est dessinée en CSS, par masque, et non ajoutée au HTML : le
+   HTML est commun aux deux thèmes, et une icône posée là apparaîtrait aussi en
+   sombre — ce qui est exclu. `currentColor` la teinte, donc elle suit le texte
+   sans qu'aucune couleur soit écrite deux fois. */
+body.pref-clair.ecran-panier .btn-danger{
+  background:#fff;border:1px solid rgba(255,101,0,.28);
+  color:#E8422A;border-radius:999px;font-weight:800;
+  box-shadow:var(--jr-ombre);
+  display:inline-flex;align-items:center;gap:8px;
+}
+body.pref-clair.ecran-panier .btn-danger::before{
+  content:'';width:17px;height:17px;flex:none;
+  background:currentColor;
+  -webkit-mask:var(--ic-corbeille) center/contain no-repeat;
+          mask:var(--ic-corbeille) center/contain no-repeat;
+}
+body.app-client.pref-clair{
+  --ic-corbeille:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5'/%3E%3C/svg%3E");
+}
+
+/* ---- les lignes du panier ---- */
+body.pref-clair.ecran-panier .card{
+  background:#fff;border:1px solid var(--jr-bord);
+  border-radius:22px;box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-panier .cart-row{border-bottom:1px solid var(--jr-bord)}
+body.pref-clair.ecran-panier .cart-row b{color:#16181D}
+body.pref-clair.ecran-panier .dish-img{
+  border-radius:15px;background-color:#F3F4F6;border:1px solid var(--jr-bord);
+}
+body.pref-clair.ecran-panier .tag-muted{background:#F3F4F6;color:#6B7280;font-weight:700}
+body.pref-clair.ecran-panier .tiny{color:var(--jr-doux)}
+body.pref-clair.ecran-panier .price{color:#E8422A}
+
+/* ---- le compteur de quantité ----
+   Rectangle très arrondi, fond blanc, liseré fin : la maquette le montre plus
+   large que haut, avec de l'air autour du chiffre. Les deux boutons sont
+   transparents — c'est le cadre qui fait l'objet, pas trois pastilles. */
+body.pref-clair.ecran-panier .qty{
+  background:#fff;border:1px solid var(--jr-bord);
+  border-radius:18px;padding:3px 4px;gap:4px;
+  box-shadow:0 1px 2px rgba(16,24,40,.05);
+}
+body.pref-clair.ecran-panier .qty button{
+  background:transparent;color:#4B5563;
+  border-radius:13px;font-size:19px;font-weight:600;
+}
+body.pref-clair.ecran-panier .qty button:hover{background:#F3F4F6;color:#16181D}
+body.pref-clair.ecran-panier .qty b{
+  color:#16181D;font-weight:800;font-size:15px;min-width:24px;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---- le récapitulatif ---- */
+body.pref-clair.ecran-panier .oline{color:#16181D}
+body.pref-clair.ecran-panier .oline .l{color:var(--jr-doux)}
+body.pref-clair.ecran-panier .divider{background:var(--jr-bord)}
+
+/* ---- les deux boutons du bas ----
+   Le dégradé de la maquette va de gauche à droite et finit rouge orangé ; le
+   dégradé général du projet part en diagonale et finit rose framboise. C'est
+   visible côte à côte sur un bouton de cette largeur. */
+body.pref-clair.ecran-panier .btn-primary{
+  background:linear-gradient(90deg,#F97316 0%,#F0522A 58%,#E8422A 100%);
+  border-radius:16px;
+  box-shadow:0 10px 24px -10px rgba(240,82,42,.65);
+}
+body.pref-clair.ecran-panier .btn-ghost{
+  background:#fff;border:1px solid var(--jr-bord);color:#16181D;
+  border-radius:16px;font-weight:800;box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-panier .banner-warn{
+  background:#fff;border:1px solid rgba(255,101,0,.26);
+  border-radius:18px;color:#C2410C;box-shadow:var(--jr-ombre);
+}

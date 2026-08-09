@@ -198,14 +198,18 @@
     const emoji = (r.category_list && r.category_list[0] && r.category_list[0].icon) || '🍽️';
 
     view.innerHTML =
-      '<div class="resto-cover" style="' + cover + ';aspect-ratio:auto;height:190px;border-radius:0">' +
+      /* Les mesures de la couverture, du bouton retour et de la fiche qui la
+         chevauche sont passées de l'attribut `style` à des classes — mêmes
+         valeurs, au pixel près. Un style en ligne l'emporte sur toute feuille :
+         tant qu'il était là, aucun thème ne pouvait redessiner cette page. */
+      '<div class="resto-cover rp-cover" style="' + cover + '">' +
         (cover ? '' : '<div style="height:100%;display:grid;place-items:center;font-size:64px;opacity:.3">' + emoji + '</div>') +
-        '<button class="icon-btn" id="back" style="position:absolute;top:14px;left:14px">←</button>' +
+        '<button class="icon-btn rp-back" id="back">←</button>' +
         (r.open_now ? '' : '<div class="closed-ov">FERMÉ ACTUELLEMENT</div>') +
       '</div>' +
 
       '<div class="wrap page" style="padding-top:0">' +
-        '<div class="card card-p" style="margin-top:-38px;position:relative;z-index:2">' +
+        '<div class="card card-p rp-fiche">' +
           '<div class="row" style="gap:13px;align-items:flex-start">' +
             '<div style="width:58px;height:58px;border-radius:17px;background:#fff center/cover no-repeat;' + logo +
               ';border:1px solid var(--line);display:grid;place-items:center;font-size:26px;flex:none">' + (logo ? '' : emoji) + '</div>' +
