@@ -6669,3 +6669,319 @@ body.pref-clair.ent-open{background:#F6F6F7}
    sur un téléphone court. */
 body.pref-clair .ent-t{margin-top:20px}
 body.pref-clair .ent-actions{padding-top:12px}
+
+/* ==========================================================================
+   THÈME CLAIR — RESTAURANTS, COMMANDES, COMPTE, CRÉER UN COMPTE
+   --------------------------------------------------------------------------
+   Maquettes du dossier « nv » : theme restaurant 2, theme commande 2,
+   theme compte talabi, theme de cree un compte pour clair theme.
+
+   TOUT CE QUI SUIT EST SOUS `body.pref-clair.ecran-…`.
+   Le thème sombre n'est pas touché d'une déclaration : `pref-clair` n'existe
+   que si l'utilisateur a éteint le mode sombre, et `ecran-<nom>` désigne un
+   seul écran. Aucune de ces règles ne peut s'appliquer ailleurs.
+
+   UN ÉCART ASSUMÉ AVEC LES MAQUETTES : la pastille du quartier.
+   « theme restaurant 2 » la montre blanche cerclée, « theme commande 2 » et
+   « theme compte talabi » en orange plein. C'est le MÊME bouton sur les trois
+   écrans : le voir changer de couleur en changeant d'onglet se lit comme un
+   défaut, pas comme une intention. Il est donc blanc partout, comme sur les
+   deux maquettes qui redessinent le plus (accueil et restaurants).
+   ========================================================================== */
+
+/* ---- la barre du haut, commune aux quatre écrans clairs ----------------- */
+body.pref-clair.ecran-restaurants .topbar,
+body.pref-clair.ecran-commandes .topbar,
+body.pref-clair.ecran-compte .topbar,
+body.pref-clair.ecran-inscription .topbar{
+  background:rgba(255,255,255,.94);
+  border-bottom:1px solid var(--jr-bord);
+}
+body.pref-clair.ecran-restaurants .topbar-in,
+body.pref-clair.ecran-commandes .topbar-in,
+body.pref-clair.ecran-compte .topbar-in,
+body.pref-clair.ecran-inscription .topbar-in{position:relative}
+
+/* Le mot-marque au centre, sur ces écrans aussi : les quatre maquettes le
+   montrent, et une barre dont le centre se vide d'un onglet à l'autre donne
+   l'impression d'avoir changé d'application. */
+body.pref-clair.ecran-restaurants .brand-nuit,
+body.pref-clair.ecran-commandes .brand-nuit,
+body.pref-clair.ecran-compte .brand-nuit,
+body.pref-clair.ecran-inscription .brand-nuit{
+  display:flex;flex-direction:column;align-items:center;
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  line-height:1;text-decoration:none;color:#16181D;
+}
+body.pref-clair .brand-nuit .arc{width:74px;color:var(--brand);margin-bottom:-5px}
+body.pref-clair .brand-nuit .arc svg{display:block;width:100%;height:auto}
+body.pref-clair .brand-nuit .mot{
+  font-size:31px;font-weight:900;letter-spacing:-1.6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+body.pref-clair .brand-nuit .mot i{font-style:normal;color:var(--brand)}
+@media(max-width:379px){
+  body.pref-clair .brand-nuit .arc{width:64px}
+  body.pref-clair .brand-nuit .mot{font-size:26px}
+}
+
+/* Le quartier, blanc cerclé (voir la note en tête de bloc). Le `background`
+   raccourci est indispensable : la règle d'origine pose un DÉGRADÉ orange, et
+   une simple couleur de fond le laisserait dessiné par-dessus. */
+body.pref-clair.ecran-restaurants .topbar .zone-pick,
+body.pref-clair.ecran-commandes .topbar .zone-pick,
+body.pref-clair.ecran-compte .topbar .zone-pick,
+body.pref-clair.ecran-inscription .topbar .zone-pick{
+  background:#fff;box-shadow:none;
+  border:1px solid var(--jr-bord);border-radius:999px;
+  color:#16181D;font-size:13px;font-weight:650;
+  padding:7px 13px 7px 11px;max-width:132px;min-width:0;gap:7px;
+}
+body.pref-clair .topbar .zone-pick svg{stroke:var(--brand);color:var(--brand)}
+body.pref-clair .topbar .zone-pick .pin-ic{color:var(--brand)}
+
+/* La cloche : carré arrondi blanc, liseré orange pâle, cloche orange — c'est
+   ce que montrent les trois maquettes où elle apparaît, et non un rond. */
+body.pref-clair.ecran-restaurants .topbar .icon-btn,
+body.pref-clair.ecran-commandes .topbar .icon-btn,
+body.pref-clair.ecran-compte .topbar .icon-btn,
+body.pref-clair.ecran-inscription .topbar .icon-btn{
+  width:44px;height:44px;border-radius:15px;
+  background:#fff;border:1px solid rgba(255,101,0,.28);
+  color:var(--brand);
+  box-shadow:0 1px 2px rgba(16,24,40,.04);
+}
+body.pref-clair .topbar .badge-dot{border-width:2px;border-color:#fff}
+
+/* ==========================================================================
+   RESTAURANTS — maquette « theme restaurant 2 »
+   ========================================================================== */
+body.pref-clair.ecran-restaurants{background:var(--jr-fond)}
+body.pref-clair.ecran-restaurants .h1{color:#16181D;letter-spacing:-.03em}
+body.pref-clair.ecran-restaurants .sub{color:var(--jr-doux)}
+/* « Mon quartier » : pastille blanche à l'épingle orange, comme la maquette —
+   le bouton fantôme d'origine était trop discret pour se voir sur du blanc. */
+body.pref-clair.ecran-restaurants .btn-ghost{
+  background:#fff;border:1px solid var(--jr-bord);color:#16181D;
+  box-shadow:var(--jr-ombre);border-radius:14px;font-weight:700;
+}
+body.pref-clair.ecran-restaurants .btn-ghost .pin-ic,
+body.pref-clair.ecran-restaurants .btn-ghost svg{color:var(--brand);stroke:var(--brand)}
+
+/* ---- la recherche : pastille blanche, sans bouton ---- */
+body.pref-clair.ecran-restaurants .search input{
+  background:#fff;border:1px solid var(--jr-bord);
+  border-radius:18px;min-height:52px;padding-left:46px;
+  box-shadow:var(--jr-ombre);color:#16181D;
+}
+body.pref-clair.ecran-restaurants .search input::placeholder{color:#9AA0A8}
+body.pref-clair.ecran-restaurants .search::before{opacity:.45}
+
+/* ---- l'aiguillage Restaurants / Plats ----
+   Rail gris très clair, onglet actif en pastille BLANCHE au texte orange. */
+body.pref-clair.ecran-restaurants .tabs{
+  background:#F1F2F5;border:none;padding:5px;border-radius:16px;
+}
+body.pref-clair.ecran-restaurants .tabs button{color:#6B7280;font-weight:700}
+body.pref-clair.ecran-restaurants .tabs button.on{
+  background:#fff;color:var(--brand);
+  box-shadow:0 1px 2px rgba(16,24,40,.06), 0 4px 12px -8px rgba(16,24,40,.2);
+}
+
+/* ---- les catégories ----
+   « Tout » est un rond ORANGE PLEIN sur cette maquette, là où le thème sombre
+   le montre creux : sur du blanc, un cercle creux ne se distingue plus des
+   logos qui l'entourent. */
+body.pref-clair.ecran-restaurants .cat-item .bubble{
+  background-color:#fff;border:2px solid var(--jr-bord);
+  box-shadow:0 1px 3px rgba(16,24,40,.06);
+}
+body.pref-clair.ecran-restaurants .cat-item .bubble-all{
+  background:var(--brand-grad);color:#fff;border-color:transparent;
+  box-shadow:0 6px 16px -6px rgba(255,101,0,.6);
+}
+body.pref-clair.ecran-restaurants .cat-item.on .bubble{
+  border-color:var(--brand);
+  box-shadow:0 0 0 3px rgba(255,101,0,.14), 0 8px 20px -8px rgba(255,101,0,.45);
+}
+body.pref-clair.ecran-restaurants .cat-item span{color:#4B5563}
+body.pref-clair.ecran-restaurants .cat-item.on span{color:var(--brand);font-weight:800}
+
+/* ---- les cartes de restaurant ---- */
+body.pref-clair.ecran-restaurants .rcard{
+  background:#fff;border:1px solid var(--jr-bord);box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-restaurants .rcard.feat{
+  border:1px solid var(--jr-bord);
+  box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-restaurants .rc-bas{background:#fff}
+body.pref-clair.ecran-restaurants .rc-haut{
+  background:linear-gradient(105deg,#FFFFFF 0%,#FFF8F2 46%,#FFF2E7 100%);
+}
+body.pref-clair.ecran-restaurants .rc-note,
+body.pref-clair.ecran-restaurants .rc-etat{
+  background:#fff;border:1px solid var(--jr-bord);color:#16181D;
+  box-shadow:0 2px 8px -3px rgba(16,24,40,.18);
+}
+body.pref-clair.ecran-restaurants .rc-etat{color:#0F9D58}
+body.pref-clair.ecran-restaurants .rc-etat.ferme{color:#D92D20}
+body.pref-clair.ecran-restaurants .rc-nom{color:#16181D}
+body.pref-clair.ecran-restaurants .rc-meta{color:#6B7280}
+body.pref-clair.ecran-restaurants .rc-meta .m b{color:#16181D}
+body.pref-clair.ecran-restaurants .rc-lieu{color:#6B7280}
+
+/* ==========================================================================
+   COMMANDES — maquette « theme commande 2 »
+   ========================================================================== */
+/* Le fond est un pêche très pâle, pas le blanc des autres écrans : c'est ce
+   qui fait lire « mes commandes » comme un espace à soi. */
+body.pref-clair.ecran-commandes .orders-page{
+  background:
+    radial-gradient(620px 340px at 96% 2%, rgba(255,138,90,.14), transparent 62%),
+    radial-gradient(520px 320px at 0% 96%, rgba(255,138,90,.10), transparent 60%),
+    #FDF4F0;
+}
+body.pref-clair.ecran-commandes .ord-decor i{opacity:.06}
+body.pref-clair.ecran-commandes .orders-page .h1{color:#16181D}
+body.pref-clair.ecran-commandes .ord-sub{color:#8A8F98}
+
+/* Le rail des trois onglets : blanc, très arrondi, ombre douce. L'onglet actif
+   garde la pastille orange pleine — c'est le seul élément de l'écran qui doit
+   trancher. */
+body.pref-clair.ecran-commandes .ord-tabs{
+  background:#fff;border:none;
+  box-shadow:0 2px 6px rgba(196,120,74,.08), 0 14px 30px -20px rgba(196,120,74,.5);
+}
+body.pref-clair.ecran-commandes .ord-tabs button{color:#16181D}
+body.pref-clair.ecran-commandes .ord-tabs button + button::before{background:#EDEFF2}
+body.pref-clair.ecran-commandes .ord-tabs button.on{
+  background:var(--brand-grad);color:#fff;
+  box-shadow:0 8px 20px -8px rgba(255,101,0,.85);
+}
+
+/* L'écran vide reprend l'illustration d'origine — elle est dessinée pour un
+   fond clair, et `mix-blend-mode:multiply` la fond dans le pêche. */
+body.pref-clair.ecran-commandes .empty-scene .scene-title{color:#16181D}
+body.pref-clair.ecran-commandes .empty-scene .scene-sub{color:#8A8F98}
+body.pref-clair.ecran-commandes .ord-card{
+  background:#fff;border:1px solid var(--jr-bord);box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-commandes .ord-resto{color:#16181D}
+body.pref-clair.ecran-commandes .ord-meta{color:#4B5563}
+
+/* ==========================================================================
+   COMPTE — maquette « theme compte talabi »
+   ========================================================================== */
+/* Le crème d'origine laisse place au blanc franc de la maquette. */
+body.pref-clair.ecran-compte .account-page{
+  background:
+    radial-gradient(600px 340px at 98% 2%, rgba(255,138,61,.07), transparent 60%),
+    #FBFBFC;
+}
+body.pref-clair.ecran-compte .account-page::before{display:none}
+body.pref-clair.ecran-compte .acc-dots{opacity:.22}
+body.pref-clair.ecran-compte .account-page .card{
+  background:#fff;border:1px solid var(--jr-bord);
+  box-shadow:0 1px 2px rgba(16,24,40,.03), 0 6px 18px -14px rgba(16,24,40,.14);
+  border-radius:18px;
+}
+/* La pastille du pictogramme : carré arrondi pêche très pâle, dessin orange. */
+body.pref-clair.ecran-compte .acc-secu .ic,
+body.pref-clair.ecran-compte .acc-quick .ic,
+body.pref-clair.ecran-compte .acc-link .ic{
+  background:#FFF1E8;color:var(--brand);border-radius:14px;
+}
+body.pref-clair.ecran-compte .acc-secu b,
+body.pref-clair.ecran-compte .acc-link b{color:#16181D}
+body.pref-clair.ecran-compte .acc-secu .tiny,
+body.pref-clair.ecran-compte .acc-link .tiny{color:#6B7280}
+body.pref-clair.ecran-compte .acc-chev{color:#B6BCC6}
+/* Les deux contacts et la déconnexion : blanc, contour orange, texte orange. */
+body.pref-clair.ecran-compte .acc-aide-btns .btn{
+  background:#fff;border:1.5px solid var(--brand);color:var(--brand);
+  border-radius:14px;
+}
+body.pref-clair.ecran-compte .acc-logout .btn{
+  background:#fff;border:1.5px solid var(--brand);color:var(--brand);
+  border-radius:16px;
+}
+/* L'interrupteur : piste grise au repos, comme la maquette. */
+body.pref-clair.ecran-compte .switch .track{background:#D5D9E2}
+body.pref-clair.ecran-compte .switch input:checked + .track{background:var(--brand)}
+
+/* ==========================================================================
+   CRÉER UN COMPTE — maquette « theme de cree un compte pour clair theme »
+   ========================================================================== */
+body.pref-clair.ecran-inscription .auth-page{
+  background:#FAFAFB;
+  padding-top:0;
+}
+/* Les trois taches floues du thème d'origine disparaissent : la maquette a un
+   bandeau illustré à leur place, et trois `filter:blur()` sur de grandes
+   surfaces se paient en images perdues au défilement. */
+body.pref-clair.ecran-inscription .auth-blob{display:none}
+
+/* ---- le bandeau : le cavalier orange sur un décor de ville très pâle ----
+   Posé en fond de l'en-tête, hors du flux : un décor n'a pas à occuper une
+   colonne, et un fond ne peut décaler aucun texte. Il déborde à droite et se
+   dissout vers la gauche pour ne jamais passer sous le titre. */
+body.pref-clair.ecran-inscription .auth-head{
+  position:relative;
+  min-height:190px;
+  margin-bottom:0;
+  padding-top:18px;
+}
+body.pref-clair.ecran-inscription .auth-head::after{
+  content:'';position:absolute;right:-16px;top:0;bottom:0;
+  width:64%;max-width:300px;z-index:0;pointer-events:none;
+  background:url("../img/bg/scooter-inscription-jour.jpg") no-repeat 46% 62%;
+  background-size:cover;
+  -webkit-mask-image:linear-gradient(80deg,transparent 0,#000 34%,#000 100%);
+          mask-image:linear-gradient(80deg,transparent 0,#000 34%,#000 100%);
+}
+body.pref-clair.ecran-inscription .auth-headtext{position:relative;z-index:1}
+body.pref-clair.ecran-inscription .auth-rider{display:none}
+body.pref-clair.ecran-inscription .auth-brandrow{max-width:66%}
+body.pref-clair.ecran-inscription .auth-logo{width:88px}
+body.pref-clair.ecran-inscription .auth-head .h1{
+  max-width:74%;color:#16181D;font-size:27px;
+}
+body.pref-clair.ecran-inscription .auth-head .sub{max-width:64%;color:#6B7280}
+
+/* ---- la carte du formulaire : blanche, coins hauts très arrondis ----
+   Elle chevauche le bandeau, comme sur la maquette : c'est ce chevauchement
+   qui fait lire « une feuille posée sur l'affiche » et non deux blocs empilés. */
+body.pref-clair.ecran-inscription .auth-col > .card{
+  background:#fff;border:1px solid var(--jr-bord);
+  border-radius:26px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04), 0 -6px 30px -18px rgba(16,24,40,.16);
+  margin-top:-14px;position:relative;z-index:2;
+}
+body.pref-clair.ecran-inscription .btn-google{
+  background:#fff;border:1px solid var(--jr-bord);color:#16181D;
+  border-radius:16px;min-height:56px;font-weight:700;
+  box-shadow:0 1px 2px rgba(16,24,40,.04);
+}
+body.pref-clair.ecran-inscription .tiny{color:#8A8F98}
+/* « ou avec un email » en orange, entre deux filets pâles. */
+body.pref-clair.ecran-inscription .auth-ou{color:var(--brand);font-weight:700}
+body.pref-clair.ecran-inscription .auth-ou::before,
+body.pref-clair.ecran-inscription .auth-ou::after{background:#EDEFF2}
+body.pref-clair.ecran-inscription .field label{color:#16181D;font-weight:750}
+body.pref-clair.ecran-inscription .input,
+body.pref-clair.ecran-inscription select.input{
+  background:#fff;border:1px solid var(--jr-bord);
+  min-height:56px;border-radius:16px;color:#16181D;
+}
+body.pref-clair.ecran-inscription .input::placeholder{color:#9AA0A8}
+/* Le pictogramme de chaque champ : pêche très pâle, dessin orange. */
+body.pref-clair.ecran-inscription .input-ic > span{
+  background:#FFF1E8;color:var(--brand);border-radius:11px;
+}
+body.pref-clair.ecran-inscription .champ-oeil{color:#9AA0A8}
+body.pref-clair.ecran-inscription .champ-oeil.on{color:var(--brand)}
+body.pref-clair.ecran-inscription .btn-primary{
+  border-radius:16px;min-height:56px;
+  box-shadow:0 12px 26px -12px rgba(255,101,0,.7);
+}
