@@ -15,45 +15,190 @@
      faire cohabiter dans un seul gabarit aurait donné une carte qui ne
      convient nulle part.
      ---------------------------------------------------------------------- */
-  function carte(o) {
-    const d = new Date(o.created_at);
-    const jour = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' });
-    const heure = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  /* ======================================================================
+     MES COMMANDES
+     ----------------------------------------------------------------------
+     Quatre briques réutilisables : `cmdEnTete` le titre et son illustration,
+     `cmdSeg` le sélecteur, `cmdVive` la carte d'une commande en cours,
+     `cmdPassee` celle d'une commande terminée. L'écran se monte avec elles, et
+     l'état vide en réutilise deux.
 
-    return '<article class="ord-card" data-order="' + U.esc(o.id) + '">' +
-      '<span class="coin" aria-hidden="true"></span>' +
-      '<span class="filigrane" aria-hidden="true">' + UI.icon('package', 74) + '</span>' +
+     TROIS ÉCARTS AVEC LE BRIEF, ET ILS SONT DÉLIBÉRÉS.
 
-      '<div class="ord-top">' +
-        '<span class="ord-code">#' + U.esc(o.code) + '</span>' +
-        '<span class="ord-etat">' + U.statusIcon(o.status) + ' ' +
-          U.esc(U.statusLabel(o.status)) + '</span>' +
-        '<span class="ord-age">' + U.esc(U.ago(o.created_at)) + '</span>' +
-      '</div>' +
+     1. LA BARRE DU BAS GARDE « PANIER », PAS « RECHERCHE ». Elle a été réglée
+        en plusieurs passes — cercle orange saillant, barre qui remplit tout le
+        bas, rien en dessous. Le brief la redemande flottante à coins de 35 px,
+        ce qui contredit directement la consigne précédente ; et remplacer le
+        panier couperait le seul chemin vers la commande en cours. La recherche
+        existe déjà en haut de l'accueil et sur l'écran Restaurants.
 
-      '<div class="ord-resto">' + U.esc(o.restaurant ? o.restaurant.name : '') + '</div>' +
-      '<div class="ord-meta">' +
-        (o.items ? o.items.length : 0) + ' article(s)' +
-        '<span class="pt"></span>' + U.money(o.total) +
-      '</div>' +
+     2. L'ILLUSTRATION N'EST PAS UN RENDU 3D. Je n'en produis pas. La scène est
+        composée de ce qui existe : la photo du scooter — celle des deux thèmes,
+        qui se fond déjà dans la page — et deux pictogrammes qui flottent à des
+        rythmes différents pour le sac et le colis. Si tu fais faire un rendu,
+        il remplace la photo sans toucher au reste.
 
-      '<div class="ord-bas">' +
-        '<span class="quand">' +
-          UI.icon('calendar', 16) + ' ' + U.esc(jour) +
-          '<span class="sep"></span>' +
-          UI.icon('clock', 16) + ' ' + U.esc(heure) +
+     3. L'HEURE ESTIMÉE N'EST AFFICHÉE QUE QUAND ELLE PEUT ÊTRE CALCULÉE. Elle
+        vient de l'heure de la commande, du temps de préparation du restaurant
+        et du temps de trajet. Si l'un des trois manque, on affiche l'âge de la
+        commande à la place. Une heure d'arrivée inventée est la pire des
+        promesses : celle qu'on vérifie sur sa montre.
+     ====================================================================== */
+
+  /* Où en est la commande, de 0 à 4 — les mêmes quatre segments que la frise
+     de l'accueil et que l'écran de suivi. Un seul découpage pour les trois :
+     voir trois avancements différents pour une même commande ferait douter du
+     bon. */
+  const CMD_ETAPE = { pending: 0, accepted: 1, preparing: 1, ready: 2,
+                      driver_assigned: 3, delivering: 3, delivered: 4 };
+
+  function cmdAvance(o) {
+    const e = CMD_ETAPE[o.status];
+    return (e === undefined ? 1 : e) / 4;
+  }
+
+  /* Heure d'arrivée estimée, ou rien. `null` dit « je ne sais pas », et
+     l'appelant affiche autre chose — il ne comble pas le trou. */
+  function cmdArrivee(o) {
+    const prep = o.restaurant && +o.restaurant.prep_time_min;
+    if (!o.created_at || !prep) return null;
+    const trajet = (Store.deliveryFor && Store.deliveryFor(o) || {}).minutes;
+    if (!trajet) return null;
+    try {
+      const t = new Date(new Date(o.created_at).getTime() + (prep + trajet) * 60000);
+      if (isNaN(t)) return null;
+      return t.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return null; }
+  }
+
+  /* La vignette du restaurant : sa photo si elle existe, ses initiales sinon.
+     Un carré gris vide dirait « image manquante » ; deux lettres disent « ce
+     restaurant-là ». */
+  function cmdVignette(o) {
+    const r = o.restaurant || {};
+    const img = r.logo_url || r.cover_url || '';
+    return '<span class="cmd-vig"' +
+      (img ? ' style="background-image:url(' + U.escUrl(img) + ')"' : '') + '>' +
+      (img ? '' : U.esc(U.initials(r.name || '?'))) + '</span>';
+  }
+
+  function cmdEnTete() {
+    /* L'illustration de fond : un scooter au trait, très pâle, posé derrière le
+       titre. Discret veut dire qu'on ne le remarque pas en lisant — il est donc
+       sous le texte, dans une couleur à peine différente du fond. */
+    return '<header class="cmd-tete">' +
+      '<span class="cmd-tete-art" aria-hidden="true">' + UI.icon('scooter', 150) + '</span>' +
+      '<h1 class="cmd-h1">Mes commandes</h1>' +
+      '<p class="cmd-sub">Suivez vos commandes en temps réel et consultez ' +
+        'votre historique</p>' +
+    '</header>';
+  }
+
+  /* Le sélecteur. La capsule orange est un SEUL élément qui glisse, pas trois
+     fonds qu'on allume et qu'on éteint : c'est ce qui donne le mouvement d'un
+     onglet à l'autre. Sa position vient de `--i`, l'index de l'onglet actif,
+     posé sur le conteneur — donc une seule valeur à changer au clic. */
+  const CMD_ONGLETS = [['active', 'En cours'], ['done', 'Terminées'], ['all', 'Toutes']];
+
+  function cmdSeg(actif) {
+    const i = CMD_ONGLETS.findIndex(t => t[0] === actif);
+    return '<div class="cmd-seg" style="--i:' + (i < 0 ? 0 : i) + '" role="tablist">' +
+      '<span class="cmd-seg-pil" aria-hidden="true"></span>' +
+      CMD_ONGLETS.map(t =>
+        '<button type="button" role="tab" data-t="' + t[0] + '"' +
+          (t[0] === actif ? ' class="on" aria-selected="true"' : ' aria-selected="false"') +
+          '>' + t[1] + '</button>').join('') +
+    '</div>';
+  }
+
+  /* Une commande en cours. C'est la carte qui compte : elle répond à « où est
+     mon repas » sans qu'on ait à l'ouvrir. */
+  function cmdVive(o) {
+    const heure = cmdArrivee(o);
+    const av = cmdAvance(o);
+    const prenom = (o.driver && (o.driver.full_name || '').split(' ')[0]) || '';
+    const detail = o.status === 'delivering' && prenom ? prenom + ' arrive'
+                 : o.status === 'driver_assigned' && prenom ? prenom + ' va au restaurant'
+                 : U.statusLabel(o.status);
+
+    return '<article class="cmd-c vive" data-order="' + U.esc(o.id) + '" tabindex="0">' +
+      '<div class="cmd-c-haut">' +
+        cmdVignette(o) +
+        '<span class="cmd-c-txt">' +
+          '<b>' + U.esc((o.restaurant && o.restaurant.name) || 'Restaurant') + '</b>' +
+          '<span class="cmd-c-code">#' + U.esc(o.code) + ' · ' +
+            (o.items ? o.items.length : 0) + ' article' +
+            ((o.items && o.items.length > 1) ? 's' : '') + '</span>' +
         '</span>' +
-        '<span class="btn btn-primary ord-suivre">Suivre ' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
-            'stroke-linecap="round" stroke-linejoin="round" width="17" height="17">' +
-            '<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg></span>' +
+        '<span class="cmd-c-prix">' + U.esc(U.money(o.total)) + '</span>' +
+      '</div>' +
+
+      /* Le point qui bat dit « c'est en direct ». Sans lui, un état écrit une
+         fois ressemble à un état figé — et l'écran ne montrerait pas ce que
+         « temps réel » veut dire. */
+      '<div class="cmd-etat"><i class="pouls" aria-hidden="true"></i>' +
+        U.esc(detail) + '</div>' +
+
+      '<div class="cmd-jauge" role="progressbar" aria-valuemin="0" aria-valuemax="4" ' +
+        'aria-valuenow="' + Math.round(av * 4) + '">' +
+        '<span style="--p:' + Math.round(av * 100) + '%"></span></div>' +
+
+      '<div class="cmd-c-bas">' +
+        '<span class="cmd-eta">' + UI.icon(heure ? 'clock' : 'history', 16) + ' ' +
+          (heure ? 'Arrivée estimée · ' + U.esc(heure) : U.esc(U.ago(o.created_at))) +
+        '</span>' +
+        '<span class="cmd-suivre">Suivre ' + UI.icon('arrow-right', 17) + '</span>' +
       '</div>' +
     '</article>';
   }
 
-  /* ======================================================================
-     HISTORIQUE DES COMMANDES
-     ====================================================================== */
+  /* Une commande terminée. Pas de jauge, pas de pouls, pas de bouton : il n'y a
+     plus rien à suivre. Une ligne dense, qu'on parcourt. */
+  function cmdPassee(o) {
+    const d = new Date(o.created_at);
+    let quand = '';
+    try {
+      quand = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) + ' · ' +
+              d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { quand = U.ago(o.created_at); }
+
+    return '<article class="cmd-c passee" data-order="' + U.esc(o.id) + '" tabindex="0">' +
+      '<div class="cmd-c-haut">' +
+        cmdVignette(o) +
+        '<span class="cmd-c-txt">' +
+          '<b>' + U.esc((o.restaurant && o.restaurant.name) || 'Restaurant') + '</b>' +
+          '<span class="cmd-c-code">' + U.esc(quand) + ' · ' + U.esc(U.money(o.total)) + '</span>' +
+        '</span>' +
+        '<span class="cmd-tag ' + U.statusTag(o.status) + '">' +
+          U.esc(U.statusShort(o.status)) + '</span>' +
+        '<span class="cmd-chev">' + UI.icon('chevron', 19) + '</span>' +
+      '</div>' +
+    '</article>';
+  }
+
+  /* L'état vide. La scène flotte : le scooter monte et descend, son ombre se
+     resserre quand il monte — c'est l'ombre qui fait croire à la hauteur, pas
+     le déplacement. Le sac et le colis suivent le même mouvement sur des durées
+     différentes, sinon l'ensemble monterait d'un bloc comme un ascenseur. */
+  function cmdVide(titre, texte) {
+    return '<div class="cmd-vide">' +
+      '<div class="cmd-scene" aria-hidden="true">' +
+        '<span class="cmd-scene-ombre"></span>' +
+        (UI.sombreVoulu()
+          ? '<img class="cmd-scene-moto" src="' + U.asset('assets/img/bg/scooter-nuit.jpg') + '" ' +
+              'width="1120" height="1500" decoding="async" alt="">'
+          : '<img class="cmd-scene-moto" src="' + U.asset('assets/img/bg/scooter-jour.jpg') + '" ' +
+              'width="1586" height="1400" decoding="async" alt="">') +
+        '<span class="cmd-bulle sac">' + UI.icon('bag', 26) + '</span>' +
+        '<span class="cmd-bulle colis">' + UI.icon('package', 24) + '</span>' +
+      '</div>' +
+      '<div class="cmd-vide-t">' + U.esc(titre) + '</div>' +
+      '<p class="cmd-vide-s">' + U.esc(texte) + '</p>' +
+      '<a class="cmd-go" href="#/restaurants">' + UI.icon('cart', 21) +
+        ' Commander maintenant</a>' +
+    '</div>';
+  }
+
   Router.add('/orders', async function (params, query, view) {
     let tab = 'active';
 
@@ -65,34 +210,20 @@
        La garde `auth:true` a été retirée de cette route : elle renvoyait vers
        la connexion sans un mot, et un visiteur qui touche « Commandes » se
        retrouvait devant un formulaire sans comprendre pourquoi. Il voit
-       maintenant l'écran, il comprend à quoi il sert, et il décide.
-
-       Le rôle reste protégé plus bas : un livreur connecté n'a rien à faire
-       ici, c'est la garde `roles` qui s'en charge — elle ne s'applique qu'aux
-       personnes connectées. */
+       maintenant l'écran, il comprend à quoi il sert, et il décide. */
     if (!Store.isLogged) {
-      view.innerHTML = '<div class="orders-page">' +
-        '<span class="ord-decor" aria-hidden="true">' +
-          '<i style="top:6%;left:-4%">'     + UI.icon('burger', 120)   + '</i>' +
-          '<i style="top:2%;right:-6%">'    + UI.icon('pizza', 130)    + '</i>' +
-          '<i style="bottom:16%;left:-5%">' + UI.icon('cart', 110)     + '</i>' +
-          '<i style="bottom:6%;right:-4%">' + UI.icon('utensils', 115) + '</i>' +
-        '</span>' +
+      view.innerHTML = '<div class="cmd">' +
         '<div class="wrap-sm page">' +
-          '<div class="h1">Mes <span class="accent">commandes</span></div>' +
-          '<p class="sub ord-sub">Suivez vos commandes en cours et consultez votre historique</p>' +
-          '<div class="empty-scene compact">' +
-            '<span class="scene-ic" aria-hidden="true">' + UI.icon('package', 40) + '</span>' +
-            '<div class="h2 scene-title">Connectez-vous pour voir vos commandes</div>' +
-            '<p class="scene-sub">Vos commandes en cours et votre historique vous ' +
+          cmdEnTete() +
+          '<div class="cmd-vide">' +
+            '<span class="cmd-vide-ic">' + UI.icon('package', 38) + '</span>' +
+            '<div class="cmd-vide-t">Connectez-vous pour voir vos commandes</div>' +
+            '<p class="cmd-vide-s">Vos commandes en cours et votre historique vous ' +
               'attendent ici. Suivez votre livreur sur la carte, retrouvez ce que ' +
               'vous avez commandé, et recommandez en deux touches.</p>' +
-            '<div class="scene-cta">' +
-              '<a class="btn btn-primary btn-lg" id="versConnexion" href="#/login">' +
-                UI.icon('user', 19) + ' Se connecter</a>' +
-              '<a class="btn btn-ghost btn-lg" href="#/restaurants">' +
-                'Voir les restaurants</a>' +
-            '</div>' +
+            '<a class="cmd-go" id="versConnexion" href="#/login">' + UI.icon('user', 20) +
+              ' Se connecter</a>' +
+            '<a class="cmd-go2" href="#/restaurants">Voir les restaurants</a>' +
           '</div>' +
         '</div></div>';
 
@@ -107,35 +238,16 @@
       return () => UI.nuit('');
     }
 
-    /* Le titre de la maquette porte un petit trait orange sous « Mes ». Il
-       n'est pas repris : c'est le seul élément de la page demandé en moins.
-       La ligne d'explication, elle, reste — c'est bien « la sous-ligne » du
-       titre qui devait sauter, pas la phrase. */
-    view.innerHTML = '<div class="orders-page">' +
-      /* Les dessins en filigrane de la maquette. Ils sont posés là et non en
-         image de fond : à cette taille et cette opacité, une image serait un
-         fichier à charger pour quelque chose qu'on ne regarde jamais
-         vraiment — alors que ces pictogrammes sont déjà dans la page. */
-      '<span class="ord-decor" aria-hidden="true">' +
-        '<i style="top:6%;left:-4%">'   + UI.icon('burger', 120) + '</i>' +
-        '<i style="top:2%;right:-6%">'  + UI.icon('pizza', 130)  + '</i>' +
-        '<i style="bottom:16%;left:-5%">' + UI.icon('cart', 110)  + '</i>' +
-        '<i style="bottom:6%;right:-4%">' + UI.icon('utensils', 115) + '</i>' +
-      '</span>' +
+    view.innerHTML = '<div class="cmd">' +
       '<div class="wrap-sm page">' +
-      '<div class="h1">Mes <span class="accent">commandes</span></div>' +
-      '<p class="sub ord-sub">Suivez vos commandes en cours et consultez votre historique</p>' +
-      /* Pictogrammes au trait plutôt qu'emoji : les emoji changent de dessin
-         d'un téléphone à l'autre et n'obéissent pas à la couleur de l'onglet
-         actif, qui reste alors le seul élément à ne pas passer en orange. */
-      '<div class="ord-tabs">' +
-        '<button data-t="active" class="on">' + UI.icon('clock', 18) + ' En cours</button>' +
-        '<button data-t="done">' + UI.icon('check', 18) + ' Terminées</button>' +
-        '<button data-t="all">' + UI.icon('receipt', 18) + ' Toutes</button>' +
-      '</div>' +
-      '<div id="list"><div class="skel" style="height:110px"></div></div></div></div>';
+        cmdEnTete() +
+        '<div id="seg">' + cmdSeg(tab) + '</div>' +
+        '<div id="list"><div class="skel cmd-skel"></div>' +
+          '<div class="skel cmd-skel"></div></div>' +
+      '</div></div>';
 
     const list = view.querySelector('#list');
+    const seg = view.querySelector('#seg');
 
     async function load() {
       const all = await API.safe(() => API.orders({ scope: 'client' }), []);
@@ -144,47 +256,41 @@
       if (tab === 'done') rows = all.filter(o => ACTIVE.indexOf(o.status) < 0);
 
       if (!rows.length) {
-        list.innerHTML =
-          '<div class="empty-scene compact">' +
-            /* L'ILLUSTRATION A CÉDÉ LA PLACE À UN PICTOGRAMME, ET C'EST
-               DÉLIBÉRÉ. `commandes-vide.png` est dessinée sur fond quasi
-               blanc : le thème clair la fondait dans la page avec
-               `mix-blend-mode:multiply`, mais multiplier par du noir donne du
-               noir — sur cet écran sombre elle n'aurait laissé qu'un
-               rectangle éteint, ou, sans le fondu, un bloc blanc au milieu de
-               la page. Le panier vide, lui, a bien reçu sa version sombre :
-               elle existait dans la maquette fournie, celle-ci non.
-               Un pictogramme dans une pastille qui rayonne est net à toute
-               densité, ne pèse rien, et dit la même chose. */
-            (UI.sombreVoulu()
-              ? '<span class="scene-ic" aria-hidden="true">' + UI.icon('bag', 40) + '</span>'
-              : '<img class="scene-art" src="' + U.asset('assets/img/bg/commandes-vide.png') + '" ' +
-                  'alt="" aria-hidden="true">') +
-            '<div class="h2 scene-title">' +
-              (tab === 'active' ? 'Aucune commande en cours' : 'Aucune commande') + '</div>' +
-            '<p class="scene-sub">' +
-              (tab === 'active'
-                ? 'Vos commandes en cours apparaîtront ici en temps réel.'
-                : 'Vous n’avez pas encore commandé.') + '</p>' +
-            '<div class="scene-cta">' +
-              '<a class="btn btn-primary btn-lg" href="#/restaurants">' +
-                UI.icon('cart', 19) + ' Commander maintenant</a>' +
-            '</div>' +
-          '</div>';
+        list.innerHTML = cmdVide(
+          tab === 'active' ? 'Aucune commande en cours' : 'Aucune commande',
+          tab === 'active'
+            ? 'Vos commandes apparaîtront ici dès qu’une commande sera passée.'
+            : 'Vous n’avez pas encore commandé.');
         return;
       }
 
-      list.innerHTML = '<div class="ord-list">' + rows.map(carte).join('') + '</div>';
+      /* Une commande en cours n'a rien à voir avec une commande finie : l'une
+         se surveille, l'autre se consulte. Deux cartes, donc, et le choix se
+         fait sur l'état — pas sur l'onglet, parce que « Toutes » contient les
+         deux. */
+      list.innerHTML = '<div class="cmd-list">' +
+        rows.map(o => ACTIVE.indexOf(o.status) >= 0 ? cmdVive(o) : cmdPassee(o)).join('') +
+      '</div>';
 
-      list.querySelectorAll('[data-order]').forEach(el =>
-        el.onclick = () => Router.go('/order/' + el.dataset.order));
+      list.querySelectorAll('[data-order]').forEach(el => {
+        el.onclick = () => Router.go('/order/' + el.dataset.order);
+        /* Une carte n'est pas un lien : sans ceci, elle serait inatteignable au
+           clavier et pour les lecteurs d'écran. */
+        el.onkeydown = e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.onclick(); }
+        };
+      });
     }
 
-    view.querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
+    /* Le sélecteur est réécrit à chaque changement : c'est `--i` sur le
+       conteneur qui fait glisser la capsule, et il suffit de le reposer. */
+    seg.onclick = function (e) {
+      const b = e.target.closest ? e.target.closest('[data-t]') : null;
+      if (!b || b.dataset.t === tab) return;
       tab = b.dataset.t;
-      view.querySelectorAll('[data-t]').forEach(x => x.classList.toggle('on', x === b));
+      seg.innerHTML = cmdSeg(tab);
       load();
-    });
+    };
 
     await load();
     const off = API.onChange(t => { if (t === 'orders' || t === '*') load(); });

@@ -4221,172 +4221,6 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
    Le fichier moto.jpg reste dans le dépôt mais n'est plus chargé par personne. */
 
 /* ==========================================================================
-   MES COMMANDES — fond crème et filigranes, d'après la maquette
-   --------------------------------------------------------------------------
-   La page était blanche avec deux halos ; la maquette est un crème franc
-   parcouru de dessins de nourriture très pâles. La différence n'est pas
-   décorative : sur un écran blanc, une page vide de commandes ressemble à
-   une page qui n'a pas fini de charger. Un fond tenu dit qu'il n'y a rien à
-   attendre, c'est simplement vide.
-   ========================================================================== */
-.orders-page{
-  position:relative;overflow:hidden;
-  min-height:calc(100vh - 60px);min-height:calc(100dvh - 60px);
-  background:
-    radial-gradient(620px 340px at 96% 2%, rgba(255,138,90,.16), transparent 62%),
-    radial-gradient(520px 320px at 0% 96%, rgba(255,138,90,.13), transparent 60%),
-    #FDF5EE;
-}
-.orders-page .page{position:relative;z-index:1}
-
-/* les filigranes : posés derrière, jamais cliquables, jamais lus */
-.ord-decor{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.ord-decor i{
-  position:absolute;display:block;color:var(--brand);opacity:.055;
-  transform:rotate(-8deg);
-}
-.ord-decor i:nth-child(2){transform:rotate(12deg)}
-.ord-decor i:nth-child(3){transform:rotate(6deg)}
-.ord-decor i:nth-child(4){transform:rotate(-14deg)}
-
-/* le titre de la maquette : franc, serré, sans ligne d'explication dessous */
-.orders-page .h1{
-  font-size:clamp(26px,7.4vw,34px);font-weight:850;letter-spacing:-.035em;
-}
-/* Mes en noir, commandes en orange : le titre porte lui-meme l'accent. */
-.orders-page .h1 .accent{color:var(--brand)}
-
-/* onglets : pastille blanche posée, sans trait de contour */
-.orders-page .tabs.pill button.on{
-  border:none;
-  box-shadow:0 2px 5px rgba(196,120,74,.10), 0 10px 22px -12px rgba(255,107,53,.55);
-}
-
-/* le bouton d'appel : coins larges et ombre colorée, comme sur la maquette */
-.orders-page .btn-primary{
-  border-radius:16px;
-  box-shadow:0 12px 28px -12px rgba(255,107,53,.95);
-}
-
-/* l'illustration respire davantage : c'est elle qui porte l'écran vide */
-.orders-page .empty-scene .scene-art{max-width:min(330px,80%)}
-.orders-page .empty-scene .scene-title{margin-top:6px;font-size:21px;letter-spacing:-.02em}
-
-/* ==========================================================================
-   MES COMMANDES — onglets et cartes, d'après la maquette
-   ========================================================================== */
-
-.ord-sub{margin:8px 0 18px;font-size:14px;color:var(--muted)}
-
-/* ---- onglets : un rail blanc, l'onglet actif en pastille orange pleine ---
-   Trois onglets dans un rail unique plutôt que trois pilules séparées : la
-   maquette les tient ensemble, et un rail dit « choisis-en un » là où trois
-   objets isolés disent « appuie sur ce que tu veux ». */
-.ord-tabs{
-  display:flex;align-items:stretch;gap:0;
-  background:#fff;border-radius:999px;padding:5px;
-  box-shadow:0 2px 6px rgba(196,120,74,.08), 0 14px 30px -20px rgba(196,120,74,.7);
-  overflow-x:auto;scrollbar-width:none;
-}
-.ord-tabs::-webkit-scrollbar{display:none}
-.ord-tabs button{
-  flex:1;min-width:max-content;position:relative;
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:12px 18px;border:none;background:transparent;border-radius:999px;
-  font:inherit;font-size:14px;font-weight:700;color:var(--ink);
-  cursor:pointer;white-space:nowrap;transition:.18s;
-}
-/* les filets de séparation, seulement entre deux onglets au repos */
-.ord-tabs button + button::before{
-  content:"";position:absolute;left:0;top:9px;bottom:9px;width:1px;
-  background:var(--line);
-}
-.ord-tabs button.on{
-  background:var(--brand-grad);color:#fff;
-  box-shadow:0 8px 20px -8px rgba(255,107,53,.95);
-}
-.ord-tabs button.on::before,
-.ord-tabs button.on + button::before{background:transparent}
-
-/* ---- la carte d'une commande ---- */
-.ord-list{display:flex;flex-direction:column;gap:16px;margin-top:20px}
-.ord-card{
-  position:relative;overflow:hidden;cursor:pointer;
-  background:#fff;border-radius:22px;padding:18px 18px 16px;
-  box-shadow:0 2px 6px rgba(196,120,74,.07), 0 18px 40px -26px rgba(196,120,74,.85);
-  transition:transform .25s cubic-bezier(.22,1,.36,1);
-}
-.ord-card:active{transform:scale(.985)}
-
-/* le coin replié orange, en haut à droite */
-.ord-card .coin{
-  position:absolute;top:0;right:0;width:74px;height:74px;pointer-events:none;
-  background:var(--brand-grad);
-  border-bottom-left-radius:74px;
-  opacity:.92;
-}
-/* le sac en filigrane, sous le coin */
-.ord-card .filigrane{
-  position:absolute;top:52px;right:18px;color:var(--brand);opacity:.09;
-  pointer-events:none;line-height:0;
-}
-
-.ord-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;position:relative;z-index:1}
-.ord-code{
-  background:var(--brand-soft);color:var(--brand);
-  padding:7px 13px;border-radius:999px;
-  font-weight:800;font-size:13.5px;letter-spacing:.01em;
-}
-.ord-etat{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--brand-soft);color:var(--brand);
-  padding:7px 13px;border-radius:999px;font-weight:750;font-size:13.5px;
-}
-/* l'âge se cale à droite, sous le coin orange : il y reste lisible */
-.ord-age{
-  margin-left:auto;color:var(--brand);font-size:13px;font-weight:650;
-  padding-right:2px;
-}
-
-.ord-resto{
-  position:relative;z-index:1;margin-top:14px;
-  font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--ink);
-}
-.ord-meta{
-  position:relative;z-index:1;margin-top:5px;
-  font-size:14px;color:var(--ink-2);display:flex;align-items:center;
-}
-.ord-meta .pt{
-  width:6px;height:6px;border-radius:50%;background:var(--brand);
-  margin:0 9px;flex:none;
-}
-
-.ord-bas{
-  position:relative;z-index:1;margin-top:16px;padding-top:14px;
-  border-top:1px solid var(--line);
-  display:flex;align-items:center;gap:12px;
-}
-.ord-bas .quand{
-  display:flex;align-items:center;gap:7px;flex:1;min-width:0;
-  font-size:13.5px;font-weight:650;color:var(--ink-2);
-}
-.ord-bas .quand svg{color:var(--brand);flex:none}
-.ord-bas .quand .sep{width:1px;height:16px;background:var(--line);margin:0 4px;flex:none}
-
-.ord-suivre{
-  flex:none;gap:8px;border-radius:14px;padding:13px 20px;
-  font-size:15px;font-weight:800;
-  box-shadow:0 10px 24px -10px rgba(255,107,53,1);
-}
-
-/* Écran étroit : la date et l'heure passent au-dessus du bouton plutôt que
-   de se serrer contre lui jusqu'à se couper. */
-@media(max-width:380px){
-  .ord-bas{flex-direction:column;align-items:stretch;gap:12px}
-  .ord-suivre{justify-content:center}
-}
-
-/* ==========================================================================
    BARRE DU BAS FLOTTANTE
    --------------------------------------------------------------------------
    Elle ne touche plus le bord de l'écran : 14 px de marge, coins très
@@ -5619,50 +5453,6 @@ body.nuit #view .empty-scene .scene-cta .btn-ghost{
 }
 
 /* ==========================================================================
-   COMMANDES
-   ========================================================================== */
-body.nuit #view .orders-page{
-  background:
-    radial-gradient(620px 340px at 96% 2%, rgba(255,101,0,.14), transparent 62%),
-    radial-gradient(520px 320px at 0% 96%, rgba(255,101,0,.10), transparent 60%),
-    #050505;
-}
-/* les filigranes de nourriture : un peu plus présents qu'en clair, sinon ils
-   se noient complètement dans le noir */
-body.nuit #view .ord-decor i{opacity:.075}
-body.nuit #view .ord-sub{color:var(--nuit-doux)}
-
-/* ---- le rail des trois onglets ---- */
-body.nuit #view .ord-tabs{
-  background-color:var(--nuit-carte);
-  border:1px solid var(--nuit-bord-2);
-  box-shadow:0 14px 30px -24px #000;
-}
-body.nuit #view .ord-tabs button{color:var(--nuit-doux)}
-body.nuit #view .ord-tabs button + button::before{background-color:var(--nuit-bord-2)}
-/* l'onglet actif garde sa pastille orange pleine : c'est le seul endroit de
-   l'écran qui doit trancher, et il tranche */
-body.nuit #view .ord-tabs button.on{
-  background-color:var(--brand-grad);color:#fff;
-  box-shadow:0 8px 22px -8px rgba(255,101,0,.95);
-}
-
-/* ---- la carte d'une commande ---- */
-body.nuit #view .ord-card{
-  background-color:var(--nuit-carte);
-  border:1px solid var(--nuit-bord-2);
-  box-shadow:0 18px 40px -30px #000;
-}
-body.nuit #view .ord-card .filigrane{opacity:.14}
-body.nuit #view .ord-resto{color:var(--nuit-texte)}
-body.nuit #view .ord-meta{color:var(--nuit-doux)}
-body.nuit #view .ord-bas{border-top-color:var(--nuit-bord-2)}
-body.nuit #view .ord-bas .quand{color:var(--nuit-doux)}
-body.nuit #view .ord-bas .quand .sep{background-color:var(--nuit-bord-2)}
-body.nuit #view .ord-suivre{box-shadow:0 10px 26px -10px rgba(255,101,0,1)}
-body.nuit #view .orders-page .btn-primary{box-shadow:0 12px 30px -12px rgba(255,101,0,.95)}
-
-/* ==========================================================================
    COMPTE
    --------------------------------------------------------------------------
    Attention : `.account-page` REDÉFINIT la palette sur elle-même
@@ -6847,45 +6637,6 @@ body.pref-clair.ecran-restaurants .rc-nom{color:#16181D}
 body.pref-clair.ecran-restaurants .rc-meta{color:#6B7280}
 body.pref-clair.ecran-restaurants .rc-meta .m b{color:#16181D}
 body.pref-clair.ecran-restaurants .rc-lieu{color:#6B7280}
-
-/* ==========================================================================
-   COMMANDES — maquette « theme commande 2 »
-   ========================================================================== */
-/* Le fond est un pêche très pâle, pas le blanc des autres écrans : c'est ce
-   qui fait lire « mes commandes » comme un espace à soi. */
-body.pref-clair.ecran-commandes .orders-page{
-  background:
-    radial-gradient(620px 340px at 96% 2%, rgba(255,138,90,.14), transparent 62%),
-    radial-gradient(520px 320px at 0% 96%, rgba(255,138,90,.10), transparent 60%),
-    #FDF4F0;
-}
-body.pref-clair.ecran-commandes .ord-decor i{opacity:.06}
-body.pref-clair.ecran-commandes .orders-page .h1{color:#16181D}
-body.pref-clair.ecran-commandes .ord-sub{color:#8A8F98}
-
-/* Le rail des trois onglets : blanc, très arrondi, ombre douce. L'onglet actif
-   garde la pastille orange pleine — c'est le seul élément de l'écran qui doit
-   trancher. */
-body.pref-clair.ecran-commandes .ord-tabs{
-  background:#fff;border:none;
-  box-shadow:0 2px 6px rgba(196,120,74,.08), 0 14px 30px -20px rgba(196,120,74,.5);
-}
-body.pref-clair.ecran-commandes .ord-tabs button{color:#16181D}
-body.pref-clair.ecran-commandes .ord-tabs button + button::before{background:#EDEFF2}
-body.pref-clair.ecran-commandes .ord-tabs button.on{
-  background:var(--brand-grad);color:#fff;
-  box-shadow:0 8px 20px -8px rgba(255,101,0,.85);
-}
-
-/* L'écran vide reprend l'illustration d'origine — elle est dessinée pour un
-   fond clair, et `mix-blend-mode:multiply` la fond dans le pêche. */
-body.pref-clair.ecran-commandes .empty-scene .scene-title{color:#16181D}
-body.pref-clair.ecran-commandes .empty-scene .scene-sub{color:#8A8F98}
-body.pref-clair.ecran-commandes .ord-card{
-  background:#fff;border:1px solid var(--jr-bord);box-shadow:var(--jr-ombre);
-}
-body.pref-clair.ecran-commandes .ord-resto{color:#16181D}
-body.pref-clair.ecran-commandes .ord-meta{color:#4B5563}
 
 /* ==========================================================================
    COMPTE — maquette « theme compte talabi »
@@ -8240,4 +7991,372 @@ body.nuit #view .cpt-sortie:active{background:rgba(255,138,138,.13)}
 @media(min-width:620px){
   .cpt .wrap-sm{max-width:560px}
   .cpt-rac-c{padding:20px 10px 17px}
+}
+
+/* ==========================================================================
+   MES COMMANDES — blanc pur, coins de 24, ombres à peine là
+   --------------------------------------------------------------------------
+   Six variables, et tout l'écran en dépend. Le mode sombre n'en réécrit que
+   six ; il ne touche pas une règle. C'est la leçon de l'écran Compte : un écran
+   qui redéfinit ses couleurs ligne par ligne demande deux fois le travail à
+   chaque retouche, et finit toujours par diverger d'un thème à l'autre.
+
+   Le fond est blanc pur, DONC les cartes ne le sont pas. Deux blancs côte à
+   côte ne se distinguent que par une ombre, et l'ombre demandée est « très
+   légère » : c'est le contraste des surfaces qui structure. Les 66 règles de
+   l'ancien écran ont été retirées du fichier, pas recouvertes — du CSS mort
+   fait douter, la fois suivante, de ce qui s'applique vraiment.
+   ========================================================================== */
+.cmd{
+  --cmd-fond:#FFFFFF;
+  --cmd-carte:#F5F6F8;
+  --cmd-filet:rgba(16,24,40,.07);
+  --cmd-titre:#0E1013;
+  --cmd-doux:#6B7280;
+  --cmd-or:#FF6B00;
+  --cmd-r:24px;
+  position:relative;
+  min-height:calc(100vh - 60px);min-height:calc(100dvh - 60px);
+  background:var(--cmd-fond);
+}
+
+/* ---- titre ----
+   L'illustration est SOUS le texte et à peine plus foncée que le fond :
+   discret veut dire qu'on ne la remarque pas en lisant. Elle est en
+   pictogramme et non en image — à cette opacité, un fichier à charger pour
+   quelque chose qu'on ne regarde jamais est un fichier de trop. */
+.cmd-tete{position:relative;padding:8px 0 2px}
+.cmd-tete-art{
+  position:absolute;top:-26px;right:-34px;z-index:0;
+  color:var(--cmd-titre);opacity:.045;
+  pointer-events:none;line-height:0;
+}
+.cmd-h1{
+  position:relative;z-index:1;margin:0;
+  font-size:33px;font-weight:900;letter-spacing:-.035em;line-height:1.08;
+  color:var(--cmd-titre);
+}
+.cmd-sub{
+  position:relative;z-index:1;
+  margin:9px 0 0;max-width:23em;
+  font-size:14px;line-height:1.55;color:var(--cmd-doux);
+}
+
+/* ---- le sélecteur ----
+   UNE capsule qui glisse, pas trois fonds qu'on allume. Sa position vient de
+   `--i` : chaque onglet fait un tiers de la largeur, la capsule se décale
+   d'autant de tiers. Le mouvement suit donc le doigt d'un onglet à l'autre au
+   lieu de sauter — et il n'y a qu'une valeur à changer au clic. */
+.cmd-seg{
+  position:relative;display:flex;
+  margin-top:22px;padding:5px;
+  border-radius:999px;
+  background:var(--cmd-carte);
+  box-shadow:inset 0 0 0 1px var(--cmd-filet);
+}
+.cmd-seg-pil{
+  position:absolute;top:5px;bottom:5px;left:5px;
+  width:calc((100% - 10px) / 3);
+  border-radius:999px;
+  background:linear-gradient(100deg,#FF6B00 0%,#FF5230 55%,#FF3D57 100%);
+  box-shadow:0 6px 18px -8px rgba(255,77,60,.85);
+  transform:translateX(calc(var(--i) * 100%));
+  transition:transform .34s cubic-bezier(.34,1.12,.4,1);
+}
+.cmd-seg button{
+  position:relative;z-index:1;
+  flex:1;min-width:0;
+  min-height:42px;padding:0 6px;
+  border:0;background:none;
+  font:inherit;font-size:13.5px;font-weight:800;
+  color:var(--cmd-doux);cursor:pointer;
+  transition:color .24s;
+}
+.cmd-seg button.on{color:#fff}
+
+/* ---- la liste ---- */
+.cmd-list{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.cmd-skel{height:118px;border-radius:var(--cmd-r);margin-top:16px}
+
+.cmd-c{
+  border-radius:var(--cmd-r);
+  background:var(--cmd-carte);
+  padding:15px 16px;
+  cursor:pointer;
+  transition:transform .17s cubic-bezier(.34,1.3,.64,1), background .17s;
+}
+.cmd-c:active{transform:scale(.985)}
+.cmd-c:focus-visible{outline:2px solid var(--cmd-or);outline-offset:3px}
+/* La commande en cours est la seule à porter une ombre et un liseré orange :
+   sur une liste, ce qui est vivant doit se voir avant ce qui est archivé. */
+.cmd-c.vive{
+  background:var(--cmd-fond);
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 14px 34px -20px rgba(16,24,40,.28);
+  border:1px solid rgba(255,107,0,.22);
+}
+
+.cmd-c-haut{display:flex;align-items:center;gap:13px}
+.cmd-vig{
+  flex:none;width:50px;height:50px;border-radius:16px;
+  background:#E9EBEF center/cover no-repeat;
+  display:grid;place-items:center;
+  font-size:16px;font-weight:900;color:var(--cmd-doux);
+  box-shadow:inset 0 0 0 1px var(--cmd-filet);
+}
+.cmd-c-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.cmd-c-txt b{
+  font-size:15.5px;font-weight:800;color:var(--cmd-titre);line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.cmd-c-code{font-size:12.5px;color:var(--cmd-doux);font-weight:650}
+.cmd-c-prix{flex:none;font-size:15px;font-weight:900;color:var(--cmd-or)}
+.cmd-chev{flex:none;color:var(--cmd-doux);opacity:.5;display:grid}
+.cmd-tag{
+  flex:none;padding:5px 10px;border-radius:999px;
+  font-size:11.5px;font-weight:800;
+  background:var(--cmd-carte);color:var(--cmd-doux);
+  box-shadow:inset 0 0 0 1px var(--cmd-filet);
+}
+
+/* ---- l'état en direct ----
+   Le point qui bat dit « ça bouge en ce moment ». Sans lui, un état écrit une
+   fois ressemble à un état figé, et l'écran ne montrerait pas ce que « temps
+   réel » veut dire. */
+.cmd-etat{
+  display:flex;align-items:center;gap:8px;
+  margin-top:14px;
+  font-size:13px;font-weight:800;color:var(--cmd-or);
+}
+.cmd-etat .pouls{
+  width:8px;height:8px;flex:none;border-radius:50%;
+  background:var(--cmd-or);
+  animation:cmdPouls 1.7s ease-in-out infinite;
+}
+@keyframes cmdPouls{
+  0%,100%{ box-shadow:0 0 0 0 rgba(255,107,0,.55) }
+  55%    { box-shadow:0 0 0 7px rgba(255,107,0,0) }
+}
+
+/* ---- la jauge ----
+   Quatre étapes, comme la frise de l'accueil et l'écran de suivi. Un seul
+   découpage pour les trois : voir trois avancements différents pour une même
+   commande ferait douter du bon. */
+.cmd-jauge{
+  height:6px;margin-top:11px;
+  border-radius:999px;
+  background:rgba(16,24,40,.08);
+  overflow:hidden;
+}
+.cmd-jauge > span{
+  display:block;height:100%;width:var(--p,0%);
+  border-radius:999px;
+  background:linear-gradient(90deg,#FF6B00,#FF3D57);
+  transition:width .6s cubic-bezier(.3,.8,.3,1);
+}
+
+.cmd-c-bas{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-top:13px;padding-top:12px;
+  border-top:1px solid var(--cmd-filet);
+}
+.cmd-eta{
+  display:flex;align-items:center;gap:7px;min-width:0;
+  font-size:12.5px;font-weight:700;color:var(--cmd-doux);
+}
+.cmd-eta svg{flex:none;opacity:.75}
+.cmd-suivre{
+  flex:none;display:inline-flex;align-items:center;gap:6px;
+  padding:10px 16px;border-radius:999px;
+  background:linear-gradient(100deg,#FF6B00,#FF3D57);
+  color:#fff;font-size:13px;font-weight:800;
+  box-shadow:0 8px 20px -9px rgba(255,77,60,.9);
+}
+
+/* ==========================================================================
+   ÉTAT VIDE — la scène flotte
+   --------------------------------------------------------------------------
+   CE N'EST PAS UN RENDU 3D et il ne faut pas le prétendre : c'est la photo du
+   scooter, celle des deux thèmes, plus deux pictogrammes pour le sac et le
+   colis. Si un vrai rendu arrive un jour, il remplace l'image sans toucher au
+   reste.
+
+   Ce qui donne la hauteur n'est pas le déplacement mais L'OMBRE : elle se
+   resserre et pâlit quand le scooter monte. Un objet qui monte avec une ombre
+   fixe glisse ; un objet dont l'ombre respire décolle.
+
+   Les trois éléments ont des durées différentes — 4,4 s, 3,6 s, 5,1 s. Avec la
+   même durée, tout monterait d'un bloc, comme un ascenseur.
+   ========================================================================== */
+.cmd-vide{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:14px 4px 8px;
+}
+.cmd-scene{
+  position:relative;
+  width:100%;max-width:280px;aspect-ratio:1/1;
+  margin:6px auto 4px;
+}
+.cmd-scene-moto{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;
+  animation:cmdFlotte 4.4s ease-in-out infinite;
+}
+.cmd-scene-ombre{
+  position:absolute;left:50%;bottom:4%;
+  width:52%;height:12px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:radial-gradient(closest-side,rgba(16,24,40,.24),transparent 78%);
+  animation:cmdOmbre 4.4s ease-in-out infinite;
+}
+.cmd-bulle{
+  position:absolute;
+  width:52px;height:52px;border-radius:18px;
+  display:grid;place-items:center;
+  background:var(--cmd-fond);color:var(--cmd-or);
+  box-shadow:0 10px 26px -12px rgba(16,24,40,.4), inset 0 0 0 1px var(--cmd-filet);
+}
+.cmd-bulle.sac  {top:6%;left:0;   animation:cmdFlotte 3.6s ease-in-out infinite}
+.cmd-bulle.colis{top:34%;right:0; animation:cmdFlotte 5.1s ease-in-out .4s infinite}
+@keyframes cmdFlotte{
+  0%,100%{ transform:translateY(0) }
+  50%    { transform:translateY(-11px) }
+}
+@keyframes cmdOmbre{
+  0%,100%{ transform:translateX(-50%) scaleX(1);    opacity:.85 }
+  50%    { transform:translateX(-50%) scaleX(.82);  opacity:.5 }
+}
+/* Le pictogramme du visiteur non connecté : pas de scène, il n'attend aucune
+   commande — il n'a pas encore de compte. */
+.cmd-vide-ic{
+  width:92px;height:92px;border-radius:50%;
+  display:grid;place-items:center;margin:18px auto 2px;
+  color:var(--cmd-or);
+  background:rgba(255,107,0,.10);
+  box-shadow:0 0 0 8px rgba(255,107,0,.04), inset 0 0 0 1px rgba(255,107,0,.26);
+}
+.cmd-vide-t{
+  margin-top:16px;
+  font-size:21px;font-weight:900;letter-spacing:-.02em;color:var(--cmd-titre);
+}
+.cmd-vide-s{
+  margin:9px auto 0;max-width:23em;
+  font-size:14px;line-height:1.6;color:var(--cmd-doux);
+}
+
+/* ---- le bouton ----
+   60 px de haut, coins de 30, dégradé orange → rouge. Son ombre est portée dans
+   sa propre couleur et non en gris : c'est ce qui le fait paraître posé
+   au-dessus de la page plutôt que découpé dedans. */
+.cmd-go{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;max-width:340px;height:60px;margin-top:24px;
+  border-radius:30px;
+  background:linear-gradient(100deg,#FF6B00 0%,#FF5230 52%,#FF3D57 100%);
+  color:#fff;font-size:16px;font-weight:800;text-decoration:none;
+  box-shadow:0 14px 32px -12px rgba(255,77,60,.75);
+  transition:transform .17s cubic-bezier(.34,1.3,.64,1), box-shadow .17s;
+}
+.cmd-go:active{transform:scale(.97);box-shadow:0 8px 20px -10px rgba(255,77,60,.8)}
+.cmd-go2{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:100%;max-width:340px;min-height:52px;margin-top:11px;
+  border-radius:30px;
+  background:var(--cmd-carte);color:var(--cmd-titre);
+  font-size:15px;font-weight:750;text-decoration:none;
+  box-shadow:inset 0 0 0 1px var(--cmd-filet);
+  transition:transform .17s;
+}
+.cmd-go2:active{transform:scale(.97)}
+
+/* ---- les cartes arrivent l'une après l'autre ----
+   70 ms d'écart, cinq cartes au plus : au-delà, la liste se déroulerait au lieu
+   de se poser, et on attendrait la dernière. */
+.cmd-tete,.cmd-seg,.cmd-c,.cmd-vide{
+  animation:cmdMonte .44s cubic-bezier(.22,.75,.3,1) both;
+}
+.cmd-seg{animation-delay:.06s}
+.cmd-vide{animation-delay:.1s}
+.cmd-c:nth-child(1){animation-delay:.1s}
+.cmd-c:nth-child(2){animation-delay:.17s}
+.cmd-c:nth-child(3){animation-delay:.24s}
+.cmd-c:nth-child(4){animation-delay:.31s}
+.cmd-c:nth-child(n+5){animation-delay:.38s}
+@keyframes cmdMonte{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+@media(prefers-reduced-motion:reduce){
+  .cmd-tete,.cmd-seg,.cmd-c,.cmd-vide{animation:none}
+  .cmd-scene-moto,.cmd-scene-ombre,.cmd-bulle{animation:none}
+  .cmd-etat .pouls{animation:none;box-shadow:0 0 0 3px rgba(255,107,0,.28)}
+  .cmd-seg-pil{transition:none}
+  .cmd-c:active,.cmd-go:active,.cmd-go2:active{transform:none}
+}
+
+/* ==========================================================================
+   L'EN-TÊTE PREND UN EFFET DE VERRE SUR CET ÉCRAN
+   --------------------------------------------------------------------------
+   La barre du haut est commune à toute l'application : elle n'est donc pas
+   redessinée, seulement floutée là où le brief le demande. `saturate` compte
+   autant que `blur` — sans elle, ce qui passe derrière ressort délavé, et le
+   verre a l'air d'un voile gris.
+   ========================================================================== */
+body.ecran-commandes .topbar{
+  -webkit-backdrop-filter:blur(18px) saturate(170%);
+          backdrop-filter:blur(18px) saturate(170%);
+}
+body.pref-clair.ecran-commandes .topbar{background:rgba(255,255,255,.72)}
+body.nuit.ecran-commandes .topbar{background:rgba(9,10,12,.66)}
+
+/* ==========================================================================
+   LE MÊME ÉCRAN EN SOMBRE
+   ========================================================================== */
+body.nuit #view .cmd{
+  --cmd-fond:#050505;
+  --cmd-carte:#111214;
+  --cmd-filet:rgba(255,255,255,.07);
+  --cmd-titre:#F4F5F7;
+  --cmd-doux:#868C95;
+}
+body.nuit #view .cmd-tete-art{opacity:.07}
+body.nuit #view .cmd-c.vive{
+  background:#0D0E10;
+  border-color:rgba(255,107,0,.28);
+  box-shadow:0 18px 44px -26px rgba(0,0,0,1);
+}
+body.nuit #view .cmd-vig{background-color:#1B1D21}
+body.nuit #view .cmd-jauge{background:rgba(255,255,255,.09)}
+body.nuit #view .cmd-bulle{
+  background:#15171A;
+  box-shadow:0 12px 30px -14px rgba(0,0,0,1), inset 0 0 0 1px rgba(255,255,255,.07);
+}
+/* L'ombre de la scène : claire sur fond noir, sinon elle ne se voit pas — une
+   ombre noire sur du noir ne dit rien de la hauteur. */
+body.nuit #view .cmd-scene-ombre{
+  background:radial-gradient(closest-side,rgba(255,107,0,.20),transparent 78%);
+}
+/* La photo du scooter se fond dans la page : son fond est du noir pur, et
+   `screen` ne change rien là où c'est noir. Même mécanisme que sur la porte
+   d'entrée et l'écran d'inscription. */
+body.nuit #view .cmd-scene{isolation:isolate}
+body.nuit #view .cmd-scene-moto{mix-blend-mode:screen}
+/* En clair, la photo est dessinée sur un gris très pâle : c'est `multiply` qui
+   la fond, la même symétrie exacte. */
+body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
+
+/* ==========================================================================
+   TÉLÉPHONES ÉTROITS ET TABLETTES
+   ========================================================================== */
+@media(max-width:379px){
+  .cmd-h1{font-size:28px}
+  .cmd-seg button{font-size:12.5px}
+  .cmd-vig{width:44px;height:44px;border-radius:14px}
+  .cmd-c-txt b{font-size:14.5px}
+  .cmd-bulle{width:44px;height:44px;border-radius:15px}
+  .cmd-go{height:56px;font-size:15px}
+}
+/* Au-delà du téléphone, l'écran cesse de grandir : une liste de commandes large
+   de 900 px oblige l'œil à traverser le vide entre le nom et le prix. */
+@media(min-width:620px){
+  .cmd .wrap-sm{max-width:560px}
+  .cmd-scene{max-width:320px}
 }
