@@ -22,11 +22,11 @@ alter table public.profiles
   add column if not exists birth_date date;
 
 -- ------------------------------------------------------------- garde-fous
--- Le genre n'accepte que trois valeurs, en minuscules. Sans cette contrainte,
+-- Le genre n'accepte que deux valeurs, en minuscules. Sans cette contrainte,
 -- l'écran d'administration afficherait un jour « Homme », « homme » et « H »
 -- comme trois catégories différentes.
 --
--- « autre » a été ajouté après coup, à la demande de l'écran refait. LA
+-- « autre » a été ajouté un temps puis retiré, sur demande. LA
 -- CONTRAINTE EST DONC SUPPRIMÉE PUIS RECRÉÉE, et non ajoutée « si elle n'existe
 -- pas » : sur une base où le fichier a déjà tourné, l'ancienne contrainte à deux
 -- valeurs serait restée en place, et enregistrer « autre » aurait échoué sur une
@@ -36,7 +36,7 @@ alter table public.profiles
   drop constraint if exists profiles_gender_chk;
 alter table public.profiles
   add constraint profiles_gender_chk
-  check (gender is null or gender in ('homme', 'femme', 'autre'));
+  check (gender is null or gender in ('homme', 'femme'));
 
 -- Une date de naissance doit être dans le passé et rester plausible. Le vrai
 -- but n'est pas de juger l'âge : c'est d'attraper la faute de frappe qui
@@ -53,6 +53,38 @@ end $$;
 
 comment on column public.profiles.gender     is 'homme | femme | null — renseignement, jamais une condition';
 comment on column public.profiles.birth_date is 'date de naissance ; l''âge se calcule à l''affichage';
+
+-- ==========================================================================
+--  LE GENRE NE SE CHOISIT QU UNE FOIS
+--  --------------------------------------------------------------------------
+--  L écran verrouille les deux cartes dès qu un genre est enregistré. Mais un
+--  verrou d interface n est pas une règle : il suffit d appeler l API
+--  directement pour le contourner. Si la règle doit tenir, elle tient ICI.
+--
+--  Le déclencheur ne refuse QUE le passage d une valeur à une autre valeur.
+--  Réenregistrer le même genre passe — et c est indispensable, parce que
+--  l écran renvoie tout le profil à chaque enregistrement, genre compris.
+--  Sans cette nuance, changer son nom de famille deviendrait impossible.
+--
+--  Passer de « non renseigné » à un genre passe aussi : c est le premier choix,
+--  celui qu on veut permettre.
+-- ==========================================================================
+create or replace function public.profiles_genre_une_fois()
+returns trigger
+language plpgsql
+as $
+begin
+  if old.gender is not null and new.gender is distinct from old.gender then
+    raise exception 'Le genre ne peut plus être modifié une fois choisi.';
+  end if;
+  return new;
+end
+$;
+
+drop trigger if exists profiles_genre_une_fois on public.profiles;
+create trigger profiles_genre_une_fois
+  before update of gender on public.profiles
+  for each row execute function public.profiles_genre_une_fois();
 
 -- ==========================================================================
 --  RIEN À CHANGER CÔTÉ DROITS

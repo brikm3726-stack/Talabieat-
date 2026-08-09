@@ -7971,14 +7971,29 @@ body.nuit #view .cpt-sortie:active{background:rgba(255,138,138,.13)}
   margin-top:14px;
   font-size:13px;font-weight:800;color:var(--cmd-or);
 }
+/* LE POINT QUI BAT — EN TRANSFORM, PAS EN BOX-SHADOW.
+   Il battait par un `box-shadow` qui s'étend, en animation INFINIE : chaque
+   image redemandait un dessin de l'ombre, en permanence, tant qu'une commande
+   est en cours. Le guide du projet l'interdit, et pour une raison mesurable —
+   c'est le genre de détail qui coûte des images par seconde sur un téléphone
+   d'entrée de gamme sans qu'on sache pourquoi.
+
+   L'onde est maintenant un pseudo-élément qui GRANDIT et s'efface : transform et
+   opacity seulement, donc composé sans redessiner. Le point lui-même ne bouge
+   plus, ce qui le rend d'ailleurs plus net. */
 .cmd-etat .pouls{
+  position:relative;
   width:8px;height:8px;flex:none;border-radius:50%;
   background:var(--cmd-or);
-  animation:cmdPouls 1.7s ease-in-out infinite;
+}
+.cmd-etat .pouls::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:var(--cmd-or);
+  animation:cmdPouls 1.7s cubic-bezier(.22,.61,.36,1) infinite;
 }
 @keyframes cmdPouls{
-  0%,100%{ box-shadow:0 0 0 0 rgba(255,107,0,.55) }
-  55%    { box-shadow:0 0 0 7px rgba(255,107,0,0) }
+  0%      { transform:scale(1);   opacity:.5 }
+  70%,100%{ transform:scale(2.8); opacity:0 }
 }
 
 /* ---- la jauge ----
@@ -8131,7 +8146,7 @@ body.nuit #view .cpt-sortie:active{background:rgba(255,138,138,.13)}
 @media(prefers-reduced-motion:reduce){
   .cmd-tete,.cmd-seg,.cmd-c,.cmd-vide{animation:none}
   .cmd-scene-moto,.cmd-scene-ombre,.cmd-bulle{animation:none}
-  .cmd-etat .pouls{animation:none;box-shadow:0 0 0 3px rgba(255,107,0,.28)}
+  .cmd-etat .pouls::after{animation:none;opacity:.3;transform:scale(2.2)}
   .cmd-seg-pil{transition:none}
   .cmd-c:active,.cmd-go:active,.cmd-go2:active{transform:none}
 }
@@ -9452,3 +9467,52 @@ body.nuit #view .mc-sortie{color:#FF8A3D;border-color:rgba(255,107,0,.45)}
   /* À cette largeur, les quatre chiffres tiennent sur une ligne. */
   .mc-tuiles{grid-template-columns:repeat(4,1fr)}
 }
+
+/* ==========================================================================
+   LA PHOTO DE L'ÉTAT VIDE SE FOND DANS LA PAGE
+   --------------------------------------------------------------------------
+   MESURE D'ABORD. Les bords de `scooter-jour.jpg`, relevés pixel par pixel :
+
+     haut    moyenne 245  (mini 156)
+     bas     moyenne 130  (mini   4)   ← le sujet TOUCHE le bord inférieur
+     gauche  moyenne 210  (mini  84)
+     droite  moyenne 222  (mini 184)
+     coins   #F2F3F5 et #F8F8F8
+
+   Deux défauts, pas un. Le fond de la photo n'est pas blanc mais un gris très
+   pâle : `multiply` sur une page blanche en fait donc un rectangle légèrement
+   grisé. Et surtout la photo est RECOGNÉE — le scooter et son ombre atteignent
+   le bord du bas, ce qui trace une ligne droite en travers de l'image. C'est
+   cette ligne qui se lit comme « une photo collée par-dessus ».
+
+   `mix-blend-mode` seul ne pouvait rien contre le second défaut : aucun mode de
+   fusion ne rattrape un sujet coupé net. Il faut un MASQUE, qui fait disparaître
+   la photo AVANT ses bords — y compris là où le sujet est tronqué. Le scooter se
+   dissout alors dans la page au lieu d'y être découpé.
+
+   Un seul dégradé radial, et non deux masques composés : `mask-composite` n'a
+   pas le même vocabulaire selon les navigateurs, et une seule couche suffit
+   puisque le sujet est au centre.
+
+   Le masque vaut pour les DEUX thèmes. En sombre les bords sont du noir pur et
+   `screen` les rendait déjà invisibles — mais si la photo est remplacée un jour,
+   le masque protège aussi ce côté-là.
+   ========================================================================== */
+.cmd-scene-moto{
+  -webkit-mask-image:radial-gradient(64% 64% at 50% 43%,
+    #000 52%, rgba(0,0,0,.6) 76%, transparent 100%);
+          mask-image:radial-gradient(64% 64% at 50% 43%,
+    #000 52%, rgba(0,0,0,.6) 76%, transparent 100%);
+}
+/* L'ombre portée sous le scooter n'a plus de raison d'être aussi marquée : le
+   bas de la photo s'efface maintenant, et deux ombres superposées se voient. */
+.cmd-scene-ombre{opacity:.7}
+
+/* Les cartes de genre, une fois le choix enregistré. Elles gardent leur dessin —
+   on doit voir ce qu'on a choisi — mais perdent tout ce qui invite à toucher :
+   pas de creux à l'appui, pas de main sur le curseur, et celle qui n'a pas été
+   retenue s'estompe. Un élément qui réagit au doigt sans rien faire est pire
+   qu'un élément visiblement inerte. */
+.ip-genres.fige .ip-genre{cursor:default}
+.ip-genres.fige .ip-genre:not(.on){opacity:.45}
+.ip-genres.fige .ip-genre:active{transform:none}

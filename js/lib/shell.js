@@ -150,8 +150,15 @@
               '<path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>' +
               '<path d="M10 12v4M14 12v4"/>' +
             '</svg></span>'
+        /* `width` et `height` portent les dimensions RÉELLES du fichier
+           (1254 × 1254), pas la taille affichée — c'est le CSS qui décide de
+           celle-ci. Elles servent au navigateur à réserver le bon rectangle
+           avant l'arrivée de l'image : sans elles, la page saute quand elle
+           atterrit, et c'est le défaut qui trahit le plus sûrement une
+           application bâclée. */
         : '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' +
-            U.esc(TALABI_CONFIG.APP_NAME) + '" class="brand-logo">';
+            U.esc(TALABI_CONFIG.APP_NAME) + '" class="brand-logo" ' +
+            'width="1254" height="1254" decoding="async">';
 
       bar.innerHTML =
         '<div class="wrap topbar-in">' +

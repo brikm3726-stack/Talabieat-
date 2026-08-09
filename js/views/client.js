@@ -430,7 +430,7 @@
               ? '<img class="scene-art" src="' + U.asset('assets/img/bg/panier-vide-nuit.jpg') + '" ' +
                   'width="1672" height="1016" decoding="async" alt="" aria-hidden="true">'
               : '<img class="scene-art" src="' + U.asset('assets/img/bg/panier-vide.png') + '" ' +
-                  'decoding="async" alt="" aria-hidden="true">') +
+                  'width="830" height="430" decoding="async" alt="" aria-hidden="true">') +
             '<div class="h1 scene-title">Votre panier est vide</div>' +
             '<p class="scene-sub">Ajoutez vos plats préférés parmi les meilleurs restaurants de votre ville.</p>' +
             '<div class="scene-cta">' +

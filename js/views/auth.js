@@ -75,7 +75,8 @@
           '<span class="arc">' + ENT_ARC + '</span>' +
           '<span class="mot">tala<i>bi</i></span></span>'
       : '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' +
-          U.esc(TALABI_CONFIG.APP_NAME) + '" class="auth-logo">';
+          U.esc(TALABI_CONFIG.APP_NAME) + '" class="auth-logo" ' +
+          'width="1254" height="1254" decoding="async">';
 
     return '<div class="auth-page' + (nuit ? ' auth-nuit' : '') + '">' +
       /* Les trois taches floues du thème clair coûtent trois `filter:blur()`
@@ -99,7 +100,7 @@
              peut décaler aucun texte. */
           (nuit ? '' :
             '<img class="auth-rider" src="' + U.asset('assets/img/bg/auth-rider.png') + '" ' +
-              'decoding="async" alt="" aria-hidden="true">') +
+              'width="428" height="228" decoding="async" alt="" aria-hidden="true">') +
         '</div>' +
         '<div class="auth-col">' + inner + '</div>' +
       '</div>' +

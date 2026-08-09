@@ -28,10 +28,18 @@
      Les pictogrammes ne distinguent pas Homme de Femme : le jeu d'icônes n'en a
      pas, et deux silhouettes dessinées à la va-vite se ressemblent plus qu'elles
      ne se distinguent. Ce sont les libellés qui portent le sens. */
+  /* Deux valeurs, et le choix ne se fait QU UNE FOIS : dès qu'un genre est
+     enregistré, les deux cartes se verrouillent. La règle tient aussi en base —
+     un déclencheur de 28_genre_et_naissance.sql refuse le passage d'une valeur à
+     une autre. Un verrou d'interface seul n'est pas une règle : il suffit
+     d'appeler l'API directement pour le contourner.
+
+     Les pictogrammes ne distinguent pas Homme de Femme : le jeu d'icônes n'en a
+     pas, et deux silhouettes dessinées à la va-vite se ressemblent plus qu'elles
+     ne se distinguent. Ce sont les libellés qui portent le sens. */
   const GENRES = [
     { v: 'homme', t: 'Homme', i: 'user' },
-    { v: 'femme', t: 'Femme', i: 'user' },
-    { v: 'autre', t: 'Autre', i: 'plus' }
+    { v: 'femme', t: 'Femme', i: 'user' }
   ];
 
   /* L'âge affiché sous la date de naissance. Il n'est jamais stocké : un âge
@@ -332,7 +340,7 @@
       '<span class="ip-rac-c">' + UI.icon('chevron', 16) + '</span></a>';
   }
 
-  function ipEcran(p, addresses, verrou, genre, baseAJour) {
+  function ipEcran(p, addresses, verrou, genre, baseAJour, fige) {
     const comp = ipCompletion(p, addresses.length, baseAJour);
     const inter = ipInternational(p.phone);
 
@@ -436,16 +444,28 @@
            ferait échouer l'enregistrement ENTIER, nom et téléphone compris. */
         (baseAJour
           ? '<div class="prem-champ">' +
-              '<label>Genre <span class="ip-fac">facultatif</span></label>' +
-              '<div class="ip-genres" id="genre">' +
-                GENRES.map(g =>
-                  '<button type="button" class="ip-genre' + (genre === g.v ? ' on' : '') + '" ' +
-                    'data-g="' + g.v + '" aria-pressed="' + (genre === g.v ? 'true' : 'false') + '">' +
+              '<label>Genre <span class="ip-fac">' +
+                (fige ? 'définitif' : 'facultatif') + '</span></label>' +
+              /* VERROUILLÉ dès qu'un genre est enregistré. Les cartes perdent
+                 leur attribut `data-g` : sans lui, le gestionnaire de clic ne
+                 s'accroche à rien, et il n'y a donc rien à désactiver ni à
+                 penser à réactiver ailleurs. */
+              '<div class="ip-genres' + (fige ? ' fige' : '') + '" id="genre">' +
+                GENRES.map(g => {
+                  const on = genre === g.v;
+                  return '<' + (fige ? 'div' : 'button type="button"') +
+                    ' class="ip-genre' + (on ? ' on' : '') + '"' +
+                    (fige ? ' aria-disabled="true"' : ' data-g="' + g.v + '"' +
+                      ' aria-pressed="' + (on ? 'true' : 'false') + '"') + '>' +
                     '<span class="ip-genre-ic">' + UI.icon(g.i, 22) + '</span>' +
                     '<span class="ip-genre-t">' + U.esc(g.t) + '</span>' +
-                    '<span class="ip-genre-c" data-gcheck>' + (genre === g.v ? '✓' : '') + '</span>' +
-                  '</button>').join('') +
+                    '<span class="ip-genre-c" data-gcheck>' + (on ? '✓' : '') + '</span>' +
+                    '</' + (fige ? 'div' : 'button') + '>';
+                }).join('') +
               '</div>' +
+              '<span class="prem-aide">' + (fige
+                ? 'Le genre ne se choisit qu’une fois : il n’est plus modifiable.'
+                : 'Une fois enregistré, il ne sera plus modifiable.') + '</span>' +
             '</div>' +
 
             '<div class="prem-champ">' +
@@ -550,6 +570,10 @@
          déroulant. Sur deux valeurs, un menu demande deux gestes là où deux
          cartes en demandent un — et on voit son choix sans l'ouvrir. */
       let genre = p.gender || '';
+      /* Déjà renseigné en base = définitif. On lit `p.gender`, pas la variable
+         `genre` : un genre choisi à l'instant et pas encore enregistré doit
+         rester modifiable jusqu'à l'enregistrement. */
+      const fige = !!p.gender;
 
       /* LES DEUX CHAMPS N'APPARAISSENT QUE SI LA BASE LES CONNAÎT.
          `getProfile` lit la ligne entière (`select('*')`) : si la migration
@@ -570,7 +594,7 @@
       const clientPremium = App.est('client') && p.role === 'client';
 
       view.innerHTML = clientPremium
-        ? ipEcran(p, addresses, verrou, genre, baseAJour)
+        ? ipEcran(p, addresses, verrou, genre, baseAJour, fige)
         : '<div class="account-page">' +
         '<span class="acc-dots a" aria-hidden="true"></span>' +
         '<div class="wrap-sm page">' +
@@ -1264,6 +1288,7 @@
 
       '<div class="card card-p acc-block center">' +
         '<img src="' + U.asset('assets/img/logo.jpg') + '" alt="' + U.esc(TALABI_CONFIG.APP_NAME) + '" ' +
+          'width="1254" height="1254" decoding="async" ' +
           'style="width:88px;border-radius:22px;margin:0 auto">' +
         '<div class="h2" style="margin-top:12px">' + U.esc(App.nom) + '</div>' +
         '<div class="tiny">Version ' + U.esc(TALABI_CONFIG.APP_VERSION || '1.0') + '</div>' +
