@@ -275,12 +275,27 @@
         w.history.back();
       };
 
-      ov.addEventListener('click', e => { if (e.target === ov) close(); });
-      // querySelectorAll et non querySelector : une modale a souvent DEUX
-      // boutons de fermeture — la croix de l'en-tête et un bouton de pied de
-      // page (« J'ai compris »). Avec querySelector, seule la croix marchait
-      // et le bouton du bas ne faisait rien.
-      ov.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', () => close()));
+      /* UN SEUL ÉCOUTEUR, PAR DÉLÉGATION — et c'est un correctif, pas un
+         raffinement.
+
+         Les boutons de fermeture étaient accrochés un par un, à la création du
+         panneau : `ov.querySelectorAll('[data-x]').forEach(…)`. Tant que tout le
+         contenu arrivait avec `opts.body`, cela marchait. Mais un panneau qui
+         PEINT SON CONTENU APRÈS — le panneau de notifications attend la réponse
+         du serveur, puis écrit son en-tête et sa croix — voyait sa croix ne
+         jamais être accrochée : elle n'existait pas encore au moment du forEach.
+         La croix ne fermait rien, et on restait enfermé dans le panneau.
+
+         Un écouteur unique sur l'enveloppe règle tous les cas d'un coup, présents
+         et futurs : le bouton peut apparaître, disparaître, être remplacé dix
+         fois, il fermera toujours. `closest` et non `e.target` directement,
+         parce qu'on touche presque toujours le pictogramme à l'intérieur du
+         bouton, pas le bouton lui-même. */
+      ov.addEventListener('click', e => {
+        if (e.target === ov) return close();          // le fond, autour du panneau
+        const x = e.target.closest && e.target.closest('[data-x]');
+        if (x && ov.contains(x)) close();
+      });
 
       const api = { close, el: ov };
       ov._fermer = close;
