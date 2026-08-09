@@ -704,14 +704,99 @@
   }, { auth: true });
 
   /* ======================================================================
-     SÉCURITÉ — changer son mot de passe, prouvé par email
+     SÉCURITÉ — MOT DE PASSE
+     ----------------------------------------------------------------------
+     Deux chemins, et le plus simple d'abord. Celui du mot de passe actuel ne
+     dépend que de la base ; celui du code par email dépend d'un serveur SMTP
+     extérieur. Le jour où celui-ci a refusé les identifiants (erreur 535),
+     l'unique porte de l'époque passait par un service en panne et plus personne
+     ne pouvait changer de mot de passe. C'est pourquoi le chemin par email est
+     désormais le second, sous « Mot de passe oublié ? ».
 
-     Trois étapes, sur un seul écran : on demande un code, on le saisit, on
-     choisit le nouveau mot de passe. Le code prouve que la boîte mail est
-     bien celle de la personne assise devant l'écran — sans lui, quelqu'un
-     qui trouverait un téléphone déverrouillé changerait le mot de passe et
-     prendrait le compte.
+     CE QUE LE BRIEF DEMANDAIT ET QUI N'EXISTE PAS : authentification à deux
+     facteurs, appareils connectés, historique des connexions, sessions actives.
+     Aucun des quatre n'a de table, d'écran ni d'appel côté serveur. Les afficher
+     en lignes mortes sur un écran qui s'appelle « Sécurité » serait le pire
+     endroit pour le faire : c'est précisément là qu'on vient vérifier que le
+     compte est protégé. Une porte qui ne s'ouvre pas y ferait douter du reste.
+
+     UNE PRÉCISION SUR LES QUATRE CONDITIONS. Le brief les liste avec des coches.
+     Si les quatre étaient obligatoires, tout mot de passe accepté serait « fort »
+     et l'indicateur de force n'aurait plus rien à mesurer. La longueur est donc
+     exigée — c'est un « minimum » — et les trois autres sont recommandées et
+     alimentent l'indicateur. Chaque ligne dit laquelle elle est : une coche qui
+     ne bloque rien sans le dire est un mensonge poli.
      ====================================================================== */
+
+  /* Un champ de mot de passe : pictogramme à gauche, œil à droite. L'œil est un
+     bouton et non une case à cocher, avec `tabindex="-1"` : au clavier, on passe
+     d'un champ au suivant sans buter sur lui. */
+  function secChamp(o) {
+    return '<div class="sec-champ' + (o.large ? ' large' : '') + '">' +
+      '<label for="' + o.id + '">' + U.esc(o.label) + '</label>' +
+      '<div class="sec-boite">' +
+        '<span class="sec-champ-ic">' + UI.icon(o.icone || 'lock', 18) + '</span>' +
+        '<input id="' + o.id + '" class="sec-input" type="' + (o.type || 'password') + '" ' +
+          'name="' + o.nom + '" placeholder="' + U.esc(o.repere || '') + '" ' +
+          (o.mode ? 'inputmode="' + o.mode + '" ' : '') +
+          (o.max ? 'maxlength="' + o.max + '" ' : '') +
+          'autocomplete="' + (o.auto || 'off') + '" required>' +
+        (o.type === 'text' ? '' :
+          '<button type="button" class="sec-oeil" data-oeil="' + o.id + '" tabindex="-1" ' +
+            'aria-label="Afficher le mot de passe">' + UI.icon('eye', 19) + '</button>') +
+      '</div>' +
+      (o.aide ? '<span class="sec-aide" id="' + o.id + '-aide"></span>' : '') +
+    '</div>';
+  }
+
+  /* Les quatre conditions. `dur` marque celle qui bloque l'enregistrement. */
+  const SEC_COND = [
+    ['long',    'Au moins 8 caractères',  true],
+    ['maj',     'Une majuscule',          false],
+    ['chiffre', 'Un chiffre',             false],
+    ['special', 'Un caractère spécial',   false]
+  ];
+
+  function secExamen(mdp) {
+    const m = String(mdp || '');
+    const c = {
+      long:    m.length >= 8,
+      maj:     /[A-Z]/.test(m),
+      chiffre: /[0-9]/.test(m),
+      special: /[^A-Za-z0-9]/.test(m)
+    };
+    const n = SEC_COND.reduce((s, k) => s + (c[k[0]] ? 1 : 0), 0);
+    return {
+      c: c, n: n,
+      /* Trois niveaux pour quatre conditions : une seule remplie n'est pas un
+         mot de passe, quatre en est un bon, et entre les deux il y a un vrai
+         entre-deux qu'il serait malhonnête d'appeler « fort ». */
+      niveau: n <= 1 ? 'faible' : n <= 3 ? 'moyen' : 'fort',
+      mot:    n <= 1 ? 'Faible' : n <= 3 ? 'Moyen' : 'Fort'
+    };
+  }
+
+  function secConditions() {
+    return '<ul class="sec-cond" id="secCond">' +
+      SEC_COND.map(k =>
+        '<li data-c="' + k[0] + '">' +
+          '<span class="p" aria-hidden="true">' + UI.icon('check', 14) + '</span>' +
+          '<span class="t">' + U.esc(k[1]) + '</span>' +
+          '<span class="r">' + (k[2] ? 'obligatoire' : 'recommandé') + '</span>' +
+        '</li>').join('') +
+    '</ul>';
+  }
+
+  function secForce() {
+    return '<div class="sec-force" id="secForce" data-n="faible" hidden>' +
+      '<div class="sec-force-h">' +
+        '<span>Sécurité du mot de passe</span>' +
+        '<b id="secForceMot">Faible</b>' +
+      '</div>' +
+      '<div class="sec-jauge"><span id="secJauge" style="--p:0%"></span></div>' +
+    '</div>';
+  }
+
   Router.add('/securite', async function (params, query, view) {
     const finNuit = nuitCompte();
     const p = Store.profile || {};
@@ -722,99 +807,171 @@
        adresse vide, ce qui échouait avec un message en anglais. */
     const adresse = (p.email || '').trim() || API.email() || '';
 
-    /* DEUX CHEMINS, ET LE PLUS SIMPLE D'ABORD.
-       Il n'y avait que celui de l'email : un code envoyé, à ressaisir. C'est le
-       bon chemin quand on a oublié son mot de passe — mais quand on le connaît,
-       il oblige à attendre un email pour prouver ce qu'on vient de prouver en
-       se connectant.
-
-       Surtout, il dépendait d'un serveur SMTP extérieur. Le jour où celui-ci a
-       refusé les identifiants (erreur 535), plus personne ne pouvait changer de
-       mot de passe : l'unique porte passait par un service en panne. Le chemin
-       « mot de passe actuel » ne dépend de rien d'autre que de la base. */
-    let voie = 'actuel';          // actuel | demande → code
+    let voie = 'actuel';          // actuel | demande | code
 
     function paint() {
-      view.innerHTML = '<div class="account-page">' +
-        '<span class="acc-dots a" aria-hidden="true"></span>' +
+      view.innerHTML = '<div class="account-page sec">' +
         '<div class="wrap-sm page">' +
 
-        entete('Sécurité') +
+        '<header class="sec-tete">' +
+          '<a class="sec-retour" href="#/account" aria-label="Retour aux réglages">' +
+            UI.icon('chevron', 19) + '</a>' +
+          '<span class="sec-bouclier" aria-hidden="true">' + UI.icon('shield', 26) + '</span>' +
+          '<div class="sec-tete-txt">' +
+            '<h1 class="sec-h1">Sécurité</h1>' +
+            '<p class="sec-sub">Gérez et protégez votre compte Talabi</p>' +
+          '</div>' +
+        '</header>' +
 
-        '<div class="card card-p acc-block">' +
-          bloc('lock', 'Mot de passe') +
+        '<div class="sec-carte">' +
+          '<div class="sec-bloc">' +
+            '<span class="sec-ic">' + UI.icon('lock', 21) + '</span>' +
+            '<div class="sec-bloc-txt"><b>Mot de passe</b>' +
+              '<span>' + (voie === 'actuel'
+                ? 'Modifiez votre mot de passe pour sécuriser davantage votre compte.'
+                : voie === 'demande'
+                  ? 'Nous envoyons un code à votre adresse email. Il prouve que cette boîte est bien la vôtre.'
+                  : 'Code envoyé, valable une heure. Pensez à regarder dans les spams.') +
+              '</span></div>' +
+          '</div>' +
 
           (voie === 'actuel'
-            ? '<p class="sub">Saisissez votre mot de passe actuel, puis le nouveau. ' +
-                'Aucun email n’est nécessaire.</p>' +
-              '<form id="af" class="stack" style="margin-top:14px" novalidate>' +
-                '<div class="field"><label>Mot de passe actuel</label>' +
-                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
-                  '<input class="input" type="password" name="actuel" ' +
-                    'placeholder="Celui que vous utilisez aujourd’hui" ' +
-                    'autocomplete="current-password" required></div></div>' +
-                '<div class="field"><label>Nouveau mot de passe</label>' +
-                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
-                  '<input class="input" type="password" name="password" ' +
-                    'placeholder="6 caractères minimum" autocomplete="new-password" required></div></div>' +
-                '<div class="field"><label>Confirmer le mot de passe</label>' +
-                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
-                  '<input class="input" type="password" name="confirm" ' +
-                    'placeholder="Retapez-le" autocomplete="new-password" required></div></div>' +
-                '<button class="btn btn-primary btn-block btn-lg" type="submit">' +
-                  UI.icon('save', 18) + ' Enregistrer le nouveau mot de passe</button>' +
+            ? '<form id="af" class="sec-form" novalidate>' +
+                secChamp({ id: 'secAct', nom: 'actuel', label: 'Mot de passe actuel',
+                           repere: 'Celui que vous utilisez aujourd’hui',
+                           auto: 'current-password' }) +
+                secChamp({ id: 'secNew', nom: 'password', label: 'Nouveau mot de passe',
+                           repere: '8 caractères minimum', auto: 'new-password' }) +
+                secForce() + secConditions() +
+                secChamp({ id: 'secConf', nom: 'confirm', label: 'Confirmer le mot de passe',
+                           repere: 'Retapez-le', auto: 'new-password', aide: true }) +
+                '<button class="sec-go" type="submit">' + UI.icon('save', 19) +
+                  ' Enregistrer le nouveau mot de passe</button>' +
               '</form>' +
-              '<button class="btn btn-ghost btn-block" id="parEmail" style="margin-top:10px">' +
-                'Je ne connais pas mon mot de passe actuel</button>'
+              '<button type="button" class="sec-go2" id="parEmail">Mot de passe oublié ?</button>'
 
           : voie === 'demande'
-            ? '<p class="sub">Pour changer votre mot de passe, nous envoyons un code à ' +
-                '<b>' + U.esc(adresse) + '</b>. Il prouve que cette boîte mail est bien la vôtre.</p>' +
-              '<button class="btn btn-primary btn-block btn-lg" id="envoyer" style="margin-top:14px">' +
-                UI.icon('mail', 18) + ' Recevoir le code</button>'
+            ? '<div class="sec-form">' +
+                '<div class="sec-adresse">' + UI.icon('mail', 18) + ' ' + U.esc(adresse) + '</div>' +
+                '<button type="button" class="sec-go" id="envoyer">' + UI.icon('mail', 19) +
+                  ' Recevoir le code</button>' +
+                '<button type="button" class="sec-go2" id="parActuel">' +
+                  'Je connais mon mot de passe actuel</button>' +
+              '</div>'
 
-            : '<p class="sub">Code envoyé à <b>' + U.esc(adresse) + '</b>. ' +
-                'Valable 1 heure — pensez à regarder dans les spams.</p>' +
-              '<form id="sf" class="stack" style="margin-top:14px" novalidate>' +
-                '<div class="field"><label>Code reçu par email</label>' +
-                  '<input class="input input-code" name="code" inputmode="numeric" ' +
-                    'autocomplete="one-time-code" maxlength="10" placeholder="— — — — — —" required></div>' +
-                '<div class="field"><label>Nouveau mot de passe</label>' +
-                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
-                  '<input class="input" type="password" name="password" ' +
-                    'placeholder="6 caractères minimum" autocomplete="new-password" required></div></div>' +
-                '<div class="field"><label>Confirmer le mot de passe</label>' +
-                  '<div class="input-ic"><span>' + UI.icon('lock', 17) + '</span>' +
-                  '<input class="input" type="password" name="confirm" ' +
-                    'placeholder="Retapez-le" autocomplete="new-password" required></div></div>' +
-                '<button class="btn btn-primary btn-block btn-lg" type="submit">' +
-                  UI.icon('save', 18) + ' Enregistrer le nouveau mot de passe</button>' +
-              '</form>' +
-              '<button class="btn btn-ghost btn-block" id="renvoyer" style="margin-top:10px">' +
-                'Je n’ai rien reçu — renvoyer un code</button>' +
-              '<button class="btn btn-ghost btn-block" id="parActuel" style="margin-top:8px">' +
-                'Revenir au mot de passe actuel</button>') +
+            : '<form id="sf" class="sec-form" novalidate>' +
+                '<div class="sec-adresse">' + UI.icon('mail', 18) + ' ' + U.esc(adresse) + '</div>' +
+                secChamp({ id: 'secCode', nom: 'code', label: 'Code reçu par email',
+                           type: 'text', icone: 'inbox', repere: '— — — — — —',
+                           mode: 'numeric', max: 10, auto: 'one-time-code', large: true }) +
+                secChamp({ id: 'secNew', nom: 'password', label: 'Nouveau mot de passe',
+                           repere: '8 caractères minimum', auto: 'new-password' }) +
+                secForce() + secConditions() +
+                secChamp({ id: 'secConf', nom: 'confirm', label: 'Confirmer le mot de passe',
+                           repere: 'Retapez-le', auto: 'new-password', aide: true }) +
+                '<button class="sec-go" type="submit">' + UI.icon('save', 19) +
+                  ' Enregistrer le nouveau mot de passe</button>' +
+                '<button type="button" class="sec-go2" id="renvoyer">' +
+                  'Je n’ai rien reçu — renvoyer un code</button>' +
+                '<button type="button" class="sec-go2" id="parActuel">' +
+                  'Revenir au mot de passe actuel</button>' +
+              '</form>') +
         '</div>' +
 
-        '<div class="tiny center" style="margin-top:14px">Vous vous connectez avec Google ? ' +
-          'Définir un mot de passe ici vous ouvre une seconde façon d’entrer, ' +
-          'sans rien retirer à la première.</div>' +
+        /* La carte d'information ne parle que de Google : c'est le seul autre
+           moyen d'entrer dans Talabi. Mentionner Apple, comme le demandait le
+           brief, aurait décrit une porte qui n'existe pas. */
+        '<div class="sec-info">' +
+          '<span class="sec-info-ic">' + UI.icon('info', 19) + '</span>' +
+          '<p>Si vous vous connectez avec Google, ce mot de passe s’ajoute comme ' +
+            'seconde façon d’entrer, sans rien retirer à la première.</p>' +
+        '</div>' +
 
       '</div></div>';
+
+      brancher();
+    }
+
+    /* ---- la validation en direct -------------------------------------
+       Elle ne se contente pas d'allumer des coches : elle décide aussi si le
+       bouton est actif. Un bouton qu'on peut toucher pour se voir refuser fait
+       chercher l'erreur dans le formulaire ; un bouton éteint dit où regarder. */
+    function brancher() {
+      view.querySelectorAll('[data-oeil]').forEach(b => b.onclick = function () {
+        const champ = view.querySelector('#' + this.dataset.oeil);
+        if (!champ) return;
+        const cache = champ.getAttribute('type') === 'password';
+        champ.setAttribute('type', cache ? 'text' : 'password');
+        this.classList.toggle('on', cache);
+        this.setAttribute('aria-label', cache ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+      });
+
+      const neuf = view.querySelector('#secNew');
+      const conf = view.querySelector('#secConf');
+      const boite = view.querySelector('#secForce');
+      const mot = view.querySelector('#secForceMot');
+      const jauge = view.querySelector('#secJauge');
+      const conds = view.querySelector('#secCond');
+      const aide = view.querySelector('#secConf-aide');
+      const form = view.querySelector('#af') || view.querySelector('#sf');
+      const bouton = form && form.querySelector('[type=submit]');
+      if (!neuf) return;
+
+      function revoir() {
+        const v = neuf.value || '';
+        const x = secExamen(v);
+
+        if (boite) boite.hidden = !v;
+        if (boite) boite.dataset.n = x.niveau;
+        if (mot) mot.textContent = x.mot;
+        /* La barre suit le NOMBRE de conditions remplies, pas le niveau : trois
+           paliers pour quatre états auraient fait un saut de zéro à un tiers
+           dès le premier caractère. */
+        if (jauge) jauge.style.setProperty('--p', Math.round(x.n / 4 * 100) + '%');
+
+        if (conds) SEC_COND.forEach(k => {
+          const li = conds.querySelector('[data-c="' + k[0] + '"]');
+          if (li) li.classList.toggle('ok', !!x.c[k[0]]);
+        });
+
+        const cv = conf ? (conf.value || '') : '';
+        if (aide) {
+          const pareil = cv && cv === v;
+          aide.textContent = !cv ? '' : pareil ? 'Les deux correspondent' : 'Les deux ne correspondent pas';
+          aide.className = 'sec-aide' + (!cv ? '' : pareil ? ' ok' : ' non');
+        }
+
+        /* Seule la longueur bloque, avec la concordance : les trois autres
+           conditions sont des recommandations, et l'interface le dit. */
+        if (bouton) bouton.disabled = !(x.c.long && cv && cv === v);
+      }
+
+      neuf.oninput = revoir;
+      if (conf) conf.oninput = revoir;
+      revoir();
 
       const env = view.querySelector('#envoyer');
       if (env) env.onclick = demander;
       const re = view.querySelector('#renvoyer');
       if (re) re.onclick = demander;
-      const f = view.querySelector('#sf');
-      if (f) f.onsubmit = enregistrer;
-
+      const fs = view.querySelector('#sf');
+      if (fs) fs.onsubmit = enregistrer;
       const fa = view.querySelector('#af');
       if (fa) fa.onsubmit = enregistrerAvecActuel;
       const pe = view.querySelector('#parEmail');
       if (pe) pe.onclick = () => { voie = 'demande'; paint(); };
       const pa = view.querySelector('#parActuel');
       if (pa) pa.onclick = () => { voie = 'actuel'; paint(); };
+    }
+
+    /* Les contrôles restent DANS les fonctions d'envoi, en plus de la
+       validation en direct : celle-ci guide, elle ne garde pas la porte. Un
+       formulaire envoyé au clavier, ou par un bouton réactivé à la main, doit
+       buter sur les mêmes règles. */
+    function verifier(d) {
+      if ((d.password || '').length < 8) return 'Mot de passe trop court — 8 caractères minimum';
+      if (d.password !== d.confirm) return 'Les deux mots de passe ne correspondent pas';
+      return '';
     }
 
     /* Le chemin sans email : on redemande le mot de passe en cours. */
@@ -824,8 +981,8 @@
       const d = UI.formData(this);
 
       if (!d.actuel) return UI.err('Saisissez votre mot de passe actuel');
-      if ((d.password || '').length < 6) return UI.err('Mot de passe trop court', '6 caractères minimum');
-      if (d.password !== d.confirm) return UI.err('Les deux mots de passe ne correspondent pas');
+      const souci = verifier(d);
+      if (souci) return UI.err(souci);
       if (d.password === d.actuel) return UI.err('Le nouveau mot de passe est identique à l’ancien');
 
       UI.busy(btn, true, 'Vérification…');
@@ -857,8 +1014,8 @@
       const code = String(d.code || '').replace(/\D/g, '');
 
       if (code.length < 4) return UI.err('Saisissez le code reçu par email');
-      if ((d.password || '').length < 6) return UI.err('Mot de passe trop court', '6 caractères minimum');
-      if (d.password !== d.confirm) return UI.err('Les deux mots de passe ne correspondent pas');
+      const souci = verifier(d);
+      if (souci) return UI.err(souci);
 
       UI.busy(btn, true, 'Vérification…');
       try {

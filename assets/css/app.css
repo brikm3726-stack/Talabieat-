@@ -8360,3 +8360,323 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
   .cmd .wrap-sm{max-width:560px}
   .cmd-scene{max-width:320px}
 }
+
+/* ==========================================================================
+   SÉCURITÉ — une grande carte, et rien autour
+   --------------------------------------------------------------------------
+   Ici la carte est BLANCHE sur une page blanche, alors que les écrans Compte et
+   Commandes font l'inverse — page blanche, blocs gris très clair. Ce n'est pas
+   une incohérence : là-bas il y a une dizaine de blocs, et dix cartes blanches
+   sur du blanc ne se distinguent plus les unes des autres. Ici il n'y en a
+   qu'une. Un seul plan surélevé se lit très bien à l'ombre et au liseré, et
+   c'est ce que le brief demande.
+
+   Le liseré compte autant que l'ombre : sur les écrans à luminosité réduite —
+   c'est-à-dire dehors, en plein soleil, exactement là où un livreur ou un
+   client regarde son téléphone — une ombre douce disparaît complètement. Le
+   liseré, lui, reste.
+   ========================================================================== */
+.sec{
+  --sec-fond:#FFFFFF;
+  --sec-carte:#FFFFFF;
+  --sec-champ:#F7F8FA;
+  --sec-filet:rgba(16,24,40,.10);
+  --sec-titre:#0E1013;
+  --sec-doux:#6B7280;
+  --sec-or:#FF6B00;
+  background:var(--sec-fond);
+}
+/* Les taches décoratives des écrans de compte ne sont pas reprises : sur du
+   blanc pur elles se verraient comme deux auréoles. */
+.sec .acc-dots{display:none}
+
+/* ---- titre ---- */
+.sec-tete{display:flex;align-items:center;gap:13px;padding:4px 0 2px}
+.sec-retour{
+  flex:none;width:42px;height:42px;border-radius:14px;
+  display:grid;place-items:center;
+  background:var(--sec-champ);color:var(--sec-titre);
+  box-shadow:inset 0 0 0 1px var(--sec-filet);
+  /* Le chevron du jeu d'icônes pointe à droite : il faut le retourner pour
+     qu'il dise « revenir ». */
+  transform:scaleX(-1);
+  transition:transform .16s;
+}
+.sec-retour:active{transform:scaleX(-1) scale(.94)}
+.sec-bouclier{
+  flex:none;width:48px;height:48px;border-radius:16px;
+  display:grid;place-items:center;
+  color:#fff;
+  background:linear-gradient(140deg,#FF8A3D 0%,#FF6B00 55%,#FF3D57 100%);
+  box-shadow:0 10px 24px -10px rgba(255,77,60,.75);
+}
+.sec-tete-txt{min-width:0}
+.sec-h1{
+  margin:0;font-size:29px;font-weight:900;letter-spacing:-.035em;line-height:1.1;
+  color:var(--sec-titre);
+}
+.sec-sub{margin:5px 0 0;font-size:13.5px;line-height:1.45;color:var(--sec-doux)}
+
+/* ---- la carte ---- */
+.sec-carte{
+  margin-top:20px;padding:22px 20px 20px;
+  border-radius:28px;
+  background:var(--sec-carte);
+  box-shadow:inset 0 0 0 1px var(--sec-filet),
+             0 2px 6px rgba(16,24,40,.04),
+             0 22px 48px -26px rgba(16,24,40,.3);
+}
+.sec-bloc{display:flex;align-items:flex-start;gap:13px}
+.sec-ic{
+  flex:none;width:46px;height:46px;border-radius:15px;
+  display:grid;place-items:center;
+  color:var(--sec-or);background:rgba(255,107,0,.10);
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.20);
+}
+.sec-bloc-txt{min-width:0;display:flex;flex-direction:column;gap:4px}
+.sec-bloc-txt b{font-size:16.5px;font-weight:850;color:var(--sec-titre)}
+.sec-bloc-txt span{font-size:13px;line-height:1.5;color:var(--sec-doux)}
+
+.sec-form{display:flex;flex-direction:column;gap:15px;margin-top:20px}
+
+/* ---- les champs ----
+   60 px de haut, coins de 18. Le pictogramme et l'œil sont posés PAR-DESSUS le
+   champ, et le champ reçoit un remplissage à gauche et à droite pour leur faire
+   place : un champ encadré dans une boîte avec deux éléments à côté cesse de
+   recevoir la touche sur toute sa surface, et l'on tape à côté. */
+.sec-champ{display:flex;flex-direction:column;gap:7px}
+.sec-champ > label{
+  font-size:12.5px;font-weight:800;color:var(--sec-titre);
+  padding-left:3px;
+}
+.sec-boite{position:relative}
+.sec-input{
+  width:100%;height:60px;
+  padding:0 52px;
+  border-radius:18px;
+  border:1.5px solid var(--sec-filet);
+  background:var(--sec-champ);
+  color:var(--sec-titre);
+  font:inherit;font-size:15px;font-weight:600;
+  transition:border-color .18s, box-shadow .18s, background .18s;
+  -webkit-appearance:none;appearance:none;
+}
+.sec-input::placeholder{color:#9AA0A8;font-weight:500}
+/* L'animation au focus : le liseré passe à l'orange et un halo s'ouvre autour.
+   Le halo est un `box-shadow`, donc dessiné EN DEHORS du champ — il ne lui prend
+   pas un pixel de hauteur, et les 60 px demandés restent 60. */
+.sec-input:focus{
+  outline:none;
+  background:var(--sec-carte);
+  border-color:var(--sec-or);
+  box-shadow:0 0 0 4px rgba(255,107,0,.14);
+}
+.sec-champ-ic{
+  position:absolute;left:17px;top:50%;transform:translateY(-50%);
+  color:var(--sec-doux);pointer-events:none;display:grid;
+  transition:color .18s;
+}
+.sec-input:focus ~ .sec-champ-ic,
+.sec-boite:focus-within .sec-champ-ic{color:var(--sec-or)}
+.sec-oeil{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border:0;border-radius:14px;
+  display:grid;place-items:center;
+  background:none;color:var(--sec-doux);cursor:pointer;
+  transition:color .16s, background .16s;
+}
+.sec-oeil:active{background:rgba(16,24,40,.05)}
+.sec-oeil.on{color:var(--sec-or)}
+/* Le code reçu par email : centré, très espacé, sans œil — ce n'est pas un
+   secret qu'on masque, c'est un nombre qu'on recopie. */
+.sec-champ.large .sec-input{
+  padding:0 20px 0 52px;
+  text-align:center;letter-spacing:.42em;font-size:19px;font-weight:800;
+}
+.sec-aide{font-size:12px;font-weight:700;padding-left:3px;min-height:15px;color:var(--sec-doux)}
+.sec-aide.ok{color:#0F9D58}
+.sec-aide.non{color:#D9483B}
+
+.sec-adresse{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  min-height:50px;padding:0 16px;border-radius:16px;
+  background:var(--sec-champ);color:var(--sec-titre);
+  font-size:14px;font-weight:750;
+  box-shadow:inset 0 0 0 1px var(--sec-filet);
+  word-break:break-all;
+}
+.sec-adresse svg{flex:none;color:var(--sec-or)}
+
+/* ==========================================================================
+   INDICATEUR DE FORCE
+   --------------------------------------------------------------------------
+   Les trois couleurs ne sont PAS l'orange de la marque, et c'est voulu : un
+   indicateur de sécurité orange à tous les niveaux ne dirait rien. Rouge,
+   ambre, vert — trois couleurs que personne n'a besoin d'apprendre.
+
+   La barre suit le NOMBRE de conditions remplies, pas le niveau : avec trois
+   paliers pour quatre états, elle aurait sauté d'un tiers dès le premier
+   caractère tapé, puis n'aurait plus bougé pendant deux conditions.
+   ========================================================================== */
+.sec-force{display:flex;flex-direction:column;gap:8px;margin-top:-4px}
+.sec-force-h{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  font-size:12px;font-weight:700;color:var(--sec-doux);
+}
+.sec-force-h b{font-size:12.5px;font-weight:900;letter-spacing:.02em}
+.sec-jauge{height:7px;border-radius:999px;background:rgba(16,24,40,.09);overflow:hidden}
+.sec-jauge > span{
+  display:block;height:100%;width:var(--p,0%);
+  border-radius:999px;
+  transition:width .34s cubic-bezier(.3,.8,.3,1), background .28s;
+}
+.sec-force[data-n="faible"] .sec-force-h b{color:#D9483B}
+.sec-force[data-n="moyen"]  .sec-force-h b{color:#C77700}
+.sec-force[data-n="fort"]   .sec-force-h b{color:#0F9D58}
+.sec-force[data-n="faible"] .sec-jauge > span{background:linear-gradient(90deg,#E5484D,#D9483B)}
+.sec-force[data-n="moyen"]  .sec-jauge > span{background:linear-gradient(90deg,#F5A524,#F58C24)}
+.sec-force[data-n="fort"]   .sec-jauge > span{background:linear-gradient(90deg,#12B76A,#0F9D58)}
+
+/* ---- les quatre conditions ----
+   Chaque ligne dit si elle bloque ou non. Une coche qui n'empêche rien sans le
+   dire laisse croire que le mot de passe a été refusé pour elle. */
+.sec-cond{
+  list-style:none;margin:-2px 0 0;padding:14px;
+  border-radius:18px;background:var(--sec-champ);
+  box-shadow:inset 0 0 0 1px var(--sec-filet);
+  display:flex;flex-direction:column;gap:9px;
+}
+.sec-cond li{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:650;color:var(--sec-doux);
+  transition:color .2s;
+}
+.sec-cond li .p{
+  flex:none;width:21px;height:21px;border-radius:50%;
+  display:grid;place-items:center;
+  background:rgba(16,24,40,.07);color:transparent;
+  transition:background .22s, color .22s, transform .22s cubic-bezier(.34,1.5,.6,1);
+}
+.sec-cond li .t{flex:1;min-width:0}
+.sec-cond li .r{
+  flex:none;font-size:10px;font-weight:800;letter-spacing:.05em;
+  text-transform:uppercase;opacity:.6;
+}
+.sec-cond li.ok{color:var(--sec-titre)}
+.sec-cond li.ok .p{background:#0F9D58;color:#fff;transform:scale(1.06)}
+
+/* ---- boutons ---- */
+.sec-go{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;height:60px;
+  border:0;border-radius:30px;
+  background:linear-gradient(100deg,#FF6B00 0%,#FF5230 52%,#FF3D57 100%);
+  color:#fff;font:inherit;font-size:15.5px;font-weight:850;
+  cursor:pointer;
+  box-shadow:0 14px 32px -12px rgba(255,77,60,.75);
+  transition:transform .17s cubic-bezier(.34,1.3,.64,1), box-shadow .17s, filter .17s;
+}
+.sec-go:active{transform:scale(.975);box-shadow:0 8px 20px -10px rgba(255,77,60,.8)}
+/* Éteint tant que les règles obligatoires ne sont pas remplies. Le dégradé
+   reste visible en gris : un bouton qui disparaît fait chercher où il est allé,
+   un bouton éteint dit qu'il attend quelque chose. */
+.sec-go:disabled{
+  cursor:not-allowed;
+  filter:grayscale(1);opacity:.4;
+  box-shadow:none;transform:none;
+}
+.sec-go2{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;min-height:52px;
+  border:1.5px solid var(--sec-filet);border-radius:20px;
+  background:var(--sec-carte);color:var(--sec-titre);
+  font:inherit;font-size:14.5px;font-weight:750;
+  cursor:pointer;text-decoration:none;
+  transition:transform .17s, border-color .17s, color .17s;
+}
+.sec-go2{margin-top:12px}
+.sec-form .sec-go2{margin-top:0}
+.sec-go2:active{transform:scale(.98)}
+.sec-go2:hover{border-color:var(--sec-or);color:var(--sec-or)}
+
+/* ---- carte d'information ---- */
+.sec-info{
+  display:flex;align-items:flex-start;gap:12px;
+  margin-top:16px;padding:15px 16px;
+  border-radius:18px;
+  background:rgba(255,107,0,.07);
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.16);
+}
+.sec-info-ic{flex:none;color:var(--sec-or);display:grid;margin-top:1px}
+.sec-info p{margin:0;font-size:12.8px;line-height:1.55;color:var(--sec-titre);opacity:.86}
+
+/* ---- l'écran arrive ---- */
+.sec-tete,.sec-carte,.sec-info{
+  animation:secMonte .44s cubic-bezier(.22,.75,.3,1) both;
+}
+.sec-carte{animation-delay:.07s}
+.sec-info{animation-delay:.14s}
+@keyframes secMonte{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+@media(prefers-reduced-motion:reduce){
+  .sec-tete,.sec-carte,.sec-info{animation:none}
+  .sec-jauge > span,.sec-cond li .p,.sec-input{transition:none}
+  .sec-go:active,.sec-go2:active,.sec-retour:active{transform:none}
+  .sec-retour:active{transform:scaleX(-1)}
+}
+
+/* ==========================================================================
+   LE MÊME ÉCRAN EN SOMBRE
+   ========================================================================== */
+body.nuit #view .sec{
+  --sec-fond:#050505;
+  --sec-carte:#111214;
+  --sec-champ:#1A1C1F;
+  --sec-filet:rgba(255,255,255,.09);
+  --sec-titre:#F4F5F7;
+  --sec-doux:#868C95;
+}
+body.nuit #view .sec-carte{
+  box-shadow:inset 0 0 0 1px var(--sec-filet), 0 24px 56px -30px rgba(0,0,0,1);
+}
+body.nuit #view .sec-input::placeholder{color:#6C7280}
+body.nuit #view .sec-input:focus{background:#1E2024}
+body.nuit #view .sec-jauge{background:rgba(255,255,255,.10)}
+body.nuit #view .sec-cond li .p{background:rgba(255,255,255,.09)}
+body.nuit #view .sec-oeil:active{background:rgba(255,255,255,.07)}
+body.nuit #view .sec-aide.ok{color:#4ADE80}
+body.nuit #view .sec-aide.non{color:#FF8A8A}
+body.nuit #view .sec-force[data-n="faible"] .sec-force-h b{color:#FF8A8A}
+body.nuit #view .sec-force[data-n="moyen"]  .sec-force-h b{color:#FDBA5C}
+body.nuit #view .sec-force[data-n="fort"]   .sec-force-h b{color:#4ADE80}
+body.nuit #view .sec-cond li.ok .p{background:#12B76A}
+body.nuit #view .sec-info{
+  background:rgba(255,107,0,.10);
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.20);
+}
+body.nuit #view .sec-info p{color:#E4E7EB;opacity:.9}
+
+/* ==========================================================================
+   TÉLÉPHONES ÉTROITS ET TABLETTES
+   ========================================================================== */
+@media(max-width:379px){
+  .sec-h1{font-size:25px}
+  .sec-bouclier{width:42px;height:42px;border-radius:14px}
+  .sec-carte{padding:18px 15px 17px;border-radius:24px}
+  .sec-input{height:56px;padding:0 48px;border-radius:16px}
+  .sec-cond li .r{display:none}   /* la place manque : le libellé passe d'abord */
+  .sec-go{height:56px;font-size:14.5px}
+}
+@media(min-width:620px){
+  .sec .wrap-sm{max-width:560px}
+}
+
+/* L'effet de verre de l'en-tête vaut aussi pour les écrans de compte : c'est la
+   même barre, et elle ne peut pas être dépolie sur un écran et mate sur le
+   suivant sans que le passage se voie. */
+body.ecran-compte .topbar{
+  -webkit-backdrop-filter:blur(18px) saturate(170%);
+          backdrop-filter:blur(18px) saturate(170%);
+}
+body.pref-clair.ecran-compte .topbar{background:rgba(255,255,255,.72)}
+body.nuit.ecran-compte .topbar{background:rgba(9,10,12,.66)}
