@@ -7744,3 +7744,51 @@ body.nuit .sheet-foot #add::before{
   .ent-anim .ent-w-in{animation:none}
   .ent-cur{display:none}
 }
+
+/* ==========================================================================
+   LE LIVREUR SE FOND DANS LA PAGE SOMBRE
+   --------------------------------------------------------------------------
+   MESURE D'ABORD, DEVINETTE ENSUITE. Les quatre bords de `scooter-nuit.jpg`,
+   relevés pixel par pixel : luminance moyenne 0,0 en haut, 2,1 en bas, 0,7 à
+   gauche, 0,6 à droite, sur 255. Le fond de la photo est du noir PUR.
+
+   Et la page, elle, ne l'est pas : `--nuit-fond` vaut #050505. Un rectangle de
+   noir pur sur du #050505 est plus sombre que ce qui l'entoure — d'où le cadre.
+   Il ne venait donc pas d'un mauvais recadrage : agrandir la photo ou déplacer
+   son point d'ancrage n'y aurait rien changé, le rectangle aurait juste changé
+   de taille.
+
+   Pire : la page porte une lueur orange en dégradé radial derrière le livreur.
+   Le rectangle noir y perçait un trou net. C'est ce qui donnait l'impression
+   d'une photo collée par-dessus — parce que c'est exactement ce qui se passait.
+
+   `mix-blend-mode:screen` règle les deux d'un coup. Sa règle : le noir ne
+   change rien à ce qu'il y a dessous. Le fond de la photo devient donc
+   invisible — pas « presque », littéralement — et seuls les pixels clairs, le
+   livreur et son scooter, se posent sur la page. La lueur orange traverse et
+   colore le scooter au passage : il est éclairé PAR la page au lieu d'être posé
+   dessus.
+
+   C'est le symétrique exact de ce que l'application fait déjà en clair, où les
+   illustrations sur fond blanc sont fondues par `multiply` — même idée,
+   inversée : le blanc ne change rien en multipliant, le noir ne change rien en
+   « screen ».
+
+   `isolation:isolate` sur le parent enferme le mélange dans la page elle-même.
+   Sans lui, le groupe de mélange serait le premier ancêtre qui en forme un, et
+   la photo se mélangerait à tout ce qui est peint dessous — aujourd'hui du
+   sombre, donc sans conséquence, mais une pile de rendu qui change n'a pas à
+   pouvoir déteindre sur une photo.
+   ========================================================================== */
+
+/* ---- créer un compte, thème sombre ---- */
+.auth-nuit{isolation:isolate}
+.auth-nuit::before{mix-blend-mode:screen}
+
+/* ---- la porte d'entrée, thème sombre ----
+   Même photo, même défaut, écran voisin. Ici le fond de la page est du noir pur
+   lui aussi, donc le cadre ne se voyait pas — mais le trou dans la lueur orange,
+   si. Les corriger séparément aurait laissé deux écrans qui s'enchaînent traiter
+   la même photo de deux manières. */
+body.nuit .ent{isolation:isolate}
+body.nuit .ent-art img{mix-blend-mode:screen}
