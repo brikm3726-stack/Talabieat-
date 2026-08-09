@@ -6498,14 +6498,10 @@ body.pref-clair.ecran-accueil .brand-nuit .mot i{font-style:normal;color:var(--b
   body.pref-clair.ecran-accueil .brand-nuit .mot{font-size:26px}
 }
 
-/* Le quartier : pastille blanche cerclée, épingle orange — l'orange plein du
-   thème d'origine écrasait tout le reste de la rangée. */
-body.pref-clair.ecran-accueil .topbar .zone-pick{
-  background:#fff;box-shadow:none;
-  border:1px solid var(--jr-bord);border-radius:999px;
-  color:#16181D;font-size:13px;font-weight:650;
-  padding:7px 13px 7px 11px;max-width:132px;min-width:0;gap:7px;
-}
+/* Le bouton du quartier n'est plus repris ici : une seule règle, en fin de
+   fichier, le gouverne sur TOUS les écrans clairs. Cette version-ci était plus
+   spécifique et l'emportait — elle imposait 132 px de large là où le cadre doit
+   épouser le texte. */
 body.pref-clair.ecran-accueil .topbar .zone-pick svg{stroke:var(--brand);color:var(--brand)}
 body.pref-clair.ecran-accueil .topbar .zone-pick .pin-ic{color:var(--brand)}
 /* La cloche : rond blanc cerclé, pictogramme sombre, point orange. */
@@ -6725,18 +6721,9 @@ body.pref-clair .brand-nuit .mot i{font-style:normal;color:var(--brand)}
   body.pref-clair .brand-nuit .mot{font-size:26px}
 }
 
-/* Le quartier, blanc cerclé (voir la note en tête de bloc). Le `background`
-   raccourci est indispensable : la règle d'origine pose un DÉGRADÉ orange, et
-   une simple couleur de fond le laisserait dessiné par-dessus. */
-body.pref-clair.ecran-restaurants .topbar .zone-pick,
-body.pref-clair.ecran-commandes .topbar .zone-pick,
-body.pref-clair.ecran-compte .topbar .zone-pick,
-body.pref-clair.ecran-inscription .topbar .zone-pick{
-  background:#fff;box-shadow:none;
-  border:1px solid var(--jr-bord);border-radius:999px;
-  color:#16181D;font-size:13px;font-weight:650;
-  padding:7px 13px 7px 11px;max-width:132px;min-width:0;gap:7px;
-}
+/* Même raison : le bouton du quartier est gouverné par la règle unique de fin
+   de fichier. L'énumérer par écran laissait le panier, la fiche restaurant, le
+   paiement et le suivi avec l'ancien dégradé orange. */
 body.pref-clair .topbar .zone-pick svg{stroke:var(--brand);color:var(--brand)}
 body.pref-clair .topbar .zone-pick .pin-ic{color:var(--brand)}
 
@@ -6985,3 +6972,59 @@ body.pref-clair.ecran-inscription .btn-primary{
   border-radius:16px;min-height:56px;
   box-shadow:0 12px 26px -12px rgba(255,101,0,.7);
 }
+
+/* ==========================================================================
+   LA PASTILLE DU QUARTIER, PARTOUT EN CLAIR ET AJUSTÉE AU TEXTE
+   --------------------------------------------------------------------------
+   Elle était reprise ÉCRAN PAR ÉCRAN — accueil, restaurants, commandes,
+   compte, inscription — et restait donc orange sur le panier, la fiche d'un
+   restaurant, le paiement et le suivi. Énumérer les écrans était la mauvaise
+   méthode : chaque écran ajouté ensuite était un oubli en attente. Une seule
+   règle sur `body.pref-clair` couvre tout, aujourd'hui et demain.
+
+   Le raccourci `background` est indispensable ici : la règle d'origine
+   (`body.app-client .topbar .zone-pick`) pose un DÉGRADÉ orange. Une simple
+   couleur de fond le laisserait dessiné par-dessus — c'est le piège de la v123,
+   et il se retend chaque fois qu'on touche à ce bouton.
+
+   LE CADRE ÉPOUSE L'ÉCRITURE. Il avait 132 px imposés : un nom court y flottait
+   au milieu du vide, un nom long s'y coupait. Sans largeur maximale et avec un
+   remplissage resserré, le bouton fait exactement la taille de ce qu'il dit.
+   Le mot-marque est centré en absolu, donc il ne pousse plus rien : la place
+   gagnée reste gagnée.
+   ========================================================================== */
+body.pref-clair .topbar .zone-pick{
+  background:#fff;
+  box-shadow:none;
+  border:1px solid var(--jr-bord, #ECEEF2);
+  border-radius:999px;
+  color:#16181D;
+  font-size:12.5px;font-weight:650;
+  /* juste ce qu'il faut autour du texte, et une hauteur qui reste tactile */
+  padding:6px 11px 6px 9px;
+  gap:6px;
+  max-width:none;width:auto;
+  min-height:38px;
+  /* Descendu de quelques pixels, comme demandé. Il s'aligne alors sur la
+     base du mot-marque plutôt que sur son centre optique. */
+  margin-top:6px;
+}
+body.pref-clair .topbar .zone-pick span{overflow:visible;text-overflow:clip}
+body.pref-clair .topbar .zone-pick svg{stroke:var(--brand);color:var(--brand)}
+body.pref-clair .topbar .zone-pick .pin-ic{color:var(--brand)}
+body.pref-clair .topbar .zone-pick .spinner{
+  border-color:rgba(255,101,0,.35);border-top-color:var(--brand);
+}
+
+/* La cloche descend d'autant, sinon les deux bouts de la rangée ne sont plus
+   sur la même ligne. */
+body.pref-clair .topbar .icon-btn{margin-top:6px}
+
+/* Et le mot-marque s'affiche sur TOUS les écrans clairs, pour la même raison
+   qu'on vient d'énoncer : l'énumération laissait des trous. */
+body.app-client.pref-clair .brand-nuit{
+  display:flex;flex-direction:column;align-items:center;
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  line-height:1;text-decoration:none;color:#16181D;
+}
+body.app-client.pref-clair .topbar-in{position:relative}
