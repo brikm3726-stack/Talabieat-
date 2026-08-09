@@ -7347,3 +7347,63 @@ body.pref-clair.ecran-panier .banner-warn{
   background:#fff;border:1px solid rgba(255,101,0,.26);
   border-radius:18px;color:#C2410C;box-shadow:var(--jr-ombre);
 }
+
+/* ==========================================================================
+   LE COMPTEUR DU PANIER — LA VRAIE CAUSE, VUE SUR LA CAPTURE
+   --------------------------------------------------------------------------
+   Le rattrapage précédent (anneau au lieu de bordure, centrage en grille,
+   22 px) était juste mais ne suffisait pas : il corrigeait la boîte, pas les
+   deux raisons pour lesquelles on ne voyait rien. La capture les montre toutes
+   les deux d'un coup.
+
+   1. UNE RÈGLE DE LIBELLÉ DÉCOUPAIT LE CHIFFRE
+
+      `.bottomnav a span{ max-width:100%; overflow:hidden; text-overflow:
+      ellipsis }` a été écrite pour les libellés — « Restaurants » qui doit
+      s'abréger plutôt que déborder sur « Commandes ». Mais le compteur EST un
+      span, lui aussi, et rien dans le sélecteur ne le distingue :
+
+          <span class="ic"> … <span class="marque"></span> </span>
+
+      Le découpage s'appliquait donc au compteur. Tout ce qui ne rentrait pas
+      dans sa boîte — et il ne rentrait pas, voir le rattrapage précédent —
+      était coupé net. Un sélecteur par type d'élément attrape toujours plus
+      que ce qu'on avait en tête ; ici, l'exception est nommée.
+
+   2. UNE PASTILLE BLANCHE SUR DU BLANC
+
+      Elle était blanche à liseré orange. En thème clair, la barre est blanche
+      et la page au-dessus est à peine grise. Or elle ne se posait pas sur la
+      barre : le cercle est remonté de 24 px, donc son coin haut-droit flotte
+      AU-DESSUS de la barre, sur le fond de page. Du blanc sur du presque
+      blanc : il ne restait qu'un bout de liseré, là où il croisait l'orange du
+      cercle. C'est exactement ce qu'on voit sur la capture — un croissant, pas
+      un chiffre.
+
+      Elle devient donc orange à chiffre blanc, avec un anneau de la couleur du
+      pourtour — blanc en clair, presque noir en sombre, comme l'anneau qui
+      détache déjà le cercle. Un compteur ne se lit pas s'il a la couleur de ce
+      qu'il y a derrière.
+
+   3. ELLE NE CHEVAUCHE PLUS LE BORD DU CERCLE
+
+      À -3 px elle était centrée pile sur l'arc : moitié sur l'orange, moitié
+      dans le vide. Deux fonds sous une même pastille, aucun des deux net. À
+      -8 px elle est entièrement dégagée du disque, posée sur l'anneau.
+
+   Les trois valent pour les deux thèmes : ni le découpage ni le chevauchement
+   ne sont des couleurs. Seul l'anneau change de teinte, parce que le pourtour
+   change de teinte.
+   ========================================================================== */
+body.app-client .bottomnav .marque{
+  overflow:visible;max-width:none;text-overflow:clip;
+}
+body.app-client .bottomnav a[data-p="/cart"] .nav-badge{
+  top:-8px;right:-8px;
+  background:#D93A1F;color:#FFFFFF;border:0;
+  box-shadow:0 0 0 2.5px #0E0E10, 0 2px 8px rgba(0,0,0,.5);
+}
+body.pref-clair .bottomnav a[data-p="/cart"] .nav-badge{
+  background:#D93A1F;color:#FFFFFF;border:0;
+  box-shadow:0 0 0 2.5px #FFFFFF, 0 3px 9px rgba(16,24,40,.3);
+}
