@@ -536,7 +536,7 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
    gauche, livreur à scooter en haut à droite. */
 .auth-page{
   position:relative;overflow:hidden;
-  min-height:calc(100vh - 60px);
+  min-height:calc(100vh - 60px);min-height:calc(100dvh - 60px);
   background:linear-gradient(160deg, #FFFFFF 0%, #FFF8F4 44%, #FFEFE7 100%);
   padding:26px 0 calc(var(--nav-h) + 34px);
 }
@@ -1800,7 +1800,7 @@ body:has(.ck-page) .bottomnav{display:none}
     radial-gradient(600px 340px at 98% 2%, rgba(255,138,61,.10), transparent 60%),
     radial-gradient(520px 320px at 0% 100%, rgba(255,107,53,.07), transparent 58%),
     #FFF8F2;
-  min-height:calc(100vh - 60px);
+  min-height:calc(100vh - 60px);min-height:calc(100dvh - 60px);
 }
 
 /* ---- cartes : coins larges, ombre très douce, bord discret ---- */
@@ -2103,7 +2103,7 @@ body.role-driver .account-page .input:disabled{background:#F2F6FD}
   --brand-grad:linear-gradient(135deg,#FF8A3D 0%,#FF6B35 100%);
   --line:#F3E9E0;
 
-  position:relative;min-height:calc(100vh - 60px);
+  position:relative;min-height:calc(100vh - 60px);min-height:calc(100dvh - 60px);
   background:
     radial-gradient(680px 380px at 100% 0%, rgba(255,138,61,.18), transparent 62%),
     radial-gradient(520px 320px at 0% 100%, rgba(255,107,53,.07), transparent 58%),
@@ -2224,7 +2224,7 @@ body.app-driver{
   /* overflow:hidden conservé : il bornait les décors de cette page, et le
      retirer changerait la façon dont ses marges se comportent. Ce n'est pas
      le sujet ici. */
-  position:relative;overflow:hidden;min-height:calc(100vh - 60px);
+  position:relative;overflow:hidden;min-height:calc(100vh - 60px);min-height:calc(100dvh - 60px);
 }
 .driver-page .card{
   border-radius:22px;border:1px solid var(--line);
@@ -2937,7 +2937,7 @@ body.role-driver .drv-note b{color:var(--lv-actif)}
 
 /* le panier vide occupe toute la page, sur un fond doux */
 .empty-scene:not(.compact){
-  min-height:calc(100vh - 60px - var(--nav-h));
+  min-height:calc(100vh - 60px - var(--nav-h));min-height:calc(100dvh - 60px - var(--nav-h));
   display:flex;align-items:center;justify-content:center;
   background:
     radial-gradient(620px 340px at 50% 26%, rgba(255,138,90,.10), transparent 62%),
@@ -3397,7 +3397,7 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
   --sh-1:none;
   --sh-2:0 10px 26px -18px rgba(0,0,0,.9);
 
-  min-height:calc(100vh - 60px);background:var(--bg);color:var(--ink);
+  min-height:calc(100vh - 60px);min-height:calc(100dvh - 60px);background:var(--bg);color:var(--ink);
 }
 .admin-page .card{background:var(--card);border-color:var(--line)}
 .admin-page .input,.admin-page select.input,.admin-page textarea.input{
@@ -4231,7 +4231,7 @@ body.app-client .topbar .zone-pick:active{transform:scale(.97)}
    ========================================================================== */
 .orders-page{
   position:relative;overflow:hidden;
-  min-height:calc(100vh - 60px);
+  min-height:calc(100vh - 60px);min-height:calc(100dvh - 60px);
   background:
     radial-gradient(620px 340px at 96% 2%, rgba(255,138,90,.16), transparent 62%),
     radial-gradient(520px 320px at 0% 96%, rgba(255,138,90,.13), transparent 60%),
@@ -4715,6 +4715,7 @@ html,body{overscroll-behavior-y:none}
      bords et le plein écran ne serait pas plein. */
   position:relative;
   min-height:100vh;
+  min-height:100dvh;   /* iPhone : la fenêtre réelle, barre d adresse comprise */
   background:var(--ent-noir);
   color:var(--ent-texte);
   /* Une lueur orange derrière le scooter, en dégradé radial : c'est ce qui

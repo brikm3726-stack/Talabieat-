@@ -599,6 +599,24 @@
       b.classList.toggle('pref-clair', !on);
     },
 
+    /* ------------------------------------------- LA COULEUR AUTOUR DE LA PAGE
+       `theme-color` n'est pas décorative : c'est avec elle que le système peint
+       ce qui entoure la page — la barre d'état sur Android, et sur iPhone la
+       bande de 59 pt que la fenêtre ne couvre pas.
+
+       Elle doit donc valoir la couleur du BORD de la page. Sinon la bande se
+       voit, et elle se voit par intermittence : invisible sur un écran de la
+       même teinte, flagrante sur l'autre. C'est ce qui faisait « des fois en
+       plein écran, des fois non » — la bande était noire en permanence, et
+       l'application passée en clair la révélait d'un coup.
+
+       Une seule fonction la décide, pour que la page et son pourtour ne
+       puissent plus diverger. */
+    couleurBarre() {
+      if (!w.App || !App.est('client')) return UI._themeInitial || '#FF4D2D';
+      return UI.sombreVoulu() ? '#050505' : '#FAFAFB';
+    },
+
     nuit(nom) {
       const b = document.body;
       /* DEUX FAMILLES DE CLASSES, ET C'EST NÉCESSAIRE.
@@ -625,23 +643,16 @@
         .forEach(c => b.classList.remove(c));
       if (nom)    b.classList.add('ecran-' + nom);
       if (sombre) b.classList.add('nuit-' + nom);
-      /* On mémorise la couleur d'origine à la première bascule et on la
-         restaure ensuite. Écrire une valeur en dur ici imposerait l'orange du
-         client aux deux autres applications, qui ont chacune la leur. */
-      const m = document.querySelector('meta[name="theme-color"]');
+      /* La couleur d'origine est mémorisée pour les espaces professionnels,
+         qui ont chacune la leur ; l'orange de l'affiche d'ouverture est écarté
+         (voir couleurBarre et js/app.js). */
+      const m = document.querySelector('meta[name=theme-color]');
       if (!m) return;
       if (UI._themeInitial === undefined) {
         const v = m.getAttribute('content');
-        /* #E95403 est l'orange du bas de l'affiche d'ouverture, posé dans
-           index.html pour que la bande peinte par iOS sous la fenêtre s'y
-           confonde. Ce n'est PAS la couleur de repos de l'application, et
-           js/app.js la remplace dès que l'affiche s'efface. La mémoriser
-           ferait revenir un bandeau orange sous une application sombre —
-           ce qui n'arriverait qu'aux rares écrans affichés pendant les cinq
-           secondes d'ouverture, donc jamais pendant les essais. */
         UI._themeInitial = (v === '#E95403') ? '#050505' : v;
       }
-      m.setAttribute('content', sombre ? '#050505' : UI._themeInitial);
+      m.setAttribute('content', UI.couleurBarre());
     },
 
     /** Lit un <form> en objet simple */

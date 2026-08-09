@@ -45,7 +45,7 @@
            les deux couleurs se croisent ainsi au même instant, sans que la
            bande clignote entre les deux. */
         const m = document.querySelector('meta[name="theme-color"]');
-        if (m) m.setAttribute('content', UI.sombreVoulu() ? '#050505' : '#FF4D2D');
+        if (m) m.setAttribute('content', UI.couleurBarre());
         setTimeout(() => { splash.remove(); resolve(); }, SORTIE);
       }, reste);
     });
