@@ -55,31 +55,40 @@ comment on column public.profiles.gender     is 'homme | femme | null — rensei
 comment on column public.profiles.birth_date is 'date de naissance ; l''âge se calcule à l''affichage';
 
 -- ==========================================================================
---  LE GENRE NE SE CHOISIT QU UNE FOIS
+--  LE GENRE NE SE CHOISIT QU'UNE FOIS
 --  --------------------------------------------------------------------------
---  L écran verrouille les deux cartes dès qu un genre est enregistré. Mais un
---  verrou d interface n est pas une règle : il suffit d appeler l API
+--  L'écran verrouille les deux cartes dès qu'un genre est enregistré. Mais un
+--  verrou d'interface n'est pas une règle : il suffit d'appeler l'API
 --  directement pour le contourner. Si la règle doit tenir, elle tient ICI.
 --
---  Le déclencheur ne refuse QUE le passage d une valeur à une autre valeur.
---  Réenregistrer le même genre passe — et c est indispensable, parce que
---  l écran renvoie tout le profil à chaque enregistrement, genre compris.
+--  Le déclencheur ne refuse QUE le passage d'une valeur à une autre valeur.
+--  Réenregistrer le même genre passe — et c'est indispensable, parce que
+--  l'écran renvoie tout le profil à chaque enregistrement, genre compris.
 --  Sans cette nuance, changer son nom de famille deviendrait impossible.
 --
---  Passer de « non renseigné » à un genre passe aussi : c est le premier choix,
---  celui qu on veut permettre.
+--  Passer de « non renseigné » à un genre passe aussi : c'est le premier choix,
+--  celui qu'on veut permettre.
+--
+--  LE CORPS EST ENTRE $fn$ ET NON ENTRE $$ : ce fichier contient déjà un bloc
+--  `do $$ … $$;` plus haut, et deux délimiteurs identiques dans un même script
+--  peuvent se refermer l'un sur l'autre selon l'outil qui l'exécute. Un nom de
+--  délimiteur propre à cette fonction lève l'ambiguïté pour de bon.
+--
+--  C'est ce bloc, et lui seul, qui a échoué : ses `$$` avaient été réduits à un
+--  seul `$` en passant par le shell. D'où « syntax error at or near "$" ».
+--  Les colonnes et la contrainte, elles, étaient déjà passées.
 -- ==========================================================================
 create or replace function public.profiles_genre_une_fois()
 returns trigger
 language plpgsql
-as $
+as $fn$
 begin
   if old.gender is not null and new.gender is distinct from old.gender then
     raise exception 'Le genre ne peut plus être modifié une fois choisi.';
   end if;
   return new;
 end
-$;
+$fn$;
 
 drop trigger if exists profiles_genre_une_fois on public.profiles;
 create trigger profiles_genre_une_fois
