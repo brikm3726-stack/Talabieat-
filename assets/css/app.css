@@ -9728,3 +9728,129 @@ body.nuit #view .mp-repere.moi{border-color:#0E0E10}
   .ck .wrap-sm{max-width:560px}
   .ck-bas{max-width:592px;margin:0 auto}
 }
+
+/* ==========================================================================
+   ACCUEIL PREMIUM — les ajouts
+   --------------------------------------------------------------------------
+   L'accueil n'est pas réécrit : il est enrichi. Tout ce qui existait — la barre
+   de recherche et sa loupe, le rond orange des réglages, la bannière de la
+   commande en cours, les trois étapes, « C'est quoi Talabi ? » — a été dirigé
+   écran par écran et reste en place. Ce fichier ajoute quatre choses :
+   l'accroche, les suggestions, les catégories et la quatrième tuile de chiffres.
+   ========================================================================== */
+
+/* ---- l'accroche ----
+   Deux niveaux et pas trois : le salut en petit, la question en grand. Une
+   hiérarchie à trois niveaux sur trois lignes ne hiérarchise plus rien. */
+.h3d-accroche{margin:4px 0 16px}
+.h3d-accroche .salut{
+  font-size:14px;font-weight:700;color:var(--nuit-doux,#9AA0A9);
+}
+.h3d-accroche .salut b{font-weight:850;color:var(--nuit-texte,#F4F5F7)}
+.h3d-accroche .titre{
+  margin:7px 0 0;
+  font-size:27px;font-weight:900;letter-spacing:-.035em;line-height:1.16;
+  color:var(--nuit-texte,#F4F5F7);
+}
+
+/* ---- la barre de recherche passe à 60 px ----
+   Elle en faisait moins : à 60 px de haut et 30 de rayon, elle devient le point
+   d'appui de l'écran, ce que le brief demande et ce que sa place au sommet
+   justifie. */
+.h3d-search{min-height:60px;border-radius:30px}
+
+/* ---- les suggestions ----
+   Posées SOUS la barre et non par-dessus le contenu : une liste flottante
+   recouvre les catégories, et l'on perd le repère de ce qu'on était en train de
+   regarder. Elle pousse la page vers le bas, ce qui est plus lent mais plus
+   clair. */
+.h3d-sugg{
+  margin-top:10px;
+  border-radius:24px;overflow:hidden;
+  background:var(--nuit-carte,#131417);
+  box-shadow:inset 0 0 0 1px var(--nuit-bord,rgba(255,255,255,.08)),
+             0 18px 40px -24px rgba(0,0,0,.9);
+  animation:sgOuvre .22s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes sgOuvre{ from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+.sg{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:13px 15px;
+  border:0;background:none;color:var(--nuit-texte,#F4F5F7);
+  font:inherit;text-align:left;cursor:pointer;
+  transition:background .14s;
+}
+.sg + .sg{box-shadow:inset 0 1px 0 var(--nuit-bord,rgba(255,255,255,.07))}
+.sg:active{background:rgba(255,255,255,.05)}
+.sg-ic{
+  flex:none;width:36px;height:36px;border-radius:12px;
+  display:grid;place-items:center;
+  color:var(--brand);background:rgba(255,101,0,.13);
+  box-shadow:inset 0 0 0 1px rgba(255,101,0,.2);
+}
+/* Un plat et une enseigne ne se cherchent pas pour la même raison : la teinte
+   les sépare avant la lecture. */
+.sg-ic.plat{color:#7BB0FF;background:rgba(30,111,217,.15);box-shadow:inset 0 0 0 1px rgba(30,111,217,.24)}
+.sg-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sg-tx b{
+  font-size:14px;font-weight:800;line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sg-tx span{
+  font-size:12px;color:var(--nuit-doux,#9AA0A9);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sg-fl{flex:none;color:var(--nuit-doux,#9AA0A9);opacity:.5;display:grid}
+.sg-pr{flex:none;font-size:13px;font-weight:900;color:var(--brand)}
+.sg-rien{
+  padding:16px 15px;text-align:center;
+  font-size:13px;color:var(--nuit-doux,#9AA0A9);
+}
+
+/* ---- les catégories sur l'accueil ----
+   Le composant est celui de l'écran Restaurants, à l'identique : deux rangées
+   qui ne se ressembleraient pas seraient deux fois le travail, et elles
+   finiraient par diverger. Seule sa marge change ici. */
+.h3d-cats{margin:18px -16px 4px;padding:0 16px}
+.h3d-cats .cat-scroll{padding-bottom:4px}
+
+/* ---- la quatrième tuile de chiffres ----
+   Trois tenaient sur une ligne, quatre non : elles passent en deux par deux
+   sous 420 px, plutôt que de se serrer jusqu'à couper « Quartiers couverts ». */
+@media(max-width:419px){
+  .h3d-stats{flex-wrap:wrap}
+  .h3d-stats > div{flex:1 1 calc(50% - 1px)}
+  /* Le séparateur vertical n'a plus de sens sur deux rangées. */
+  .h3d-stats > div + div::before{display:none}
+}
+
+/* ==========================================================================
+   LE MÊME EN THÈME CLAIR
+   --------------------------------------------------------------------------
+   L'accueil clair vient d'une maquette validée (« acueil clair ») : ses jetons
+   existent déjà sous `body.pref-clair.ecran-accueil`. On les réutilise plutôt
+   que d'inventer une seconde palette.
+   ========================================================================== */
+body.pref-clair.ecran-accueil .h3d-accroche .salut{color:var(--jr-doux)}
+body.pref-clair.ecran-accueil .h3d-accroche .salut b{color:#16181D}
+body.pref-clair.ecran-accueil .h3d-accroche .titre{color:#16181D}
+body.pref-clair.ecran-accueil .h3d-sugg{
+  background:#fff;
+  box-shadow:inset 0 0 0 1px var(--jr-bord), var(--jr-ombre);
+}
+body.pref-clair.ecran-accueil .sg{color:#16181D}
+body.pref-clair.ecran-accueil .sg + .sg{box-shadow:inset 0 1px 0 var(--jr-bord)}
+body.pref-clair.ecran-accueil .sg:active{background:#F3F4F6}
+body.pref-clair.ecran-accueil .sg-ic{
+  background:rgba(255,107,0,.10);box-shadow:inset 0 0 0 1px rgba(255,107,0,.18);
+}
+body.pref-clair.ecran-accueil .sg-ic.plat{
+  color:#1E6FD9;background:rgba(30,111,217,.10);box-shadow:inset 0 0 0 1px rgba(30,111,217,.2);
+}
+body.pref-clair.ecran-accueil .sg-tx span,
+body.pref-clair.ecran-accueil .sg-fl,
+body.pref-clair.ecran-accueil .sg-rien{color:var(--jr-doux)}
+
+@media(prefers-reduced-motion:reduce){
+  .h3d-sugg{animation:none}
+}

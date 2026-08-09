@@ -47,6 +47,12 @@
        ou des restaurants : on lui propose les trois actions qui le concernent. */
     const isClient = Store.isLogged && Store.role === 'client';
 
+    /* Le prénom seul : « Bonjour Amine » se lit comme quelqu'un qui vous
+       parle, « Bonjour Amine Belkacem » comme une administration. */
+    const prenom = isClient
+      ? ((Store.profile && Store.profile.full_name) || '').trim().split(' ')[0]
+      : '';
+
     /* L'accueil est sombre — avec compte ou sans, c'est le même écran. La
        classe est posée AVANT d'écrire la page : sinon le crème apparaîtrait
        le temps d'une image, et un clignotement blanc à chaque ouverture est
@@ -65,6 +71,17 @@
          quinze centimètres l'un de l'autre, c'est une hésitation offerte à
          chaque ouverture — la recherche prend la place. */
       '<div class="wrap h3d-body">' +
+
+        /* ----------------------------------------------- L'ACCROCHE
+           Le prénom seul, pas le nom complet : « Bonjour Amine » se lit comme
+           quelqu'un qui vous parle, « Bonjour Amine Belkacem » comme une
+           administration. Et rien du tout pour un visiteur — le saluer par son
+           absence de compte serait maladroit. */
+        '<div class="h3d-accroche">' +
+          '<div class="salut">Bonjour' +
+            (prenom ? ' <b>' + U.esc(prenom) + '</b>' : '') + ' 👋</div>' +
+          '<h1 class="titre">Que souhaitez-vous<br>manger aujourd’hui ?</h1>' +
+        '</div>' +
 
         /* ----------------------------------------------------- RECHERCHE */
         /* ---- la barre de recherche, d'après la maquette « new theme accueil »
@@ -86,6 +103,21 @@
             'aria-label="Réglages">' + UI.icon('settings', 21) + '</a>' +
         '</div>' +
 
+        /* ---- LES SUGGESTIONS, PENDANT QU'ON TAPE ----
+           Elles cherchent pour de vrai, dans les restaurants ET les plats : les
+           deux appels existent déjà et servent l'écran Restaurants. C'est ce que
+           le brief appelle « suggestions intelligentes » — pas un devinement,
+           une recherche qui répond avant qu'on ait fini.
+
+           Ce que le brief demandait aussi et qui n'est pas là : la RECHERCHE
+           VOCALE. Elle existe dans le navigateur (`webkitSpeechRecognition`)
+           mais elle échoue en silence selon le moteur embarqué du téléphone, et
+           je ne peux pas la vérifier sur un vrai appareil d'ici. Un micro qui ne
+           répond pas est pire que pas de micro. Le BOUTON FILTRES non plus : il
+           n'y a rien à filtrer sur cet écran, les catégories juste en dessous
+           font ce travail. */
+        '<div class="h3d-sugg" id="sugg" hidden></div>' +
+
         /* ------------------------------------- LA COMMANDE EN COURS D'ABORD
            Quand une commande est en route, c'est LA question du moment : où en
            est-elle. Elle vivait dans l'onglet Commandes, à deux touches d'ici —
@@ -94,6 +126,19 @@
            plus rien à suivre. Rien de nouveau n'est calculé : ce sont les
            commandes du client, déjà en base. */
         '<div id="hmSuivi"></div>' +
+
+        /* ------------------------------------------------- CATÉGORIES
+           ELLES REVIENNENT ICI, ET C'EST UN RETOUR EN ARRIÈRE ASSUMÉ. Je les
+           avais retirées de l'accueil avec cette raison : « elles renvoyaient
+           vers l'écran Restaurants — un détour pour arriver au même endroit ».
+           Le brief les redemande, et l'argument tient dans l'autre sens aussi :
+           un raccourci qui économise une recherche n'est pas un détour, et six
+           pastilles disent en un coup d'œil ce qu'on peut commander.
+
+           Elles mènent à l'écran Restaurants AVEC le filtre déjà appliqué :
+           c'est ce qui fait la différence avec l'ancienne version, qui y menait
+           les mains vides. */
+        '<div class="h3d-cats" id="h3dCats"></div>' +
 
         /* --------------------------------------------------- RACCOURCIS */
         '<div class="h3d-quick">' +
@@ -159,6 +204,14 @@
             UI.icon('arrow-right', 16) + '</a>' +
         '</div>' +
         '<div id="popular">' + UI.skeletonCards(3) + '</div>' +
+
+        /* ---- NOUVEAUX RESTAURANTS ----
+           `restaurants.created_at` existe en base : « nouveau » veut donc dire
+           quelque chose de vérifiable — inscrit il y a moins de trente jours —
+           et non « celui qu'on veut mettre en avant ». La section disparaît
+           entièrement s'il n'y en a aucun, plutôt que d'afficher un titre suivi
+           du vide. */
+        '<div id="nouveaux"></div>' +
 
         /* -------------------------------------------- COMMENT ÇA MARCHE */
         /* Trois étapes, pas quatre. « Le restaurant prépare » décrivait ce que
@@ -272,7 +325,91 @@
     }
     peindreSuivi();
 
+    /* ---- LES CATÉGORIES ----
+       Elles mènent à l'écran Restaurants AVEC le filtre appliqué : c'est ce
+       qui les rend utiles ici, alors que l'ancienne version y menait les mains
+       vides. `categoryScroller` est le composant déjà utilisé là-bas — deux
+       rangées de catégories qui ne se ressemblent pas seraient deux fois le
+       travail, et elles finiraient par diverger. */
+    const boiteCats = view.querySelector('#h3dCats');
+    if (boiteCats) {
+      const cs = Cmp.categoryScroller(null, id => {
+        if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+        Router.go('/restaurants' + (id ? '?cat=' + encodeURIComponent(id) : ''));
+      });
+      boiteCats.innerHTML = cs.html;
+      cs.bind(boiteCats);
+    }
+
+    /* ---- LES SUGGESTIONS ----
+       Une vraie recherche, sur les deux appels qui servent déjà l'écran
+       Restaurants : les enseignes ET les plats. Trois de chaque au plus — une
+       liste qui recouvre l'écran fait fermer le clavier pour la lire.
+
+       `U.debounce` à 280 ms : sans lui, taper « chawarma » lancerait huit
+       requêtes dont sept déjà périmées à leur arrivée. Et un jeton croissant,
+       parce qu'une réponse lente peut revenir APRÈS une plus récente et
+       réafficher les résultats d'un mot qu'on a fini d'effacer. */
+    const boiteSugg = view.querySelector('#sugg');
+    let jeton = 0;
+
+    function fermerSugg() {
+      if (!boiteSugg) return;
+      boiteSugg.hidden = true;
+      boiteSugg.innerHTML = '';
+    }
+
+    const chercherSugg = U.debounce(async () => {
+      if (!boiteSugg) return;
+      const mot = (q && q.value || '').trim();
+      if (mot.length < 2) return fermerSugg();
+      const mien = ++jeton;
+
+      const [restos, plats] = await Promise.all([
+        API.safe(() => API.restaurants({ q: mot }), []),
+        API.safe(() => API.searchDishes(mot, null), [])
+      ]);
+      if (mien !== jeton) return;              // une frappe plus récente a gagné
+
+      const lignes =
+        restos.slice(0, 3).map(r =>
+          '<button type="button" class="sg" data-resto="' + U.esc(r.id) + '">' +
+            '<span class="sg-ic">' + UI.icon('store', 17) + '</span>' +
+            '<span class="sg-tx"><b>' + U.esc(r.name) + '</b>' +
+              '<span>' + U.esc((r.zone && r.zone.name) || 'Restaurant') + '</span></span>' +
+            '<span class="sg-fl">' + UI.icon('chevron', 16) + '</span></button>').join('') +
+        plats.slice(0, 3).map(d =>
+          '<button type="button" class="sg" data-resto="' + U.esc(d.restaurant.id) + '">' +
+            '<span class="sg-ic plat">' + UI.icon('utensils', 17) + '</span>' +
+            '<span class="sg-tx"><b>' + U.esc(d.name) + '</b>' +
+              '<span>chez ' + U.esc(d.restaurant.name) + '</span></span>' +
+            '<span class="sg-pr">' + U.esc(U.money(d.price)) + '</span></button>').join('');
+
+      if (!lignes) {
+        /* Dire qu'on n'a rien trouvé vaut mieux que refermer sans un mot :
+           sinon on croit que la recherche n'a pas fonctionné. */
+        boiteSugg.innerHTML = '<div class="sg-rien">Aucun résultat pour « ' +
+          U.esc(mot) + ' »</div>';
+      } else {
+        boiteSugg.innerHTML = lignes;
+      }
+      boiteSugg.hidden = false;
+
+      boiteSugg.querySelectorAll('[data-resto]').forEach(b => b.onclick = () => {
+        if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+        Router.go('/resto/' + b.dataset.resto);
+      });
+    }, 280);
+
     const q = view.querySelector('#q');
+    if (q) {
+      q.addEventListener('input', chercherSugg);
+      /* On referme en quittant le champ, mais APRÈS le clic : sans ce délai,
+         la liste disparaît avant que la touche n'ait été enregistrée et rien
+         ne s'ouvre. */
+      q.addEventListener('blur', () => setTimeout(fermerSugg, 180));
+    }
+
     const search = () => {
       const v = q.value.trim();
       Router.go('/restaurants' + (v ? '?q=' + encodeURIComponent(v) : ''));
@@ -351,11 +488,72 @@
         '<div><span class="ic">' + icone + '</span>' +
         '<b>' + U.esc(valeur) + '</b><span class="lb">' + U.esc(label) + '</span></div>';
 
+      /* QUATRE CHIFFRES, TOUS COMPTÉS SUR LE CATALOGUE RÉEL.
+
+         Le délai était écrit en dur — « 25 min » — donc faux le jour où les
+         restaurants changent leur temps de préparation. Il est maintenant la
+         moyenne de leurs temps annoncés, plus le trajet d'une course typique
+         de 3 km calculé par la même fonction que partout ailleurs.
+
+         La note moyenne est PONDÉRÉE par le nombre d'avis : sans cela, un
+         restaurant noté 5 par une seule personne compterait autant qu'un
+         autre noté 4,3 par cinquante. Et la tuile disparaît s'il n'y a aucun
+         avis — « 0,0 / 5 » serait pire que rien.
+
+         Le brief annonçait « 100+ restaurants », « 14 quartiers », « dès
+         15 min » et « 4,9/5 ». Ces chiffres-là ne sont pas les nôtres : on
+         affiche ceux de la base, quels qu'ils soient. Une vitrine qui gonfle
+         ses chiffres se fait démentir par son propre catalogue, deux écrans
+         plus loin. */
       const st = view.querySelector('#heroStats');
-      if (st) st.innerHTML =
-        chiffre(UI.icon('store', 20), list.length + '+', 'Restaurants') +
-        chiffre(UI.icon('pin', 20), String(Store.zones.length), 'Quartiers couverts') +
-        chiffre(UI.icon('clock', 20), '25 min', 'Livraison moyenne');
+      if (st) {
+        const prep = list.filter(r => +r.prep_time_min);
+        const moyPrep = prep.length
+          ? Math.round(prep.reduce((a, r) => a + (+r.prep_time_min), 0) / prep.length) : 0;
+        const trajet = (U.deliveryFor(3, Store.settings).minutes || 0);
+        const notes = list.filter(r => +r.rating_count > 0);
+        const poids = notes.reduce((a, r) => a + (+r.rating_count), 0);
+        const moyNote = poids
+          ? (notes.reduce((a, r) => a + (+r.rating) * (+r.rating_count), 0) / poids) : 0;
+
+        st.innerHTML =
+          chiffre(UI.icon('store', 20), list.length + (list.length > 1 ? '+' : ''), 'Restaurants') +
+          chiffre(UI.icon('pin', 20), String(Store.zones.length), 'Quartiers couverts') +
+          (moyPrep
+            ? chiffre(UI.icon('clock', 20), '~ ' + (moyPrep + trajet) + ' min', 'Livraison moyenne') : '') +
+          (moyNote
+            ? chiffre(UI.icon('medal', 20), moyNote.toFixed(1) + ' / 5', 'Note moyenne') : '');
+      }
+    })();
+
+    /* ---- NOUVEAUX RESTAURANTS ----
+       « Nouveau » veut dire inscrit il y a moins de trente jours, et rien
+       d'autre : c'est vérifiable dans la base (`created_at`), donc personne ne
+       peut être surpris de s'y trouver ou de ne pas s'y trouver. La section
+       disparaît entièrement s'il n'y en a aucun — un titre suivi du vide est
+       pire que pas de titre.
+
+       Trois au maximum : au-delà, ce n'est plus une nouveauté, c'est le
+       catalogue. */
+    (async function nouveaux() {
+      const boite = view.querySelector('#nouveaux');
+      if (!boite) return;
+      const list = await API.safe(() => API.restaurants({}), []);
+      const seuil = Date.now() - 30 * 864e5;
+      const neufs = list
+        .filter(r => r.created_at && new Date(r.created_at).getTime() >= seuil)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 3);
+      if (!neufs.length) { boite.innerHTML = ''; return; }
+
+      boite.innerHTML =
+        '<div class="section-head rc-head">' +
+          '<span class="rc-head-ic">' + UI.icon('sparkle', 22) + '</span>' +
+          '<div class="grow"><div class="h2">Nouveaux restaurants</div>' +
+          '<div class="sub">Arrivés ce mois-ci</div></div>' +
+        '</div>' +
+        '<div id="nouveauxListe"></div>';
+      Cmp.restoGrid(neufs, boite.querySelector('#nouveauxListe'));
     })();
 
     /* Le thème sombre s'éteint en quittant l'accueil : les autres écrans de
