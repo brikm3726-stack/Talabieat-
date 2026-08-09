@@ -36,6 +36,17 @@ window.TALABI_CONFIG = {
   SUPPORT_PHONE: '+213 792 779 320',
   SUPPORT_EMAIL: 'contacttalabi@gmail.com',
 
+  // ---- Réseaux sociaux --------------------------------------------------
+  // Affichés sous « C'est quoi Talabi ? », sur l'accueil.
+  // Collez l'adresse complète, https:// compris. Un champ laissé vide affiche
+  // le bouton en gris, non cliquable : mieux vaut un bouton visiblement éteint
+  // qu'un lien qui mène à une page d'erreur.
+  SOCIAL: {
+    INSTAGRAM: '',
+    FACEBOOK:  '',
+    YOUTUBE:   ''
+  },
+
   // ---- Règles métier (valeurs par défaut, l'admin peut les modifier) -----
   DEFAULT_DELIVERY_FEE: 200,   // DZD
   COMMISSION_RATE: 0.10,       // 10 % pour la plateforme

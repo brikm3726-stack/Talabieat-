@@ -180,13 +180,18 @@
           '</div>' +
         '</div>' +
 
-        /* -------------------------------------------------------- PARTENAIRES */
-        /* masqué pour un client connecté : il a déjà son compte */
-        (isClient ? '' :
-          '<div class="grid grid-auto" style="margin-top:34px">' +
-            promo('🏪', 'Vous avez un restaurant ?', 'Rejoignez Talabi, recevez des commandes dès aujourd’hui et gérez votre menu en toute autonomie.', 'Ajouter mon restaurant', App.lien('restaurant'), 'assets/img/roles/restaurant.jpg') +
-            promo('🛵', 'Vous voulez livrer ?', 'Travaillez quand vous voulez dans votre quartier et gagnez sur chaque course.', 'Devenir livreur', App.lien('driver'), 'assets/img/roles/driver.jpg') +
-          '</div>') +
+        /* ---------------------------------------------------- C'EST QUOI TALABI */
+        /* Les deux cartes « Vous avez un restaurant ? » et « Vous voulez
+           livrer ? » étaient ici. Elles demandaient quelque chose à quelqu'un
+           qui vient de chercher à manger : ce n'est pas le moment, et ce n'est
+           pas sa question. Les deux chemins restent ouverts par le pied de page,
+           où ils ont toujours été.
+
+           À leur place, la réponse à la question que se pose vraiment quelqu'un
+           qui découvre l'application. Elle est montrée à tout le monde, client
+           connecté compris : savoir ce qu'on utilise ne dépend pas d'avoir un
+           compte. */
+        blocQuoi() +
       '</div>' +
 
       /* -------------------------------------------------------------- PIED */
@@ -292,21 +297,29 @@
 
        Une seule fois par visite : ce qui étonne au premier passage agace au
        troisième, et on repasse par l'accueil à chaque retour. */
-    const bloc = view.querySelector('#h3dSteps');
-    if (bloc) {
-      const jouer = () => bloc.classList.add('danse');
-      if (!w.IntersectionObserver) jouer();
-      else {
-        const oeil = new IntersectionObserver(entrees => {
-          entrees.forEach(e => {
-            if (!e.isIntersecting) return;
-            jouer();
-            oeil.disconnect();
-          });
-        }, { threshold: .35 });
-        oeil.observe(bloc);
-      }
+    /* Deux blocs attendent d'être vus, pour la même raison et par le même
+       mécanisme : les trois cases de « Comment ça marche ? » et l'écriture de
+       « C'est quoi Talabi ? ». Ce dernier est encore plus bas dans la page —
+       lancer ses quatre secondes au chargement, c'est les jouer pour personne. */
+    function auRegard(bloc, classe, seuil) {
+      if (!bloc) return;
+      const jouer = () => bloc.classList.add(classe);
+      if (!w.IntersectionObserver) return jouer();
+      const oeil = new IntersectionObserver(entrees => {
+        entrees.forEach(e => {
+          if (!e.isIntersecting) return;
+          jouer();
+          oeil.disconnect();
+        });
+      }, { threshold: seuil });
+      oeil.observe(bloc);
     }
+
+    auRegard(view.querySelector('#h3dSteps'), 'danse', .35);
+    /* Seuil plus bas que pour les trois cases : ce bloc est plus haut qu'un
+       écran de téléphone, il ne sera jamais visible à 35 %. Avec le même seuil,
+       l'écriture n'aurait démarré qu'une fois le texte à moitié dépassé. */
+    auRegard(view.querySelector('#talQuoi'), 'ecrit', .12);
 
     /* -------------------------------------------------------- données */
     /* Plus de filtre par quartier : on annonce la wilaya, on ne trie plus le
@@ -370,16 +383,114 @@
     '</div>';
   }
 
-  /* img : logo du rôle sur pastille blanche (les logos sont sur fond blanc,
-     ils seraient illisibles à même le dégradé sombre de la carte). */
-  function promo(icon, title, text, cta, href, img) {
-    return '<div class="card card-p" style="background:linear-gradient(140deg,#14161A,#26292F);color:#fff;border:none">' +
-      (img
-        ? '<div style="width:62px;height:62px;border-radius:18px;background:#fff center/78% no-repeat;' +
-          'background-image:url(' + U.escUrl(img) + ')"></div>'
-        : '<div style="font-size:32px">' + icon + '</div>') +
-      '<div class="h2" style="margin-top:10px">' + U.esc(title) + '</div>' +
-      '<p style="opacity:.75;font-size:14px;margin-top:8px">' + U.esc(text) + '</p>' +
-      '<a class="btn btn-primary" style="margin-top:16px" href="' + href + '">' + U.esc(cta) + '</a></div>';
+  /* ======================================================================
+     « C'EST QUOI TALABI ? »
+     ----------------------------------------------------------------------
+     LE TEXTE EST ÉCRIT POUR ÊTRE VRAI, pas pour convaincre. Il dit ce que fait
+     l'application, et il dit aussi ce qu'elle ne fait pas — nous ne couvrons
+     pas l'Algérie, nous commençons par une ville. Un texte de présentation qui
+     ne concède rien ne se croit pas ; celui-ci concède la seule chose que
+     l'utilisateur peut vérifier lui-même en cherchant un restaurant.
+
+     Aucun chiffre n'y figure. Ni nombre de restaurants, ni nombre de
+     commandes, ni date de création : tout cela changerait sans que ce texte
+     change, et un chiffre faux dans une présentation décrédibilise le reste.
+     ====================================================================== */
+  const QUOI = [
+    'Talabi est née à Tizi Ouzou. L’idée tient en une phrase : commander un ' +
+    'repas près de chez soi ne devrait demander ni dix appels téléphoniques, ' +
+    'ni une carte bancaire.',
+
+    'Trois personnes se rencontrent ici. Un restaurant qui cuisine. Un livreur ' +
+    'qui roule dans votre quartier. Vous, qui avez faim. Talabi ne fait rien de ' +
+    'plus que les mettre en relation — et vous montrer où en est votre ' +
+    'commande, en direct, jusqu’à votre porte.',
+
+    'Ce que nous ne vous dirons pas : que nous couvrons toute l’Algérie. Nous ' +
+    'commençons par Tizi Ouzou, quartier par quartier, avec les restaurants qui ' +
+    'acceptent de tenter le coup avec nous. Vous payez à la réception, en ' +
+    'espèces : rien à avancer, rien à saisir.',
+
+    'C’est jeune, c’est petit, et ça grandit avec ceux qui l’utilisent. Si ' +
+    'quelque chose ne va pas, dites-le nous — c’est comme ça que la prochaine ' +
+    'version sera meilleure.'
+  ];
+
+  /* Un mot par élément, avec son rang dans le style : c'est le rang que le CSS
+     lit pour décaler l'arrivée de chaque mot. Sans découpage, on ne pourrait
+     animer que des paragraphes entiers, et un paragraphe qui paraît d'un bloc
+     n'a rien d'une écriture.
+
+     Les éléments sont séparés par une VRAIE espace dans le HTML : elle porte la
+     coupure de ligne et l'espacement entre les mots, ce qu'une marge n'aurait
+     pas fait proprement en fin de ligne. */
+  function motsAnimes(texte, rang) {
+    return String(texte).split(' ').map((m, i) =>
+      '<span class="tal-w" style="--i:' + (rang + i) + '">' + U.esc(m) + '</span>'
+    ).join(' ');
+  }
+
+  const RESEAUX = [
+    ['instagram', 'Instagram',
+     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+       'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+       '<rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/>' +
+       '<circle cx="12" cy="12" r="4.1"/>' +
+       '<circle cx="17.4" cy="6.6" r="1.15" fill="currentColor" stroke="none"/></svg>'],
+    ['facebook', 'Facebook',
+     '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+       '<path d="M13.6 21v-7.4h2.6l.4-3h-3V8.7c0-.87.24-1.46 1.5-1.46h1.6V4.55A21 21 0 0 0 14.87 4.4' +
+         'c-2.3 0-3.87 1.4-3.87 3.98v2.22H8.4v3H11V21h2.6z"/></svg>'],
+    ['youtube', 'YouTube',
+     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+       'stroke-linejoin="round" aria-hidden="true">' +
+       '<rect x="2.2" y="5.2" width="19.6" height="13.6" rx="4.2"/>' +
+       '<path d="M10.4 9.5v5l4.3-2.5-4.3-2.5z" fill="currentColor" stroke="none"/></svg>']
+  ];
+
+  /* Un réseau sans adresse renseignée s'affiche éteint et n'est pas cliquable.
+     C'est volontaire : un bouton absent laisse croire que le compte n'existe
+     pas, un bouton qui mène à une page d'erreur fait douter du reste. Les
+     adresses se collent dans config.js, section SOCIAL. */
+  function reseaux() {
+    const cfg = (TALABI_CONFIG && TALABI_CONFIG.SOCIAL) || {};
+    return RESEAUX.map(r => {
+      const url = cfg[r[0].toUpperCase()] || '';
+      const dedans = r[2] + '<span>' + r[1] + '</span>';
+      return url
+        ? '<a class="tal-soc-b" href="' + U.escUrl(url) + '" target="_blank" rel="noopener" ' +
+            'title="' + r[1] + '">' + dedans + '</a>'
+        : '<span class="tal-soc-b off" role="link" aria-disabled="true" ' +
+            'title="' + r[1] + ' — bientôt">' + dedans + '</span>';
+    }).join('');
+  }
+
+  function blocQuoi() {
+    /* Le compteur court d'un paragraphe au suivant, et saute de trois rangs
+       entre deux : la respiration entre les paragraphes se lit comme une reprise
+       de souffle, alors qu'un enchaînement sans écart donne un flux continu où
+       les paragraphes ne se distinguent plus. */
+    let rang = 0;
+    const paras = QUOI.map(t => {
+      const html = '<p class="tal-p">' + motsAnimes(t, rang) + '</p>';
+      rang += t.split(' ').length + 3;
+      return html;
+    }).join('');
+
+    /* `--n` est le nombre total de rangs : le CSS s'en sert pour faire arriver
+       « Pour en savoir plus » et les trois boutons JUSTE APRÈS le dernier mot.
+       Écrit ici plutôt que devine dans la feuille de style, parce que le texte
+       peut changer et que le raccord ne doit pas être à recalculer à la main. */
+    return '<section class="tal-quoi" id="talQuoi" style="--n:' + rang + '">' +
+      '<span class="tal-lueur" aria-hidden="true"></span>' +
+      '<div class="tal-tag">À propos</div>' +
+      '<h2 class="tal-h"><span class="tal-hin">C’est quoi <i>Talabi</i> ?' +
+        '<span class="tal-cur" aria-hidden="true"></span></span></h2>' +
+      '<div class="tal-txt">' + paras + '</div>' +
+      '<div class="tal-plus">Pour en savoir plus</div>' +
+      '<div class="tal-soc">' + reseaux() + '</div>' +
+      /* PLACE DU BOUTON « FONDATEUR » : il vient ici, après les réseaux, dans
+         un `<div class="tal-fond">`. Le CSS de `.tal-soc-b` l'habillera déjà. */
+    '</section>';
   }
 })(window);

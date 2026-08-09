@@ -7792,3 +7792,197 @@ body.nuit .sheet-foot #add::before{
    la même photo de deux manières. */
 body.nuit .ent{isolation:isolate}
 body.nuit .ent-art img{mix-blend-mode:screen}
+
+/* ==========================================================================
+   « C'EST QUOI TALABI ? » — LE TEXTE S'ÉCRIT
+   --------------------------------------------------------------------------
+   Deux textures d'animation, et elles ne sont pas interchangeables :
+
+   LE TITRE se dévoile de la gauche vers la droite sous un curseur orange —
+   c'est la même écriture que le mot-marque de la porte d'entrée, sur une seule
+   ligne où un balayage a du sens.
+
+   LE CORPS arrive MOT PAR MOT. Un balayage horizontal sur un paragraphe de
+   quatre lignes dévoile la fin de la première ligne en même temps que le début
+   de la troisième : ça ne ressemble à rien. Mot par mot, en revanche, on suit
+   la phrase à la vitesse où on la lit — 26 ms d'écart, soit un peu plus rapide
+   qu'une lecture normale, pour ne jamais faire attendre.
+
+   L'ENCHAÎNEMENT EST CALCULÉ, PAS ESTIMÉ. Le JavaScript compte les mots et
+   écrit le total dans `--n`. « Pour en savoir plus » et les trois boutons
+   partent de `--n`, donc juste après le dernier mot du texte. Si le texte
+   change, le raccord suit tout seul.
+
+   Tout part de la classe `ecrit`, posée quand le bloc entre dans l'écran : il
+   est bien plus bas que le premier écran, une animation lancée au chargement
+   serait finie avant qu'on y arrive.
+   ========================================================================== */
+.tal-quoi{
+  position:relative;
+  margin-top:38px;
+  padding:26px 22px 28px;
+  border-radius:26px;
+  background:var(--card);
+  border:1px solid var(--line);
+  box-shadow:var(--sh-2);
+  overflow:hidden;
+}
+/* Une lueur orange sourde dans le coin haut : elle donne un point de départ au
+   regard, à l'endroit exact où le titre va s'écrire. */
+.tal-lueur{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(90% 62% at 14% 0%,
+             rgba(255,101,0,.14) 0%, rgba(255,101,0,.04) 44%, transparent 74%);
+}
+.tal-quoi > *:not(.tal-lueur){position:relative}
+
+.tal-tag{
+  display:inline-block;
+  font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--brand);
+  padding:5px 11px;border-radius:999px;
+  background:var(--brand-soft);
+}
+.tal-h{
+  margin-top:13px;
+  font-size:25px;font-weight:900;letter-spacing:-.03em;line-height:1.15;
+  color:var(--ink);
+}
+.tal-h i{font-style:normal;color:var(--brand)}
+/* La coquille fait la largeur du texte, pas celle de la carte : sans quoi le
+   curseur finirait sa course au bord du cadre, loin du dernier mot. */
+.tal-hin{position:relative;display:inline-block}
+.tal-cur{
+  position:absolute;top:8%;bottom:6%;left:0;width:3px;
+  border-radius:2px;background:var(--brand);
+  box-shadow:0 0 12px rgba(255,101,0,.9);
+  opacity:0;pointer-events:none;
+}
+
+.tal-txt{margin-top:15px}
+.tal-p{
+  font-size:14.5px;line-height:1.68;
+  color:var(--ink-2);
+}
+.tal-p + .tal-p{margin-top:13px}
+/* La phrase du milieu, celle qui concède, est mise en avant d'un cran : c'est
+   la seule que l'utilisateur peut vérifier lui-même, elle mérite d'être lue. */
+.tal-p:nth-child(3){color:var(--ink);font-weight:600}
+.tal-w{display:inline-block}
+
+.tal-plus{
+  margin-top:22px;
+  font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);
+}
+.tal-soc{display:flex;flex-wrap:wrap;gap:10px;margin-top:11px}
+.tal-soc-b{
+  display:inline-flex;align-items:center;gap:9px;
+  min-height:46px;padding:0 16px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--bg);
+  color:var(--ink);
+  font-size:13.5px;font-weight:750;
+  text-decoration:none;
+  transition:transform .16s, border-color .16s, color .16s;
+}
+.tal-soc-b svg{width:19px;height:19px;flex:none}
+.tal-soc-b:hover{border-color:var(--brand);color:var(--brand);transform:translateY(-2px)}
+.tal-soc-b:active{transform:translateY(0) scale(.97)}
+/* Éteint : l'adresse n'est pas encore renseignée dans config.js. */
+.tal-soc-b.off{opacity:.42;cursor:default;pointer-events:none}
+
+/* ---- l'écriture ---------------------------------------------------------
+   Tout est à l'arrêt tant que `ecrit` n'est pas posée. Les valeurs de départ
+   sont écrites sur les éléments eux-mêmes et non dans un `from` de keyframe :
+   sinon le texte serait entièrement visible pendant la descente, puis
+   disparaîtrait d'un coup au moment de s'animer. */
+.tal-quoi .tal-tag,
+.tal-quoi .tal-w,
+.tal-quoi .tal-plus,
+.tal-quoi .tal-soc-b{opacity:0}
+.tal-quoi .tal-hin{clip-path:inset(-18% 100% -18% -2%)}
+
+.tal-quoi.ecrit .tal-tag{animation:talParait .45s ease-out both}
+.tal-quoi.ecrit .tal-hin{animation:talTitre 1.1s cubic-bezier(.32,.74,.32,1) .15s both}
+.tal-quoi.ecrit .tal-cur{animation:talCurseur 1.15s cubic-bezier(.34,.72,.36,1) .15s both}
+.tal-quoi.ecrit .tal-w{
+  animation:talMot .34s cubic-bezier(.24,.8,.3,1) both;
+  animation-delay:calc(1.15s + var(--i) * 26ms);
+}
+.tal-quoi.ecrit .tal-plus{
+  animation:talParait .4s ease-out both;
+  animation-delay:calc(1.15s + var(--n) * 26ms + .18s);
+}
+.tal-quoi.ecrit .tal-soc-b{
+  animation:talMot .42s cubic-bezier(.24,.8,.3,1) both;
+  animation-delay:calc(1.15s + var(--n) * 26ms + .3s);
+}
+.tal-quoi.ecrit .tal-soc-b:nth-child(2){animation-delay:calc(1.15s + var(--n) * 26ms + .4s)}
+.tal-quoi.ecrit .tal-soc-b:nth-child(3){animation-delay:calc(1.15s + var(--n) * 26ms + .5s)}
+
+@keyframes talParait{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+@keyframes talTitre{ to{ clip-path:inset(-18% -3% -18% -2%) } }
+@keyframes talCurseur{
+  0%  { left:0;    opacity:0 }
+  9%  { opacity:1 }
+  88% { left:100%; opacity:1 }
+  100%{ left:100%; opacity:0 }
+}
+/* Le mot monte de trois pixels en apparaissant. Trois, pas dix : au-delà, cent
+   mots qui montent donnent une page qui tremble. */
+@keyframes talMot{ from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:none} }
+
+/* Qui a demandé moins de mouvement lit le texte, tout simplement. */
+@media(prefers-reduced-motion:reduce){
+  .tal-quoi .tal-tag,
+  .tal-quoi .tal-w,
+  .tal-quoi .tal-plus,
+  .tal-quoi .tal-soc-b{opacity:1}
+  .tal-quoi .tal-hin{clip-path:none}
+  .tal-quoi.ecrit .tal-tag,
+  .tal-quoi.ecrit .tal-hin,
+  .tal-quoi.ecrit .tal-w,
+  .tal-quoi.ecrit .tal-plus,
+  .tal-quoi.ecrit .tal-soc-b{animation:none}
+  .tal-cur{display:none}
+}
+
+/* ---- thème sombre ---- */
+body.nuit #view .tal-quoi{
+  background:#101114;
+  border-color:rgba(255,255,255,.08);
+  box-shadow:0 18px 46px -26px rgba(0,0,0,1);
+}
+body.nuit #view .tal-tag{background:rgba(255,101,0,.14);color:#FF8A3D}
+body.nuit #view .tal-h{color:var(--nuit-texte)}
+body.nuit #view .tal-p{color:#A7ADB6}
+body.nuit #view .tal-p:nth-child(3){color:#E8EAEE}
+body.nuit #view .tal-plus{color:#7C828B}
+body.nuit #view .tal-soc-b{
+  background:rgba(255,255,255,.05);
+  border-color:rgba(255,255,255,.10);
+  color:#E6E8EC;
+}
+body.nuit #view .tal-soc-b:hover{border-color:var(--brand);color:#FF8A3D}
+
+/* ---- thème clair de l'accueil ---- */
+body.pref-clair.ecran-accueil .tal-quoi{
+  background:#fff;
+  border-color:var(--jr-bord);
+  box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-accueil .tal-h{color:#16181D}
+body.pref-clair.ecran-accueil .tal-p{color:#4B5563}
+body.pref-clair.ecran-accueil .tal-p:nth-child(3){color:#16181D}
+body.pref-clair.ecran-accueil .tal-plus{color:#6B7280}
+body.pref-clair.ecran-accueil .tal-soc-b{
+  background:#fff;border-color:var(--jr-bord);color:#16181D;
+}
+
+@media(max-width:379px){
+  .tal-quoi{padding:22px 17px 24px;border-radius:22px}
+  .tal-h{font-size:22px}
+  .tal-soc-b{padding:0 13px;font-size:12.5px}
+}
