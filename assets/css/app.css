@@ -7986,3 +7986,258 @@ body.pref-clair.ecran-accueil .tal-soc-b{
   .tal-h{font-size:22px}
   .tal-soc-b{padding:0 13px;font-size:12.5px}
 }
+
+/* ==========================================================================
+   ÉCRAN COMPTE DU CLIENT — blanc pur, coins larges, ombres à peine là
+   --------------------------------------------------------------------------
+   Le brief demandait « fond blanc pur ». Il l'est, et c'est justement pour ça
+   que les cartes ne peuvent pas être blanches aussi : deux blancs côte à côte
+   ne se distinguent que par une ombre, et l'ombre demandée est « très légère ».
+   La solution est celle d'iOS : la PAGE est blanche, les GROUPES sont d'un gris
+   à peine gris, et les lignes se séparent par un filet. C'est le contraste des
+   surfaces qui structure, pas des traits.
+
+   Un seul écart avec le brief, assumé : la barre du bas garde PANIER à la place
+   de « Rechercher ». Retirer le panier de la barre couperait le seul chemin
+   vers la commande en cours, et la recherche existe déjà à deux endroits — en
+   haut de l'accueil et sur l'écran Restaurants. Les cinq onglets et le cercle
+   orange du panier restent tels qu'ils ont été réglés.
+
+   Accroché par `.cpt`, posé uniquement sur l'écran du client : les espaces
+   restaurateur, livreur et administration gardent leur liste.
+   ========================================================================== */
+.cpt{
+  --cpt-fond:#FFFFFF;
+  --cpt-grp:#F5F6F8;
+  --cpt-filet:rgba(16,24,40,.07);
+  --cpt-titre:#0E1013;
+  --cpt-doux:#6B7280;
+  --cpt-ic:#F0F1F4;
+  --cpt-r:22px;
+  background:var(--cpt-fond);
+}
+/* Les taches décoratives de l'ancien écran ne sont pas reprises : sur du blanc
+   pur elles se verraient comme deux auréoles, et le brief demande minimal. */
+.cpt .acc-dots{display:none}
+
+/* ---- en-tête ----
+   Le nom passe avant tout le reste : 32 px, c'est la taille demandée, et c'est
+   aussi la seule chose de cet écran qu'on lit d'un coup d'œil sans chercher. */
+.cpt-tete{
+  display:flex;align-items:center;gap:16px;
+  padding:6px 0 2px;
+}
+.cpt-tete-txt{flex:1;min-width:0}
+.cpt-salut{
+  font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--brand);
+}
+.cpt-nom{
+  margin:5px 0 0;
+  font-size:32px;font-weight:900;letter-spacing:-.035em;line-height:1.08;
+  color:var(--cpt-titre);
+  /* Un nom long ne doit pas pousser la photo hors de l'écran : il se coupe. */
+  overflow-wrap:anywhere;
+}
+.cpt-modif{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:11px;padding:8px 14px;
+  border-radius:999px;
+  background:var(--brand-soft);color:var(--brand);
+  font-size:13px;font-weight:800;text-decoration:none;
+  transition:transform .16s, background .16s;
+}
+.cpt-modif:active{transform:scale(.96)}
+.cpt-photo{
+  flex:none;display:block;border-radius:50%;
+  box-shadow:0 8px 22px -10px rgba(16,24,40,.35), 0 0 0 3px #fff, 0 0 0 4.5px var(--brand-soft);
+  transition:transform .18s;
+}
+.cpt-photo:active{transform:scale(.96)}
+.cpt-photo .avatar{width:82px;height:82px}
+
+/* ---- carte d'état ----
+   Trois faits sur une ligne, séparés par des filets verticaux. Sur un très
+   petit écran ils se répartissent quand même : `flex:1` et un texte qui se
+   coupe valent mieux qu'un débordement latéral. */
+.cpt-etat{
+  display:flex;margin-top:20px;
+  border-radius:var(--cpt-r);
+  background:var(--cpt-grp);
+  overflow:hidden;
+}
+.cpt-fait{
+  flex:1;min-width:0;padding:15px 12px;text-align:center;
+  display:flex;flex-direction:column;gap:5px;
+}
+.cpt-fait + .cpt-fait{box-shadow:inset 1px 0 0 var(--cpt-filet)}
+.cpt-fait .k{
+  font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--cpt-doux);
+}
+.cpt-fait .v{
+  font-size:14.5px;font-weight:800;color:var(--cpt-titre);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* ---- les trois raccourcis ---- */
+.cpt-rac{display:flex;gap:11px;margin-top:12px}
+.cpt-rac-c{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+  padding:17px 8px 14px;
+  border:0;border-radius:20px;
+  background:var(--cpt-grp);
+  color:var(--cpt-titre);
+  font:inherit;text-decoration:none;cursor:pointer;
+  transition:transform .16s cubic-bezier(.34,1.4,.64,1), background .16s;
+}
+/* L'effet de pression demandé : la carte s'enfonce sous le doigt. Le rebond du
+   relâchement vient de la courbe, pas d'une seconde animation. */
+.cpt-rac-c:active{transform:scale(.955);background:#EDEEF1}
+.cpt-rac-ic{
+  position:relative;
+  width:46px;height:46px;border-radius:15px;
+  display:grid;place-items:center;
+  background:#fff;color:var(--brand);
+  box-shadow:0 2px 8px -3px rgba(16,24,40,.14);
+}
+.cpt-rac-t{font-size:12.5px;font-weight:750;text-align:center}
+/* Le compteur d'avis non lus. Même leçon que la pastille du panier : la bordure
+   devient un anneau, qui se dessine EN DEHORS de la boîte et ne lui prend donc
+   pas de hauteur. */
+.cpt-rac-n{
+  position:absolute;top:-6px;right:-6px;
+  min-width:20px;height:20px;padding:0 5px;
+  display:grid;place-items:center;
+  border-radius:999px;
+  background:#D93A1F;color:#fff;
+  font-size:11.5px;font-weight:900;line-height:1;
+  font-variant-numeric:tabular-nums;
+  box-shadow:0 0 0 2.5px var(--cpt-grp);
+}
+
+/* ---- étiquettes de groupe ---- */
+.cpt-lab{
+  margin:26px 0 9px 4px;
+  font-size:11.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--cpt-doux);
+}
+
+/* ---- groupes et lignes ---- */
+.cpt-grp{
+  border-radius:var(--cpt-r);
+  background:var(--cpt-grp);
+  overflow:hidden;
+}
+.cpt-l{
+  display:flex;align-items:center;gap:14px;
+  padding:15px 16px;
+  color:var(--cpt-titre);text-decoration:none;
+  transition:background .14s;
+}
+/* Le séparateur discret : un filet posé à l'intérieur, qui commence après
+   l'icône. Un trait pleine largeur découperait la liste en tranches ; celui-ci
+   ne fait que dire « ligne suivante ». */
+.cpt-l + .cpt-l{box-shadow:inset 0 1px 0 var(--cpt-filet)}
+.cpt-l:not(.cpt-l-fixe):active{background:#EDEEF1}
+.cpt-ic{
+  flex:none;width:40px;height:40px;border-radius:13px;
+  display:grid;place-items:center;
+  background:var(--cpt-ic);color:var(--cpt-titre);
+}
+.cpt-ic.alerte{background:rgba(217,58,31,.10);color:#C2410C}
+.cpt-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cpt-txt b{font-size:14.5px;font-weight:750;line-height:1.3}
+.cpt-txt span{
+  font-size:12.5px;color:var(--cpt-doux);line-height:1.35;
+  /* Un sous-titre long tient sur deux lignes puis s'abrège : trois lignes
+     feraient de la liste un texte. */
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.cpt-chev{flex:none;color:var(--cpt-doux);opacity:.55;display:grid}
+
+/* ---- déconnexion ----
+   Séparée de tout, en bas, sans chevron : ce n'est pas une porte vers un
+   réglage, c'est une sortie. */
+.cpt-sortie{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;min-height:54px;margin-top:30px;
+  border-radius:18px;border:1px solid rgba(217,58,31,.28);
+  background:#fff;color:#C2410C;
+  font:inherit;font-size:15px;font-weight:800;cursor:pointer;
+  transition:transform .16s, background .16s;
+}
+.cpt-sortie:active{transform:scale(.985);background:rgba(217,58,31,.06)}
+
+/* ---- l'écran arrive ----
+   Chaque bloc monte de six pixels, décalé de 55 ms sur le précédent. C'est
+   court : l'écran doit paraître posé, pas se dérouler. */
+.cpt-tete,.cpt-etat,.cpt-rac,.cpt-lab,.cpt-grp,.cpt-sortie{
+  animation:cptMonte .42s cubic-bezier(.22,.75,.3,1) both;
+}
+.cpt-etat{animation-delay:.055s}
+.cpt-rac{animation-delay:.11s}
+.cpt-lab{animation-delay:.15s}
+.cpt-grp{animation-delay:.18s}
+.cpt-sortie{animation-delay:.24s}
+@keyframes cptMonte{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+@media(prefers-reduced-motion:reduce){
+  .cpt-tete,.cpt-etat,.cpt-rac,.cpt-lab,.cpt-grp,.cpt-sortie{animation:none}
+  .cpt-rac-c:active,.cpt-photo:active,.cpt-modif:active,.cpt-sortie:active{transform:none}
+}
+
+/* ==========================================================================
+   LE MÊME ÉCRAN EN SOMBRE
+   --------------------------------------------------------------------------
+   Les mêmes cinq variables, d'autres valeurs : c'est tout ce que le thème
+   sombre demande, parce que l'écran ne s'appuie que sur elles. Un écran qui
+   réécrit ses couleurs ligne par ligne demande deux fois le travail à chaque
+   retouche — et finit toujours par diverger.
+   ========================================================================== */
+body.nuit #view .cpt{
+  --cpt-fond:#050505;
+  --cpt-grp:#111214;
+  --cpt-filet:rgba(255,255,255,.07);
+  --cpt-titre:#F4F5F7;
+  --cpt-doux:#868C95;
+  --cpt-ic:rgba(255,255,255,.07);
+}
+body.nuit #view .cpt-salut{color:#FF8A3D}
+body.nuit #view .cpt-modif{background:rgba(255,101,0,.14);color:#FF8A3D}
+body.nuit #view .cpt-photo{
+  box-shadow:0 10px 26px -12px rgba(0,0,0,1), 0 0 0 3px #050505, 0 0 0 4.5px rgba(255,101,0,.3);
+}
+body.nuit #view .cpt-rac-c:active{background:#191B1E}
+body.nuit #view .cpt-rac-ic{
+  background:rgba(255,255,255,.06);color:#FF8A3D;
+  box-shadow:0 0 0 1px rgba(255,255,255,.05);
+}
+body.nuit #view .cpt-l:not(.cpt-l-fixe):active{background:#191B1E}
+body.nuit #view .cpt-ic.alerte{background:rgba(255,138,138,.13);color:#FF9A8A}
+body.nuit #view .cpt-sortie{
+  background:rgba(255,138,138,.07);
+  border-color:rgba(255,138,138,.26);
+  color:#FF9A8A;
+}
+body.nuit #view .cpt-sortie:active{background:rgba(255,138,138,.13)}
+
+/* ==========================================================================
+   TÉLÉPHONES ÉTROITS
+   ========================================================================== */
+@media(max-width:379px){
+  .cpt-nom{font-size:27px}
+  .cpt-photo .avatar{width:68px;height:68px;font-size:26px}
+  .cpt-rac{gap:8px}
+  .cpt-rac-c{padding:14px 5px 12px;border-radius:17px}
+  .cpt-rac-ic{width:41px;height:41px;border-radius:13px}
+  .cpt-rac-t{font-size:11.5px}
+  .cpt-fait{padding:13px 8px}
+  .cpt-fait .v{font-size:13px}
+}
+/* Au-delà du téléphone, l'écran cesse de grandir : une liste de réglages large
+   de 900 px oblige l'œil à traverser le vide entre le titre et le chevron. */
+@media(min-width:620px){
+  .cpt .wrap-sm{max-width:560px}
+  .cpt-rac-c{padding:20px 10px 17px}
+}

@@ -68,8 +68,16 @@
        disparaît plutôt que de faire tomber la page entière. */
     const sonnerie = !!w.Sound && p.role === 'driver';
 
+    /* CET ÉCRAN EST PARTAGÉ PAR LES QUATRE ESPACES — client, restaurateur,
+       livreur, administration. Le nouvel écran ne vaut que pour le client :
+       lui seul a des commandes, un quartier de livraison et un thème sombre.
+       Les trois autres gardent la liste d'origine, au caractère près. Les
+       redessiner à l'aveugle aurait touché trois applications pour une demande
+       qui n'en concernait qu'une. */
+    const clientPremium = App.est('client') && Store.role === 'client';
+
     function paint() {
-      view.innerHTML = '<div class="account-page">' +
+      view.innerHTML = clientPremium ? ecranClient(p, sonnerie) : '<div class="account-page">' +
         '<span class="acc-dots a" aria-hidden="true"></span>' +
         '<span class="acc-dots b" aria-hidden="true"></span>' +
         '<div class="wrap-sm page">' +
@@ -213,6 +221,28 @@
       };
 
       view.querySelector('#logout').onclick = deconnexion;
+
+      /* Le raccourci vers les avis ouvre le panneau déjà écrit pour la cloche
+         de la barre du haut : deux chemins vers la même chose, un seul code. */
+      const cl = view.querySelector('#cptNotif');
+      if (cl) cl.onclick = Shell.notifPanel;
+
+      /* LE NOMBRE DE COMMANDES EST DEMANDÉ, PAS DEVINÉ.
+         En cas d'échec on laisse le tiret : « 0 » et « je ne sais pas » ne sont
+         pas la même chose, et afficher 0 à quelqu'un qui a commandé dix fois est
+         pire que de ne rien afficher. C'est aussi pourquoi `API.safe` n'est pas
+         utilisé ici — il rendrait un tableau vide en cas de panne, donc un zéro
+         qui aurait l'air d'une réponse. */
+      const nb = view.querySelector('#cptNb');
+      if (nb) {
+        (async function () {
+          try {
+            const l = await API.orders({ scope: 'client' });
+            if (view.querySelector('#cptNb') !== nb) return;   // écran repeint
+            nb.textContent = Array.isArray(l) ? String(l.length) : '—';
+          } catch (e) { nb.textContent = '—'; }
+        })();
+      }
     }
 
     paint();
@@ -861,6 +891,185 @@
   }
 
   /** Une ligne de réglage qui mène ailleurs. */
+  /* ======================================================================
+     ÉCRAN COMPTE DU CLIENT — cinq briques et rien d'autre
+     ----------------------------------------------------------------------
+     `cptLab` une étiquette de groupe, `cptGrp` un groupe, `cptLigne` une
+     ligne, `cptRac` un raccourci, `cptFait` un fait de la carte d'état. Tout
+     l'écran se monte avec elles : ajouter une rubrique demain, c'est ajouter un
+     appel, pas un bloc de balises.
+
+     CE QUI N'EST PAS LÀ, ET POURQUOI. Le brief demandait aussi Wallet,
+     Favoris, Profil familial, Promotions, Moyens de paiement, Langue et une
+     carte « Talabi Plus ». Aucun n'existe dans l'application : pas de table,
+     pas d'écran, pas de règle de sécurité. Talabi Plus demanderait en plus un
+     encaissement récurrent, que le paiement en espèces à la livraison ne permet
+     pas. Un écran de compte dont la moitié des lignes ne mène nulle part fait
+     douter de l'autre moitié — c'est le choix qui a été retenu : ne montrer que
+     ce qui marche.
+     ====================================================================== */
+  function cptLab(t) {
+    return '<div class="cpt-lab">' + U.esc(t) + '</div>';
+  }
+
+  function cptGrp(lignes) {
+    return '<div class="cpt-grp">' + lignes.filter(Boolean).join('') + '</div>';
+  }
+
+  /**
+   * Une ligne. `o.apres` remplace le chevron — c'est par là que passe
+   * l'interrupteur du mode sombre, pour qu'un réglage et une porte se
+   * ressemblent partout sauf à l'endroit précis où ils diffèrent.
+   * Sans `o.href`, la ligne n'est pas cliquable : elle porte un réglage.
+   */
+  function cptLigne(o) {
+    const dedans =
+      '<span class="cpt-ic' + (o.ton ? ' ' + o.ton : '') + '">' + UI.icon(o.icone, 20) + '</span>' +
+      '<span class="cpt-txt"><b>' + U.esc(o.titre) + '</b>' +
+        (o.sous ? '<span>' + U.esc(o.sous) + '</span>' : '') + '</span>' +
+      (o.apres || '<span class="cpt-chev">' + UI.icon('chevron', 19) + '</span>');
+    if (!o.href) return '<div class="cpt-l cpt-l-fixe">' + dedans + '</div>';
+    return '<a class="cpt-l" href="' + o.href + '"' +
+      (o.neuf ? ' target="_blank" rel="noopener"' : '') + '>' + dedans + '</a>';
+  }
+
+  function cptRac(o) {
+    const dedans =
+      '<span class="cpt-rac-ic">' + UI.icon(o.icone, 23) +
+        (o.marque ? '<span class="cpt-rac-n">' + U.esc(o.marque) + '</span>' : '') + '</span>' +
+      '<span class="cpt-rac-t">' + U.esc(o.titre) + '</span>';
+    return o.id
+      ? '<button type="button" class="cpt-rac-c" id="' + o.id + '">' + dedans + '</button>'
+      : '<a class="cpt-rac-c" href="' + o.href + '">' + dedans + '</a>';
+  }
+
+  function cptFait(cle, valeur) {
+    return '<div class="cpt-fait"><span class="k">' + U.esc(cle) + '</span>' +
+           '<span class="v">' + valeur + '</span></div>';
+  }
+
+  /* « août 2026 » plutôt qu'une date complète : sur cette carte, ce qui compte
+     est l'ancienneté, pas le jour. */
+  function moisAn(iso) {
+    try {
+      const d = new Date(iso);
+      if (isNaN(d)) return '—';
+      return d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    } catch (e) { return '—'; }
+  }
+
+  function ecranClient(p, sonnerie) {
+    const sombre = UI.sombreVoulu();
+    const quartier = (Store.zoneName && Store.zoneName()) || Store.wilayaName && Store.wilayaName() || '—';
+
+    return '<div class="account-page cpt">' +
+      '<div class="wrap-sm page">' +
+
+      /* ---- EN-TÊTE ----
+         Le nom et la photo étaient volontairement absents de cet écran : ils
+         s'affichaient à quelqu'un qui les connaît déjà, et exposaient son
+         identité à qui regarde par-dessus son épaule. Le brief les redemande
+         explicitement — c'est un arbitrage entre discrétion et repère, et il
+         revient à celui qui conçoit l'application, pas à moi. */
+      '<header class="cpt-tete">' +
+        '<div class="cpt-tete-txt">' +
+          '<div class="cpt-salut">Votre compte</div>' +
+          '<h1 class="cpt-nom">' + U.esc(p.full_name || 'Votre profil') + '</h1>' +
+          '<a class="cpt-modif" href="#/profil">' + UI.icon('pencil', 15) +
+            ' Modifier le profil</a>' +
+        '</div>' +
+        '<a class="cpt-photo" href="#/profil" aria-label="Modifier ma photo">' +
+          UI.avatar(p.full_name, p.avatar_url, 82) + '</a>' +
+      '</header>' +
+
+      /* ---- CARTE D'ÉTAT ----
+         Trois faits, tous vérifiables : le quartier de livraison, l'ancienneté
+         du compte, le nombre de commandes. Le brief demandait un « badge
+         Premium » — il n'y a pas d'abonnement, donc pas de badge. Une
+         distinction inventée sur un écran de compte est le genre de détail qui
+         se remarque le jour où l'on cherche à quoi elle donne droit. */
+      '<div class="cpt-etat">' +
+        cptFait('Quartier', U.esc(quartier)) +
+        cptFait('Membre depuis', p.created_at ? U.esc(moisAn(p.created_at)) : '—') +
+        cptFait('Commandes', '<span id="cptNb">…</span>') +
+      '</div>' +
+
+      /* ---- TROIS RACCOURCIS ----
+         Le brief demandait Favoris, Wallet et Commandes ; seul le dernier
+         existe. La rangée garde son dessin, avec trois destinations réelles :
+         ce qu'on vient chercher le plus souvent sur un écran de compte quand on
+         attend un repas. */
+      '<div class="cpt-rac">' +
+        cptRac({ href: '#/orders', icone: 'package', titre: 'Commandes' }) +
+        cptRac({ id: 'cptNotif', icone: 'bell', titre: 'Notifications',
+                 marque: Store.unread ? (Store.unread > 9 ? '9+' : Store.unread) : '' }) +
+        cptRac({ href: 'tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')),
+                 icone: 'headset', titre: 'Assistance' }) +
+      '</div>' +
+
+      cptLab('Mon compte') +
+      cptGrp([
+        cptLigne({ href: '#/compte', icone: 'user', titre: 'Mon compte',
+                   sous: 'Quel compte est ouvert, et depuis quand' }),
+        cptLigne({ href: '#/profil', icone: 'pencil', titre: 'Informations personnelles',
+                   sous: 'Nom, genre, âge, quartier et adresses de livraison' }),
+        cptLigne({ href: '#/securite', icone: 'lock', titre: 'Sécurité',
+                   sous: 'Modifier mon mot de passe, vérifié par email' })
+      ]) +
+
+      cptLab('Préférences') +
+      cptGrp([
+        cptLigne({
+          icone: sombre ? 'moon' : 'sun', titre: 'Mode sombre',
+          sous: sombre ? 'Fond noir — reposant le soir et économe en batterie'
+                       : 'Fond clair — plus lisible en plein soleil',
+          apres: '<label class="switch"><input type="checkbox" id="sombre"' +
+                 (sombre ? ' checked' : '') +
+                 '><span class="track"><span class="knob"></span></span></label>'
+        }),
+        /* Un client n'a pas de sonnerie à couper : elle n'existe que pour qui
+           reçoit des courses. La ligne reste conditionnée, comme avant. */
+        (sonnerie ? cptLigne({
+          icone: Sound.muted ? 'mute' : 'sound', titre: 'Sonnerie',
+          sous: Sound.muted ? 'Coupée — vous ne serez plus averti par un son'
+                            : 'Vous êtes averti à chaque course disponible',
+          apres: '<label class="switch"><input type="checkbox" id="son"' +
+                 (Sound.muted ? '' : ' checked') +
+                 '><span class="track"><span class="knob"></span></span></label>'
+        }) : '')
+      ]) +
+
+      cptLab('Aide') +
+      cptGrp([
+        cptLigne({ href: 'tel:' + U.esc(TALABI_CONFIG.SUPPORT_PHONE.replace(/\s/g, '')),
+                   icone: 'phone', titre: 'Nous appeler',
+                   sous: TALABI_CONFIG.SUPPORT_PHONE }),
+        (TALABI_CONFIG.SUPPORT_EMAIL
+          ? cptLigne({ href: 'mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL),
+                       icone: 'mail', titre: 'Nous écrire',
+                       sous: TALABI_CONFIG.SUPPORT_EMAIL })
+          : ''),
+        cptLigne({ href: 'mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL || '') +
+                     '?subject=' + encodeURIComponent('Talabi — signalement'),
+                   icone: 'warn', titre: 'Signaler un problème', ton: 'alerte',
+                   sous: 'Décrivez ce que vous avez vu, on répond sous 7 jours' })
+      ]) +
+
+      cptLab('L’application') +
+      cptGrp([
+        cptLigne({ href: '#/apropos', icone: 'info', titre: 'À propos',
+                   sous: TALABI_CONFIG.APP_NAME + ' version ' + (TALABI_CONFIG.APP_VERSION || '1.0') }),
+        cptLigne({ href: U.escUrl(U.asset('confidentialite.html')), neuf: true,
+                   icone: 'shield', titre: 'Confidentialité',
+                   sous: 'Quelles données, pourquoi, et comment les effacer' })
+      ]) +
+
+      '<button class="cpt-sortie" id="logout">' + UI.icon('logout', 18) +
+        ' Se déconnecter</button>' +
+
+      '</div></div>';
+  }
+
   function porte(href, icone, titre, sous) {
     return '<a class="card card-p acc-secu" href="' + href + '">' +
       '<span class="ic">' + UI.icon(icone, 20) + '</span>' +

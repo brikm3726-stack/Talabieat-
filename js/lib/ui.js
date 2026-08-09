@@ -483,6 +483,18 @@
       ban:      '<circle cx="12" cy="12" r="9"/><path d="m5.9 5.9 12.2 12.2"/>',
       sparkle:  '<path d="M12 2.6 13.9 8 19.4 10 13.9 12 12 17.4 10.1 12 4.6 10 10.1 8Z"/>' +
                 '<path d="M18.6 16.4 19.4 18.6 21.6 19.4 19.4 20.2 18.6 22.4 17.8 20.2 15.6 19.4 17.8 18.6Z"/>',
+      /* La lune et le soleil pour l'interrupteur de thème. L'écran Compte y
+         montrait un haut-parleur et une image — deux pictogrammes empruntés à
+         d'autres réglages, parce qu'il n'y avait rien d'autre sous la main. */
+      moon:     '<path d="M20.4 14.6A8.6 8.6 0 0 1 9.4 3.6a8.6 8.6 0 1 0 11 11Z"/>',
+      sun:      '<circle cx="12" cy="12" r="4.1"/>' +
+                '<path d="M12 2.6v2.1M12 19.3v2.1M4.4 4.4l1.5 1.5M18.1 18.1l1.5 1.5' +
+                  'M2.6 12h2.1M19.3 12h2.1M4.4 19.6l1.5-1.5M18.1 5.9l1.5-1.5"/>',
+      /* Le bouclier pour la confidentialité : le cadenas dit « fermé à clé »,
+         et il sert déjà au mot de passe. Deux lignes voisines portant le même
+         pictogramme se lisent comme deux fois la même chose. */
+      shield:   '<path d="M12 2.9 20 5.7v5.5c0 4.6-3.3 8.3-8 9.9-4.7-1.6-8-5.3-8-9.9V5.7Z"/>' +
+                '<path d="m8.9 12 2.2 2.2 4-4.4"/>',
       /* La cloche de service : c'est le signe du restaurant sur un plan, là où
          des couverts disent plutôt « manger » et une boutique « acheter ». */
       dome:     '<path d="M3.8 15.6a8.2 8.2 0 0 1 16.4 0"/>' +
