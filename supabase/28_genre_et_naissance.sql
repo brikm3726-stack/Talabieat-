@@ -22,17 +22,21 @@ alter table public.profiles
   add column if not exists birth_date date;
 
 -- ------------------------------------------------------------- garde-fous
--- Le genre n'accepte que deux valeurs, en minuscules. Sans cette contrainte,
+-- Le genre n'accepte que trois valeurs, en minuscules. Sans cette contrainte,
 -- l'écran d'administration afficherait un jour « Homme », « homme » et « H »
 -- comme trois catégories différentes.
-do $$
-begin
-  if not exists (select 1 from pg_constraint where conname = 'profiles_gender_chk') then
-    alter table public.profiles
-      add constraint profiles_gender_chk
-      check (gender is null or gender in ('homme', 'femme'));
-  end if;
-end $$;
+--
+-- « autre » a été ajouté après coup, à la demande de l'écran refait. LA
+-- CONTRAINTE EST DONC SUPPRIMÉE PUIS RECRÉÉE, et non ajoutée « si elle n'existe
+-- pas » : sur une base où le fichier a déjà tourné, l'ancienne contrainte à deux
+-- valeurs serait restée en place, et enregistrer « autre » aurait échoué sur une
+-- erreur PostgREST incompréhensible. Écrite ainsi, cette migration converge vers
+-- le bon état qu'elle ait déjà été jouée ou non.
+alter table public.profiles
+  drop constraint if exists profiles_gender_chk;
+alter table public.profiles
+  add constraint profiles_gender_chk
+  check (gender is null or gender in ('homme', 'femme', 'autre'));
 
 -- Une date de naissance doit être dans le passé et rester plausible. Le vrai
 -- but n'est pas de juger l'âge : c'est d'attraper la faute de frappe qui

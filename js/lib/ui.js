@@ -487,6 +487,10 @@
          montrait un haut-parleur et une image — deux pictogrammes empruntés à
          d'autres réglages, parce qu'il n'y avait rien d'autre sous la main. */
       moon:     '<path d="M20.4 14.6A8.6 8.6 0 0 1 9.4 3.6a8.6 8.6 0 1 0 11 11Z"/>',
+      /* L'appareil photo du bouton qui change la photo de profil. Un crayon
+         aurait dit « modifier du texte » ; c'est bien une image qu'on remplace. */
+      camera:   '<path d="M3.2 8.6A2.4 2.4 0 0 1 5.6 6.2h1.7l1.2-2h6.9l1.2 2h1.8a2.4 2.4 0 0 1 2.4 2.4v8a2.4 2.4 0 0 1-2.4 2.4H5.6a2.4 2.4 0 0 1-2.4-2.4Z"/>' +
+                '<circle cx="12" cy="12.6" r="3.4"/>',
       sun:      '<circle cx="12" cy="12" r="4.1"/>' +
                 '<path d="M12 2.6v2.1M12 19.3v2.1M4.4 4.4l1.5 1.5M18.1 18.1l1.5 1.5' +
                   'M2.6 12h2.1M19.3 12h2.1M4.4 19.6l1.5-1.5M18.1 5.9l1.5-1.5"/>',

@@ -8376,53 +8376,26 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
    client regarde son téléphone — une ombre douce disparaît complètement. Le
    liseré, lui, reste.
    ========================================================================== */
-.sec{
-  --sec-fond:#FFFFFF;
-  --sec-carte:#FFFFFF;
-  --sec-champ:#F7F8FA;
-  --sec-filet:rgba(16,24,40,.10);
-  --sec-titre:#0E1013;
-  --sec-doux:#6B7280;
-  --sec-or:#FF6B00;
-  background:var(--sec-fond);
+.prem{
+  --prem-fond:#FFFFFF;
+  --prem-carte:#FFFFFF;
+  --prem-champ:#F7F8FA;
+  --prem-filet:rgba(16,24,40,.10);
+  --prem-titre:#0E1013;
+  --prem-doux:#6B7280;
+  --prem-or:#FF6B00;
+  background:var(--prem-fond);
 }
 /* Les taches décoratives des écrans de compte ne sont pas reprises : sur du
    blanc pur elles se verraient comme deux auréoles. */
 .sec .acc-dots{display:none}
 
-/* ---- titre ---- */
-.sec-tete{display:flex;align-items:center;gap:13px;padding:4px 0 2px}
-.sec-retour{
-  flex:none;width:42px;height:42px;border-radius:14px;
-  display:grid;place-items:center;
-  background:var(--sec-champ);color:var(--sec-titre);
-  box-shadow:inset 0 0 0 1px var(--sec-filet);
-  /* Le chevron du jeu d'icônes pointe à droite : il faut le retourner pour
-     qu'il dise « revenir ». */
-  transform:scaleX(-1);
-  transition:transform .16s;
-}
-.sec-retour:active{transform:scaleX(-1) scale(.94)}
-.sec-bouclier{
-  flex:none;width:48px;height:48px;border-radius:16px;
-  display:grid;place-items:center;
-  color:#fff;
-  background:linear-gradient(140deg,#FF8A3D 0%,#FF6B00 55%,#FF3D57 100%);
-  box-shadow:0 10px 24px -10px rgba(255,77,60,.75);
-}
-.sec-tete-txt{min-width:0}
-.sec-h1{
-  margin:0;font-size:29px;font-weight:900;letter-spacing:-.035em;line-height:1.1;
-  color:var(--sec-titre);
-}
-.sec-sub{margin:5px 0 0;font-size:13.5px;line-height:1.45;color:var(--sec-doux)}
-
 /* ---- la carte ---- */
 .sec-carte{
   margin-top:20px;padding:22px 20px 20px;
   border-radius:28px;
-  background:var(--sec-carte);
-  box-shadow:inset 0 0 0 1px var(--sec-filet),
+  background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet),
              0 2px 6px rgba(16,24,40,.04),
              0 22px 48px -26px rgba(16,24,40,.3);
 }
@@ -8430,12 +8403,12 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
 .sec-ic{
   flex:none;width:46px;height:46px;border-radius:15px;
   display:grid;place-items:center;
-  color:var(--sec-or);background:rgba(255,107,0,.10);
+  color:var(--prem-or);background:rgba(255,107,0,.10);
   box-shadow:inset 0 0 0 1px rgba(255,107,0,.20);
 }
 .sec-bloc-txt{min-width:0;display:flex;flex-direction:column;gap:4px}
-.sec-bloc-txt b{font-size:16.5px;font-weight:850;color:var(--sec-titre)}
-.sec-bloc-txt span{font-size:13px;line-height:1.5;color:var(--sec-doux)}
+.sec-bloc-txt b{font-size:16.5px;font-weight:850;color:var(--prem-titre)}
+.sec-bloc-txt span{font-size:13px;line-height:1.5;color:var(--prem-doux)}
 
 .sec-form{display:flex;flex-direction:column;gap:15px;margin-top:20px}
 
@@ -8444,68 +8417,68 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
    champ, et le champ reçoit un remplissage à gauche et à droite pour leur faire
    place : un champ encadré dans une boîte avec deux éléments à côté cesse de
    recevoir la touche sur toute sa surface, et l'on tape à côté. */
-.sec-champ{display:flex;flex-direction:column;gap:7px}
-.sec-champ > label{
-  font-size:12.5px;font-weight:800;color:var(--sec-titre);
+.prem-champ{display:flex;flex-direction:column;gap:7px}
+.prem-champ > label{
+  font-size:12.5px;font-weight:800;color:var(--prem-titre);
   padding-left:3px;
 }
-.sec-boite{position:relative}
-.sec-input{
+.prem-boite{position:relative}
+.prem-input{
   width:100%;height:60px;
   padding:0 52px;
   border-radius:18px;
-  border:1.5px solid var(--sec-filet);
-  background:var(--sec-champ);
-  color:var(--sec-titre);
+  border:1.5px solid var(--prem-filet);
+  background:var(--prem-champ);
+  color:var(--prem-titre);
   font:inherit;font-size:15px;font-weight:600;
   transition:border-color .18s, box-shadow .18s, background .18s;
   -webkit-appearance:none;appearance:none;
 }
-.sec-input::placeholder{color:#9AA0A8;font-weight:500}
+.prem-input::placeholder{color:#9AA0A8;font-weight:500}
 /* L'animation au focus : le liseré passe à l'orange et un halo s'ouvre autour.
    Le halo est un `box-shadow`, donc dessiné EN DEHORS du champ — il ne lui prend
    pas un pixel de hauteur, et les 60 px demandés restent 60. */
-.sec-input:focus{
+.prem-input:focus{
   outline:none;
-  background:var(--sec-carte);
-  border-color:var(--sec-or);
+  background:var(--prem-carte);
+  border-color:var(--prem-or);
   box-shadow:0 0 0 4px rgba(255,107,0,.14);
 }
-.sec-champ-ic{
+.prem-ic{
   position:absolute;left:17px;top:50%;transform:translateY(-50%);
-  color:var(--sec-doux);pointer-events:none;display:grid;
+  color:var(--prem-doux);pointer-events:none;display:grid;
   transition:color .18s;
 }
-.sec-input:focus ~ .sec-champ-ic,
-.sec-boite:focus-within .sec-champ-ic{color:var(--sec-or)}
-.sec-oeil{
+.prem-input:focus ~ .prem-ic,
+.prem-boite:focus-within .prem-ic{color:var(--prem-or)}
+.prem-oeil{
   position:absolute;right:8px;top:50%;transform:translateY(-50%);
   width:44px;height:44px;border:0;border-radius:14px;
   display:grid;place-items:center;
-  background:none;color:var(--sec-doux);cursor:pointer;
+  background:none;color:var(--prem-doux);cursor:pointer;
   transition:color .16s, background .16s;
 }
-.sec-oeil:active{background:rgba(16,24,40,.05)}
-.sec-oeil.on{color:var(--sec-or)}
+.prem-oeil:active{background:rgba(16,24,40,.05)}
+.prem-oeil.on{color:var(--prem-or)}
 /* Le code reçu par email : centré, très espacé, sans œil — ce n'est pas un
    secret qu'on masque, c'est un nombre qu'on recopie. */
-.sec-champ.large .sec-input{
+.prem-champ.large .prem-input{
   padding:0 20px 0 52px;
   text-align:center;letter-spacing:.42em;font-size:19px;font-weight:800;
 }
-.sec-aide{font-size:12px;font-weight:700;padding-left:3px;min-height:15px;color:var(--sec-doux)}
-.sec-aide.ok{color:#0F9D58}
-.sec-aide.non{color:#D9483B}
+.prem-aide{font-size:12px;font-weight:700;padding-left:3px;min-height:15px;color:var(--prem-doux)}
+.prem-aide.ok{color:#0F9D58}
+.prem-aide.non{color:#D9483B}
 
 .sec-adresse{
   display:flex;align-items:center;justify-content:center;gap:9px;
   min-height:50px;padding:0 16px;border-radius:16px;
-  background:var(--sec-champ);color:var(--sec-titre);
+  background:var(--prem-champ);color:var(--prem-titre);
   font-size:14px;font-weight:750;
-  box-shadow:inset 0 0 0 1px var(--sec-filet);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
   word-break:break-all;
 }
-.sec-adresse svg{flex:none;color:var(--sec-or)}
+.sec-adresse svg{flex:none;color:var(--prem-or)}
 
 /* ==========================================================================
    INDICATEUR DE FORCE
@@ -8521,7 +8494,7 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
 .sec-force{display:flex;flex-direction:column;gap:8px;margin-top:-4px}
 .sec-force-h{
   display:flex;align-items:baseline;justify-content:space-between;gap:10px;
-  font-size:12px;font-weight:700;color:var(--sec-doux);
+  font-size:12px;font-weight:700;color:var(--prem-doux);
 }
 .sec-force-h b{font-size:12.5px;font-weight:900;letter-spacing:.02em}
 .sec-jauge{height:7px;border-radius:999px;background:rgba(16,24,40,.09);overflow:hidden}
@@ -8542,13 +8515,13 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
    dire laisse croire que le mot de passe a été refusé pour elle. */
 .sec-cond{
   list-style:none;margin:-2px 0 0;padding:14px;
-  border-radius:18px;background:var(--sec-champ);
-  box-shadow:inset 0 0 0 1px var(--sec-filet);
+  border-radius:18px;background:var(--prem-champ);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
   display:flex;flex-direction:column;gap:9px;
 }
 .sec-cond li{
   display:flex;align-items:center;gap:10px;
-  font-size:13px;font-weight:650;color:var(--sec-doux);
+  font-size:13px;font-weight:650;color:var(--prem-doux);
   transition:color .2s;
 }
 .sec-cond li .p{
@@ -8562,11 +8535,11 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
   flex:none;font-size:10px;font-weight:800;letter-spacing:.05em;
   text-transform:uppercase;opacity:.6;
 }
-.sec-cond li.ok{color:var(--sec-titre)}
+.sec-cond li.ok{color:var(--prem-titre)}
 .sec-cond li.ok .p{background:#0F9D58;color:#fff;transform:scale(1.06)}
 
 /* ---- boutons ---- */
-.sec-go{
+.prem-go{
   display:flex;align-items:center;justify-content:center;gap:10px;
   width:100%;height:60px;
   border:0;border-radius:30px;
@@ -8576,28 +8549,28 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
   box-shadow:0 14px 32px -12px rgba(255,77,60,.75);
   transition:transform .17s cubic-bezier(.34,1.3,.64,1), box-shadow .17s, filter .17s;
 }
-.sec-go:active{transform:scale(.975);box-shadow:0 8px 20px -10px rgba(255,77,60,.8)}
+.prem-go:active{transform:scale(.975);box-shadow:0 8px 20px -10px rgba(255,77,60,.8)}
 /* Éteint tant que les règles obligatoires ne sont pas remplies. Le dégradé
    reste visible en gris : un bouton qui disparaît fait chercher où il est allé,
    un bouton éteint dit qu'il attend quelque chose. */
-.sec-go:disabled{
+.prem-go:disabled{
   cursor:not-allowed;
   filter:grayscale(1);opacity:.4;
   box-shadow:none;transform:none;
 }
-.sec-go2{
+.prem-go2{
   display:flex;align-items:center;justify-content:center;
   width:100%;min-height:52px;
-  border:1.5px solid var(--sec-filet);border-radius:20px;
-  background:var(--sec-carte);color:var(--sec-titre);
+  border:1.5px solid var(--prem-filet);border-radius:20px;
+  background:var(--prem-carte);color:var(--prem-titre);
   font:inherit;font-size:14.5px;font-weight:750;
   cursor:pointer;text-decoration:none;
   transition:transform .17s, border-color .17s, color .17s;
 }
-.sec-go2{margin-top:12px}
-.sec-form .sec-go2{margin-top:0}
-.sec-go2:active{transform:scale(.98)}
-.sec-go2:hover{border-color:var(--sec-or);color:var(--sec-or)}
+.prem-go2{margin-top:12px}
+.sec-form .prem-go2{margin-top:0}
+.prem-go2:active{transform:scale(.98)}
+.prem-go2:hover{border-color:var(--prem-or);color:var(--prem-or)}
 
 /* ---- carte d'information ---- */
 .sec-info{
@@ -8607,11 +8580,11 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
   background:rgba(255,107,0,.07);
   box-shadow:inset 0 0 0 1px rgba(255,107,0,.16);
 }
-.sec-info-ic{flex:none;color:var(--sec-or);display:grid;margin-top:1px}
-.sec-info p{margin:0;font-size:12.8px;line-height:1.55;color:var(--sec-titre);opacity:.86}
+.sec-info-ic{flex:none;color:var(--prem-or);display:grid;margin-top:1px}
+.sec-info p{margin:0;font-size:12.8px;line-height:1.55;color:var(--prem-titre);opacity:.86}
 
 /* ---- l'écran arrive ---- */
-.sec-tete,.sec-carte,.sec-info{
+.sec .prem-tete,.sec-carte,.sec-info{
   animation:secMonte .44s cubic-bezier(.22,.75,.3,1) both;
 }
 .sec-carte{animation-delay:.07s}
@@ -8619,33 +8592,33 @@ body.pref-clair.ecran-commandes .cmd-scene-moto{mix-blend-mode:multiply}
 @keyframes secMonte{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
 
 @media(prefers-reduced-motion:reduce){
-  .sec-tete,.sec-carte,.sec-info{animation:none}
-  .sec-jauge > span,.sec-cond li .p,.sec-input{transition:none}
-  .sec-go:active,.sec-go2:active,.sec-retour:active{transform:none}
-  .sec-retour:active{transform:scaleX(-1)}
+  .sec .prem-tete,.sec-carte,.sec-info{animation:none}
+  .sec-jauge > span,.sec-cond li .p,.prem-input{transition:none}
+  .prem-go:active,.prem-go2:active,.prem-retour:active{transform:none}
+  .prem-retour:active{transform:scaleX(-1)}
 }
 
 /* ==========================================================================
    LE MÊME ÉCRAN EN SOMBRE
    ========================================================================== */
-body.nuit #view .sec{
-  --sec-fond:#050505;
-  --sec-carte:#111214;
-  --sec-champ:#1A1C1F;
-  --sec-filet:rgba(255,255,255,.09);
-  --sec-titre:#F4F5F7;
-  --sec-doux:#868C95;
+body.nuit #view .prem{
+  --prem-fond:#050505;
+  --prem-carte:#111214;
+  --prem-champ:#1A1C1F;
+  --prem-filet:rgba(255,255,255,.09);
+  --prem-titre:#F4F5F7;
+  --prem-doux:#868C95;
 }
 body.nuit #view .sec-carte{
-  box-shadow:inset 0 0 0 1px var(--sec-filet), 0 24px 56px -30px rgba(0,0,0,1);
+  box-shadow:inset 0 0 0 1px var(--prem-filet), 0 24px 56px -30px rgba(0,0,0,1);
 }
-body.nuit #view .sec-input::placeholder{color:#6C7280}
-body.nuit #view .sec-input:focus{background:#1E2024}
+body.nuit #view .prem-input::placeholder{color:#6C7280}
+body.nuit #view .prem-input:focus{background:#1E2024}
 body.nuit #view .sec-jauge{background:rgba(255,255,255,.10)}
 body.nuit #view .sec-cond li .p{background:rgba(255,255,255,.09)}
-body.nuit #view .sec-oeil:active{background:rgba(255,255,255,.07)}
-body.nuit #view .sec-aide.ok{color:#4ADE80}
-body.nuit #view .sec-aide.non{color:#FF8A8A}
+body.nuit #view .prem-oeil:active{background:rgba(255,255,255,.07)}
+body.nuit #view .prem-aide.ok{color:#4ADE80}
+body.nuit #view .prem-aide.non{color:#FF8A8A}
 body.nuit #view .sec-force[data-n="faible"] .sec-force-h b{color:#FF8A8A}
 body.nuit #view .sec-force[data-n="moyen"]  .sec-force-h b{color:#FDBA5C}
 body.nuit #view .sec-force[data-n="fort"]   .sec-force-h b{color:#4ADE80}
@@ -8660,12 +8633,10 @@ body.nuit #view .sec-info p{color:#E4E7EB;opacity:.9}
    TÉLÉPHONES ÉTROITS ET TABLETTES
    ========================================================================== */
 @media(max-width:379px){
-  .sec-h1{font-size:25px}
-  .sec-bouclier{width:42px;height:42px;border-radius:14px}
   .sec-carte{padding:18px 15px 17px;border-radius:24px}
-  .sec-input{height:56px;padding:0 48px;border-radius:16px}
+  .prem-input{height:56px;padding:0 48px;border-radius:16px}
   .sec-cond li .r{display:none}   /* la place manque : le libellé passe d'abord */
-  .sec-go{height:56px;font-size:14.5px}
+  .prem-go{height:56px;font-size:14.5px}
 }
 @media(min-width:620px){
   .sec .wrap-sm{max-width:560px}
@@ -8680,3 +8651,339 @@ body.ecran-compte .topbar{
 }
 body.pref-clair.ecran-compte .topbar{background:rgba(255,255,255,.72)}
 body.nuit.ecran-compte .topbar{background:rgba(9,10,12,.66)}
+
+/* ==========================================================================
+   L'EN-TÊTE PREMIUM DEVIENT COMMUNE
+   --------------------------------------------------------------------------
+   Flèche de retour, vignette colorée, grand titre, sous-titre : c'est le même
+   en-tête sur Sécurité et sur Informations personnelles, et ce sera le même sur
+   le suivant. Elle passe donc sous `prem-`, comme les champs et les boutons.
+   Deux en-têtes copiés divergent à la première retouche — on l'a vu avec les
+   deux bancs d'essai, dont l'un a reçu trois améliorations et l'autre aucune.
+   ========================================================================== */
+.prem-tete{display:flex;align-items:center;gap:13px;padding:4px 0 2px}
+.prem-retour{
+  flex:none;width:42px;height:42px;border-radius:14px;
+  display:grid;place-items:center;
+  background:var(--prem-champ);color:var(--prem-titre);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  /* Le chevron du jeu d'icônes pointe à droite : il faut le retourner pour
+     qu'il dise « revenir ». */
+  transform:scaleX(-1);
+  transition:transform .16s;
+}
+.prem-retour:active{transform:scaleX(-1) scale(.94)}
+.prem-vignette{
+  flex:none;width:48px;height:48px;border-radius:16px;
+  display:grid;place-items:center;color:#fff;
+  background:linear-gradient(140deg,#FF8A3D 0%,#FF6B00 55%,#FF3D57 100%);
+  box-shadow:0 10px 24px -10px rgba(255,77,60,.75);
+}
+.prem-tete-txt{min-width:0}
+.prem-h1{
+  margin:0;font-size:27px;font-weight:900;letter-spacing:-.035em;line-height:1.1;
+  color:var(--prem-titre);
+}
+.prem-sub{margin:5px 0 0;font-size:13.5px;line-height:1.45;color:var(--prem-doux)}
+
+/* ==========================================================================
+   INFORMATIONS PERSONNELLES
+   --------------------------------------------------------------------------
+   Une seule grande carte, comme sur Sécurité : elle est blanche sur une page
+   blanche, et c'est le liseré autant que l'ombre qui la détache. Dehors, en
+   plein soleil, une ombre douce disparaît complètement — le liseré reste.
+   ========================================================================== */
+.ip{background:var(--prem-fond)}
+.ip .acc-dots{display:none}
+
+.ip-carte{
+  margin-top:20px;padding:22px 20px 20px;
+  border-radius:28px;
+  background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet),
+             0 2px 6px rgba(16,24,40,.04),
+             0 22px 48px -26px rgba(16,24,40,.3);
+  display:flex;flex-direction:column;gap:16px;
+}
+
+/* ---- la photo ----
+   Le liseré dégradé est un `background` sur le conteneur et le rond est posé
+   dessus avec 3 px de retrait : une bordure en dégradé n'existe pas en CSS,
+   `border-image` ne suit pas les coins arrondis. Deux ronds concentriques, et
+   l'anneau est parfaitement régulier. */
+.ip-photo-zone{
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:2px 0 4px;
+}
+.ip-photo{
+  position:relative;
+  width:106px;height:106px;border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(140deg,#FFB067 0%,#FF6B00 52%,#FF3D57 100%);
+  box-shadow:0 12px 30px -12px rgba(255,77,60,.55);
+}
+.ip-photo-img{
+  width:100px;height:100px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--prem-champ) center/cover no-repeat;
+  color:var(--prem-doux);
+  font-size:34px;font-weight:900;letter-spacing:-.02em;
+  cursor:pointer;overflow:hidden;
+  /* L'animation au changement : la nouvelle image arrive en se posant. Elle est
+     déclenchée par le remplacement du fond, donc elle rejoue à chaque envoi. */
+  animation:ipPose .5s cubic-bezier(.22,.8,.3,1);
+}
+@keyframes ipPose{ from{opacity:0;transform:scale(.9)} to{opacity:1;transform:none} }
+.ip-cam{
+  position:absolute;right:-2px;bottom:-2px;
+  width:36px;height:36px;border-radius:50%;
+  display:grid;place-items:center;
+  border:0;background:var(--prem-carte);color:var(--prem-or);
+  box-shadow:0 4px 12px -3px rgba(16,24,40,.35), inset 0 0 0 1px var(--prem-filet);
+  cursor:pointer;
+  transition:transform .16s cubic-bezier(.34,1.4,.64,1);
+}
+.ip-cam:active{transform:scale(.9)}
+.ip-photo-nom{
+  margin-top:13px;
+  font-size:19px;font-weight:900;letter-spacing:-.02em;color:var(--prem-titre);
+}
+.ip-photo-aide{margin-top:4px;font-size:11.5px;color:var(--prem-doux)}
+
+/* ---- la complétion ----
+   Le pourcentage seul ne sert à rien : ce qui manque est écrit dessous, en
+   petites étiquettes. « Profil complété à 71 % » sans dire quoi compléter
+   demande de chercher soi-même dans le formulaire. */
+.ip-etat{
+  padding:15px 16px;border-radius:20px;
+  background:var(--prem-champ);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  display:flex;flex-direction:column;gap:10px;
+}
+.ip-etat-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ip-etat-h b{font-size:14.5px;font-weight:850;color:var(--prem-titre)}
+.ip-etat-h span{font-size:11.5px;font-weight:750;color:var(--prem-doux);white-space:nowrap}
+.ip-jauge{height:7px;border-radius:999px;background:rgba(16,24,40,.09);overflow:hidden}
+.ip-jauge > span{
+  display:block;height:100%;width:var(--p,0%);
+  border-radius:999px;
+  background:linear-gradient(90deg,#FF6B00,#FF3D57);
+  transition:width .6s cubic-bezier(.3,.8,.3,1);
+}
+.ip-etat.plein .ip-jauge > span{background:linear-gradient(90deg,#12B76A,#0F9D58)}
+.ip-etat-l{display:flex;flex-wrap:wrap;gap:7px}
+.ip-etat-l span{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:5px 10px;border-radius:999px;
+  background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  font-size:11.5px;font-weight:700;color:var(--prem-doux);
+}
+.ip-etat-l svg{opacity:.7}
+
+/* ---- champs particuliers ---- */
+.ip-fac{
+  font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--prem-doux);opacity:.8;margin-left:5px;
+}
+.ip-verrou{
+  position:absolute;right:18px;top:50%;transform:translateY(-50%);
+  color:var(--prem-doux);opacity:.55;pointer-events:none;display:grid;
+}
+.prem-aide a{color:var(--prem-or);font-weight:800;text-decoration:none}
+/* Le menu déroulant : la flèche du navigateur est masquée et remplacée par le
+   chevron du jeu d'icônes, sinon chaque système en dessine une différente et
+   c'est le seul champ de l'écran à ne pas ressembler aux autres. */
+.ip-select{
+  -webkit-appearance:none;appearance:none;
+  padding-right:52px;cursor:pointer;
+}
+.ip-select::-ms-expand{display:none}
+.ip-chev{
+  position:absolute;right:18px;top:50%;
+  transform:translateY(-50%) rotate(90deg);
+  color:var(--prem-doux);pointer-events:none;display:grid;
+}
+
+/* ---- les trois cartes de genre ---- */
+.ip-genres{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.ip-genre{
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  padding:14px 6px 12px;
+  border:1.5px solid var(--prem-filet);border-radius:18px;
+  background:var(--prem-champ);color:var(--prem-titre);
+  font:inherit;cursor:pointer;
+  transition:transform .16s cubic-bezier(.34,1.3,.64,1),
+             border-color .2s, background .2s, box-shadow .2s;
+}
+.ip-genre:active{transform:scale(.96)}
+.ip-genre-ic{
+  width:40px;height:40px;border-radius:14px;
+  display:grid;place-items:center;
+  background:var(--prem-carte);color:var(--prem-doux);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  transition:color .2s, background .2s;
+}
+.ip-genre-t{font-size:12.5px;font-weight:800}
+/* La coche remplace le texte « ✓ » posé par le gestionnaire : elle est en
+   position absolue pour ne pas décaler la carte quand elle apparaît. */
+.ip-genre-c{
+  position:absolute;top:7px;right:9px;
+  font-size:13px;font-weight:900;color:var(--prem-or);
+  line-height:1;
+}
+.ip-genre.on{
+  border-color:var(--prem-or);
+  background:linear-gradient(170deg,rgba(255,107,0,.13),rgba(255,61,87,.06));
+  box-shadow:0 0 0 3px rgba(255,107,0,.12), 0 8px 20px -12px rgba(255,77,60,.5);
+}
+.ip-genre.on .ip-genre-ic{background:var(--prem-or);color:#fff}
+
+/* ---- adresses ---- */
+.ip-sep{height:1px;background:var(--prem-filet);margin:4px 0;scroll-margin-top:110px}
+.ip-bloc-h{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ip-bloc-t{
+  display:flex;align-items:center;gap:9px;
+  font-size:15px;font-weight:850;color:var(--prem-titre);
+}
+.ip-bloc-t > span{
+  width:34px;height:34px;border-radius:12px;flex:none;
+  display:grid;place-items:center;
+  color:var(--prem-or);background:rgba(255,107,0,.10);
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.20);
+}
+.ip-ajout{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:40px;padding:0 14px;
+  border:0;border-radius:999px;
+  background:rgba(255,107,0,.10);color:var(--prem-or);
+  font:inherit;font-size:13px;font-weight:800;cursor:pointer;
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.22);
+  transition:transform .16s;
+}
+.ip-ajout:active{transform:scale(.95)}
+.ip-adrs{display:flex;flex-direction:column;gap:10px}
+.ip-adr{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:13px 14px;border-radius:20px;
+  background:var(--prem-champ);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+}
+.ip-adr-ic{
+  flex:none;width:36px;height:36px;border-radius:13px;
+  display:grid;place-items:center;
+  color:var(--prem-or);background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+}
+.ip-adr-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ip-adr-txt b{
+  font-size:14px;font-weight:850;color:var(--prem-titre);
+  display:flex;align-items:center;flex-wrap:wrap;gap:6px;
+}
+.ip-adr-txt span{font-size:12px;color:var(--prem-doux);line-height:1.4;word-break:break-word}
+.ip-adr-txt a{color:var(--prem-or);font-weight:750;text-decoration:none}
+.ip-pastille{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:3px 8px;border-radius:999px;
+  font-size:10.5px;font-weight:800;
+}
+.ip-pastille.ok{background:rgba(15,157,88,.13);color:#0F9D58}
+.ip-pastille.warn{background:rgba(245,165,36,.16);color:#C77700}
+.ip-adr-act{display:flex;gap:7px;flex:none}
+.ip-rond{
+  width:38px;height:38px;border-radius:13px;
+  display:grid;place-items:center;
+  border:0;background:var(--prem-carte);color:var(--prem-titre);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  cursor:pointer;transition:transform .16s, color .16s;
+}
+.ip-rond:active{transform:scale(.92)}
+.ip-rond.rouge{color:#D9483B}
+.ip-vide{
+  margin:0;padding:15px 16px;border-radius:18px;
+  background:var(--prem-champ);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  font-size:12.5px;line-height:1.55;color:var(--prem-doux);
+}
+.ip-note{
+  margin:0;text-align:center;
+  font-size:11.5px;color:var(--prem-doux);
+}
+
+/* ---- accès rapide ---- */
+.ip-lab{
+  margin:26px 0 10px 4px;
+  font-size:11.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--prem-doux);
+}
+.ip-racs{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.ip-rac{
+  display:flex;align-items:center;gap:10px;
+  padding:15px 14px;border-radius:20px;
+  background:var(--prem-champ);color:var(--prem-titre);
+  text-decoration:none;
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+  transition:transform .16s cubic-bezier(.34,1.3,.64,1);
+}
+.ip-rac:active{transform:scale(.96)}
+.ip-rac-ic{
+  flex:none;width:38px;height:38px;border-radius:13px;
+  display:grid;place-items:center;
+  color:var(--prem-or);background:var(--prem-carte);
+  box-shadow:inset 0 0 0 1px var(--prem-filet);
+}
+.ip-rac-t{flex:1;min-width:0;font-size:13px;font-weight:800;line-height:1.25}
+.ip-rac-c{flex:none;color:var(--prem-doux);opacity:.5;display:grid}
+
+/* ---- l'écran arrive ---- */
+.ip .prem-tete,.ip-carte,.ip-lab,.ip-racs{
+  animation:ipMonte .44s cubic-bezier(.22,.75,.3,1) both;
+}
+.ip-carte{animation-delay:.07s}
+.ip-lab{animation-delay:.14s}
+.ip-racs{animation-delay:.18s}
+@keyframes ipMonte{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+@media(prefers-reduced-motion:reduce){
+  .ip .prem-tete,.ip-carte,.ip-lab,.ip-racs{animation:none}
+  .ip-photo-img{animation:none}
+  .ip-jauge > span,.ip-genre{transition:none}
+  .ip-genre:active,.ip-cam:active,.ip-rond:active,.ip-rac:active,.ip-ajout:active{transform:none}
+}
+
+/* ==========================================================================
+   LE MÊME ÉCRAN EN SOMBRE — six variables, aucune règle réécrite
+   ========================================================================== */
+body.nuit #view .ip-jauge{background:rgba(255,255,255,.10)}
+body.nuit #view .ip-photo-img{color:#868C95}
+body.nuit #view .ip-genre.on{
+  background:linear-gradient(170deg,rgba(255,107,0,.20),rgba(255,61,87,.08));
+  box-shadow:0 0 0 3px rgba(255,107,0,.14), 0 10px 24px -14px rgba(255,77,60,.7);
+}
+body.nuit #view .ip-pastille.ok{background:rgba(18,183,106,.16);color:#4ADE80}
+body.nuit #view .ip-pastille.warn{background:rgba(247,144,9,.18);color:#FDBA5C}
+body.nuit #view .ip-rond.rouge{color:#FF8A8A}
+body.nuit #view .ip-carte{
+  box-shadow:inset 0 0 0 1px var(--prem-filet), 0 24px 56px -30px rgba(0,0,0,1);
+}
+
+/* ==========================================================================
+   TÉLÉPHONES ÉTROITS ET TABLETTES
+   ========================================================================== */
+@media(max-width:379px){
+  .prem-h1{font-size:23px}
+  .prem-vignette{width:42px;height:42px;border-radius:14px}
+  .ip-carte{padding:18px 15px 17px;border-radius:24px}
+  .ip-photo{width:92px;height:92px}
+  .ip-photo-img{width:86px;height:86px;font-size:29px}
+  .ip-genre{padding:12px 4px 10px;border-radius:16px}
+  .ip-genre-ic{width:34px;height:34px;border-radius:12px}
+  .ip-genre-t{font-size:11.5px}
+  /* Deux colonnes de raccourcis deviennent une : à cette largeur, « Mes
+     commandes » se couperait au milieu. */
+  .ip-racs{grid-template-columns:1fr}
+}
+@media(min-width:620px){
+  .ip .wrap-sm{max-width:560px}
+}

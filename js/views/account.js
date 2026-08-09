@@ -21,9 +21,17 @@
      `profiles_gender_chk` accepte (voir supabase/28_genre_et_naissance.sql).
      Les libellés affichés sont séparés des valeurs stockées : traduire l'écran
      un jour ne devra pas changer une seule ligne de la base. */
+  /* Trois valeurs, et la base les accepte toutes les trois depuis la révision
+     de 28_genre_et_naissance.sql — qui SUPPRIME et recrée sa contrainte, pour
+     converger même sur une base où l'ancienne version a déjà tourné.
+
+     Les pictogrammes ne distinguent pas Homme de Femme : le jeu d'icônes n'en a
+     pas, et deux silhouettes dessinées à la va-vite se ressemblent plus qu'elles
+     ne se distinguent. Ce sont les libellés qui portent le sens. */
   const GENRES = [
     { v: 'homme', t: 'Homme', i: 'user' },
-    { v: 'femme', t: 'Femme', i: 'user' }
+    { v: 'femme', t: 'Femme', i: 'user' },
+    { v: 'autre', t: 'Autre', i: 'plus' }
   ];
 
   /* L'âge affiché sous la date de naissance. Il n'est jamais stocké : un âge
@@ -251,6 +259,282 @@
   }, { auth: true });
 
   /* ======================================================================
+     INFORMATIONS PERSONNELLES — ÉCRAN DU CLIENT
+     ----------------------------------------------------------------------
+     Comme l'écran Compte, `/profil` est partagé : le livreur y règle aussi son
+     véhicule et sa plaque. Le nouvel écran ne vaut donc que pour le client, et
+     l'autre garde son formulaire au caractère près.
+
+     LES CROCHETS SONT LES MÊMES QUE L'ANCIEN MARQUAGE — `#pf`, `[data-g]`,
+     `[data-gcheck]`, `#bdate`, `#ageHint`, `#addAddr`, `[data-ae]`, `[data-ad]`,
+     `data-imgfield`, `data-preview`, `data-pick`, `data-file`. Aucun
+     gestionnaire n'est réécrit : c'est la peau qui change, pas la mécanique. Un
+     écran refait qui casse l'enregistrement n'est pas un écran refait.
+
+     CE QUE LE BRIEF DEMANDAIT ET QUI N'EXISTE PAS :
+
+     - « Badge Vérifié » sur le téléphone : Talabi n'envoie pas de code SMS. Un
+       badge « vérifié » qui ne vérifie rien est un mensonge affiché en vert.
+     - « Bouton modifier » sur l'email : changer l'adresse de connexion demande
+       une confirmation par email qui n'est pas implémentée. La ligne dit donc
+       comment faire — nous écrire — au lieu d'ouvrir une porte qui ne mène nulle
+       part.
+     - « Récompenses Talabi » et « Paiement » : ni programme de fidélité, ni
+       moyen de paiement enregistré. Le paiement se fait en espèces à la
+       réception.
+
+     Les quatre actions rapides sont donc quatre destinations qui existent
+     vraiment. La grille 2×2 du brief est respectée ; c'est son contenu qui
+     change.
+     ====================================================================== */
+
+  /* Le préfixe international, affiché SOUS le champ une fois le numéro valide.
+     Le montrer DANS le champ, devant un numéro qui commence déjà par 0, aurait
+     écrit « +213 0555… » — deux notations du même indicatif, dont une fausse. */
+  function ipInternational(tel) {
+    const n = String(tel || '').replace(/\D/g, '');
+    if (!/^0[5-7]\d{8}$/.test(n)) return '';
+    const r = n.slice(1);
+    return '+213 ' + r.slice(0, 3) + ' ' + r.slice(3, 5) + ' ' + r.slice(5, 7) + ' ' + r.slice(7);
+  }
+
+  /* La complétion du profil. Sept renseignements, tous vérifiables : on ne
+     compte pas un pourcentage inventé, on compte ce qui est rempli. Chaque
+     manque porte son intitulé, et c'est cette liste qui devient la suggestion —
+     « Profil complété à 71 % » sans dire ce qui manque ne sert à rien. */
+  function ipCompletion(p, nbAdresses, baseAJour) {
+    const items = [
+      ['Votre photo',          !!p.avatar_url],
+      ['Votre nom complet',    !!(p.full_name && p.full_name.length >= 3)],
+      ['Votre téléphone',      !!p.phone],
+      ['Votre zone',           !!p.zone_id],
+      ['Une adresse de livraison', nbAdresses > 0]
+    ];
+    /* Genre et date de naissance ne comptent que si la base les connaît :
+       sinon le profil serait plafonné à 71 % sans qu'on puisse rien y faire. */
+    if (baseAJour) {
+      items.push(['Votre genre', !!p.gender]);
+      items.push(['Votre date de naissance', !!p.birth_date]);
+    }
+    const faits = items.filter(i => i[1]).length;
+    return {
+      pct: Math.round(faits / items.length * 100),
+      manque: items.filter(i => !i[1]).map(i => i[0])
+    };
+  }
+
+  function ipRac(o) {
+    return '<a class="ip-rac" href="' + o.href + '"' +
+      (o.neuf ? ' target="_blank" rel="noopener"' : '') +
+      (o.id ? ' id="' + o.id + '"' : '') + '>' +
+      '<span class="ip-rac-ic">' + UI.icon(o.icone, 21) + '</span>' +
+      '<span class="ip-rac-t">' + U.esc(o.titre) + '</span>' +
+      '<span class="ip-rac-c">' + UI.icon('chevron', 16) + '</span></a>';
+  }
+
+  function ipEcran(p, addresses, verrou, genre, baseAJour) {
+    const comp = ipCompletion(p, addresses.length, baseAJour);
+    const inter = ipInternational(p.phone);
+
+    return '<div class="account-page prem ip">' +
+      '<div class="wrap-sm page">' +
+
+      '<header class="prem-tete">' +
+        '<a class="prem-retour" href="#/account" aria-label="Retour aux réglages">' +
+          UI.icon('chevron', 19) + '</a>' +
+        '<span class="prem-vignette" aria-hidden="true">' + UI.icon('user', 25) + '</span>' +
+        '<div class="prem-tete-txt">' +
+          '<h1 class="prem-h1">Informations personnelles</h1>' +
+          '<p class="prem-sub">Gérez vos informations et personnalisez votre profil</p>' +
+        '</div>' +
+      '</header>' +
+
+      '<form id="pf" class="ip-carte" novalidate>' +
+
+        /* ---- photo ----
+           Le marquage reprend les crochets de `UI.imageField` — `data-imgfield`,
+           `data-preview`, `data-pick`, `data-file` et le champ caché — mais pas
+           ses styles en ligne, qui imposaient un carré de 76 px et un liseré
+           pointillé. Un style en ligne l'emporte sur toute feuille : il fallait
+           le marquage à part pour obtenir un rond de 100 px. La mécanique
+           d'envoi, elle, est celle de tout le monde. */
+        '<div class="ip-photo-zone" data-imgfield="avatar_url">' +
+          '<div class="ip-photo">' +
+            '<span class="ip-photo-img" data-preview' +
+              (p.avatar_url ? ' style="background-image:url(' + U.escUrl(p.avatar_url) + ')"' : '') +
+              '>' + (p.avatar_url ? '' : U.esc(U.initials(p.full_name || '?'))) + '</span>' +
+            '<button type="button" class="ip-cam" data-pick aria-label="Changer ma photo">' +
+              UI.icon('camera', 18) + '</button>' +
+          '</div>' +
+          '<div class="ip-photo-nom">' + U.esc(p.full_name || 'Votre profil') + '</div>' +
+          '<div class="ip-photo-aide">JPG ou PNG, 2 Mo maximum</div>' +
+          '<input type="file" accept="image/*" hidden data-file>' +
+          '<input type="hidden" name="avatar_url" value="' + U.esc(p.avatar_url || '') + '">' +
+        '</div>' +
+
+        /* ---- complétion ---- */
+        '<div class="ip-etat' + (comp.pct === 100 ? ' plein' : '') + '">' +
+          '<div class="ip-etat-h">' +
+            '<b>Profil complété à ' + comp.pct + ' %</b>' +
+            '<span>' + (comp.pct === 100 ? 'Tout est renseigné' : comp.manque.length + ' à compléter') + '</span>' +
+          '</div>' +
+          '<div class="ip-jauge"><span style="--p:' + comp.pct + '%"></span></div>' +
+          (comp.manque.length
+            ? '<div class="ip-etat-l">' + comp.manque.map(m =>
+                '<span>' + UI.icon('plus', 13) + ' ' + U.esc(m) + '</span>').join('') + '</div>'
+            : '') +
+        '</div>' +
+
+        /* ---- nom ---- */
+        '<div class="prem-champ">' +
+          '<label for="ipNom">Nom complet</label>' +
+          '<div class="prem-boite">' +
+            '<span class="prem-ic">' + UI.icon('user', 18) + '</span>' +
+            '<input id="ipNom" class="prem-input" name="full_name" ' +
+              'value="' + U.esc(p.full_name || '') + '" ' +
+              'placeholder="Prénom et nom" autocomplete="name" required>' +
+          '</div>' +
+        '</div>' +
+
+        /* ---- email ----
+           Désactivé, et la ligne dessous dit pourquoi et quoi faire. Un champ
+           grisé sans explication se lit comme un défaut. */
+        '<div class="prem-champ">' +
+          '<label for="ipMail">Email</label>' +
+          '<div class="prem-boite">' +
+            '<span class="prem-ic">' + UI.icon('mail', 18) + '</span>' +
+            '<input id="ipMail" class="prem-input" value="' + U.esc(p.email || '') + '" disabled>' +
+            '<span class="ip-verrou" aria-hidden="true">' + UI.icon('lock', 17) + '</span>' +
+          '</div>' +
+          '<span class="prem-aide">C’est l’adresse avec laquelle vous vous connectez. ' +
+            'Pour la changer, <a href="mailto:' + U.esc(TALABI_CONFIG.SUPPORT_EMAIL || '') +
+            '?subject=' + encodeURIComponent('Talabi — changer mon email') + '">écrivez-nous</a>.</span>' +
+        '</div>' +
+
+        /* ---- téléphone ---- */
+        '<div class="prem-champ">' +
+          '<label for="ipTel">Téléphone</label>' +
+          '<div class="prem-boite">' +
+            '<span class="prem-ic">' + UI.icon(verrou.bloque ? 'lock' : 'phone', 18) + '</span>' +
+            '<input id="ipTel" class="prem-input" name="phone" inputmode="tel" ' +
+              'placeholder="0X XX XX XX XX" value="' + U.esc(p.phone || '') + '"' +
+              (verrou.bloque ? ' disabled' : '') + '>' +
+          '</div>' +
+          '<span class="prem-aide' + (inter ? ' ok' : '') + '" id="ipTelAide">' +
+            (verrou.bloque
+              ? 'Numéro enregistré il y a moins de 30 jours. Modifiable dans ' +
+                verrou.jours + ' jour' + (verrou.jours > 1 ? 's' : '') + '.'
+              : inter ? 'Soit ' + inter : 'Numéro algérien : 0X XX XX XX XX') +
+          '</span>' +
+        '</div>' +
+
+        /* ---- genre et date de naissance ----
+           LES DEUX CHAMPS N'APPARAISSENT QUE SI LA BASE LES CONNAÎT.
+           `getProfile` lit la ligne entière : si la migration
+           28_genre_et_naissance.sql n'a pas été exécutée, ces clés sont absentes
+           de l'objet — et non pas nulles. Sans ce test, remplir son genre
+           ferait échouer l'enregistrement ENTIER, nom et téléphone compris. */
+        (baseAJour
+          ? '<div class="prem-champ">' +
+              '<label>Genre <span class="ip-fac">facultatif</span></label>' +
+              '<div class="ip-genres" id="genre">' +
+                GENRES.map(g =>
+                  '<button type="button" class="ip-genre' + (genre === g.v ? ' on' : '') + '" ' +
+                    'data-g="' + g.v + '" aria-pressed="' + (genre === g.v ? 'true' : 'false') + '">' +
+                    '<span class="ip-genre-ic">' + UI.icon(g.i, 22) + '</span>' +
+                    '<span class="ip-genre-t">' + U.esc(g.t) + '</span>' +
+                    '<span class="ip-genre-c" data-gcheck>' + (genre === g.v ? '✓' : '') + '</span>' +
+                  '</button>').join('') +
+              '</div>' +
+            '</div>' +
+
+            '<div class="prem-champ">' +
+              '<label for="bdate">Date de naissance <span class="ip-fac">facultatif</span></label>' +
+              '<div class="prem-boite">' +
+                '<span class="prem-ic">' + UI.icon('calendar', 18) + '</span>' +
+                '<input id="bdate" class="prem-input" type="date" name="birth_date" ' +
+                  'max="' + U.esc(new Date().toISOString().slice(0, 10)) + '" ' +
+                  'value="' + U.esc((p.birth_date || '').slice(0, 10)) + '">' +
+              '</div>' +
+              '<span class="prem-aide" id="ageHint">' + U.esc(ageTexte(p.birth_date)) + '</span>' +
+            '</div>'
+          : '') +
+
+        /* ---- zone ----
+           Un menu déroulant natif, et non une liste avec recherche : Tizi Ouzou
+           compte une poignée de quartiers. Un champ de recherche pour cinq
+           entrées ajoute un geste au lieu d'en retirer un. */
+        '<div class="prem-champ">' +
+          '<label for="ipZone">Zone de livraison</label>' +
+          '<div class="prem-boite">' +
+            '<span class="prem-ic">' + UI.icon('pin', 18) + '</span>' +
+            '<select id="ipZone" class="prem-input ip-select" name="zone_id">' +
+              '<option value="">— Choisir mon quartier —</option>' +
+              Store.zones.map(z => '<option value="' + U.esc(z.id) + '"' +
+                (p.zone_id === z.id ? ' selected' : '') + '>' + U.esc(z.name) +
+                (z.wilaya && z.wilaya !== TALABI_CONFIG.DEFAULT_WILAYA
+                  ? ' (' + U.esc(z.wilaya) + ')' : '') + '</option>').join('') +
+            '</select>' +
+            '<span class="ip-chev" aria-hidden="true">' + UI.icon('chevron', 17) + '</span>' +
+          '</div>' +
+        '</div>' +
+
+        /* ---- adresses ---- */
+        '<div class="ip-sep" id="adrAncre"></div>' +
+        '<div class="ip-bloc-h">' +
+          '<div class="ip-bloc-t"><span>' + UI.icon('pin', 19) + '</span>Adresses de livraison</div>' +
+          '<button type="button" class="ip-ajout" id="addAddr">' + UI.icon('plus', 16) +
+            ' Ajouter</button>' +
+        '</div>' +
+        (addresses.length
+          ? '<div class="ip-adrs">' + addresses.map(a =>
+              '<div class="ip-adr">' +
+                '<span class="ip-adr-ic">' + UI.icon('pin', 19) + '</span>' +
+                '<div class="ip-adr-txt">' +
+                  '<b>' + U.esc(a.label) +
+                    (a.is_default ? '<span class="ip-pastille ok">' + UI.icon('check', 12) + ' Par défaut</span>' : '') +
+                    (U.hasCoords(a) ? '' : '<span class="ip-pastille warn">' + UI.icon('warn', 12) + ' sans GPS</span>') +
+                  '</b>' +
+                  '<span>' + U.esc(a.street) + (a.details ? ' — ' + U.esc(a.details) : '') + '</span>' +
+                  '<span>' + U.esc(zoneName(a.zone_id)) + ' • ' + U.esc(a.phone || '') +
+                    (U.hasCoords(a) ? ' • <a class="addr-map" target="_blank" rel="noopener" href="' +
+                      U.gmapsPin(a.lat, a.lng) + '">carte</a>' : '') + '</span>' +
+                '</div>' +
+                /* `type="button"` sur les deux : dans un <form>, un bouton sans
+                   type VAUT « submit ». Sans cela, toucher le crayon d'une
+                   adresse enregistrerait le profil au lieu de l'ouvrir. */
+                '<div class="ip-adr-act">' +
+                  '<button type="button" class="ip-rond" data-ae="' + U.esc(a.id) + '" ' +
+                    'aria-label="Modifier cette adresse">' + UI.icon('pencil', 16) + '</button>' +
+                  '<button type="button" class="ip-rond rouge" data-ad="' + U.esc(a.id) + '" ' +
+                    'aria-label="Supprimer cette adresse">' + UI.icon('trash', 16) + '</button>' +
+                '</div>' +
+              '</div>').join('') + '</div>'
+          : '<p class="ip-vide">Aucune adresse enregistrée. Ajoutez-en une depuis votre ' +
+            'position : c’est le point que le livreur ouvrira dans Google Maps.</p>') +
+
+        /* ---- boutons ---- */
+        '<button class="prem-go" type="submit">' + UI.icon('save', 19) +
+          ' Enregistrer les modifications</button>' +
+        '<button class="prem-go2" type="button" id="ipAnnuler">Annuler</button>' +
+        (verrou.bloque ? '' :
+          '<p class="ip-note">Une fois modifié, le téléphone sera bloqué 30 jours.</p>') +
+      '</form>' +
+
+      /* ---- quatre actions rapides, quatre destinations réelles ---- */
+      '<div class="ip-lab">Accès rapide</div>' +
+      '<div class="ip-racs">' +
+        ipRac({ href: '#adrAncre', icone: 'pin', titre: 'Mes adresses', id: 'ipVersAdr' }) +
+        ipRac({ href: '#/securite', icone: 'lock', titre: 'Sécurité' }) +
+        ipRac({ href: '#/orders', icone: 'package', titre: 'Mes commandes' }) +
+        ipRac({ href: U.escUrl(U.asset('confidentialite.html')), neuf: true,
+                icone: 'shield', titre: 'Confidentialité' }) +
+      '</div>' +
+
+      '</div></div>';
+  }
+
+  /* ======================================================================
      INFORMATIONS PERSONNELLES
      ====================================================================== */
   Router.add('/profil', async function (params, query, view) {
@@ -280,7 +564,14 @@
          sans rien redéployer. */
       const baseAJour = !!p && ('gender' in p) && ('birth_date' in p);
 
-      view.innerHTML = '<div class="account-page">' +
+      /* Le nouvel écran ne vaut que pour le client : le livreur règle ici son
+         véhicule et sa plaque, et son formulaire reste celui d'avant, au
+         caractère près. */
+      const clientPremium = App.est('client') && p.role === 'client';
+
+      view.innerHTML = clientPremium
+        ? ipEcran(p, addresses, verrou, genre, baseAJour)
+        : '<div class="account-page">' +
         '<span class="acc-dots a" aria-hidden="true"></span>' +
         '<div class="wrap-sm page">' +
 
@@ -406,12 +697,56 @@
       /* ------------------------------------------------------ actions */
       UI.bindImageFields(view);
 
+      /* ---- ce qui n'existe que sur l'écran du client ----
+         Chaque greffe est gardée par sa propre présence : l'écran du livreur
+         passe ici aussi, et n'a aucun de ces éléments. */
+
+      /* Le nom sous la photo suit ce qu'on tape, sans attendre l'enregistrement :
+         c'est le seul endroit de l'écran où l'on se voit soi-même. */
+      const nom = view.querySelector('#ipNom');
+      const nomVu = view.querySelector('.ip-photo-nom');
+      if (nom && nomVu) nom.oninput = () => {
+        nomVu.textContent = nom.value.trim() || 'Votre profil';
+      };
+
+      /* Le numéro se relit en notation internationale dès qu'il est valide. Ce
+         n'est pas une vérification — Talabi n'envoie pas de SMS — mais une
+         relecture : on voit tout de suite si on s'est trompé d'un chiffre. */
+      const tel = view.querySelector('#ipTel');
+      const telAide = view.querySelector('#ipTelAide');
+      if (tel && telAide && !tel.disabled) tel.oninput = () => {
+        const i = ipInternational(tel.value);
+        telAide.textContent = i ? 'Soit ' + i
+          : tel.value ? 'Ce numéro ne ressemble pas à un numéro algérien'
+          : 'Numéro algérien : 0X XX XX XX XX';
+        telAide.className = 'prem-aide' + (i ? ' ok' : tel.value ? ' non' : '');
+      };
+
+      /* « Annuler » remet les valeurs enregistrées : on repeint depuis le
+         profil en mémoire, qui n'a pas été touché. Rien à défaire champ par
+         champ, donc rien à oublier. */
+      const ann = view.querySelector('#ipAnnuler');
+      if (ann) ann.onclick = () => { paint(); UI.toast('Modifications annulées'); };
+
+      /* Le raccourci « Mes adresses » descend dans la page au lieu de changer
+         d'écran : elles sont dans ce formulaire, et les sortir dans un écran à
+         part obligerait à enregistrer avant d'y aller. */
+      const va = view.querySelector('#ipVersAdr');
+      if (va) va.onclick = e => {
+        e.preventDefault();
+        const cible = view.querySelector('#adrAncre');
+        if (cible) cible.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
       /* ---- le genre : deux cartes, un seul choix ----
          Le même geste que pour le véhicule du livreur, volontairement : deux
          listes qui se ressemblent doivent se manipuler pareil. Un second appui
          sur la carte déjà choisie l'annule — sans ça, quelqu'un qui a touché
          par erreur ne pourrait plus revenir à « non renseigné ». */
       view.querySelectorAll('[data-g]').forEach(el => el.onclick = () => {
+        /* Retour haptique : 8 ms, le minimum perceptible. Ignoré par iOS, qui ne
+           l'expose pas au web — on ne le simule pas. */
+        if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
         genre = (genre === el.dataset.g) ? '' : el.dataset.g;
         view.querySelectorAll('[data-g]').forEach(x => {
           const on = x.dataset.g === genre;
@@ -732,20 +1067,20 @@
      bouton et non une case à cocher, avec `tabindex="-1"` : au clavier, on passe
      d'un champ au suivant sans buter sur lui. */
   function secChamp(o) {
-    return '<div class="sec-champ' + (o.large ? ' large' : '') + '">' +
+    return '<div class="prem-champ' + (o.large ? ' large' : '') + '">' +
       '<label for="' + o.id + '">' + U.esc(o.label) + '</label>' +
-      '<div class="sec-boite">' +
-        '<span class="sec-champ-ic">' + UI.icon(o.icone || 'lock', 18) + '</span>' +
-        '<input id="' + o.id + '" class="sec-input" type="' + (o.type || 'password') + '" ' +
+      '<div class="prem-boite">' +
+        '<span class="prem-ic">' + UI.icon(o.icone || 'lock', 18) + '</span>' +
+        '<input id="' + o.id + '" class="prem-input" type="' + (o.type || 'password') + '" ' +
           'name="' + o.nom + '" placeholder="' + U.esc(o.repere || '') + '" ' +
           (o.mode ? 'inputmode="' + o.mode + '" ' : '') +
           (o.max ? 'maxlength="' + o.max + '" ' : '') +
           'autocomplete="' + (o.auto || 'off') + '" required>' +
         (o.type === 'text' ? '' :
-          '<button type="button" class="sec-oeil" data-oeil="' + o.id + '" tabindex="-1" ' +
+          '<button type="button" class="prem-oeil" data-oeil="' + o.id + '" tabindex="-1" ' +
             'aria-label="Afficher le mot de passe">' + UI.icon('eye', 19) + '</button>') +
       '</div>' +
-      (o.aide ? '<span class="sec-aide" id="' + o.id + '-aide"></span>' : '') +
+      (o.aide ? '<span class="prem-aide" id="' + o.id + '-aide"></span>' : '') +
     '</div>';
   }
 
@@ -810,16 +1145,16 @@
     let voie = 'actuel';          // actuel | demande | code
 
     function paint() {
-      view.innerHTML = '<div class="account-page sec">' +
+      view.innerHTML = '<div class="account-page prem sec">' +
         '<div class="wrap-sm page">' +
 
-        '<header class="sec-tete">' +
-          '<a class="sec-retour" href="#/account" aria-label="Retour aux réglages">' +
+        '<header class="prem-tete">' +
+          '<a class="prem-retour" href="#/account" aria-label="Retour aux réglages">' +
             UI.icon('chevron', 19) + '</a>' +
-          '<span class="sec-bouclier" aria-hidden="true">' + UI.icon('shield', 26) + '</span>' +
-          '<div class="sec-tete-txt">' +
-            '<h1 class="sec-h1">Sécurité</h1>' +
-            '<p class="sec-sub">Gérez et protégez votre compte Talabi</p>' +
+          '<span class="prem-vignette" aria-hidden="true">' + UI.icon('shield', 26) + '</span>' +
+          '<div class="prem-tete-txt">' +
+            '<h1 class="prem-h1">Sécurité</h1>' +
+            '<p class="prem-sub">Gérez et protégez votre compte Talabi</p>' +
           '</div>' +
         '</header>' +
 
@@ -845,17 +1180,17 @@
                 secForce() + secConditions() +
                 secChamp({ id: 'secConf', nom: 'confirm', label: 'Confirmer le mot de passe',
                            repere: 'Retapez-le', auto: 'new-password', aide: true }) +
-                '<button class="sec-go" type="submit">' + UI.icon('save', 19) +
+                '<button class="prem-go" type="submit">' + UI.icon('save', 19) +
                   ' Enregistrer le nouveau mot de passe</button>' +
               '</form>' +
-              '<button type="button" class="sec-go2" id="parEmail">Mot de passe oublié ?</button>'
+              '<button type="button" class="prem-go2" id="parEmail">Mot de passe oublié ?</button>'
 
           : voie === 'demande'
             ? '<div class="sec-form">' +
                 '<div class="sec-adresse">' + UI.icon('mail', 18) + ' ' + U.esc(adresse) + '</div>' +
-                '<button type="button" class="sec-go" id="envoyer">' + UI.icon('mail', 19) +
+                '<button type="button" class="prem-go" id="envoyer">' + UI.icon('mail', 19) +
                   ' Recevoir le code</button>' +
-                '<button type="button" class="sec-go2" id="parActuel">' +
+                '<button type="button" class="prem-go2" id="parActuel">' +
                   'Je connais mon mot de passe actuel</button>' +
               '</div>'
 
@@ -869,11 +1204,11 @@
                 secForce() + secConditions() +
                 secChamp({ id: 'secConf', nom: 'confirm', label: 'Confirmer le mot de passe',
                            repere: 'Retapez-le', auto: 'new-password', aide: true }) +
-                '<button class="sec-go" type="submit">' + UI.icon('save', 19) +
+                '<button class="prem-go" type="submit">' + UI.icon('save', 19) +
                   ' Enregistrer le nouveau mot de passe</button>' +
-                '<button type="button" class="sec-go2" id="renvoyer">' +
+                '<button type="button" class="prem-go2" id="renvoyer">' +
                   'Je n’ai rien reçu — renvoyer un code</button>' +
-                '<button type="button" class="sec-go2" id="parActuel">' +
+                '<button type="button" class="prem-go2" id="parActuel">' +
                   'Revenir au mot de passe actuel</button>' +
               '</form>') +
         '</div>' +
@@ -938,7 +1273,7 @@
         if (aide) {
           const pareil = cv && cv === v;
           aide.textContent = !cv ? '' : pareil ? 'Les deux correspondent' : 'Les deux ne correspondent pas';
-          aide.className = 'sec-aide' + (!cv ? '' : pareil ? ' ok' : ' non');
+          aide.className = 'prem-aide' + (!cv ? '' : pareil ? ' ok' : ' non');
         }
 
         /* Seule la longueur bloque, avec la concordance : les trois autres
