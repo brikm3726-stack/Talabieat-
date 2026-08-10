@@ -10810,13 +10810,51 @@ body.role-driver{
   --lv-elec:#2563FF;
   --lv-gris:#F5F7FB;
 
-  /* Les surfaces de verre. Trois densités : le fond d'une carte, celle d'un
-     élément posé DESSUS (qui doit rester visible sur la première), et le filet
-     de lumière qui dessine leur bord haut. */
-  --lv-verre:rgba(255,255,255,.085);
-  --lv-verre-2:rgba(255,255,255,.14);
-  --lv-filet:rgba(255,255,255,.16);
+  /* LE VERRE EST CLAIR, D'APRÈS LA MAQUETTE « livreur accueil ».
+     Il a d'abord été écrit sombre — surfaces blanches à 8 % sur un fond bleu
+     de nuit. La maquette dit l'inverse : un jour très pâle, des cartes
+     blanches, des pastels. Les jetons portent donc les nouvelles valeurs et
+     tout ce qui les utilise suit sans être retouché ; c'est précisément à ça
+     qu'ils servent.
+
+     Trois densités : le fond d'une carte, celui d'un élément posé DESSUS (qui
+     doit rester lisible sur la première), et le filet qui dessine l'arête. */
+  --lv-verre:rgba(255,255,255,.78);
+  --lv-verre-2:rgba(255,255,255,.92);
+  --lv-filet:rgba(255,255,255,.9);
   --lv-halo:rgba(37,99,255,.55);
+
+  /* Les quatre pastels des vignettes de chiffres. Chaque mesure a sa teinte —
+     c'est ce qui permet de retrouver « mes gains » du coin de l'œil sans lire
+     l'étiquette. */
+  --lv-p-bleu:#2563FF;   --lv-p-bleu-f:#E8F0FF;
+  --lv-p-violet:#7C5CFF; --lv-p-violet-f:#EFEAFF;
+  --lv-p-vert:#12A150;   --lv-p-vert-f:#E4F7EC;
+  --lv-p-orange:#FF7A2E; --lv-p-orange-f:#FFF0E6;
+}
+
+/* ---- LE JOUR SUR TOUT L'ESPACE LIVREUR ----------------------------------
+   Le fond bleu de nuit avait sa raison : le livreur travaille le soir, et un
+   fond blanc brûle les yeux au feu rouge. La maquette tranche autrement — un
+   jour très pâle, légèrement bleuté, avec deux lueurs froides qui empêchent
+   l'aplat d'être mort. C'est la maquette qui décide.
+
+   `#view` dans le sélecteur : le thème sombre pose `body.nuit #view .card`, et
+   un identifiant ne se bat pas avec des classes. Sans lui, les cartes
+   restaient noires pendant que le rayon et le flou, eux, passaient — de quoi
+   croire la feuille appliquée en la regardant. */
+body.app-driver #view .driver-page,
+body.role-driver #view .driver-page{
+  --ink:#0C1526;
+  --ink-2:#394763;
+  --muted:#6A7C9E;
+  --line:#E4EBF7;
+  --card:#FFFFFF;
+  color:#0C1526;
+  background:
+    radial-gradient(90% 55% at 8% 0%, rgba(120,170,255,.20), transparent 60%),
+    radial-gradient(80% 45% at 100% 32%, rgba(150,140,255,.14), transparent 62%),
+    linear-gradient(180deg,#EEF3FA 0%,#E9EFF8 40%,#EDF1F8 100%);
 }
 
 /* ---- l'en-tête, en verre liquide ---------------------------------------- */
@@ -10836,10 +10874,10 @@ body.role-driver{
   -webkit-backdrop-filter:blur(34px) saturate(135%);
           backdrop-filter:blur(34px) saturate(135%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.30),
-    inset 0 -1px 0 rgba(255,255,255,.06),
-    0 2px 10px rgba(2,11,47,.45),
-    0 30px 60px -30px rgba(4,20,80,.95);
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 rgba(255,255,255,.6),
+    0 2px 10px rgba(24,58,130,.10),
+    0 30px 60px -30px rgba(24,58,130,.22);
 }
 /* Le bord, dessiné par un filet plutôt qu'une bordure : une bordure d'un pixel
    sur du verre se lit comme un trait, un filet intérieur comme une arête. */
@@ -10861,8 +10899,22 @@ body.role-driver{
 .drv-hero-haut > .grow{min-width:0}
 .drv-salut{
   font-size:12.5px;font-weight:650;letter-spacing:.01em;
-  color:rgba(255,255,255,.62);line-height:1.1;
+  color:#6A7C9E;line-height:1.1;
 }
+/* LES TEXTES DE L'EN-TÊTE REDEVIENNENT SOMBRES. Ils étaient blancs pour un
+   fond bleu plein ; sur le verre clair de la maquette, le prénom disparaissait
+   purement et simplement — blanc sur blanc. */
+.drv-hero .h1{color:#0C1526}
+.drv-hero .sub,
+.drv-hero .drv-meta{color:#6A7C9E}
+.drv-hero .drv-meta .dot{color:#B9C4D8}
+.drv-hero .pin-ic{color:#6A7C9E}
+.drv-hero .drv-ava .avatar{border-color:#fff}
+/* L'interrupteur : sa piste allumée était blanche, invisible sur une carte
+   blanche. C'est le bleu de la marque qui dit « en ligne ». */
+.drv-hero .switch .track{background:#DDE5F3}
+.drv-hero .switch input:checked + .track{background:var(--lv-elec)}
+.drv-hero .switch input:checked + .track .knob{background:#fff}
 .drv-hero .h1{
   font-size:23px;line-height:1.18;margin-top:1px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -10889,17 +10941,16 @@ body.role-driver{
 }
 .drv-hero .drv-ava .avatar{border-color:transparent;position:relative}
 
-/* ---- la pastille d'état, façon Dynamic Island ----
-   Capsule sombre et dense posée sur le verre, avec un point qui respire. Le
-   point est la seule chose animée : il change d'opacité, ce qui ne coûte rien.
-   Sa couleur ne porte AUCUNE information à elle seule — le mot « En ligne »
-   est écrit à côté, pour qui distingue mal le vert du gris. */
+/* ---- la pastille d'état ----
+   Capsule blanche posée sur le verre, le mot en vert et un point plein — c'est
+   la maquette. La couleur ne porte AUCUNE information à elle seule : « En
+   ligne » est écrit à côté, pour qui distingue mal le vert du gris. */
 .drv-hero .drv-pill{
   display:inline-flex;align-items:center;gap:7px;
-  background:rgba(3,12,42,.55);border:1px solid rgba(255,255,255,.14);
-  padding:7px 12px;font-size:11.5px;letter-spacing:.01em;
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 6px 14px -8px rgba(0,0,0,.8);
+  background:#fff;border:1px solid #E4EBF7;
+  color:var(--lv-p-vert);
+  padding:8px 13px;font-size:12px;letter-spacing:.01em;
+  box-shadow:0 4px 12px -6px rgba(24,58,130,.28);
 }
 
 /* ---- le crédit, en carte bancaire ----
@@ -10909,12 +10960,12 @@ body.role-driver{
 .drv-hero-credit{
   position:relative;overflow:hidden;
   margin-top:16px;padding:15px 16px;border-radius:24px;
-  background:
-    linear-gradient(135deg, rgba(37,99,255,.55) 0%, rgba(10,27,94,.72) 58%,
-                    rgba(3,12,42,.78) 100%),
-    var(--lv-verre-2);
-  border:1px solid rgba(255,255,255,.18);
-  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  /* UN BLEU PLEIN, PAS DU VERRE. Écrite en couches translucides, la carte
+     laissait passer le blanc de l'en-tête et virait au gris-violet — l'effet
+     exact que la maquette n'a pas. Une carte de paiement est un objet opaque
+     posé sur la table, pas une vitre. */
+  background:linear-gradient(135deg,#5B87FF 0%,#2563FF 46%,#1B49D8 100%);
+  border:1px solid rgba(255,255,255,.24);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.26),
     0 14px 30px -18px rgba(0,0,0,.9);
@@ -10941,9 +10992,9 @@ body.role-driver #view .driver-page .drv-mapcard.card{
   -webkit-backdrop-filter:blur(30px) saturate(170%);
           backdrop-filter:blur(30px) saturate(170%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.24),
-    0 2px 10px rgba(2,11,47,.4),
-    0 26px 54px -30px rgba(4,20,80,.95);
+    inset 0 1px 0 #fff,
+    0 2px 10px rgba(24,58,130,.09),
+    0 26px 54px -30px rgba(24,58,130,.22);
 }
 body.app-driver #view .driver-page .drv-mapcard.card::after,
 body.role-driver #view .driver-page .drv-mapcard.card::after{
@@ -10952,9 +11003,9 @@ body.role-driver #view .driver-page .drv-mapcard.card::after{
 }
 /* Le titre était écrit en sombre sur du sombre : illisible. */
 body.app-driver #view .driver-page .drv-mapcard.card .h2,
-body.role-driver #view .driver-page .drv-mapcard.card .h2{color:#fff}
+body.role-driver #view .driver-page .drv-mapcard.card .h2{color:#0C1526}
 body.app-driver #view .driver-page .drv-mapcard.card .tiny,
-body.role-driver #view .driver-page .drv-mapcard.card .tiny{color:rgba(255,255,255,.7)}
+body.role-driver #view .driver-page .drv-mapcard.card .tiny{color:#6A7C9E}
 /* Le plan lui-même prend les coins du container, moins l'épaisseur du cadre :
    deux rayons identiques laissent voir un liseré à chaque coin. */
 body.app-driver .drv-map,
@@ -10972,9 +11023,9 @@ body.role-driver #view .driver-page .drv-stat.card{
   -webkit-backdrop-filter:blur(26px) saturate(170%);
           backdrop-filter:blur(26px) saturate(170%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 1px 0 #fff,
     inset 0 0 0 1px var(--lv-filet),
-    0 18px 38px -26px rgba(4,20,80,.95);
+    0 18px 38px -26px rgba(24,58,130,.22);
   transition:transform .16s cubic-bezier(.22,.61,.36,1);
 }
 body.app-driver #view .driver-page .drv-stat.card:active,
@@ -10987,15 +11038,15 @@ body.role-driver #view .driver-page .drv-stat.card .ic{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.3);
 }
 body.app-driver #view .driver-page .drv-stat.card .k,
-body.role-driver #view .driver-page .drv-stat.card .k{color:rgba(255,255,255,.62)}
+body.role-driver #view .driver-page .drv-stat.card .k{color:#6A7C9E}
 body.app-driver #view .driver-page .drv-stat.card .v,
 body.role-driver #view .driver-page .drv-stat.card .v{
   color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.03em;
 }
 body.app-driver #view .driver-page .drv-stat.card .s,
-body.role-driver #view .driver-page .drv-stat.card .s{color:rgba(255,255,255,.5)}
+body.role-driver #view .driver-page .drv-stat.card .s{color:#8B9BB8}
 body.app-driver #view .driver-page .drv-stat.card .go,
-body.role-driver #view .driver-page .drv-stat.card .go{color:rgba(255,255,255,.45)}
+body.role-driver #view .driver-page .drv-stat.card .go{color:#A9B6CE}
 
 /* ---- les panneaux de listes ---- */
 body.app-driver #view .driver-page .drv-panel.card,
@@ -11005,12 +11056,12 @@ body.role-driver #view .driver-page .drv-panel.card{
   -webkit-backdrop-filter:blur(26px) saturate(170%);
           backdrop-filter:blur(26px) saturate(170%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.2),
+    inset 0 1px 0 #fff,
     inset 0 0 0 1px var(--lv-filet),
-    0 20px 44px -30px rgba(4,20,80,.95);
+    0 20px 44px -30px rgba(24,58,130,.22);
 }
 body.app-driver #view .driver-page .drv-panel.card .h2,
-body.role-driver #view .driver-page .drv-panel.card .h2{color:#fff}
+body.role-driver #view .driver-page .drv-panel.card .h2{color:#0C1526}
 
 /* ==========================================================================
    LA BARRE DU BAS FLOTTANTE, EN VERRE SOMBRE
@@ -11027,7 +11078,7 @@ body.role-driver #view .driver-page .drv-panel.card .h2{color:#fff}
 body.app-driver .bottomnav,
 body.role-driver .bottomnav{
   border-radius:30px;
-  background:rgba(6,20,64,.62);
+  background:rgba(255,255,255,.82);
   border:1px solid rgba(255,255,255,.12);
   -webkit-backdrop-filter:blur(28px) saturate(180%);
           backdrop-filter:blur(28px) saturate(180%);
@@ -11037,16 +11088,18 @@ body.role-driver .bottomnav{
     0 24px 48px -26px rgba(0,0,0,1);
 }
 body.app-driver .bottomnav a,
-body.role-driver .bottomnav a{color:rgba(255,255,255,.55)}
+body.role-driver .bottomnav a{color:#8B9BB8}
 body.app-driver .bottomnav a.on,
-body.role-driver .bottomnav a.on{color:#fff}
+body.role-driver .bottomnav a.on{color:var(--lv-elec)}
 body.app-driver .bottomnav .cap,
 body.role-driver .bottomnav .cap{border-color:transparent}
+/* La capsule de l'onglet ouvert : un carré très arrondi en bleu très pâle,
+   comme sur la maquette — et non un rond plein qui écraserait le pictogramme. */
 body.app-driver .bottomnav a.on .cap,
 body.role-driver .bottomnav a.on .cap{
-  background:linear-gradient(150deg,rgba(120,170,255,.38),rgba(37,99,255,.30));
-  border-color:rgba(255,255,255,.28);
-  box-shadow:0 6px 16px -8px rgba(37,99,255,.9);
+  background:var(--lv-p-bleu-f);
+  border-color:transparent;border-radius:16px;
+  box-shadow:none;
 }
 body.app-driver .bottomnav a.on .lb,
 body.role-driver .bottomnav a.on .lb{font-weight:800}
