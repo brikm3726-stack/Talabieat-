@@ -9844,6 +9844,26 @@ body.pref-clair.ecran-accueil .sg-rien{color:var(--jr-doux)}
 }
 @keyframes zpMonte{ from{transform:translateY(100%)} to{transform:none} }
 
+/* LA CHAÎNE DE DÉFILEMENT — c'est ici que le panneau s'est bloqué.
+
+   `UI.sheet` enveloppe TOUJOURS le contenu dans un `.sheet-body`, qui ne porte
+   qu'un remplissage : ni `flex`, ni `min-height`. Dans une feuille en colonne de
+   90 % de hauteur avec `overflow:hidden`, cet intermédiaire se dimensionne donc
+   sur son contenu, déborde, et se fait couper — la liste devenait impossible à
+   faire défiler et son bas inatteignable.
+
+   `min-height:0` est la moitié qui compte : un élément de flexbox refuse par
+   défaut de devenir plus petit que son contenu, et sans cette ligne le
+   `overflow-y:auto` du conteneur intérieur n'a jamais rien à faire défiler.
+
+   Le remplissage passe à zéro : le panneau gère ses propres marges, et 18 px
+   hérités auraient décalé l'en-tête collante de son bord.
+   ------------------------------------------------------------------------ */
+.overlay.zp-ov .sheet-body{
+  flex:1;min-height:0;padding:0;
+  display:flex;flex-direction:column;
+}
+
 .zp{
   --zp-fond:#FFFFFF;
   --zp-carte:#F5F6F8;
@@ -9851,7 +9871,8 @@ body.pref-clair.ecran-accueil .sg-rien{color:var(--jr-doux)}
   --zp-titre:#0E1013;
   --zp-doux:#6B7280;
   --zp-or:#FF6B00;
-  display:flex;flex-direction:column;height:100%;
+  display:flex;flex-direction:column;
+  flex:1;min-height:0;
   background:var(--zp-fond);color:var(--zp-titre);
 }
 .zp > div{display:flex;flex-direction:column;min-height:0;flex:1}
