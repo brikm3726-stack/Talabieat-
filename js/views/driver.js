@@ -362,7 +362,15 @@
             '<span class="drv-ava' + (statut === 'available' ? ' online' : '') + '">' +
               UI.avatar(Store.profile.full_name, Store.profile.avatar_url, 62) + '</span>' +
             '<div class="grow">' +
-              '<div class="h1">Bonjour ' + U.esc((Store.profile.full_name || '').split(' ')[0]) + ' 👋</div>' +
+              /* « Bonjour » EN SURTITRE, LE PRÉNOM EN GRAND. Sur une seule
+                 ligne, « Bonjour Yacine 👋 » se faisait couper en « Bonjour
+                 Yac… » : la pastille d'état et l'interrupteur prennent la
+                 droite, et il ne restait pas 180 px pour sept syllabes. En
+                 deux niveaux, le mot de politesse tient dans un petit texte
+                 gris et le prénom récupère toute la largeur — c'est aussi la
+                 hiérarchie juste, puisque c'est le prénom qu'on lit. */
+              '<div class="drv-salut">Bonjour 👋</div>' +
+              '<div class="h1">' + U.esc((Store.profile.full_name || '').split(' ')[0]) + '</div>' +
               '<div class="sub drv-meta">' + UI.pin(15) + ' ' +
                 U.esc((d && d.zone && d.zone.name) || 'Zone non définie') +
                 '<span class="dot">•</span>' + UI.icon(VEHICLE_ICON[(d && d.vehicle) || 'moto'], 15) + ' ' + U.esc(U.VEHICLES[(d && d.vehicle) || 'moto']) + '</div>' +
