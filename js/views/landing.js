@@ -4,11 +4,14 @@
    Mise en page reprise de la maquette « theme talabi 3d plat » : pensée pour
    un téléphone tenu à une main, de haut en bas —
 
-     héro (titre + plat)  →  recherche  →  trois raccourcis  →  bandeau de
-     chiffres  →  promesse de livraison  →  restaurants  →  les 4 étapes
+     accroche  →  « nous arrivons bientôt à … »  →  commande en cours  →
+     recherche  →  trois raccourcis  →  bandeau de chiffres  →  promesse de
+     livraison  →  restaurants  →  les 3 étapes
 
-   Les catégories ne sont plus ici : elles vivent sur la page Restaurants, où
-   elles filtrent réellement une liste.
+   Les catégories (Tout, Pizza, Tacos, Burger…) ne sont plus ici : elles vivent
+   sur la page Restaurants, où elles filtrent réellement une liste. La recherche
+   a pris leur place, et la ligne des villes à venir a pris celle de la
+   recherche.
    ========================================================================== */
 (function (w) {
   'use strict';
@@ -83,13 +86,43 @@
           '<h1 class="titre">Que souhaitez-vous<br>manger aujourd’hui ?</h1>' +
         '</div>' +
 
-        /* ----------------------------------------------------- RECHERCHE */
-        /* ---- la barre de recherche, d'après la maquette « new theme accueil »
+        /* ------------------------------------------- LES VILLES QUI ARRIVENT
+           À la place qu'occupait la recherche, une seule ligne, qui s'écrit et
+           s'efface : « Nous arrivons bientôt à Alger », puis Oran, puis Sétif…
+           les cinquante-huit wilayas les unes après les autres.
+
+           Elle dit ce qu'aucune liste ne dirait aussi vite : Talabi ne s'arrête
+           pas à une ville. Une ligne qui bouge à cet endroit tient la place
+           haute de l'écran sans rien demander — pas de bouton, pas de choix,
+           juste une promesse qui défile. */
+        '<div class="h3d-bientot" id="h3dBientot">' +
+          '<span class="ic">' + UI.icon('pin', 15) + '</span>' +
+          '<span class="tx">Nous arrivons bientôt à ' +
+            '<b id="hbVille"></b><i class="cur" aria-hidden="true"></i></span>' +
+        '</div>' +
+
+        /* ------------------------------------- LA COMMANDE EN COURS D'ABORD
+           Quand une commande est en route, c'est LA question du moment : où en
+           est-elle. Elle vivait dans l'onglet Commandes, à deux touches d'ici —
+           on ouvrait l'accueil, on cherchait, on tapait deux fois. Elle passe
+           donc devant tout le reste, et disparaît d'elle-même dès qu'il n'y a
+           plus rien à suivre. Rien de nouveau n'est calculé : ce sont les
+           commandes du client, déjà en base. */
+        '<div id="hmSuivi"></div>' +
+
+        /* ----------------------------------------------------- RECHERCHE
+           LA RANGÉE DE CATÉGORIES (Tout, Pizza, Tacos, Burger…) ÉTAIT ICI. Elle
+           est partie et la recherche prend sa place : six pastilles qui mènent
+           toutes au même écran ne valent pas le tiers d'écran qu'elles
+           occupaient, et le champ cherche déjà les mêmes mots — « pizza » tapé
+           ici trouve les pizzerias ET les pizzas. Les catégories restent sur
+           l'écran Restaurants, où elles filtrent une vraie liste.
+
            LA LOUPE EST LE BOUTON DE RECHERCHE, et le rond orange à droite mène
            aux réglages. C'est ce que montre la maquette, et le pictogramme le
            dit : des curseurs de réglage, pas une flèche.
 
-           La loupe devient donc un vrai <button> et non un décor : sans ça,
+           La loupe est donc un vrai <button> et non un décor : sans ça,
            quelqu'un qui tape « pizza » puis cherche où appuyer ne trouverait
            qu'un bouton qui l'emmène ailleurs. La touche Entrée cherche aussi. */
         '<div class="h3d-search">' +
@@ -113,32 +146,8 @@
            VOCALE. Elle existe dans le navigateur (`webkitSpeechRecognition`)
            mais elle échoue en silence selon le moteur embarqué du téléphone, et
            je ne peux pas la vérifier sur un vrai appareil d'ici. Un micro qui ne
-           répond pas est pire que pas de micro. Le BOUTON FILTRES non plus : il
-           n'y a rien à filtrer sur cet écran, les catégories juste en dessous
-           font ce travail. */
+           répond pas est pire que pas de micro. */
         '<div class="h3d-sugg" id="sugg" hidden></div>' +
-
-        /* ------------------------------------- LA COMMANDE EN COURS D'ABORD
-           Quand une commande est en route, c'est LA question du moment : où en
-           est-elle. Elle vivait dans l'onglet Commandes, à deux touches d'ici —
-           on ouvrait l'accueil, on cherchait, on tapait deux fois. Elle passe
-           donc devant tout le reste, et disparaît d'elle-même dès qu'il n'y a
-           plus rien à suivre. Rien de nouveau n'est calculé : ce sont les
-           commandes du client, déjà en base. */
-        '<div id="hmSuivi"></div>' +
-
-        /* ------------------------------------------------- CATÉGORIES
-           ELLES REVIENNENT ICI, ET C'EST UN RETOUR EN ARRIÈRE ASSUMÉ. Je les
-           avais retirées de l'accueil avec cette raison : « elles renvoyaient
-           vers l'écran Restaurants — un détour pour arriver au même endroit ».
-           Le brief les redemande, et l'argument tient dans l'autre sens aussi :
-           un raccourci qui économise une recherche n'est pas un détour, et six
-           pastilles disent en un coup d'œil ce qu'on peut commander.
-
-           Elles mènent à l'écran Restaurants AVEC le filtre déjà appliqué :
-           c'est ce qui fait la différence avec l'ancienne version, qui y menait
-           les mains vides. */
-        '<div class="h3d-cats" id="h3dCats"></div>' +
 
         /* --------------------------------------------------- RACCOURCIS */
         '<div class="h3d-quick">' +
@@ -325,21 +334,17 @@
     }
     peindreSuivi();
 
-    /* ---- LES CATÉGORIES ----
-       Elles mènent à l'écran Restaurants AVEC le filtre appliqué : c'est ce
-       qui les rend utiles ici, alors que l'ancienne version y menait les mains
-       vides. `categoryScroller` est le composant déjà utilisé là-bas — deux
-       rangées de catégories qui ne se ressemblent pas seraient deux fois le
-       travail, et elles finiraient par diverger. */
-    const boiteCats = view.querySelector('#h3dCats');
-    if (boiteCats) {
-      const cs = Cmp.categoryScroller(null, id => {
-        if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
-        Router.go('/restaurants' + (id ? '?cat=' + encodeURIComponent(id) : ''));
-      });
-      boiteCats.innerHTML = cs.html;
-      cs.bind(boiteCats);
-    }
+    /* ---- « NOUS ARRIVONS BIENTÔT À … » ----------------------------------
+       Les wilayas s'écrivent l'une après l'autre, à la façon d'une machine à
+       écrire : une lettre à la fois, une pause le temps de lire, puis on efface
+       et la suivante arrive. Cinquante-sept noms — la wilaya déjà couverte est
+       retirée de la liste : annoncer qu'on arrive bientôt là où l'on est déjà
+       ferait douter du reste.
+
+       L'ORDRE EST TIRÉ AU HASARD à chaque ouverture. Dans l'ordre officiel, la
+       ligne montrerait toujours Adrar, Chlef, Laghouat : trois wilayas de suite
+       où presque personne ne regarde, et la promesse tomberait à plat. */
+    const arretVilles = tickerVilles(view.querySelector('#h3dBientot'));
 
     /* ---- LES SUGGESTIONS ----
        Une vraie recherche, sur les deux appels qui servent déjà l'écran
@@ -553,9 +558,99 @@
 
     /* Le thème sombre s'éteint en quittant l'accueil : les autres écrans de
        l'application sont encore clairs, et les laisser en noir sur fond noir
-       les rendrait illisibles. */
-    return () => UI.nuit('');
+       les rendrait illisibles. Et la ligne des villes s'arrête : une minuterie
+       qui survivrait à la page continuerait de battre pour un élément détaché,
+       à chaque passage sur l'accueil. */
+    return () => { arretVilles(); UI.nuit(''); };
   });
+
+  /* ======================================================================
+     LES WILAYAS OÙ TALABI N'EST PAS ENCORE
+     ----------------------------------------------------------------------
+     Les cinquante-huit wilayas d'Algérie, dans l'ordre officiel des codes —
+     c'est le seul ordre que personne ne peut contester, et il rend la liste
+     vérifiable d'un coup d'œil. Elle est écrite ici et non en base : ce sont
+     des noms de pays, ils ne changent pas avec le catalogue.
+     ====================================================================== */
+  const WILAYAS = [
+    'Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna', 'Béjaïa', 'Biskra',
+    'Béchar', 'Blida', 'Bouira', 'Tamanrasset', 'Tébessa', 'Tlemcen', 'Tiaret',
+    'Tizi Ouzou', 'Alger', 'Djelfa', 'Jijel', 'Sétif', 'Saïda', 'Skikda',
+    'Sidi Bel Abbès', 'Annaba', 'Guelma', 'Constantine', 'Médéa', 'Mostaganem',
+    'M’Sila', 'Mascara', 'Ouargla', 'Oran', 'El Bayadh', 'Illizi',
+    'Bordj Bou Arréridj', 'Boumerdès', 'El Tarf', 'Tindouf', 'Tissemsilt',
+    'El Oued', 'Khenchela', 'Souk Ahras', 'Tipaza', 'Mila', 'Aïn Defla',
+    'Naâma', 'Aïn Témouchent', 'Ghardaïa', 'Relizane', 'Timimoun',
+    'Bordj Badji Mokhtar', 'Ouled Djellal', 'Béni Abbès', 'In Salah',
+    'In Guezzam', 'Touggourt', 'Djanet', 'El M’Ghair', 'El Meniaa'
+  ];
+
+  /**
+   * tickerVilles(bloc) — « Nous arrivons bientôt à … », un nom à la fois.
+   *
+   * Écrit le nom lettre par lettre, laisse le temps de le lire, l'efface, passe
+   * au suivant. La cadence de frappe est irrégulière (46–90 ms) : une cadence
+   * fixe s'entend comme une machine, une cadence irrégulière comme quelqu'un
+   * qui tape.
+   *
+   * Rend la fonction qui arrête tout — à appeler au départ de la page.
+   */
+  function tickerVilles(bloc) {
+    const rien = function () {};
+    if (!bloc) return rien;
+    const cible = bloc.querySelector('#hbVille');
+    if (!cible) return rien;
+
+    /* La wilaya déjà couverte n'a rien à faire dans une liste de villes à
+       venir. La comparaison ignore accents, casse, espaces et apostrophes : la
+       base peut écrire « TIZI-OUZOU » là où la liste écrit « Tizi Ouzou ».
+       `NFD` sépare la lettre de son accent, et ne garder que a–z jette
+       l'accent avec le reste — d'où « Béjaïa » et « bejaia » identiques. */
+    const nu = s => String(s).normalize('NFD').toLowerCase().replace(/[^a-z]/g, '');
+    const ici = nu(Store.wilayaName());
+    const liste = WILAYAS.filter(v => nu(v) !== ici);
+
+    /* Mélange de Fisher-Yates : chaque ouverture montre d'autres villes en
+       premier. Sans lui, la ligne commencerait toujours par Adrar et Chlef. */
+    for (let k = liste.length - 1; k > 0; k--) {
+      const r = Math.floor(Math.random() * (k + 1));
+      const tmp = liste[k]; liste[k] = liste[r]; liste[r] = tmp;
+    }
+    if (!liste.length) return rien;
+
+    /* Qui a demandé moins de mouvement lit un nom fixe : la phrase garde son
+       sens, seule l'animation disparaît. */
+    if (w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      cible.textContent = liste[0];
+      bloc.classList.add('fixe');
+      return rien;
+    }
+
+    let i = 0, j = 0, efface = false, mort = false, t = null;
+    const stop = () => { mort = true; clearTimeout(t); };
+
+    const tic = () => {
+      if (mort) return;
+      // la vue a pu être remplacée entre deux battements
+      if (!document.body.contains(cible)) return stop();
+      // onglet caché : rien à écrire pour personne, on repasse plus tard
+      if (document.hidden) { t = setTimeout(tic, 500); return; }
+
+      const mot = liste[i % liste.length];
+      if (!efface) {
+        cible.textContent = mot.slice(0, ++j);
+        if (j >= mot.length) { efface = true; t = setTimeout(tic, 1600); return; }
+        t = setTimeout(tic, 46 + Math.random() * 44);
+      } else {
+        cible.textContent = mot.slice(0, --j);
+        if (j <= 0) { efface = false; i++; t = setTimeout(tic, 320); return; }
+        t = setTimeout(tic, 26);   // on efface plus vite qu'on n'écrit
+      }
+    };
+
+    t = setTimeout(tic, 500);
+    return stop;
+  }
 
   /* ---------------------------------------------------------- fragments */
   /* Une étape : numéro en filigrane, pastille bleu nuit, titre, une phrase.

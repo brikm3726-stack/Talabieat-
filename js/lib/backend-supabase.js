@@ -534,11 +534,21 @@
           base = chosen.price; vname = chosen.name;
         }
 
+        /* Le NOM désigne le supplément, le PRIX vient toujours de la base ; la
+           quantité, elle, ne peut venir que du client — c'est un choix, pas un
+           tarif. Elle est donc bornée ici (1 à 20, la même borne que le panier) :
+           sans borne, un panier trafiqué commanderait mille cheddars. */
         const opts = (li.options || [])
-          .map(o => (it.options || []).find(k => k.name === o.name))
-          .filter(Boolean)
-          .map(k => ({ name: k.name, extra_price: k.extra_price }));
-        const extra = opts.reduce((s, o) => s + o.extra_price, 0);
+          .map(o => {
+            const k = (it.options || []).find(x => x.name === o.name);
+            if (!k) return null;
+            return {
+              name: k.name, extra_price: k.extra_price,
+              qty: Math.max(1, Math.min(20, Math.round(+o.qty || 1)))
+            };
+          })
+          .filter(Boolean);
+        const extra = opts.reduce((s, o) => s + o.extra_price * o.qty, 0);
 
         const unit = base + extra;
         subtotal += unit * li.quantity;

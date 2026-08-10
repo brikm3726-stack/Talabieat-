@@ -16,6 +16,21 @@
 
     num(v) { return (Number(v) || 0).toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, ' '); },
 
+    /**
+     * Les suppl\u00e9ments d'une ligne, \u00e9crits comme on les lit : \u00ab Cheddar \u00d72,
+     * Merguez \u00bb. La quantit\u00e9 n'appara\u00eet QUE si elle d\u00e9passe un \u2014 \u00ab Merguez \u00d71 \u00bb
+     * se lit comme une pr\u00e9cision inutile, et le cuisinier a mieux \u00e0 faire.
+     *
+     * Un seul endroit pour cette phrase : elle est affich\u00e9e dans le panier, \u00e0
+     * la validation, sur le ticket du restaurant et sur celui du livreur. Quatre
+     * \u00e9critures s\u00e9par\u00e9es finiraient par ne plus dire la m\u00eame chose \u2014 et c'est
+     * exactement ce qui arrive le jour o\u00f9 l'une oublie la quantit\u00e9.
+     */
+    optionsText(options) {
+      return (options || []).map(o =>
+        o.name + ((+o.qty || 1) > 1 ? ' \u00d7' + (+o.qty) : '')).join(', ');
+    },
+
     /** Échappe le HTML — À UTILISER pour toute donnée venant d'un utilisateur. */
     esc(s) {
       if (s === null || s === undefined) return '';

@@ -188,7 +188,7 @@
         // le format compte autant que le nom : le cuisinier doit le voir
         (i.variant ? ' <span class="tag tag-muted">' + U.esc(i.variant) + '</span>' : '') +
         ((i.options && i.options.length)
-          ? '<br><span class="tiny">+ ' + U.esc(i.options.map(o => o.name).join(', ')) + '</span>' : '') +
+          ? '<br><span class="tiny">+ ' + U.esc(U.optionsText(i.options)) + '</span>' : '') +
         '</span><span>' + U.money(i.line_total) + '</span></div>').join('');
     },
 

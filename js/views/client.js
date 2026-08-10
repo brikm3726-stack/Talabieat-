@@ -255,7 +255,12 @@
 
       const nav = view.querySelector('#menuNav');
       const box = view.querySelector('#menu');
-      const openDish = id => dishSheet(r, menu.find(m => m.id === id));
+      /* Le menu ENTIER est passé au panneau : c'est lui qui alimente la section
+         « Complétez votre repas » — boissons, accompagnements, desserts du même
+         restaurant. Il est déjà chargé ici, le repasser ne coûte rien ; aller le
+         rechercher depuis le panneau aurait fait un second appel réseau pour des
+         plats qu'on a déjà en main. */
+      const openDish = id => dishSheet(r, menu.find(m => m.id === id), menu);
       let active = 0;
 
       nav.innerHTML = groups.map((g, i) =>
@@ -302,83 +307,613 @@
     return () => UI.nuit('');
   });
 
-  /* ---------------------------------------------------- fiche plat (sheet) */
-  function dishSheet(resto, item) {
-    if (!item) return;
-    let qty = 1;
-    const opts = item.options || [];
-    const formats = item.variants || [];
-    let vIdx = 0;                      // format retenu, le premier par défaut
+  /* ======================================================================
+     PERSONNALISATION DU PLAT — le panneau qui monte du bas
+     ----------------------------------------------------------------------
+     L'ANCIENNE VERSION ÉTAIT UNE LISTE DE CASES À COCHER. Elle marchait, et
+     c'est tout ce qu'on pouvait en dire : un format en boutons radio, des
+     suppléments en cases, un total qui n'apparaissait que dans le bouton. On ne
+     voyait pas ce qu'on commandait, seulement ce qu'on avait coché.
 
-    const basePrice = () => formats.length ? formats[vIdx].price : item.price;
+     Celle-ci est construite autour de trois idées, et chacune répond à une
+     question qu'on se pose vraiment devant un plat :
+
+       « c'est quoi ? »      → la photo en grand, le nom, le restaurant, la
+                               note, le délai, le prix de départ ;
+       « je peux quoi ? »    → des cartes, pas des cases : chaque supplément
+                               montre son emoji, son nom, son prix et son
+                               compteur, et peut être pris DEUX fois ;
+       « ça fait combien ? » → un récapitulatif qui se recalcule à chaque
+                               touche, plus le montant dans le bouton.
+
+     CE QUI VIENT DE LA BASE ET CE QUI VIENT D'ICI. Les formats, les suppléments
+     et les plats proposés en complément sont ceux du restaurant — rien n'est
+     inventé pour faire joli. Les emojis, eux, sont déduits du nom (« cheddar »
+     → 🧀) : la base n'en stocke pas, et attendre que chaque restaurant en
+     saisisse un aurait donné une grille à moitié vide.
+     ====================================================================== */
+
+  /* Un emoji par famille d'ingrédient. La première expression qui reconnaît le
+     nom gagne, donc l'ordre compte : « sauce piquante » doit rencontrer
+     « piquant » avant « sauce », sans quoi tous les piments deviendraient des
+     bocaux. Ce qui n'est reconnu par rien reçoit l'emoji du plat. */
+  const EMOJIS = [
+    [/piquant|piment|harissa|spicy|samoura|épic|epic/i, '🌶️'],
+    [/viande|hach[ée]|kefta|steak|b[œo]uf|agneau|kebab/i, '🥩'],
+    [/merguez|saucisse|hot ?dog/i, '🌭'],
+    [/poulet|escalope|chicken|dinde|nugget/i, '🍗'],
+    [/thon|poisson|saumon|sardine/i, '🐟'],
+    [/crevette|fruits de mer|calamar/i, '🦐'],
+    [/champignon/i, '🍄'],
+    [/cheddar|mozzar|camembert|gruy|fromage|raclette|ch[èe]vre|parmesan|emmental/i, '🧀'],
+    [/olive/i, '🫒'],
+    [/oignon/i, '🧅'],
+    [/tomate|ketchup/i, '🍅'],
+    [/poivron/i, '🫑'],
+    /* Les mots courts prennent des limites de mot, et ce n'est pas de la
+       prudence gratuite : sans elles, « Frites maison » contenait « mais » et
+       recevait un épi de maïs, « gâteau » contenait « eau » et devenait une
+       boisson. Trois lettres suffisent à traverser la moitié d'un menu. */
+    [/\bma[ïi]s\b/i, '🌽'],
+    [/\bail\b|garlic|blanche/i, '🧄'],
+    [/[œo]uf/i, '🥚'],
+    [/frite|potato|wedges/i, '🍟'],
+    [/salade|verdure|roquette|crudit/i, '🥗'],
+    [/ananas/i, '🍍'],
+    [/avocat/i, '🥑'],
+    [/miel/i, '🍯'],
+    [/thon|tha[ïi]/i, '🐟'],
+    [/coca|soda|boisson|jus|limonade|\beau\b|pepsi|fanta|sprite|selecto|hamoud|ifri/i, '🥤'],
+    [/caf[ée]|\bth[ée]\b/i, '☕'],
+    [/glace|dessert|tiramisu|cr[èe]me|g[âa]teau|cheesecake|tarte|flan/i, '🍰'],
+    [/pizza/i, '🍕'],
+    [/burger|hamburger/i, '🍔'],
+    [/tacos|sandwich|wrap|chawarma|shawarma/i, '🌯'],
+    [/p[âa]tes|spaghetti|penne|lasagne/i, '🍝'],
+    [/\briz\b/i, '🍚'],
+    [/soupe|chorba|harira/i, '🍲'],
+    [/pain|baguette|galette|tortilla|panini/i, '🥖'],
+    [/sauce|mayo|barbecue|bbq|alg[ée]rienne|biggy|curry/i, '🥫']
+  ];
+
+  /* ---- TOUS LES TÉLÉPHONES N'ONT PAS TOUS LES EMOJIS -------------------
+     Le poivron (🫑) et l'olive (🫒) datent d'Unicode 13, publié en 2020. Sur un
+     Android de 2018 — il y en a beaucoup ici — ils ne s'affichent pas : le
+     système dessine le rectangle vide, le fameux « tofu ». Une grille
+     d'ingrédients à moitié en rectangles est pire que pas d'emojis du tout.
+
+     On ne peut pas deviner l'âge de la police depuis le navigateur, mais on
+     peut LUI DEMANDER DE DESSINER : un caractère absent produit exactement la
+     même image que n'importe quel autre caractère absent. On compare donc le
+     dessin de l'emoji à celui de U+FFFF, qui n'existe dans aucune police. Deux
+     dessins identiques : la police ne connaît ni l'un ni l'autre.
+
+     Le résultat est retenu par caractère — une mesure, pas une par carte. */
+  const _emojiVu = {};
+
+  function emojiRendu(ch) {
+    if (!ch) return false;
+    if (_emojiVu[ch] !== undefined) return _emojiVu[ch];
+    try {
+      const c = document.createElement('canvas');
+      c.width = c.height = 26;
+      const x = c.getContext('2d');
+      if (!x) return (_emojiVu[ch] = true);
+      x.textBaseline = 'top';
+      x.font = '22px sans-serif';
+      x.fillText(ch, 0, 0);
+      const dessin = c.toDataURL();
+      x.clearRect(0, 0, 26, 26);
+      x.fillText('￿', 0, 0);        // absent de toutes les polices
+      return (_emojiVu[ch] = dessin !== c.toDataURL());
+    } catch (e) {
+      /* Canvas refusé (mode très restreint) : on fait confiance à la police
+         plutôt que de tout remplacer par le repli. */
+      return (_emojiVu[ch] = true);
+    }
+  }
+
+  /** Le premier des trois que la police sait dessiner. */
+  function emojiSur(choix, repli) {
+    if (emojiRendu(choix)) return choix;
+    if (emojiRendu(repli)) return repli;
+    return '🍽️';
+  }
+
+  function emojiDe(nom, repli) {
+    const t = String(nom || '');
+    for (let i = 0; i < EMOJIS.length; i++)
+      if (EMOJIS[i][0].test(t)) return emojiSur(EMOJIS[i][1], repli || '🍽️');
+    return emojiSur(repli || '🍽️', '🍽️');
+  }
+
+  /**
+   * Les plats du MÊME restaurant qui complètent celui-ci : boissons,
+   * accompagnements, desserts, sauces. Ce ne sont pas des « options » inventées
+   * pour remplir une section — ce sont de vraies lignes de menu, qui partiront
+   * au panier comme telles et que la cuisine verra.
+   *
+   * Un plat vendu en formats (une boisson en 33 cl et en 1 L) entre avec son
+   * format le moins cher : on ne peut pas choisir un format depuis une vignette,
+   * et proposer la grande bouteille par défaut serait vendre à la place du
+   * client.
+   */
+  function extrasDuMenu(menu, item) {
+    if (!menu || !menu.length) return [];
+    const cats = {};
+    (Store.categories || []).forEach(c => { cats[c.id] = c; });
+    const complement = /boisson|dessert|accompagnement|extra|snack|sauce|frite|salade|entr[ée]e/i;
+
+    return menu.filter(m => {
+      if (m.id === item.id || m.is_available === false) return false;
+      const c = cats[m.category_id];
+      return complement.test((c && (c.name_fr || c.name)) || '');
+    }).slice(0, 8).map(m => {
+      const v = (m.variants || []).slice().sort((a, b) => a.price - b.price)[0] || null;
+      const c = cats[m.category_id] || {};
+      return {
+        item: m, variant: v,
+        nom: m.name + (v ? ' · ' + v.name : ''),
+        prix: +(v ? v.price : m.price) || 0,
+        // l'emoji de la catégorie sert de repli quand le nom ne dit rien :
+        // « Ifri 1 L » n'évoque aucun ingrédient, sa catégorie si
+        icone: c.icon || ''
+      };
+    });
+  }
+
+  /**
+   * La description est parfois une PHRASE (« Notre pizza signature, cuite au
+   * feu de bois. »), parfois une LISTE (« Tomate, mozzarella, basilic »). Une
+   * liste mérite des pastilles, une phrase mérite un paragraphe — les deux dans
+   * le même moule donneraient soit des pastilles absurdes, soit un mur de texte.
+   *
+   * Le point final tranche : une énumération n'en a pas.
+   */
+  function ingredients(texte) {
+    const t = String(texte || '').trim();
+    if (!t || t.indexOf('.') >= 0) return null;
+    const parts = t.split(/\s*[,•·+]\s*/).map(s => s.trim()).filter(Boolean);
+    return parts.length >= 3 && parts.every(p => p.length <= 24) ? parts : null;
+  }
+
+  /** Petite secousse — la même partout où l'on choisit quelque chose. */
+  function vibrer(ms) {
+    if (navigator.vibrate) { try { navigator.vibrate(ms || 8); } catch (e) {} }
+  }
+
+  function dishSheet(resto, item, menu) {
+    if (!item) return;
+
+    const cat = (Store.categories || []).find(c => c.id === item.category_id) || {};
+    const emojiPlat = cat.icon || emojiDe(item.name, '🍽️');
+    /* « Personnalisez votre pizza » plutôt que « votre commande » : le nom de la
+       catégorie du plat, en minuscules, quand il y en a une. */
+    const quoi = cat.name_fr ? cat.name_fr.toLowerCase() : 'plat';
+
+    const formats = (item.variants || []).slice();
+    const supps   = (item.options  || []).slice();
+    const extras  = extrasDuMenu(menu, item);
+    const listeIng = ingredients(item.description);
+
+    let qty = 1, vIdx = 0, note = '';
+    const nSupp  = supps.map(() => 0);      // combien de fois chaque supplément
+    const nExtra = extras.map(() => 0);
+
+    const base       = () => +(formats.length ? formats[vIdx].price : item.price) || 0;
+    const totSupp    = () => supps.reduce((s, o, i) => s + (+o.extra_price || 0) * nSupp[i], 0);
+    const totExtra   = () => extras.reduce((s, e, i) => s + e.prix * nExtra[i], 0);
+    /* CE QUI PART AU PANIER : le plat avec ses suppléments, multiplié par la
+       quantité, plus les compléments qui sont des lignes à part entière. C'est
+       ce montant que le bouton annonce — pas le total avec livraison, qui
+       dépend d'une adresse que le client n'a pas encore donnée. */
+    const totArticles = () => (base() + totSupp()) * qty + totExtra();
+
+    const livraison = U.deliveryFor(null, Store.settings).fee;
+    const depart = formats.length
+      ? Math.min.apply(null, formats.map(v => +v.price || 0))
+      : (+item.price || 0);
+
+    const indispo = item.is_available === false;
+    const ferme = !resto.open_now;
+
+    /* ----------------------------------------------------------- fragments */
+
+    /* « Obligatoire » est orange, « Facultatif » est gris : la couleur dit
+       laquelle des deux mentions exige quelque chose du client, avant même
+       d'être lue. */
+    const sectionTete = (titre, sous, marque) =>
+      '<div class="pz-st">' +
+        '<div class="pz-st-tx"><h3>' + U.esc(titre) + '</h3>' +
+          '<p>' + U.esc(sous) + '</p></div>' +
+        (marque
+          ? '<span class="pz-oblig' + (marque === 'Obligatoire' ? ' fort' : '') + '">' +
+              U.esc(marque) + '</span>'
+          : '') +
+      '</div>';
+
+    /* Une carte de format : l'emoji grandit avec la taille — c'est la
+       différence de taille qu'on achète, autant la voir. */
+    const carteFormat = (v, i) =>
+      '<div class="pz-f' + (i === vIdx ? ' on' : '') + '" data-fmt="' + i + '" ' +
+           'role="radio" tabindex="0" aria-checked="' + (i === vIdx ? 'true' : 'false') + '">' +
+        '<span class="pz-f-em" style="font-size:' + (26 + Math.min(i, 3) * 5) + 'px">' + emojiPlat + '</span>' +
+        '<b>' + U.esc(v.name) + '</b>' +
+        '<span class="pz-f-p">' + U.money(v.price) + '</span>' +
+        '<span class="pz-f-c">' + UI.icon('check', 13) + '</span>' +
+      '</div>';
+
+    /* Une carte de supplément ou de complément. Le bouton « + » devient un
+       compteur dès qu'on a pris le premier : tant qu'il n'y en a aucun, un
+       compteur affichant « 0 » demanderait de comprendre avant d'agir. */
+    const carteChoix = (attr, i, emoji, nom, prix, n, gratuitLabel) =>
+      '<div class="pz-c' + (n ? ' on' : '') + '" data-' + attr + '="' + i + '" ' +
+           'role="button" tabindex="0" aria-pressed="' + (n ? 'true' : 'false') + '">' +
+        '<span class="pz-c-em">' + emoji + '</span>' +
+        '<span class="pz-c-tx"><b>' + U.esc(nom) + '</b>' +
+          '<span>' + (prix ? '+ ' + U.money(prix) : U.esc(gratuitLabel || 'Offert')) + '</span></span>' +
+        '<span class="pz-c-act">' +
+          (n
+            ? '<span class="pz-cpt">' +
+                '<button type="button" data-moins="' + i + '" aria-label="Retirer">−</button>' +
+                '<b>' + n + '</b>' +
+                '<button type="button" data-plus="' + i + '" aria-label="Ajouter">+</button>' +
+              '</span>'
+            : '<span class="pz-add">' + UI.icon('plus', 16) + '</span>') +
+        '</span>' +
+      '</div>';
+
+    const carteSupp  = (o, i) => carteChoix('supp', i, emojiDe(o.name, '🧂'),
+                                            o.name, +o.extra_price || 0, nSupp[i], 'Offert');
+    const carteExtra = (e, i) => carteChoix('extra', i, emojiDe(e.nom, e.icone || '🥤'),
+                                            e.nom, e.prix, nExtra[i], 'Offert');
+
+    /* ------------------------------------------------------------- panneau */
 
     UI.sheet({
-      title: item.name,
+      classe: 'pz-ov',
+      title: false,                 // le panneau porte son propre en-tête
       body:
-        /* Les mesures passent en classes — `.dish-hero`, `.opt-lab`, `.opt-row`,
-           aux mêmes valeurs. Un style en ligne l'emporte sur toute feuille :
-           tant que la bordure et le remplissage des lignes étaient écrits ici,
-           aucun thème ne pouvait les redessiner. Les deux listes portent
-           désormais la MÊME classe : le format et les suppléments se ressemblent
-           déjà à l'œil, ils doivent se désigner pareil. */
-        (item.image_url
-          ? '<div class="dish-hero" style="background-image:url(' + U.escUrl(item.image_url) + ')"></div>'
-          : '') +
-        (item.description ? '<p class="sub" style="margin-bottom:14px">' + U.esc(item.description) + '</p>' : '') +
-        (formats.length
-          ? '<div class="h3 opt-lab">Format</div><div class="stack" style="gap:8px;margin-bottom:16px">' +
-            formats.map((v, i) =>
-              '<label class="row-between opt-row">' +
-                '<span class="row" style="gap:10px"><input type="radio" name="fmt" data-fmt="' + i + '"' +
-                  (i === 0 ? ' checked' : '') + '>' +
-                U.esc(v.name) + '</span>' +
-                '<b class="price">' + U.money(v.price) + '</b>' +
-              '</label>').join('') + '</div>'
-          : '<div class="h2 price" style="margin-bottom:14px">' + U.money(item.price) + '</div>') +
-        (opts.length
-          ? '<div class="h3 opt-lab">Suppléments <span class="tiny">(facultatif)</span></div>' +
-            '<div class="stack" style="gap:8px">' +
-            opts.map((o, i) =>
-              '<label class="row-between opt-row">' +
-                '<span class="row" style="gap:10px"><input type="checkbox" data-opt="' + i + '">' +
-                U.esc(o.name) + '</span>' +
-                '<b class="' + (o.extra_price ? 'price' : 'tiny') + '">' + (o.extra_price ? '+ ' + U.money(o.extra_price) : 'Gratuit') + '</b>' +
-              '</label>').join('') + '</div>'
-          : ''),
+        '<div class="pz">' +
+
+          /* La poignée et la croix restent au sommet du défilement : sur un
+             panneau de cette hauteur, une croix qui part avec la photo oblige à
+             tout remonter pour fermer. */
+          /* LA BARRE DU HAUT EST TRANSPARENTE, PUIS ELLE NE L'EST PLUS.
+             Tant qu'on regarde la photo, il n'y a qu'une croix posée dessus.
+             Dès qu'on descend, la barre devient opaque et prend le nom du plat :
+             on sait toujours ce qu'on est en train de composer, et surtout la
+             croix cesse de flotter au-dessus des cartes — elle recouvrait le
+             « + » du premier supplément visible, qui devenait intouchable. */
+          '<div class="pz-fixe">' +
+            '<div class="pz-bar">' +
+              '<span class="pz-bar-t">' + U.esc(item.name) + '</span>' +
+              '<button class="pz-x" data-x aria-label="Fermer">' + UI.icon('plus', 19) + '</button>' +
+            '</div>' +
+          '</div>' +
+
+          /* ------------------------------------------------------- EN-TÊTE */
+          '<div class="pz-hero' + (item.image_url ? '' : ' vide') + '"' +
+              (item.image_url ? ' style="background-image:url(' + U.escUrl(item.image_url) + ')"' : '') + '>' +
+            /* La poignée appartient à la photo et s'en va avec elle. Restée
+               collée en haut, elle flottait au milieu des suppléments comme une
+               barre grise sans objet. */
+            '<span class="pz-poignee" aria-hidden="true"></span>' +
+            (item.image_url ? '' : '<span class="pz-hero-em">' + emojiPlat + '</span>') +
+            '<span class="pz-hero-voile" aria-hidden="true"></span>' +
+            /* UNE SEULE PASTILLE, jamais deux : elles occupent le même coin.
+               Le plat retiré de la carte passe devant l'horaire — c'est le
+               refus le plus proche de ce qu'on essaie de faire. */
+            (indispo
+              ? '<span class="pz-ferme">Plat indisponible aujourd’hui</span>'
+              : ferme
+                ? '<span class="pz-ferme">Fermé · réouverture à ' + U.esc(U.hhmm(resto.opens_at)) + '</span>'
+                : '') +
+          '</div>' +
+
+          '<div class="pz-titre">' +
+            '<h2>' + U.esc(item.name) + '</h2>' +
+            '<div class="pz-meta">' +
+              '<span class="pz-resto">' + UI.icon('store', 14) + ' ' + U.esc(resto.name) + '</span>' +
+              (+resto.rating ? '<span>⭐ <b>' + (+resto.rating).toFixed(1) + '</b></span>' : '') +
+              (resto.prep_time_min ? '<span>🛵 ' + (+resto.prep_time_min) + ' min</span>' : '') +
+            '</div>' +
+            '<div class="pz-depart">À partir de <b>' + U.money(depart) + '</b></div>' +
+          '</div>' +
+
+          /* --------------------------------------------------- DESCRIPTION */
+          ((item.description || listeIng)
+            ? '<div class="pz-carte pz-desc">' +
+                (listeIng
+                  ? '<div class="pz-ing-t">Ingrédients</div>' +
+                    '<div class="pz-ing">' + listeIng.map(p =>
+                      '<span>' + emojiDe(p, '•') + ' ' + U.esc(p) + '</span>').join('') + '</div>'
+                  : '<p>' + U.esc(item.description) + '</p>') +
+              '</div>'
+            : '') +
+
+          /* ------------------------------------------------------- FORMATS */
+          (formats.length
+            ? '<div class="pz-sec">' +
+                sectionTete('Choisissez votre format', 'Un seul format par plat', 'Obligatoire') +
+                '<div class="pz-fmts" role="radiogroup" aria-label="Format">' +
+                  formats.map(carteFormat).join('') +
+                '</div>' +
+              '</div>'
+            : '') +
+
+          /* --------------------------------------------------- SUPPLÉMENTS */
+          (supps.length
+            ? '<div class="pz-sec">' +
+                sectionTete('Personnalisez votre ' + quoi, 'Ajoutez vos ingrédients préférés', 'Facultatif') +
+                '<div class="pz-cartes" id="pzSupps">' + supps.map(carteSupp).join('') + '</div>' +
+              '</div>'
+            : '') +
+
+          /* -------------------------------------------------------- EXTRAS */
+          (extras.length
+            ? '<div class="pz-sec">' +
+                sectionTete('Complétez votre repas', 'Boissons, accompagnements et desserts du restaurant', '') +
+                '<div class="pz-cartes" id="pzExtras">' + extras.map(carteExtra).join('') + '</div>' +
+              '</div>'
+            : '') +
+
+          /* --------------------------------------------------------- NOTES */
+          '<div class="pz-sec">' +
+            sectionTete('Instructions spéciales', 'Le restaurant les lira avant de cuisiner', '') +
+            '<div class="pz-note">' +
+              '<textarea id="pzNote" maxlength="160" rows="2" ' +
+                'placeholder="Sans oignons, cuisson bien cuite…"></textarea>' +
+              '<span class="pz-note-n" id="pzNoteN">0/160</span>' +
+            '</div>' +
+          '</div>' +
+
+          /* -------------------------------------------------- RÉCAPITULATIF */
+          '<div class="pz-sec">' +
+            '<div class="pz-carte pz-recap" id="pzRecap"></div>' +
+          '</div>' +
+
+        '</div>',
+
       footer:
-        '<div class="row" style="gap:12px">' +
-          '<div class="qty"><button data-m>−</button><b id="q">1</b><button data-p>+</button></div>' +
-          '<button class="btn btn-primary grow" id="add">Ajouter • <span id="tot">' + U.money(basePrice()) + '</span></button>' +
+        '<div class="pz-bas">' +
+          '<div class="pz-qte">' +
+            '<button type="button" data-m aria-label="Un de moins">−</button>' +
+            '<b id="pzQ">1</b>' +
+            '<button type="button" data-p aria-label="Un de plus">+</button>' +
+          '</div>' +
+          '<div class="pz-tot"><span>Total</span><b id="pzTot"></b></div>' +
+          /* DEUX LIBELLÉS, UN SEUL VISIBLE. « Ajouter au panier » suivi de
+             « 2 220 DA » ne tient pas sur un écran de 360 px : le texte se
+             coupait en « Ajouter au pa… », ce qui est la seule chose du panneau
+             qu'on ne doit jamais avoir à deviner. En dessous de 430 px, c'est
+             « Ajouter » qui s'affiche — le montant, lui, ne bouge pas. Écrire
+             les deux dans le HTML et laisser la feuille de style choisir évite
+             de reconstruire le bouton à chaque rotation de l'appareil. */
+          '<button class="pz-cta" id="pzAdd"' + ((ferme || indispo) ? ' disabled' : '') + '>' +
+            (indispo || ferme
+              ? '<span class="l">' + (indispo ? 'Indisponible' : 'Restaurant fermé') + '</span>'
+              : '<span class="l long">Ajouter au panier</span>' +
+                '<span class="l court">Ajouter</span>' +
+                '<span class="m" id="pzCta"></span>') +
+          '</button>' +
         '</div>',
 
       onMount(el, api) {
-        const chosen = () => Array.prototype.slice.call(el.querySelectorAll('[data-opt]:checked'))
-          .map(c => opts[+c.dataset.opt]);
-        const refresh = () => {
-          const extra = chosen().reduce((s, o) => s + (+o.extra_price || 0), 0);
-          el.querySelector('#q').textContent = qty;
-          el.querySelector('#tot').textContent = U.money((basePrice() + extra) * qty);
-        };
-        el.querySelector('[data-m]').onclick = () => { qty = Math.max(1, qty - 1); refresh(); };
-        el.querySelector('[data-p]').onclick = () => { qty = Math.min(30, qty + 1); refresh(); };
-        el.querySelectorAll('[data-opt]').forEach(c => c.onchange = refresh);
-        el.querySelectorAll('[data-fmt]').forEach(c => c.onchange = () => {
-          if (c.checked) { vIdx = +c.dataset.fmt; refresh(); }
+        const $ = s => el.querySelector(s);
+
+        /* ---- le récapitulatif, recalculé à chaque geste ------------------
+           Il est réécrit en entier plutôt que corrigé ligne à ligne : il ne
+           contient ni champ ni focus à préserver, et une seule écriture ne peut
+           pas se désynchroniser d'un total calculé ailleurs. */
+        function recap() {
+          const nSuppTotal = nSupp.reduce((s, n) => s + n, 0);
+          const nExtraTotal = nExtra.reduce((s, n) => s + n, 0);
+          const sousTotal = totArticles();
+
+          const ligne = (ic, lab, val, cls) =>
+            '<div class="pz-r' + (cls ? ' ' + cls : '') + '">' +
+              '<span class="i">' + ic + '</span>' +
+              '<span class="l">' + U.esc(lab) + '</span>' +
+              '<span class="v">' + val + '</span>' +
+            '</div>';
+
+          $('#pzRecap').innerHTML =
+            '<div class="pz-r-t">' + UI.icon('receipt', 17) + ' Votre commande</div>' +
+            ligne(emojiPlat, item.name + (formats.length ? ' · ' + formats[vIdx].name : ''),
+                  '<i>' + qty + '×</i> ' + U.money(base() * qty)) +
+            (nSuppTotal
+              ? ligne('➕', nSuppTotal + ' supplément' + (nSuppTotal > 1 ? 's' : ''),
+                      U.money(totSupp() * qty)) : '') +
+            (nExtraTotal
+              ? ligne('🛍️', nExtraTotal + ' complément' + (nExtraTotal > 1 ? 's' : ''),
+                      U.money(totExtra())) : '') +
+            '<div class="pz-r-trait"></div>' +
+            ligne('💰', 'Sous-total', U.money(sousTotal)) +
+            /* La livraison est une ESTIMATION et le dit : le montant exact
+               dépend de la distance jusqu'à l'adresse, qui n'est demandée qu'à
+               la validation. Annoncer un total ferme ici, c'est promettre un
+               prix qu'on ne tiendra pas à deux rues près. */
+            ligne(UI.icon('scooter', 16), 'Livraison (estimation)', 'dès ' + U.money(livraison), 'doux') +
+            /* Aucune réduction n'existe encore dans Talabi : ni code promo, ni
+               remise. La ligne est écrite et prête, mais elle ne s'affichera que
+               le jour où il y aura quelque chose à retrancher — un « −0 DA »
+               permanent est une promesse vide. */
+            '<div class="pz-r-trait"></div>' +
+            '<div class="pz-r total"><span>Total estimé</span><b>' +
+              U.money(sousTotal + livraison) + '</b></div>';
+        }
+
+        function rafraichir(secousse) {
+          $('#pzQ').textContent = qty;
+          $('#pzTot').textContent = U.money(totArticles());
+          const cta = $('#pzCta');
+          if (cta) cta.textContent = U.money(totArticles());
+          recap();
+          if (secousse) {
+            const t = $('#pzTot');
+            t.classList.remove('bat');
+            void t.offsetWidth;          // relance l'animation même si elle jouait
+            t.classList.add('bat');
+          }
+        }
+
+        /* ---- les formats ---- */
+        function peindreFormats() {
+          el.querySelectorAll('[data-fmt]').forEach(c => {
+            const on = +c.dataset.fmt === vIdx;
+            c.classList.toggle('on', on);
+            c.setAttribute('aria-checked', on ? 'true' : 'false');
+          });
+        }
+
+        /* ---- une carte de choix se redessine seule ----
+           Remplacer la grille entière ferait repartir l'animation de TOUTES les
+           cartes à chaque touche.
+
+           ET LE PLUS SOUVENT, RIEN N'EST REMPLACÉ DU TOUT : passer de 2 à 3 ne
+           change qu'un chiffre. Reconstruire la carte pour ça détruirait le
+           bouton « + » sur lequel le doigt est encore posé — le focus part, et
+           au clavier la touche suivante tombe dans le vide. On ne reconstruit
+           que lorsque la carte change de forme : quand le « + » devient un
+           compteur, et quand le compteur redevient un « + ». */
+        function peindreCarte(attr, i, emoji, nom, prix, n) {
+          const vieille = el.querySelector('[data-' + attr + '="' + i + '"]');
+          if (!vieille) return;
+
+          const compteur = vieille.querySelector('.pz-cpt');
+          if (compteur && n) { compteur.querySelector('b').textContent = n; return; }
+
+          const neuf = document.createElement('div');
+          neuf.innerHTML = carteChoix(attr, i, emoji, nom, prix, n, 'Offert');
+          const carte = neuf.firstChild;
+          vieille.parentNode.replaceChild(carte, vieille);
+          if (n) carte.querySelector('.pz-c-act').classList.add('arrive');
+        }
+
+        const peindreSupp  = i => peindreCarte('supp', i, emojiDe(supps[i].name, '🧂'),
+                                               supps[i].name, +supps[i].extra_price || 0, nSupp[i]);
+        const peindreExtra = i => peindreCarte('extra', i, emojiDe(extras[i].nom, extras[i].icone || '🥤'),
+                                               extras[i].nom, extras[i].prix, nExtra[i]);
+
+        function bougerSupp(i, d) {
+          nSupp[i] = Math.max(0, Math.min(20, nSupp[i] + d));
+          peindreSupp(i); rafraichir(true); vibrer(8);
+        }
+        function bougerExtra(i, d) {
+          nExtra[i] = Math.max(0, Math.min(20, nExtra[i] + d));
+          peindreExtra(i); rafraichir(true); vibrer(8);
+        }
+
+        /* ---- UN SEUL ÉCOUTEUR POUR TOUTES LES CARTES ----
+           Elles sont remplacées à chaque changement : des écouteurs posés carte
+           par carte disparaîtraient avec elles au premier clic. La délégation
+           survit à tous les remplacements. */
+        el.addEventListener('click', e => {
+          const moins = e.target.closest('[data-moins]');
+          const plus  = e.target.closest('[data-plus]');
+          const carte = e.target.closest('[data-supp],[data-extra]');
+          const fmt   = e.target.closest('[data-fmt]');
+
+          if (moins || plus) {
+            e.stopPropagation();
+            const i = +(moins || plus).dataset[moins ? 'moins' : 'plus'];
+            const d = moins ? -1 : 1;
+            return carte.hasAttribute('data-supp') ? bougerSupp(i, d) : bougerExtra(i, d);
+          }
+          if (carte) {
+            /* La carte entière prend le premier exemplaire. Ensuite, seuls les
+               boutons du compteur agissent : un ajout accidentel en effleurant
+               la carte se corrige mal quand on ne sait pas ce qu'on a touché. */
+            if (carte.hasAttribute('data-supp')) {
+              const i = +carte.dataset.supp;
+              if (!nSupp[i]) bougerSupp(i, 1);
+            } else {
+              const i = +carte.dataset.extra;
+              if (!nExtra[i]) bougerExtra(i, 1);
+            }
+            return;
+          }
+          if (fmt) {
+            vIdx = +fmt.dataset.fmt;
+            peindreFormats(); rafraichir(true); vibrer(8);
+          }
         });
 
-        el.querySelector('#add').onclick = async function () {
-          if (!resto.open_now) return UI.err('Restaurant fermé', 'Réouverture à ' + U.hhmm(resto.opens_at));
+        /* Ce qui se clique à la souris doit s'activer au clavier : ces cartes
+           sont des `div` porteuses d'un rôle, pas des `button` — un compteur ne
+           peut pas vivre à l'intérieur d'un bouton. */
+        el.addEventListener('keydown', e => {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          if (!e.target.closest) return;
+          /* LES VRAIS BOUTONS GARDENT LEUR CLAVIER. Les « − » et « + » du
+             compteur vivent DANS la carte : `closest` remonte jusqu'à elle et
+             on aurait donc activé la carte à leur place. Or un `<button>` sait
+             déjà répondre à Entrée et à Espace — on ne fait que lui couper
+             l'herbe sous le pied en appelant preventDefault. */
+          if (e.target.closest('button')) return;
+          const c = e.target.closest('[data-supp],[data-extra],[data-fmt]');
+          if (!c) return;
+          e.preventDefault();
+          c.click();
+        });
+
+        /* ---- la barre du haut s'opacifie quand la photo est passée ----
+           Le seuil est la hauteur réelle de la photo moins celle de la barre :
+           écrit en dur, il aurait été faux sur petit écran, où la photo est plus
+           courte. `passive` parce qu'on ne fait que lire une position — sans
+           lui, le navigateur attend de savoir si l'on va bloquer le défilement. */
+        const corps = el.querySelector('.sheet-body');
+        const bloc  = el.querySelector('.pz');
+        const photo = el.querySelector('.pz-hero');
+        if (corps && bloc && photo) {
+          const seuil = Math.max(40, photo.offsetHeight - 64);
+          corps.addEventListener('scroll', () => {
+            bloc.classList.toggle('defile', corps.scrollTop > seuil);
+          }, { passive: true });
+        }
+
+        /* ---- la quantité ---- */
+        $('[data-m]').onclick = () => { qty = Math.max(1, qty - 1); rafraichir(true); vibrer(6); };
+        $('[data-p]').onclick = () => { qty = Math.min(30, qty + 1); rafraichir(true); vibrer(6); };
+
+        /* ---- l'instruction écrite ---- */
+        const champNote = $('#pzNote');
+        champNote.addEventListener('input', () => {
+          note = champNote.value;
+          $('#pzNoteN').textContent = note.length + '/160';
+        });
+
+        /* ---- au panier ---- */
+        $('#pzAdd').onclick = async function () {
+          if (indispo) return UI.err('Plat indisponible', 'Le restaurant l’a retiré de sa carte aujourd’hui.');
+          if (ferme) return UI.err('Restaurant fermé', 'Réouverture à ' + U.hhmm(resto.opens_at));
+
           const v = formats.length ? formats[vIdx] : null;
-          const ok = await Store.addToCart(resto, item, qty,
-            chosen().map(o => ({ name: o.name, extra_price: o.extra_price })), v);
-          if (!ok) return;
+          const choisis = supps.map((o, i) => nSupp[i]
+            ? { name: o.name, extra_price: +o.extra_price || 0, qty: nSupp[i] } : null).filter(Boolean);
+
+          const ok = await Store.addToCart(resto, item, qty, choisis, v, note.trim());
+          if (!ok) return;              // panier d'un autre restaurant, refus assumé
+
+          /* Les compléments sont des plats : chacun sa ligne, comme s'il avait
+             été ajouté depuis la carte. Le premier ajout a déjà réglé la
+             question du restaurant, ceux-ci ne la reposent pas. */
+          for (let i = 0; i < extras.length; i++) {
+            if (nExtra[i]) await Store.addToCart(resto, extras[i].item, nExtra[i], [], extras[i].variant, '');
+          }
+
+          const nExtraTotal = nExtra.reduce((s, n) => s + n, 0);
           api.close();
-          UI.ok(qty + '× ' + item.name + (v ? ' (' + v.name + ')' : '') + ' ajouté',
+          vibrer(14);
+          UI.ok(qty + '× ' + item.name + (v ? ' (' + v.name + ')' : '') + ' ajouté' +
+                (nExtraTotal ? ' + ' + nExtraTotal + ' complément' + (nExtraTotal > 1 ? 's' : '') : ''),
                 'Panier : ' + U.money(Store.cartSubtotal));
           Shell.renderNav();
           renderCartBar(document.getElementById('view'));
         };
-        refresh();
+
+        rafraichir(false);
       }
     });
   }
@@ -458,7 +993,8 @@
               '<div class="grow"><b style="font-size:14.5px">' + U.esc(l.name) + '</b>' +
                 (l.variant ? ' <span class="tag tag-muted">' + U.esc(l.variant.name) + '</span>' : '') +
                 ((l.options && l.options.length)
-                  ? '<div class="tiny">+ ' + U.esc(l.options.map(o => o.name).join(', ')) + '</div>' : '') +
+                  ? '<div class="tiny">+ ' + U.esc(U.optionsText(l.options)) + '</div>' : '') +
+                (l.note ? '<div class="tiny">✎ ' + U.esc(l.note) + '</div>' : '') +
                 '<div class="price" style="margin-top:3px">' + U.money(Store.lineTotal(l)) + '</div></div>' +
               '<div class="qty"><button data-dec="' + U.esc(l.key) + '">−</button>' +
                 '<b>' + l.quantity + '</b>' +

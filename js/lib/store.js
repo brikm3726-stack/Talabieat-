@@ -138,7 +138,7 @@
      * Ajoute un plat. Un panier = un seul restaurant (règle classique du secteur).
      * Retourne false si l'utilisateur a refusé de vider son panier.
      */
-    async addToCart(restaurant, item, quantity, options, variant) {
+    async addToCart(restaurant, item, quantity, options, variant, note) {
       if (Store.cart.items.length && Store.cart.restaurant_id !== restaurant.id) {
         const ok = await UI.confirm(
           'Changer de restaurant ?',
@@ -157,17 +157,36 @@
       Store.cart.lat = restaurant.lat != null ? +restaurant.lat : null;
       Store.cart.lng = restaurant.lng != null ? +restaurant.lng : null;
 
-      const opts = (options || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+      /* UN SUPPLÉMENT PEUT ÊTRE PRIS PLUSIEURS FOIS — double cheddar, triple
+         viande. `qty` porte ce nombre ; il vaut 1 quand rien n'est précisé, et
+         les paniers enregistrés avant cette version continuent donc de se lire
+         sans conversion. La borne à 20 n'est pas décorative : elle vit aussi
+         côté serveur (createOrder), et les deux doivent dire la même chose. */
+      const opts = (options || [])
+        .map(o => ({
+          name: o.name,
+          extra_price: +o.extra_price || 0,
+          qty: Math.max(1, Math.min(20, Math.round(+o.qty || 1)))
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
       /* Le format fait partie de l'identité de la ligne : une pizza Small et
-         la même en Méga sont deux lignes distinctes, pas une quantité de 2. */
-      const key = item.id + '|' + (variant ? variant.id : '') + '|' + opts.map(o => o.name).join(',');
+         la même en Méga sont deux lignes distinctes, pas une quantité de 2.
+         La quantité de chaque supplément aussi — une pizza double cheddar n'est
+         pas la même que la simple — et l'instruction écrite également : deux
+         pizzas identiques dont l'une est « sans oignons » ne peuvent pas être
+         fondues en une ligne de deux, la cuisine n'aurait plus l'information. */
+      const note2 = String(note || '').trim().slice(0, 160);
+      const key = item.id + '|' + (variant ? variant.id : '') + '|' +
+        opts.map(o => o.name + ':' + o.qty).join(',') + '|' + note2;
       const found = Store.cart.items.find(l => l.key === key);
       if (found) found.quantity += (quantity || 1);
       else Store.cart.items.push({
         key: key, menu_item_id: item.id, name: item.name,
         price: variant ? variant.price : item.price,
         variant: variant ? { id: variant.id, name: variant.name } : null,
-        image_url: item.image_url || null, options: opts, quantity: quantity || 1
+        image_url: item.image_url || null, options: opts, note: note2,
+        quantity: quantity || 1
       });
       Store.saveCart();
       return true;
@@ -183,7 +202,10 @@
     },
 
     lineTotal(l) {
-      const extra = (l.options || []).reduce((s, o) => s + (+o.extra_price || 0), 0);
+      /* `qty` par supplément, 1 par défaut : un panier enregistré par une
+         version précédente n'en a pas, et doit continuer de se totaliser juste. */
+      const extra = (l.options || [])
+        .reduce((s, o) => s + (+o.extra_price || 0) * (+o.qty || 1), 0);
       return (l.price + extra) * l.quantity;
     },
 

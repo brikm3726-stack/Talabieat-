@@ -244,7 +244,8 @@
               '<span class="n">' + U.esc(l.name) +
                 (l.variant ? ' <span class="ck-var">' + U.esc(l.variant.name) + '</span>' : '') +
                 ((l.options && l.options.length)
-                  ? '<span class="o">+ ' + U.esc(l.options.map(o => o.name).join(', ')) + '</span>' : '') +
+                  ? '<span class="o">+ ' + U.esc(U.optionsText(l.options)) + '</span>' : '') +
+                (l.note ? '<span class="o">✎ ' + U.esc(l.note) + '</span>' : '') +
               '</span>' +
               '<span class="p">' + U.money(Store.lineTotal(l)) + '</span>' +
             '</div>').join('') +
@@ -383,6 +384,19 @@
           'Environ ' + liv.km + ' km depuis le restaurant. Nous livrons jusqu’à ' +
           ((Store.settings && Store.settings.max_km) || 15) + ' km.');
 
+      /* LES INSTRUCTIONS ÉCRITES PLAT PAR PLAT REJOIGNENT LE MOT DE LA COMMANDE.
+         « Sans oignons » saisi sur la pizza doit arriver en cuisine ; or la
+         table `order_items` n'a pas de colonne pour ça, et ajouter une colonne
+         obligerait chaque installation à passer un script SQL avant de pouvoir
+         commander — une migration silencieuse qui casse les commandes le jour
+         où elle n'est pas jouée. Le mot de la commande, lui, existe déjà et
+         s'affiche sur le ticket du restaurant : les instructions y sont
+         recopiées, précédées du nom du plat pour qu'on sache de quoi on parle. */
+      const parPlat = Store.cart.items
+        .filter(l => l.note)
+        .map(l => l.name + (l.variant ? ' (' + l.variant.name + ')' : '') + ' : ' + l.note);
+      const noteFinale = [note].concat(parPlat).filter(Boolean).join('\n');
+
       UI.busy(btn, true, 'Envoi de la commande…');
       try {
         const order = await API.createOrder({
@@ -393,7 +407,7 @@
           address_lat: selected.lat, address_lng: selected.lng,
           client_phone: phone,
           client_name: Store.profile.full_name,
-          note: note,
+          note: noteFinale,
           items: Store.cart.items.map(l => ({
             menu_item_id: l.menu_item_id, quantity: l.quantity,
             options: l.options || [], variant: l.variant || null

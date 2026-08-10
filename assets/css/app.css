@@ -3603,10 +3603,24 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 .h3d-search input::placeholder{color:#9AA0AC}
 .h3d-search .btn{flex:none;border-radius:14px;padding:12px 17px;font-size:14px}
 
-/* ---- trois raccourcis ---- */
-.h3d-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:16px}
+/* ---- trois raccourcis ----
+   LE TROISIÈME ÉTAIT HORS DE L'ÉCRAN, ET DEPUIS TOUJOURS. `repeat(3,1fr)` a
+   l'air de découper la largeur en trois parts égales ; en réalité `1fr` refuse
+   de descendre sous la taille du contenu — c'est `minmax(auto,1fr)`. Les mots
+   « restaurant » et « maintenant » ne se coupant pas, chaque colonne exigeait
+   ~150 px : la rangée réclamait 464 px là où un téléphone en offre 358, et la
+   troisième carte — « Devenir livreur » — finissait 120 px au-delà du bord
+   droit. Aucun défilement ne la rattrapait, la page ne déborde pas : elle était
+   simplement inatteignable.
+
+   Deux corrections, et la seconde est celle qui compte :
+     — `minmax(0,1fr)` autorise enfin les colonnes à rétrécir ;
+     — en dessous de 480 px la carte passe à la verticale, pictogramme au-dessus
+       du texte. C'est la seule disposition où deux mots de dix lettres tiennent
+       dans un tiers d'écran de téléphone sans rapetisser jusqu'à l'illisible. */
+.h3d-quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:16px}
 .h3d-q{
-  display:flex;align-items:center;gap:8px;
+  display:flex;align-items:center;gap:8px;min-width:0;
   background:#fff;border:1px solid var(--line);border-radius:16px;padding:11px 9px;
   box-shadow:0 10px 24px -20px rgba(196,120,74,.7);
   transition:transform .25s cubic-bezier(.22,1,.36,1);
@@ -3618,6 +3632,16 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 }
 .h3d-q .tx{flex:1;min-width:0;font-size:12.5px;font-weight:750;line-height:1.28;color:var(--ink)}
 .h3d-q .ch{color:#C2C8D2;display:flex;flex:none}
+
+@media(max-width:479px){
+  .h3d-quick{gap:8px}
+  .h3d-q{flex-direction:column;gap:7px;padding:13px 6px 12px;text-align:center}
+  /* Le chevron disait « ça mène ailleurs ». Sur trois cartes empilées en
+     colonne, il ne dit plus rien de ce que la forme ne dit pas déjà, et il
+     coûte les quinze pixels qui manquent au texte. */
+  .h3d-q .ch{display:none}
+  .h3d-q .tx{flex:none;font-size:11.5px;line-height:1.3}
+}
 
 /* ---- bandeau de chiffres ---- */
 .h3d-stats{
@@ -3650,31 +3674,12 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
   font-size:13px;font-weight:750;color:var(--brand);background:#fff;
 }
 
-/* ---- catégories ---- */
-.h3d-cats{
-  display:flex;gap:10px;overflow-x:auto;padding:2px 0 6px;
-  scrollbar-width:none;-webkit-overflow-scrolling:touch;
-}
-.h3d-cats::-webkit-scrollbar{display:none}
-.h3d-cat{
-  flex:none;width:88px;display:flex;flex-direction:column;align-items:center;gap:8px;
-  background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 6px 12px;
-  box-shadow:0 10px 24px -20px rgba(196,120,74,.7);
-}
-.h3d-cat .em{font-size:34px;line-height:1}
-.h3d-cat .ic{
-  width:52px;height:52px;border-radius:16px;
-  background:var(--brand-grad);color:#fff;display:grid;place-items:center;
-}
-.h3d-cat .nm{
-  font-size:12.5px;font-weight:700;color:var(--ink-2);text-align:center;
-  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.h3d-cat.on .nm{color:var(--brand);font-weight:800;position:relative;padding-bottom:7px}
-.h3d-cat.on .nm::after{
-  content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
-  width:22px;height:3px;border-radius:2px;background:var(--brand);
-}
+/* ---- catégories ----
+   LES PASTILLES DE CATÉGORIES (Tout, Pizza, Tacos, Burger…) N'EXISTENT PLUS SUR
+   L'ACCUEIL : elles menaient toutes au même écran, et la recherche — qui a pris
+   leur place — trouve les mêmes choses en un mot. Leur habillage (`.h3d-cats`,
+   `.h3d-cat`) est parti avec elles ; l'écran Restaurants n'a jamais utilisé ces
+   classes-là, il a les siennes (`.cat-scroll`). */
 
 /* ---- promesse de livraison ---- */
 .h3d-promo{
@@ -3707,8 +3712,7 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
   .h3d-q .tx{font-size:13.5px}
   .h3d-stats{padding:20px 10px}
   .h3d-stats b{font-size:24px}
-  .h3d-cat{width:104px}
-  .h3d-cat .em{font-size:40px}
+  .h3d-bientot{font-size:14.5px}
   .h3d-promo{padding:28px 26px;min-height:190px}
   .h3d-promo .scoot{width:248px;height:198px;background-size:650px auto;background-position:-401px -1068px}
 }
@@ -6863,25 +6867,17 @@ body.pref-clair .bottomnav a[data-p="/cart"] .nav-badge{
 }
 
 /* ==========================================================================
-   MESURES SORTIES DE L'ATTRIBUT « STYLE » — FICHE PLAT
+   FICHE PLAT — L'ANCIENNE MISE EN FORME EST PARTIE
    --------------------------------------------------------------------------
-   Mêmes valeurs qu'avant, au pixel près : c'est un déplacement, pas un
-   changement. Un style en ligne l'emporte sur toute feuille — tant que la
-   bordure et le remplissage des lignes de choix étaient écrits dans le HTML,
-   aucun thème ne pouvait les redessiner.
+   `.dish-hero`, `.opt-lab`, `.opt-row` habillaient la fiche plat quand elle
+   était une liste de cases à cocher : une photo de 170 px, un cadre par ligne,
+   une case à gauche, un prix à droite. Le panneau de personnalisation
+   (« pz », en fin de fichier) l'a entièrement remplacée — ces classes ne sont
+   plus écrites nulle part, et leurs variantes sombres non plus.
 
-   Les deux listes de la fiche plat portent maintenant la même classe. Elles se
-   ressemblaient déjà à l'œil — un cadre arrondi, une case à gauche, un prix à
-   droite — mais l'une avait une classe et l'autre non : le format se laissait
-   désigner, les suppléments non.
+   Elles sont retirées plutôt que laissées « au cas où » : une règle sans HTML
+   qui la porte est un piège pour la prochaine lecture, qui la croira vivante.
    ========================================================================== */
-.dish-hero{
-  height:170px;border-radius:16px;margin-bottom:14px;
-  background:#F2EDE5 center/cover no-repeat;
-}
-.opt-lab{margin-bottom:10px}
-.opt-row{padding:11px 13px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer}
-.opt-row input{width:18px;height:18px;accent-color:var(--brand)}
 
 /* ==========================================================================
    MODALES SOMBRES — LES FONDS ÉCRITS EN DUR
@@ -6964,46 +6960,19 @@ body.nuit .overlay .qty b{color:#F4F5F7}
 
 /* ==========================================================================
    FICHE PLAT SOMBRE — maquette « 358 »
+   --------------------------------------------------------------------------
+   TOUT CE BLOC A ÉTÉ RETIRÉ AVEC LA FICHE QU'IL HABILLAIT. Il peignait en
+   sombre les cases à cocher du format et des suppléments (`.opt-row`,
+   `.opt-lab`), la photo de 170 px (`.dish-hero`) et le chariot dessiné en
+   masque devant le bouton `#add`. Le panneau de personnalisation (« pz », en
+   fin de fichier) n'a plus une seule de ces classes : il porte son propre jeu
+   de jetons, et sa version sombre tient en cinq lignes.
+
+   Le chariot en particulier ne pouvait plus rien atteindre : le bouton d'ajout
+   s'appelle désormais `#pzAdd`. Une règle orpheline de ce genre ne se signale
+   jamais — elle ne casse rien, elle ne fait rien, et la lecture suivante la
+   croit vivante.
    ========================================================================== */
-body.nuit .dish-hero{background-color:#1B1D21}
-/* « FORMAT », « SUPPLÉMENTS » : la maquette n'en fait pas des titres mais des
-   étiquettes — petites capitales espacées, en gris. Elles nomment un groupe,
-   elles ne rivalisent pas avec le nom du plat en haut. */
-body.nuit .opt-lab{
-  font-size:11.5px;font-weight:800;letter-spacing:.09em;
-  text-transform:uppercase;color:#8B9099;
-}
-body.nuit .opt-lab .tiny{
-  font-size:10.5px;font-weight:700;letter-spacing:.07em;
-  text-transform:uppercase;color:#6C7280;
-}
-body.nuit .opt-row{
-  background-color:#1A1C20;
-  border-color:rgba(255,255,255,.07);
-  color:#E9EBEF;
-}
-/* La ligne choisie s'éclaire par l'intérieur : un dégradé orange très sourd du
-   haut vers le bas, un liseré franc, une lueur basse. `:has()` lit l'état du
-   bouton radio lui-même — il n'y a donc aucune classe à poser en JavaScript, et
-   rien à resynchroniser quand on change de format. */
-body.nuit .opt-row:has(input:checked){
-  background-image:linear-gradient(180deg,rgba(255,101,0,.17),rgba(255,101,0,.04));
-  border-color:#FF6500;
-  box-shadow:0 0 0 1px rgba(255,101,0,.32), 0 8px 22px -12px rgba(255,101,0,.55);
-}
-body.nuit .opt-row .tiny{color:#8B9099}
-/* Le bouton d'ajout reçoit le chariot de la maquette. Dessiné par masque, donc
-   sous `body.nuit` uniquement : posé dans le HTML, il apparaîtrait aussi en
-   clair, et la maquette claire ne le montre pas. */
-body.nuit .overlay{
-  --ic-panier:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4h2.2l2.5 10.6h10.5l2.3-7.6H6'/%3E%3Ccircle cx='9.5' cy='19' r='1.6'/%3E%3Ccircle cx='17' cy='19' r='1.6'/%3E%3C/svg%3E");
-}
-body.nuit .sheet-foot #add::before{
-  content:'';width:19px;height:19px;flex:none;
-  background:currentColor;
-  -webkit-mask:var(--ic-panier) center/contain no-repeat;
-          mask:var(--ic-panier) center/contain no-repeat;
-}
 
 /* ==========================================================================
    « TALABI » S'ÉCRIT SUR LA PORTE D'ENTRÉE — 4 SECONDES
@@ -9768,12 +9737,47 @@ body.nuit #view .mp-repere.moi{border-color:#0E0E10}
   font-size:13px;color:var(--nuit-doux,#9AA0A9);
 }
 
-/* ---- les catégories sur l'accueil ----
-   Le composant est celui de l'écran Restaurants, à l'identique : deux rangées
-   qui ne se ressembleraient pas seraient deux fois le travail, et elles
-   finiraient par diverger. Seule sa marge change ici. */
-.h3d-cats{margin:18px -16px 4px;padding:0 16px}
-.h3d-cats .cat-scroll{padding-bottom:4px}
+/* ---- « Nous arrivons bientôt à … » ----
+   La ligne occupe la place qu'avait la recherche, sous l'accroche. Elle n'est
+   ni un bouton ni une carte : un filet de texte, une pastille orange devant, un
+   curseur qui clignote derrière le nom. Tout ce qui ressemblerait à un bouton
+   inviterait à appuyer, et il n'y a rien à ouvrir.
+
+   `min-height` fixe la hauteur d'avance : le nom qui s'écrit change de largeur
+   à chaque lettre, mais jamais de hauteur — sinon la page entière bougerait
+   trente fois par nom. */
+.h3d-bientot{
+  display:flex;align-items:center;gap:8px;
+  min-height:22px;margin:0 0 4px;
+  font-size:13.5px;font-weight:650;line-height:1.3;
+  color:var(--nuit-doux,#9AA0A9);
+}
+.h3d-bientot .ic{
+  flex:none;display:grid;place-items:center;
+  width:24px;height:24px;border-radius:50%;
+  color:var(--brand);background:rgba(255,101,0,.13);
+  box-shadow:inset 0 0 0 1px rgba(255,101,0,.2);
+}
+/* Le nom ne passe jamais à la ligne : sur un écran étroit, « Bordj Bou
+   Arréridj » coupé en deux ferait sauter la ligne d'un cran en pleine frappe. */
+.h3d-bientot .tx{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.h3d-bientot b{color:var(--nuit-texte,#F4F5F7);font-weight:850}
+/* Le curseur suit le dernier caractère écrit : il est DANS le flux, juste après
+   le nom, et non posé en absolu — une position absolue l'aurait laissé sur
+   place pendant que le mot s'allonge. */
+.h3d-bientot .cur{
+  display:inline-block;width:2px;height:1em;margin-left:2px;
+  vertical-align:-.14em;border-radius:1px;background:var(--brand);
+  animation:hbCur 1.05s steps(1) infinite;
+}
+@keyframes hbCur{ 0%,49%{opacity:1} 50%,100%{opacity:0} }
+/* Mouvement réduit : le nom reste fixe, le curseur n'a plus rien à annoncer. */
+.h3d-bientot.fixe .cur{display:none}
+@media(prefers-reduced-motion:reduce){
+  .h3d-bientot .cur{animation:none}
+}
 
 /* ---- les chiffres restent à TROIS, sur une seule ligne ----
    J'avais ajouté une quatrième tuile — la note moyenne — et écrit une requête
@@ -9797,6 +9801,11 @@ body.nuit #view .mp-repere.moi{border-color:#0E0E10}
 body.pref-clair.ecran-accueil .h3d-accroche .salut{color:var(--jr-doux)}
 body.pref-clair.ecran-accueil .h3d-accroche .salut b{color:#16181D}
 body.pref-clair.ecran-accueil .h3d-accroche .titre{color:#16181D}
+body.pref-clair.ecran-accueil .h3d-bientot{color:var(--jr-doux)}
+body.pref-clair.ecran-accueil .h3d-bientot b{color:#16181D}
+body.pref-clair.ecran-accueil .h3d-bientot .ic{
+  background:rgba(255,107,0,.10);box-shadow:inset 0 0 0 1px rgba(255,107,0,.18);
+}
 body.pref-clair.ecran-accueil .h3d-sugg{
   background:#fff;
   box-shadow:inset 0 0 0 1px var(--jr-bord), var(--jr-ombre);
@@ -10088,4 +10097,455 @@ body.nuit .zp-bas{
   .zp-stats b{font-size:15px}
   .zp-stats span{font-size:9.5px}
   .zp-go{height:56px;font-size:15px}
+}
+
+/* ==========================================================================
+   PERSONNALISATION DU PLAT — le panneau « pz »
+   --------------------------------------------------------------------------
+   C'EST UN ÉCRAN, PAS UNE BOÎTE DE DIALOGUE. Il occupe 92 % de la hauteur,
+   monte du bas, et garde deux choses à portée de pouce quoi qu'il arrive : la
+   croix, en haut, et la barre d'ajout, en bas. Entre les deux, tout défile.
+
+   Les jetons sont posés sur `.pz-ov`, L'ENVELOPPE, et non sur `.pz` : la barre
+   du bas vit dans `.sheet-foot`, hors de `.pz`. Les y avoir écrits aurait donné
+   une barre blanche sous un panneau noir — l'erreur ne se voit qu'en thème
+   sombre, c'est-à-dire chez presque tout le monde.
+   ========================================================================== */
+.overlay.pz-ov{
+  --pz-fond:#FFFFFF;
+  --pz-carte:#F5F6F8;
+  --pz-filet:rgba(16,24,40,.09);
+  --pz-titre:#0E1013;
+  --pz-doux:#6B7280;
+  --pz-or:#FF6B00;
+  --pz-grad:linear-gradient(100deg,#FF6B00 0%,#FF5230 52%,#FF3D57 100%);
+  align-items:flex-end;
+  /* Le fond se floute plus franchement qu'ailleurs : la carte du restaurant est
+     colorée et chargée, et un simple voile sombre la laissait lisible derrière
+     le panneau — deux menus superposés, aucun des deux tranquille. */
+  background:rgba(8,10,14,.52);
+  -webkit-backdrop-filter:blur(12px) saturate(120%);
+          backdrop-filter:blur(12px) saturate(120%);
+}
+@media(min-width:700px){ .overlay.pz-ov{align-items:center} }
+
+.overlay.pz-ov .sheet{
+  position:relative;
+  max-width:560px;width:100%;
+  height:92vh;height:92dvh;max-height:92dvh;
+  border-radius:32px 32px 0 0;
+  padding:0;overflow:hidden;
+  display:flex;flex-direction:column;
+  background:var(--pz-fond);color:var(--pz-titre);
+  /* Une montée qui dépasse légèrement avant de se poser : sans dépassement, le
+     panneau s'arrête net et paraît lourd. */
+  animation:pzMonte .38s cubic-bezier(.2,1.1,.32,1) both;
+}
+@media(min-width:700px){
+  .overlay.pz-ov .sheet{border-radius:32px;height:min(92vh,880px)}
+}
+@keyframes pzMonte{ from{transform:translateY(100%)} to{transform:none} }
+
+/* La chaîne de défilement, comme pour le panneau des quartiers : `min-height:0`
+   est la ligne qui compte — sans elle, un élément de flexbox refuse de devenir
+   plus petit que son contenu, et le `overflow-y` n'a jamais rien à faire
+   défiler. Le remplissage passe à zéro : les sections gèrent leurs marges. */
+.overlay.pz-ov .sheet-body{
+  flex:1;min-height:0;padding:0;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+/* La barre du bas n'est pas « collante » : elle est le dernier élément d'une
+   colonne flexible, donc toujours visible sans avoir à coller à quoi que ce
+   soit. Le `position:sticky` hérité de `.sheet-foot` ne servait qu'à créer un
+   contexte d'empilement de plus. */
+.overlay.pz-ov .sheet-foot{
+  position:static;flex:none;
+  padding:0;border-top:0;background:transparent;
+}
+
+/* ---- la barre du haut ----
+   HAUTEUR NULLE, CONTENU EN ABSOLU : la rangée ne pousse rien, elle ne fait que
+   rester en haut du défilement pendant que la photo s'en va. C'est ce qui
+   permet à la barre de recouvrir la photo au repos, sans lui voler 60 px.
+
+   Elle est transparente tant qu'on regarde la photo, puis devient opaque et
+   prend le nom du plat. Ce n'est pas une coquetterie : une croix qui flotte
+   par-dessus les cartes finit toujours par recouvrir le « + » de l'une
+   d'elles, qui devient intouchable. Posée sur une barre pleine, elle a sa
+   place à elle. */
+.pz-fixe{position:sticky;top:0;height:0;z-index:6}
+.pz-bar{
+  position:absolute;top:0;left:0;right:0;height:62px;
+  display:flex;align-items:center;gap:10px;padding:0 12px 0 20px;
+  background:transparent;
+  transition:background .22s ease, box-shadow .22s ease;
+}
+.pz-bar-t{
+  flex:1;min-width:0;
+  font-size:15.5px;font-weight:850;letter-spacing:-.02em;color:var(--pz-titre);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  opacity:0;transform:translateY(5px);
+  transition:opacity .22s ease, transform .22s ease;
+}
+.pz.defile .pz-bar{
+  background:var(--pz-fond);
+  box-shadow:0 1px 0 var(--pz-filet), 0 12px 26px -24px rgba(16,24,40,.9);
+}
+.pz.defile .pz-bar-t{opacity:1;transform:none}
+/* Sur la barre pleine, le rond sombre de la croix n'a plus lieu d'être : il
+   ferait une pastille noire sur un fond blanc. */
+.pz.defile .pz-x{background:var(--pz-carte);color:var(--pz-titre)}
+/* La poignée vit DANS la photo et s'en va avec elle : collée en haut, elle
+   flottait au milieu des suppléments comme une barre grise sans objet. Seule la
+   croix reste — c'est la seule des deux qui serve à quelque chose une fois
+   qu'on est descendu. */
+.pz-poignee{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:3;
+  width:44px;height:5px;border-radius:3px;
+  background:rgba(255,255,255,.8);box-shadow:0 1px 4px rgba(0,0,0,.35);
+}
+.pz-x{
+  flex:none;
+  width:38px;height:38px;border:0;border-radius:50%;
+  display:grid;place-items:center;cursor:pointer;
+  color:#fff;background:rgba(12,15,22,.46);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  transition:transform .16s cubic-bezier(.34,1.3,.64,1), background .16s;
+}
+/* La croix EST le « + » du jeu d'icônes, tourné d'un huitième de tour. Un
+   second tracé pour deux traits croisés n'aurait rien apporté. */
+.pz-x svg{transform:rotate(45deg)}
+.pz-x:active{transform:scale(.9);background:rgba(12,15,22,.62)}
+
+/* ---- l'en-tête : la photo en grand ---- */
+.pz-hero{
+  position:relative;flex:none;height:232px;
+  background:#EDEFF3 center/cover no-repeat;
+}
+.pz-hero.vide{
+  background:linear-gradient(150deg,#FFE7D8 0%,#FFD6C2 55%,#FFC3AB 100%);
+  display:grid;place-items:center;
+}
+.pz-hero-em{font-size:88px;line-height:1;filter:drop-shadow(0 14px 26px rgba(0,0,0,.2))}
+/* Le fondu vers le fond du panneau : la photo ne s'arrête pas sur une ligne
+   droite, elle DEVIENT la page. C'est ce raccord qui sépare « une image collée
+   en haut » d'un en-tête. */
+.pz-hero-voile{
+  position:absolute;left:0;right:0;bottom:0;height:62%;
+  background:linear-gradient(to top,var(--pz-fond) 3%,rgba(255,255,255,0) 100%);
+}
+.pz-ferme{
+  position:absolute;left:16px;bottom:16px;z-index:2;
+  font-size:12px;font-weight:800;color:#fff;
+  padding:7px 13px;border-radius:999px;
+  background:rgba(12,15,22,.62);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+}
+
+/* ---- nom, restaurant, note, délai ---- */
+.pz-titre{position:relative;padding:0 20px;margin-top:-14px}
+.pz-titre h2{
+  margin:0;font-size:26px;font-weight:900;letter-spacing:-.035em;line-height:1.16;
+}
+.pz-meta{
+  display:flex;flex-wrap:wrap;align-items:center;gap:7px 13px;
+  margin-top:9px;font-size:12.5px;font-weight:700;color:var(--pz-doux);
+}
+.pz-meta b{color:var(--pz-titre);font-weight:850}
+.pz-resto{
+  display:inline-flex;align-items:center;gap:5px;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pz-resto svg{flex:none;color:var(--pz-or)}
+.pz-depart{
+  display:inline-flex;align-items:baseline;gap:6px;margin-top:12px;
+  font-size:12px;font-weight:700;color:var(--pz-doux);
+  background:var(--pz-carte);border-radius:999px;padding:7px 14px;
+}
+.pz-depart b{font-size:15px;font-weight:900;color:var(--pz-or);letter-spacing:-.02em}
+
+/* ---- sections ---- */
+.pz-sec{padding:0 20px;margin-top:24px}
+.pz-sec:last-child{margin-bottom:22px}
+.pz-st{display:flex;align-items:flex-end;gap:12px;margin-bottom:13px}
+.pz-st-tx{flex:1;min-width:0}
+.pz-st h3{margin:0;font-size:17.5px;font-weight:850;letter-spacing:-.03em;line-height:1.2}
+.pz-st p{margin:4px 0 0;font-size:12.5px;line-height:1.35;color:var(--pz-doux)}
+.pz-oblig{
+  flex:none;font-size:10px;font-weight:850;letter-spacing:.07em;text-transform:uppercase;
+  padding:5px 9px;border-radius:9px;
+  color:var(--pz-doux);background:var(--pz-carte);
+}
+.pz-oblig.fort{
+  color:var(--pz-or);background:rgba(255,107,0,.12);
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.22);
+}
+
+/* ---- carte générique (description, récapitulatif) ---- */
+.pz-carte{background:var(--pz-carte);border-radius:24px;padding:16px 17px}
+.pz-desc p{margin:0;font-size:13.8px;line-height:1.55;color:var(--pz-doux)}
+.pz-ing-t{
+  font-size:10.5px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--pz-doux);margin-bottom:11px;
+}
+.pz-ing{display:flex;flex-wrap:wrap;gap:7px}
+.pz-ing span{
+  font-size:12.5px;font-weight:700;
+  background:var(--pz-fond);border-radius:999px;padding:6px 12px;
+  box-shadow:0 5px 14px -10px rgba(16,24,40,.8);
+}
+
+/* ---- les formats ----
+   Une grille qui se remplit d'elle-même : deux colonnes sur un téléphone, trois
+   ou quatre sur une tablette, sans requête média à maintenir. */
+.pz-fmts{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:11px}
+.pz-f{
+  position:relative;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:17px 12px 15px;border-radius:22px;
+  background:var(--pz-carte);
+  box-shadow:inset 0 0 0 1.5px transparent;
+  transition:transform .2s cubic-bezier(.34,1.3,.64,1), box-shadow .22s, background .22s;
+}
+.pz-f-em{line-height:1;transition:transform .25s cubic-bezier(.34,1.4,.6,1)}
+.pz-f b{font-size:14px;font-weight:800;letter-spacing:-.01em;text-align:center}
+.pz-f-p{font-size:13.5px;font-weight:850;color:var(--pz-or)}
+.pz-f-c{
+  position:absolute;top:9px;right:9px;
+  width:22px;height:22px;border-radius:50%;
+  display:grid;place-items:center;color:#fff;background:var(--pz-grad);
+  opacity:0;transform:scale(.4);
+  transition:opacity .2s, transform .24s cubic-bezier(.34,1.6,.6,1);
+}
+.pz-f:active{transform:scale(.968)}
+.pz-f.on{
+  background:linear-gradient(170deg,rgba(255,107,0,.14),rgba(255,61,87,.05));
+  box-shadow:inset 0 0 0 1.8px var(--pz-or), 0 14px 28px -18px rgba(255,77,60,.85);
+}
+.pz-f.on .pz-f-em{transform:scale(1.09)}
+.pz-f.on .pz-f-c{opacity:1;transform:none}
+
+/* ---- suppléments et compléments ---- */
+.pz-cartes{display:flex;flex-direction:column;gap:9px}
+.pz-c{
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  padding:11px 12px;border-radius:20px;
+  background:var(--pz-carte);
+  box-shadow:inset 0 0 0 1.5px transparent;
+  transition:transform .2s cubic-bezier(.34,1.3,.64,1), box-shadow .22s, background .22s;
+}
+.pz-c:active{transform:scale(.985)}
+.pz-c.on{
+  background:linear-gradient(170deg,rgba(255,107,0,.13),rgba(255,61,87,.045));
+  box-shadow:inset 0 0 0 1.8px var(--pz-or);
+}
+.pz-c-em{
+  flex:none;width:46px;height:46px;border-radius:16px;
+  display:grid;place-items:center;font-size:23px;line-height:1;
+  background:var(--pz-fond);
+  box-shadow:0 6px 16px -12px rgba(16,24,40,.9);
+}
+.pz-c-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pz-c-tx b{
+  font-size:14.5px;font-weight:750;line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pz-c-tx span{font-size:12.5px;font-weight:800;color:var(--pz-or)}
+.pz-c-act{flex:none;display:flex;align-items:center}
+.pz-add{
+  width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;color:#fff;background:var(--pz-grad);
+  box-shadow:0 9px 20px -11px rgba(255,77,60,.95);
+}
+
+/* ---- le compteur ----
+   Il REMPLACE le « + » au premier ajout : un « 0 » affiché en permanence
+   demande de comprendre avant d'agir, là où un « + » se touche sans réfléchir. */
+.pz-cpt{
+  display:flex;align-items:center;gap:2px;
+  background:var(--pz-fond);border-radius:999px;padding:3px;
+  box-shadow:inset 0 0 0 1px var(--pz-filet);
+}
+.pz-cpt button{
+  width:31px;height:31px;border:0;border-radius:50%;
+  background:transparent;color:var(--pz-titre);
+  font:inherit;font-size:19px;font-weight:800;line-height:1;
+  display:grid;place-items:center;cursor:pointer;
+  transition:transform .15s cubic-bezier(.34,1.3,.64,1), background .15s;
+}
+.pz-cpt button:active{transform:scale(.86);background:rgba(255,107,0,.16)}
+.pz-cpt b{min-width:19px;text-align:center;font-size:14.5px;font-weight:850}
+.pz-c-act.arrive .pz-cpt{animation:pzPop .3s cubic-bezier(.34,1.55,.6,1) both}
+@keyframes pzPop{ from{transform:scale(.55);opacity:0} to{transform:none;opacity:1} }
+
+/* ---- l'instruction écrite ---- */
+.pz-note{position:relative}
+.pz-note textarea{
+  display:block;width:100%;resize:none;
+  border:0;outline:none;font:inherit;font-size:14px;line-height:1.5;
+  color:var(--pz-titre);background:var(--pz-carte);
+  border-radius:20px;padding:14px 16px 28px;
+  box-shadow:inset 0 0 0 1.5px transparent;
+  transition:box-shadow .2s, background .2s;
+}
+.pz-note textarea::placeholder{color:var(--pz-doux)}
+.pz-note textarea:focus{box-shadow:inset 0 0 0 1.8px var(--pz-or)}
+.pz-note-n{
+  position:absolute;right:15px;bottom:10px;
+  font-size:11px;font-weight:750;color:var(--pz-doux);pointer-events:none;
+}
+
+/* ---- le récapitulatif ----
+   Il est posé un cran au-dessus du reste : une ombre douce et un filet clair le
+   décollent de la page. C'est le seul bloc du panneau qui ne se touche pas —
+   il se lit, et il doit se distinguer de tout ce qui se choisit. */
+.pz-recap{
+  box-shadow:0 18px 40px -28px rgba(16,24,40,.8), inset 0 0 0 1px var(--pz-filet);
+}
+.pz-r-t{
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;
+  font-size:11px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--pz-doux);
+}
+.pz-r{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13.5px}
+.pz-r .i{flex:none;width:22px;text-align:center;font-size:15px;line-height:1;color:var(--pz-doux)}
+.pz-r .i svg{vertical-align:-3px}
+.pz-r .l{flex:1;min-width:0;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pz-r .v{flex:none;font-weight:850}
+.pz-r .v i{font-style:normal;font-weight:700;color:var(--pz-doux);margin-right:4px}
+.pz-r.doux .l,.pz-r.doux .v{color:var(--pz-doux);font-weight:650}
+.pz-r-trait{height:1px;background:var(--pz-filet);margin:9px 0}
+.pz-r.total{justify-content:space-between;padding-top:2px;font-size:14.5px;font-weight:850}
+.pz-r.total b{
+  font-size:20px;font-weight:900;letter-spacing:-.03em;
+  background:var(--pz-grad);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+
+/* ==========================================================================
+   LA BARRE DU BAS — quantité, total, ajout
+   ========================================================================== */
+.pz-bas{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px calc(14px + env(safe-area-inset-bottom));
+  background:var(--pz-fond);
+  box-shadow:0 -1px 0 var(--pz-filet), 0 -18px 34px -26px rgba(16,24,40,.65);
+}
+.pz-qte{
+  flex:none;display:flex;align-items:center;gap:2px;
+  background:var(--pz-carte);border-radius:999px;padding:4px;
+}
+.pz-qte button{
+  width:38px;height:38px;border:0;border-radius:50%;
+  background:var(--pz-fond);color:var(--pz-titre);
+  font:inherit;font-size:21px;font-weight:800;line-height:1;
+  display:grid;place-items:center;cursor:pointer;
+  box-shadow:0 4px 12px -7px rgba(16,24,40,.8);
+  transition:transform .16s cubic-bezier(.34,1.3,.64,1);
+}
+.pz-qte button:active{transform:scale(.86)}
+.pz-qte b{min-width:26px;text-align:center;font-size:16px;font-weight:850}
+
+/* Le total au centre n'apparaît qu'à partir de 420 px : en dessous, il volerait
+   la place du bouton, qui porte déjà le même montant. */
+.pz-tot{display:none;flex-direction:column;gap:1px;padding:0 2px}
+.pz-tot span{
+  font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--pz-doux);
+}
+.pz-tot b{font-size:16px;font-weight:900;letter-spacing:-.03em;white-space:nowrap}
+@media(min-width:420px){ .pz-tot{display:flex} }
+.pz-tot b.bat{animation:pzBat .34s cubic-bezier(.34,1.5,.6,1)}
+@keyframes pzBat{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.13);color:var(--pz-or)}
+  100%{transform:scale(1)}
+}
+
+.pz-cta{
+  flex:1;min-width:0;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  height:60px;border:0;border-radius:30px;
+  background:var(--pz-grad);color:#fff;
+  font:inherit;font-size:15.5px;font-weight:850;cursor:pointer;
+  box-shadow:0 16px 34px -14px rgba(255,77,60,.85);
+  transition:transform .17s cubic-bezier(.34,1.3,.64,1), box-shadow .17s;
+}
+.pz-cta .l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Le libellé long n'apparaît qu'à partir de 430 px — en dessous, le montant lui
+   volait la moitié de sa place et il se coupait au milieu d'un mot. */
+.pz-cta .long{display:none}
+@media(min-width:430px){
+  .pz-cta .long{display:inline}
+  .pz-cta .court{display:none}
+}
+.pz-cta .m{
+  flex:none;font-size:14.5px;font-weight:900;
+  padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.22);
+}
+.pz-cta:active{transform:scale(.976);box-shadow:0 8px 20px -13px rgba(255,77,60,.9)}
+.pz-cta[disabled]{
+  background:var(--pz-carte);color:var(--pz-doux);
+  box-shadow:none;cursor:not-allowed;transform:none;
+}
+
+/* ==========================================================================
+   LE MÊME PANNEAU EN SOMBRE
+   Cinq jetons suffisent ; le reste ne change que là où une surface blanche
+   servait de relief.
+   ========================================================================== */
+body.nuit .pz-ov{
+  --pz-fond:#131417;
+  --pz-carte:#1B1D21;
+  --pz-filet:rgba(255,255,255,.09);
+  --pz-titre:#F4F5F7;
+  --pz-doux:#878D96;
+  background:rgba(0,0,0,.62);
+}
+body.nuit .pz-hero{background-color:#1B1D21}
+body.nuit .pz-hero.vide{background:linear-gradient(150deg,#2A1D16 0%,#221A16 55%,#1B1518 100%)}
+/* LE FONDU EST RÉÉCRIT ENTIÈREMENT EN SOMBRE, il ne suffit pas d'avoir changé
+   `--pz-fond`. L'autre extrémité du dégradé est un BLANC transparent : les
+   navigateurs récents interpolent en alpha prémultiplié et n'en font rien de
+   visible, mais les vieux WebView d'Android — ceux qu'on trouve encore ici —
+   traversent le blanc au passage et posent un voile laiteux au milieu de la
+   photo. Un noir transparent ne peut pas produire ce défaut. */
+body.nuit .pz-hero-voile{
+  background:linear-gradient(to top,#131417 3%,rgba(19,20,23,0) 100%);
+}
+body.nuit .pz-recap{
+  box-shadow:0 20px 44px -30px rgba(0,0,0,1), inset 0 0 0 1px var(--pz-filet);
+}
+body.nuit .pz-c-em{background:#26282D;box-shadow:none}
+body.nuit .pz-ing span{background:#26282D;box-shadow:none}
+body.nuit .pz-qte button{background:#26282D;box-shadow:none}
+body.nuit .pz-cpt{background:#26282D}
+body.nuit .pz-x{background:rgba(255,255,255,.16)}
+body.nuit .pz-f.on{
+  background:linear-gradient(170deg,rgba(255,107,0,.2),rgba(255,61,87,.07));
+  box-shadow:inset 0 0 0 1.8px var(--pz-or), 0 14px 28px -18px rgba(255,77,60,.75);
+}
+body.nuit .pz-c.on{background:linear-gradient(170deg,rgba(255,107,0,.19),rgba(255,61,87,.06))}
+body.nuit .pz-bas{box-shadow:0 -1px 0 var(--pz-filet), 0 -20px 36px -26px rgba(0,0,0,1)}
+
+/* ==========================================================================
+   PETITS ÉCRANS ET MOUVEMENT RÉDUIT
+   ========================================================================== */
+@media(max-width:379px){
+  .pz-hero{height:196px}
+  .pz-titre{padding:0 16px}
+  .pz-titre h2{font-size:23px}
+  .pz-sec{padding:0 16px;margin-top:20px}
+  .pz-bas{padding-left:13px;padding-right:13px;gap:8px}
+  .pz-cta{height:56px;font-size:14.5px;border-radius:28px}
+  .pz-qte button{width:35px;height:35px}
+  .pz-c-em{width:42px;height:42px;font-size:21px}
+}
+@media(prefers-reduced-motion:reduce){
+  .overlay.pz-ov .sheet{animation:none}
+  .pz-c-act.arrive .pz-cpt,.pz-tot b.bat{animation:none}
+  .pz-f,.pz-c,.pz-cta,.pz-qte button,.pz-cpt button,.pz-x,.pz-f-em,.pz-f-c{transition:none}
+  .pz-f:active,.pz-c:active,.pz-cta:active,.pz-qte button:active,
+  .pz-cpt button:active,.pz-x:active{transform:none}
 }
