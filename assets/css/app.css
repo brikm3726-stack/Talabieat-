@@ -1211,43 +1211,7 @@ body.lv-open #view > .view-in{animation:none;transform:none}
 }
 
 /* ------------------------------------------------ sélecteur de quartier */
-.zone-list{display:flex;flex-direction:column;gap:10px}
-.zone-row{
-  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
-  padding:13px 14px;border-radius:16px;border:1.5px solid var(--line);
-  background:#fff;cursor:pointer;transition:.16s;font:inherit;color:inherit;
-}
-.zone-row:hover{border-color:#E3D5C6;transform:translateY(-1px)}
-.zone-row.on{border-color:var(--brand);background:var(--brand-soft)}
-.zone-row .radio{
-  width:20px;height:20px;border-radius:50%;flex:none;
-  border:2px solid #D8D2C8;position:relative;
-}
-.zone-row.on .radio{border-color:var(--brand)}
-.zone-row.on .radio::after{
-  content:'';position:absolute;inset:3px;border-radius:50%;background:var(--brand);
-}
-.zone-row .ic{
-  width:38px;height:38px;border-radius:12px;flex:none;
-  background:var(--brand-soft);display:grid;place-items:center;font-size:17px;
-}
-.zone-row.on .ic{background:#fff}
-.zone-row .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
-.zone-row b{font-size:15px;font-weight:750}
-.zone-row .mark{color:var(--brand);font-weight:800;font-size:17px;flex:none}
-.zone-row:not(.on) .mark{color:#C9C2B7}
 
-.zone-foot{
-  display:flex;align-items:center;gap:12px;margin-top:14px;
-  padding:14px;border-radius:16px;background:var(--brand-soft);
-}
-.zone-foot .art{font-size:30px;flex:none}
-.zone-foot .grow{display:flex;flex-direction:column;gap:2px;min-width:0}
-.zone-foot b{font-size:14.5px}
-.zone-foot .chip-round{
-  width:42px;height:42px;border-radius:50%;flex:none;
-  background:#fff;display:grid;place-items:center;font-size:19px;
-}
 .sheet-body{padding:18px}
 .sheet-foot{position:sticky;bottom:0;background:#fff;padding:14px 18px;border-top:1px solid var(--line)}
 @keyframes fade{from{opacity:0}to{opacity:1}}
@@ -6983,9 +6947,6 @@ body.nuit .overlay .price{color:#FF8A3D}
 body.nuit .overlay .g-ic{background-color:#1F2125}
 body.nuit .overlay .skel{background:linear-gradient(90deg,#1A1C20,#22252A,#1A1C20)}
 /* Le choix du quartier et la recherche d'adresse ouvrent aussi des feuilles. */
-body.nuit .overlay .zone-row{background-color:#1A1C20;border-color:rgba(255,255,255,.08)}
-body.nuit .overlay .zone-row.on .ic{background-color:rgba(255,101,0,.16)}
-body.nuit .overlay .zone-foot .chip-round{background-color:rgba(255,255,255,.06)}
 body.nuit .overlay .mp-results:not(:empty),
 body.nuit .overlay .mp-loc{background-color:#1A1C20}
 body.nuit .overlay .av-comp{background-color:#1A1C20}
@@ -9855,4 +9816,255 @@ body.pref-clair.ecran-accueil .sg-rien{color:var(--jr-doux)}
 
 @media(prefers-reduced-motion:reduce){
   .h3d-sugg{animation:none}
+}
+
+/* ==========================================================================
+   CHOIX DU QUARTIER — feuille qui monte du bas
+   --------------------------------------------------------------------------
+   Les autres panneaux de l'application sont des boîtes centrées. Celui-ci monte
+   du bas sur 90 % de l'écran, comme le demande le brief — et c'est justifié :
+   c'est le seul qui contient une liste qu'on parcourt, un champ de recherche et
+   un bouton de confirmation. Une boîte centrée aurait laissé du vide en haut et
+   collé le bouton au clavier.
+
+   `opts.classe` a été ajouté à `UI.sheet` pour ça : la classe est posée sur
+   l'ENVELOPPE, parce que c'est elle qui décide où le panneau se place.
+   ========================================================================== */
+.overlay.zp-ov{align-items:flex-end}
+.overlay.zp-ov .sheet{
+  max-width:560px;width:100%;
+  height:90vh;height:90dvh;max-height:90dvh;
+  border-radius:32px 32px 0 0;
+  padding:0;overflow:hidden;
+  display:flex;flex-direction:column;
+  /* Une montée franche, avec une courbe qui dépasse légèrement avant de se
+     poser : c'est le « rebond léger » demandé. Sans dépassement, la feuille
+     s'arrête net et paraît lourde. */
+  animation:zpMonte .34s cubic-bezier(.2,1.12,.32,1) both;
+}
+@keyframes zpMonte{ from{transform:translateY(100%)} to{transform:none} }
+
+.zp{
+  --zp-fond:#FFFFFF;
+  --zp-carte:#F5F6F8;
+  --zp-filet:rgba(16,24,40,.08);
+  --zp-titre:#0E1013;
+  --zp-doux:#6B7280;
+  --zp-or:#FF6B00;
+  display:flex;flex-direction:column;height:100%;
+  background:var(--zp-fond);color:var(--zp-titre);
+}
+.zp > div{display:flex;flex-direction:column;min-height:0;flex:1}
+
+/* ---- en-tête ----
+   Fixe : la liste défile dessous. Sur 90 % de hauteur, un en-tête qui part avec
+   le défilement oblige à remonter pour fermer. */
+.zp-tete{
+  flex:none;
+  display:flex;align-items:flex-start;gap:12px;
+  padding:20px 18px 14px;
+  background:rgba(255,255,255,.82);
+  -webkit-backdrop-filter:blur(18px) saturate(170%);
+          backdrop-filter:blur(18px) saturate(170%);
+  border-bottom:1px solid var(--zp-filet);
+}
+.zp-ic{
+  flex:none;width:44px;height:44px;border-radius:15px;
+  display:grid;place-items:center;color:#fff;
+  background:linear-gradient(140deg,#FF8A3D 0%,#FF6B00 55%,#FF3D57 100%);
+  box-shadow:0 8px 20px -9px rgba(255,77,60,.7);
+}
+.zp-tete-tx{flex:1;min-width:0}
+.zp-tete-tx h2{
+  margin:0;font-size:20px;font-weight:900;letter-spacing:-.03em;line-height:1.18;
+}
+.zp-tete-tx p{margin:5px 0 0;font-size:12.5px;line-height:1.4;color:var(--zp-doux)}
+.zp-x{
+  flex:none;width:38px;height:38px;border-radius:13px;
+  display:grid;place-items:center;
+  border:0;background:var(--zp-carte);color:var(--zp-titre);
+  box-shadow:inset 0 0 0 1px var(--zp-filet);
+  cursor:pointer;transition:transform .16s;
+}
+.zp-x:active{transform:scale(.92)}
+
+/* ---- le corps, seul à défiler ---- */
+.zp-corps{
+  flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 16px 12px;
+}
+
+/* ---- recherche ---- */
+.zp-rech{position:relative;margin-bottom:12px}
+.zp-rech input{
+  width:100%;height:56px;
+  padding:0 46px 0 48px;
+  border-radius:28px;
+  border:1.5px solid var(--zp-filet);
+  background:var(--zp-carte);color:var(--zp-titre);
+  font:inherit;font-size:15px;font-weight:600;
+  -webkit-appearance:none;appearance:none;
+  transition:border-color .18s, box-shadow .18s, background .18s;
+}
+.zp-rech input::placeholder{color:#9AA0A8;font-weight:500}
+.zp-rech input:focus{
+  outline:none;background:var(--zp-fond);
+  border-color:var(--zp-or);
+  box-shadow:0 0 0 4px rgba(255,107,0,.14);
+}
+.zp-rech-ic{
+  position:absolute;left:17px;top:50%;transform:translateY(-50%);
+  color:var(--zp-doux);pointer-events:none;display:grid;transition:color .18s;
+}
+.zp-rech:focus-within .zp-rech-ic{color:var(--zp-or)}
+.zp-vide{
+  position:absolute;right:9px;top:50%;transform:translateY(-50%);
+  width:38px;height:38px;border:0;border-radius:50%;
+  display:grid;place-items:center;
+  background:none;color:var(--zp-doux);cursor:pointer;
+}
+.zp-vide:active{background:rgba(16,24,40,.06)}
+
+/* ---- trois chiffres ----
+   Comptés sur la base, comme partout : ni « 100+ » ni « dès 15 min ». */
+.zp-stats{
+  display:flex;margin-bottom:14px;
+  border-radius:20px;overflow:hidden;
+  background:linear-gradient(120deg,rgba(255,107,0,.09),rgba(255,61,87,.05));
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.14);
+}
+.zp-stats > div{
+  flex:1;min-width:0;padding:11px 8px;text-align:center;
+  display:flex;flex-direction:column;gap:3px;
+}
+.zp-stats > div + div{box-shadow:inset 1px 0 0 rgba(255,107,0,.14)}
+.zp-stats b{
+  font-size:17px;font-weight:900;color:var(--zp-titre);
+  letter-spacing:-.02em;white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+.zp-stats span{
+  font-size:10.5px;font-weight:750;color:var(--zp-doux);
+  text-transform:uppercase;letter-spacing:.05em;
+}
+
+/* ---- étiquettes de section ---- */
+.zp-lab{
+  display:flex;align-items:center;gap:7px;
+  margin:16px 0 9px 4px;
+  font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--zp-doux);
+}
+.zp-lab svg{color:var(--zp-or);opacity:.9;flex:none}
+
+/* ---- une carte de quartier ---- */
+.zp-c{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:14px 15px;margin-bottom:9px;
+  border:1.5px solid var(--zp-filet);border-radius:22px;
+  background:var(--zp-carte);color:var(--zp-titre);
+  font:inherit;text-align:left;cursor:pointer;
+  transition:transform .16s cubic-bezier(.34,1.3,.64,1),
+             border-color .2s, background .2s, box-shadow .2s;
+  /* Chacune monte à son tour, plafonné : au-delà de dix quartiers, la liste se
+     déroulerait au lieu de se poser. */
+  animation:zpMonteC .34s cubic-bezier(.22,.61,.36,1) both;
+  animation-delay:calc(min(var(--i, 0) * 34ms, 340ms));
+}
+.zp-c:active{transform:scale(.98)}
+@keyframes zpMonteC{ from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:none} }
+.zp-c-ic{
+  flex:none;width:40px;height:40px;border-radius:14px;
+  display:grid;place-items:center;
+  color:var(--zp-doux);background:var(--zp-fond);
+  box-shadow:inset 0 0 0 1px var(--zp-filet);
+  transition:color .2s, background .2s;
+}
+.zp-c-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.zp-c-tx b{font-size:14.5px;font-weight:800;line-height:1.25}
+.zp-c-tx span{
+  font-size:12px;color:var(--zp-doux);line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.zp-c-m{flex:none;color:var(--zp-doux);opacity:.5;display:grid;transition:opacity .2s}
+
+/* ---- le quartier retenu ----
+   Même habillage que la carte de genre choisie et que le mode de paiement
+   retenu : trois choix uniques dans l'application, un seul vocabulaire visuel. */
+.zp-c.on{
+  border-color:var(--zp-or);
+  background:linear-gradient(170deg,rgba(255,107,0,.13),rgba(255,61,87,.05));
+  box-shadow:0 0 0 3px rgba(255,107,0,.12), 0 8px 20px -12px rgba(255,77,60,.5);
+}
+.zp-c.on .zp-c-ic{background:var(--zp-or);color:#fff}
+.zp-c.on .zp-c-m{color:var(--zp-or);opacity:1;animation:zpCoche .3s cubic-bezier(.34,1.5,.6,1) both}
+@keyframes zpCoche{ from{transform:scale(.5);opacity:0} to{transform:none;opacity:1} }
+
+.zp-rien{
+  padding:22px 16px;text-align:center;
+  font-size:13px;color:var(--zp-doux);
+}
+.zp-chargement{display:flex;flex-direction:column;gap:10px;padding:18px}
+.zp-skel{height:70px;border-radius:22px}
+
+/* ---- le bouton, toujours visible ----
+   Hors du conteneur qui défile : sur 90 % de hauteur et dix quartiers, un bouton
+   en fin de liste obligerait à tout parcourir pour valider. */
+.zp-bas{
+  flex:none;
+  padding:12px 16px calc(14px + env(safe-area-inset-bottom));
+  background:var(--zp-fond);
+  box-shadow:0 -1px 0 var(--zp-filet), 0 -12px 26px -22px rgba(16,24,40,.5);
+}
+.zp-go{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;height:60px;
+  border:0;border-radius:30px;
+  background:linear-gradient(100deg,#FF6B00 0%,#FF5230 52%,#FF3D57 100%);
+  color:#fff;font:inherit;font-size:16px;font-weight:850;cursor:pointer;
+  box-shadow:0 14px 32px -12px rgba(255,77,60,.75);
+  transition:transform .17s cubic-bezier(.34,1.3,.64,1), box-shadow .17s;
+}
+.zp-go:active{transform:scale(.978);box-shadow:0 8px 20px -10px rgba(255,77,60,.8)}
+
+@media(prefers-reduced-motion:reduce){
+  .overlay.zp-ov .sheet,.zp-c{animation:none}
+  .zp-c.on .zp-c-m{animation:none}
+  .zp-x:active,.zp-c:active,.zp-go:active{transform:none}
+}
+
+/* ==========================================================================
+   LE MÊME PANNEAU EN SOMBRE — six variables, deux exceptions
+   ========================================================================== */
+body.nuit .zp{
+  --zp-fond:#131417;
+  --zp-carte:#1A1C1F;
+  --zp-filet:rgba(255,255,255,.08);
+  --zp-titre:#F4F5F7;
+  --zp-doux:#868C95;
+}
+body.nuit .zp-tete{background:rgba(19,20,23,.8)}
+body.nuit .zp-rech input::placeholder{color:#6C7280}
+body.nuit .zp-rech input:focus{background:#1E2024}
+body.nuit .zp-vide:active{background:rgba(255,255,255,.07)}
+body.nuit .zp-stats{
+  background:linear-gradient(120deg,rgba(255,107,0,.14),rgba(255,61,87,.06));
+  box-shadow:inset 0 0 0 1px rgba(255,107,0,.18);
+}
+body.nuit .zp-stats > div + div{box-shadow:inset 1px 0 0 rgba(255,107,0,.18)}
+body.nuit .zp-c.on{
+  background:linear-gradient(170deg,rgba(255,107,0,.2),rgba(255,61,87,.07));
+  box-shadow:0 0 0 3px rgba(255,107,0,.14), 0 10px 24px -14px rgba(255,77,60,.7);
+}
+body.nuit .zp-bas{
+  box-shadow:0 -1px 0 var(--zp-filet), 0 -14px 30px -22px rgba(0,0,0,1);
+}
+
+@media(max-width:379px){
+  .zp-tete{padding:17px 14px 12px}
+  .zp-tete-tx h2{font-size:18px}
+  .zp-corps{padding:12px 13px 10px}
+  .zp-bas{padding-left:13px;padding-right:13px}
+  .zp-stats b{font-size:15px}
+  .zp-stats span{font-size:9.5px}
+  .zp-go{height:56px;font-size:15px}
 }

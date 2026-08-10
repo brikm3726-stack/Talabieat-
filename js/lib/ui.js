@@ -197,7 +197,11 @@
     sheet(opts) {
       const root = document.getElementById('modal-root');
       const ov = document.createElement('div');
-      ov.className = 'overlay';
+      /* `opts.classe` : une feuille peut demander son propre habillage — celle
+         du quartier est une feuille qui monte du bas sur 90 % de l'écran, pas une
+         boîte centrée. La classe est posée sur l'ENVELOPPE et non sur le panneau,
+         parce que c'est l'enveloppe qui décide où le panneau se place. */
+      ov.className = 'overlay' + (opts.classe ? ' ' + opts.classe : '');
       ov.innerHTML =
         '<div class="sheet" role="dialog" aria-modal="true">' +
           (opts.title !== false ?

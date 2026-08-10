@@ -345,45 +345,232 @@
       });
     },
 
-    /* -------------------------------------------------------- sélecteur zone */
-    zonePicker() {
-      /* Une ligne par quartier : bouton radio à gauche, pastille, nom, chevron.
-         Le choix courant se voit d'un coup d'œil, pas au détour d'une coche. */
-      function ligne(id, nom, sous, icone) {
-        const on = (Store.zoneId || '') === id;
-        return '<button class="zone-row' + (on ? ' on' : '') + '" data-z="' + U.esc(id) + '">' +
-          '<span class="radio"></span>' +
-          '<span class="ic">' + icone + '</span>' +
-          '<span class="grow"><b>' + U.esc(nom) + '</b>' +
-            (sous ? '<span class="tiny">' + U.esc(sous) + '</span>' : '') + '</span>' +
-          '<span class="mark">' + (on ? '✓' : '›') + '</span>' +
+    /* --------------------------------------------------- CHOIX DU QUARTIER
+       ------------------------------------------------------------------------
+       CE QUE LE BRIEF DEMANDAIT ET QUI NE PEUT PAS EXISTER
+
+       « Ma position actuelle → quartier détecté » et « distance moyenne » : la
+       table `zones` ne contient ni coordonnées ni contour — juste un nom et une
+       wilaya. Sans géométrie, aucun calcul ne peut dire dans quel quartier tombe
+       un point GPS. Un « quartier détecté » serait deviné, et se tromper sur le
+       quartier de quelqu'un est exactement ce qu'on ne peut pas se permettre ici :
+       c'est de lui que découlent les frais de livraison.
+
+       « Quartiers favoris » : il n'y a pas de table pour les épingler.
+
+       « Les plus commandés » : rien ne compte les commandes par quartier. En
+       revanche « les plus rapides » et « ceux qui ont le plus de restaurants » se
+       calculent — c'est donc ça que la section populaire montre, et elle le dit.
+
+       Les chiffres du brief — « 14 quartiers », « 100+ restaurants », « dès
+       15 min » — ne sont pas les nôtres. On affiche ceux de la base.
+
+       CE QUI EST RÉEL ET NOUVEAU : le nombre de restaurants par quartier, leur
+       délai moyen, la recherche instantanée, et l'historique des derniers
+       quartiers choisis — gardé dans le navigateur, donc propre à l'appareil.
+       ------------------------------------------------------------------------ */
+
+    /* Les trois derniers quartiers choisis, dans le navigateur. Ce n'est pas une
+       donnée de compte : quelqu'un qui commande depuis son téléphone et depuis
+       celui d'un proche n'a pas les mêmes habitudes sur les deux. */
+    _zonesRecentes(id) {
+      const CLE = 'talabi.zones_recentes';
+      try {
+        const l = JSON.parse(localStorage.getItem(CLE) || '[]');
+        if (id === undefined) return Array.isArray(l) ? l : [];
+        const n = [id].concat(l.filter(x => x !== id)).slice(0, 3);
+        localStorage.setItem(CLE, JSON.stringify(n));
+        return n;
+      } catch (e) { return []; }
+    },
+
+    async zonePicker() {
+      /* Le quartier retenu tant qu'on n'a pas confirmé. Le brief demande un
+         bouton de confirmation : toucher une carte ne change donc plus rien tout
+         de suite, ce qui permet d'en essayer plusieurs et de lire leurs chiffres
+         avant de trancher. C'est un changement de comportement — avant, la
+         première touche appliquait et refermait. */
+      let choisi = Store.zoneId || '';
+      let terme = '';
+
+      const m = UI.sheet({
+        title: false,
+        classe: 'zp-ov',
+        body: '<div class="zp"><div id="zpCorps"></div></div>'
+      });
+      const corps = m.el.querySelector('#zpCorps');
+
+      /* Un squelette pendant le comptage : la liste arrive en deux temps — les
+         noms sont déjà en mémoire, les chiffres viennent du serveur. */
+      corps.innerHTML = '<div class="zp-chargement">' +
+        '<div class="skel zp-skel"></div><div class="skel zp-skel"></div>' +
+        '<div class="skel zp-skel"></div></div>';
+
+      /* UN SEUL APPEL pour tout le panneau : on compte les restaurants par
+         quartier et on moyenne leurs temps de préparation. Une requête par
+         quartier aurait été dix requêtes pour dix chiffres. */
+      const restos = await API.safe(() => API.restaurants({}), []);
+      const parZone = {};
+      restos.forEach(r => {
+        const z = (r.zone && r.zone.id) || r.zone_id;
+        if (!z) return;
+        (parZone[z] = parZone[z] || []).push(r);
+      });
+
+      /* Le délai d'un quartier : la préparation moyenne de ses restaurants, plus
+         le trajet d'une course typique — la MÊME formule que la rangée de
+         chiffres de l'accueil. Deux formules donneraient deux durées pour la même
+         livraison, et c'est le genre d'écart qu'on remarque. */
+      const trajet = U.deliveryFor(3, Store.settings).minutes || 0;
+      const infos = z => {
+        const l = parZone[z] || [];
+        if (!l.length) return { n: 0, min: 0 };
+        const p = l.filter(r => +r.prep_time_min);
+        const moy = p.length
+          ? Math.round(p.reduce((a, r) => a + (+r.prep_time_min), 0) / p.length) : 0;
+        return { n: l.length, min: moy ? moy + trajet : 0 };
+      };
+
+      function carte(id, nom, sousTitre, i) {
+        const on = (choisi || '') === id;
+        const d = id ? infos(id) : { n: restos.length, min: 0 };
+        const chiffres = id
+          ? (d.n
+              ? d.n + ' restaurant' + (d.n > 1 ? 's' : '') +
+                (d.min ? ' • ' + d.min + ' min' : '')
+              : 'Aucun restaurant pour le moment')
+          : sousTitre;
+        return '<button type="button" class="zp-c' + (on ? ' on' : '') + '" ' +
+            'data-z="' + U.esc(id) + '" style="--i:' + i + '" ' +
+            'aria-pressed="' + (on ? 'true' : 'false') + '">' +
+          '<span class="zp-c-ic">' + UI.icon(id ? 'pin' : 'dome', 19) + '</span>' +
+          '<span class="zp-c-tx"><b>' + U.esc(nom) + '</b>' +
+            '<span>' + U.esc(chiffres) + '</span></span>' +
+          '<span class="zp-c-m">' + UI.icon(on ? 'check' : 'chevron', 17) + '</span>' +
         '</button>';
       }
 
-      UI.sheet({
-        title: 'Mon quartier de livraison',
-        icon: UI.icon('pin', 21),
-        subtitle: 'Sélectionnez votre zone de livraison',
-        body:
-          '<div class="zone-list">' +
-            ligne('', 'Toute la ville', 'Livraison disponible partout', '🏙️') +
-            Store.zones.map(z => ligne(z.id, z.name, '', UI.icon('pin', 18))).join('') +
+      function peindre() {
+        const t = terme.trim().toLowerCase();
+        const filtres = Store.zones.filter(z =>
+          !t || z.name.toLowerCase().indexOf(t) >= 0);
+
+        /* Les plus fournis d'abord, et seulement s'il y a de quoi comparer :
+           une section « populaires » sur trois quartiers ne classe rien. */
+        const populaires = !t && Store.zones.length >= 5
+          ? Store.zones.slice()
+              .map(z => ({ z: z, d: infos(z.id) }))
+              .filter(x => x.d.n > 0)
+              .sort((a, b) => b.d.n - a.d.n)
+              .slice(0, 3)
+          : [];
+
+        const recents = !t
+          ? Shell._zonesRecentes().map(id => Store.zones.find(z => z.id === id))
+              .filter(Boolean).filter(z => !populaires.some(p => p.z.id === z.id))
+          : [];
+
+        let i = 0;
+        corps.innerHTML =
+          '<header class="zp-tete">' +
+            '<span class="zp-ic" aria-hidden="true">' + UI.icon('pin', 21) + '</span>' +
+            '<div class="zp-tete-tx">' +
+              '<h2>Choisissez votre quartier</h2>' +
+              '<p>Personnalisez votre expérience de livraison</p>' +
+            '</div>' +
+            '<button type="button" class="zp-x" data-x aria-label="Fermer">' +
+              '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" ' +
+                'stroke="currentColor" stroke-width="2.4" stroke-linecap="round">' +
+                '<path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+          '</header>' +
+
+          '<div class="zp-corps">' +
+            '<div class="zp-rech">' +
+              '<span class="zp-rech-ic">' + UI.icon('search', 19) + '</span>' +
+              '<input id="zpQ" placeholder="Rechercher un quartier" ' +
+                'autocomplete="off" value="' + U.esc(terme) + '">' +
+              (terme ? '<button type="button" class="zp-vide" id="zpVide" ' +
+                'aria-label="Effacer">' +
+                '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" ' +
+                  'stroke="currentColor" stroke-width="2.6" stroke-linecap="round">' +
+                  '<path d="M6 6l12 12M18 6L6 18"/></svg></button>' : '') +
+            '</div>' +
+
+            /* Trois chiffres, tous comptés. Pas de « 100+ » ni de « dès 15 min ». */
+            '<div class="zp-stats">' +
+              '<div><b>' + Store.zones.length + '</b><span>Quartiers</span></div>' +
+              '<div><b>' + restos.length + '</b><span>Restaurants</span></div>' +
+              (trajet ? '<div><b>' + trajet + ' min</b><span>Trajet moyen</span></div>' : '') +
+            '</div>' +
+
+            (recents.length
+              ? '<div class="zp-lab">' + UI.icon('history', 14) + ' Récemment choisis</div>' +
+                recents.map(z => carte(z.id, z.name, '', i++)).join('')
+              : '') +
+
+            (populaires.length
+              ? '<div class="zp-lab">' + UI.icon('flame', 14) +
+                  ' Les quartiers les mieux servis</div>' +
+                populaires.map(x => carte(x.z.id, x.z.name, '', i++)).join('')
+              : '') +
+
+            '<div class="zp-lab">' + UI.icon('grid', 14) + ' ' +
+              (terme ? 'Résultats' : 'Tous les quartiers') + '</div>' +
+
+            (terme ? '' : carte('', 'Toute la ville',
+              'Afficher tous les restaurants disponibles', i++)) +
+
+            (filtres.length
+              ? filtres.map(z => carte(z.id, z.name, '', i++)).join('')
+              : '<div class="zp-rien">Aucun quartier ne correspond à « ' +
+                U.esc(terme) + ' »</div>') +
           '</div>' +
-          '<div class="zone-foot">' +
-            '<span class="art">🛵</span>' +
-            '<span class="grow"><b>Livraison rapide et fiable</b>' +
-              '<span class="tiny">Vos plats préférés livrés chez vous en un rien de temps !</span></span>' +
-            '<span class="chip-round">⏱️</span>' +
-          '</div>',
-        onMount(el, api) {
-          el.querySelectorAll('[data-z]').forEach(b => b.onclick = () => {
-            Store.setZone(b.dataset.z || null);
-            api.close();
-            Shell.renderTop();
-            Router.render();
-          });
+
+          '<div class="zp-bas">' +
+            '<button type="button" class="zp-go" id="zpOk">' +
+              UI.icon('check', 19) + ' Confirmer le quartier</button>' +
+          '</div>';
+
+        brancher();
+      }
+
+      function brancher() {
+        const q = corps.querySelector('#zpQ');
+        if (q) {
+          /* La recherche est INSTANTANÉE et locale : les quartiers sont déjà en
+             mémoire, il n'y a rien à demander au serveur. Pas d'amortissement
+             donc — attendre 280 ms pour filtrer dix noms serait un ralenti
+             gratuit.
+
+             On repeint tout et on redonne le focus au champ, avec le curseur à la
+             fin : sans ça, le clavier se referme à la première lettre. */
+          q.oninput = () => {
+            terme = q.value;
+            peindre();
+            const n = corps.querySelector('#zpQ');
+            if (n) { n.focus(); try { n.setSelectionRange(9999, 9999); } catch (e) {} }
+          };
         }
-      });
+        const vd = corps.querySelector('#zpVide');
+        if (vd) vd.onclick = () => { terme = ''; peindre(); };
+
+        corps.querySelectorAll('[data-z]').forEach(b => b.onclick = () => {
+          if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+          choisi = b.dataset.z || '';
+          peindre();
+        });
+
+        const ok = corps.querySelector('#zpOk');
+        if (ok) ok.onclick = () => {
+          Store.setZone(choisi || null);
+          if (choisi) Shell._zonesRecentes(choisi);
+          m.close();
+          Shell.renderTop();
+          Router.render();
+        };
+      }
+
+      peindre();
     },
 
     /* -------------------------------------------------------- notifications
