@@ -27,16 +27,35 @@
      bleu clair, comme sur la maquette : les emojis changent d'allure d'un
      téléphone à l'autre, et quatre vignettes doivent se ressembler. Le chevron
      est là sur celles qui mènent quelque part, et seulement celles-là. */
-  function drvStat(icone, label, valeur, legende, lien) {
+  /* Les quatre courbes du fond des vignettes.
+     ELLES SONT DÉCORATIVES, ET C'EST ÉCRIT ICI POUR QUE PERSONNE NE S'Y
+     TROMPE : ce ne sont pas des mesures. La maquette en montre une par
+     vignette, et un livreur pourrait y lire une tendance — « mes gains
+     montent » — qu'aucune donnée ne soutient. D'où le choix d'un aplat très
+     doux plutôt que d'un trait fin : une courbe pleine à 14 % se lit comme un
+     ornement, un trait net se lit comme un graphique. Le jour où la base
+     saura donner sept jours de chiffres, ce sera un vrai graphique. */
+  const COURBES = {
+    bleu:   'M0 30 C 22 30 28 12 46 12 S 74 22 100 6 L100 40 L0 40 Z',
+    violet: 'M0 34 C 26 34 30 18 52 20 S 78 8 100 12 L100 40 L0 40 Z',
+    vert:   'M0 32 C 20 32 26 10 44 14 S 76 6 100 4 L100 40 L0 40 Z',
+    orange: 'M0 26 C 24 26 26 34 48 30 S 76 10 100 14 L100 40 L0 40 Z'
+  };
+
+  function drvStat(icone, label, valeur, legende, lien, teinte) {
+    const t = teinte || 'bleu';
     const dedans =
       '<span class="ic">' + UI.icon(icone, 24) + '</span>' +
       '<div class="grow"><div class="k">' + U.esc(label) + '</div>' +
         '<div class="v">' + valeur + '</div>' +
         '<div class="s">' + U.esc(legende) + '</div></div>' +
-      (lien ? '<span class="go">' + UI.icon('chevron', 17) + '</span>' : '');
+      (lien ? '<span class="go">' + UI.icon('chevron', 17) + '</span>' : '') +
+      '<svg class="drv-stat-courbe" viewBox="0 0 100 40" preserveAspectRatio="none" ' +
+        'aria-hidden="true"><path d="' + COURBES[t] + '"/></svg>';
+    const cls = 'card drv-stat t-' + t;
     return lien
-      ? '<a class="card drv-stat lien" href="#' + lien + '">' + dedans + '</a>'
-      : '<div class="card drv-stat">' + dedans + '</div>';
+      ? '<a class="' + cls + ' lien" href="#' + lien + '">' + dedans + '</a>'
+      : '<div class="' + cls + '">' + dedans + '</div>';
   }
 
   function validationBanner(d) {
@@ -401,12 +420,14 @@
       /* ---- zone du bas : tout ce qui suit la carte ---- */
       zoneBas.innerHTML =
         '<div class="grid grid-stats drv-stats" style="margin-top:14px">' +
-          drvStat('calendar', 'Courses aujourd’hui', todayDone.length, 'Aujourd’hui') +
+          drvStat('calendar', 'Courses aujourd’hui', todayDone.length, 'Aujourd’hui',
+                  null, 'bleu') +
           drvStat('package', 'Total livraisons', (d && d.total_deliveries) || 0,
-                  'Voir l’historique', '/d/history') +
+                  'Voir l’historique', '/d/history', 'violet') +
           drvStat('wallet', 'Gains cumulés', U.money((d && d.total_earnings) || 0),
-                  'Voir le détail', '/d/history') +
-          drvStat('medal', 'Note', ((d && +d.rating) || 5).toFixed(1), 'Excellente note') +
+                  'Voir le détail', '/d/history', 'vert') +
+          drvStat('medal', 'Note', ((d && +d.rating) || 5).toFixed(1), 'Excellente note',
+                  null, 'orange') +
         '</div>' +
 
         (active.length

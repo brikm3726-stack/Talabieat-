@@ -10919,9 +10919,15 @@ body.role-driver #view .driver-page{
   font-size:23px;line-height:1.18;margin-top:1px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+/* « Nouvelle Ville • Moto » se faisait couper en « Nouvelle Ville • M… » : la
+   colonne d'état — pastille plus interrupteur — prenait 130 px sur 390. Elle
+   passe au-dessus de la ligne, où elle ne dispute la largeur à personne, et le
+   quartier reprend toute la sienne. C'est aussi l'ordre de la maquette : le
+   nom, puis le lieu, l'état à droite du nom. */
+.drv-hero-etat{align-self:flex-start}
 .drv-hero .drv-meta{
-  display:flex;align-items:center;gap:6px;flex-wrap:nowrap;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  row-gap:2px;
 }
 
 /* ---- l'anneau lumineux de l'avatar ----
@@ -11047,6 +11053,63 @@ body.app-driver #view .driver-page .drv-stat.card .s,
 body.role-driver #view .driver-page .drv-stat.card .s{color:#8B9BB8}
 body.app-driver #view .driver-page .drv-stat.card .go,
 body.role-driver #view .driver-page .drv-stat.card .go{color:#A9B6CE}
+
+/* ---- les vignettes, teinte par teinte ----
+   Chaque mesure a sa couleur, comme sur la maquette : c'est ce qui permet de
+   retrouver « mes gains » du coin de l'œil, sans lire l'étiquette. La couleur
+   ne porte jamais l'information seule — le libellé est écrit au-dessus. */
+body.app-driver #view .driver-page .drv-stat.card,
+body.role-driver #view .driver-page .drv-stat.card{
+  position:relative;overflow:hidden;
+}
+body.app-driver #view .driver-page .drv-stat.card .k,
+body.role-driver #view .driver-page .drv-stat.card .k{
+  text-transform:uppercase;letter-spacing:.07em;
+  font-size:10.5px;font-weight:800;color:#6A7C9E;
+}
+/* « 48 600 DA » SE CASSAIT SUR TROIS LIGNES. Deux vignettes par rangée sur
+   390 px laissent 150 px de texte une fois le pictogramme et la chevron
+   retirés : un montant à quatre chiffres suivi de sa monnaie n'y tient pas au
+   corps 27. Il ne se coupe plus, et la taille descend d'un cran — un chiffre
+   qu'on lit en entier vaut mieux qu'un chiffre plus gros qu'on reconstitue. */
+body.app-driver #view .driver-page .drv-stat.card .v,
+body.role-driver #view .driver-page .drv-stat.card .v{
+  color:#0C1526;font-size:22px;font-weight:900;letter-spacing:-.035em;
+  font-variant-numeric:tabular-nums;margin:2px 0 1px;
+  white-space:nowrap;
+}
+body.app-driver #view .driver-page .drv-stat.card,
+body.role-driver #view .driver-page .drv-stat.card{gap:11px;padding:15px 13px}
+body.app-driver #view .driver-page .drv-stat.card .grow,
+body.role-driver #view .driver-page .drv-stat.card .grow{min-width:0}
+body.app-driver #view .driver-page .drv-stat.card .ic,
+body.role-driver #view .driver-page .drv-stat.card .ic{width:42px;height:42px;border-radius:14px}
+/* Le libellé tient sur deux lignes courtes plutôt que sur une ligne coupée. */
+body.app-driver #view .driver-page .drv-stat.card .k,
+body.role-driver #view .driver-page .drv-stat.card .k{line-height:1.25}
+body.app-driver #view .driver-page .drv-stat.card .s,
+body.role-driver #view .driver-page .drv-stat.card .s{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+body.app-driver #view .driver-page .drv-stat.card .s,
+body.role-driver #view .driver-page .drv-stat.card .s{color:#8B9BB8;font-size:12px}
+
+.drv-stat.t-bleu   .ic{background:var(--lv-p-bleu-f)  !important;color:var(--lv-p-bleu)}
+.drv-stat.t-violet .ic{background:var(--lv-p-violet-f)!important;color:var(--lv-p-violet)}
+.drv-stat.t-vert   .ic{background:var(--lv-p-vert-f)  !important;color:var(--lv-p-vert)}
+.drv-stat.t-orange .ic{background:var(--lv-p-orange-f)!important;color:var(--lv-p-orange)}
+
+/* La courbe : un aplat très doux dans le coin bas-droit. Voir le commentaire
+   de `COURBES` dans js/views/driver.js — c'est un ornement, pas une mesure. */
+.drv-stat-courbe{
+  position:absolute;right:0;bottom:0;width:58%;height:44px;
+  pointer-events:none;opacity:.16;
+}
+.drv-stat-courbe path{fill:currentColor}
+.drv-stat.t-bleu   .drv-stat-courbe{color:var(--lv-p-bleu)}
+.drv-stat.t-violet .drv-stat-courbe{color:var(--lv-p-violet)}
+.drv-stat.t-vert   .drv-stat-courbe{color:var(--lv-p-vert)}
+.drv-stat.t-orange .drv-stat-courbe{color:var(--lv-p-orange)}
 
 /* ---- les panneaux de listes ---- */
 body.app-driver #view .driver-page .drv-panel.card,
