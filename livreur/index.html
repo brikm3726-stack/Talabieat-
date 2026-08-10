@@ -5,6 +5,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<!-- La couleur dont le système peint le pourtour de la page.
+     js/app.js la remet à celle de l’application dès que l’écran
+     d’ouverture s’efface. -->
 <meta name="theme-color" content="#1552B8">
 <meta name="description" content="Prenez des courses dans votre quartier, livrez et suivez vos gains.">
 <title>Talabi Livreur</title>
@@ -17,7 +20,14 @@
 <!-- iOS ignore le manifeste : ces trois balises sont le seul moyen de lui dire
      d'ouvrir Talabi en plein écran, sans la barre d'adresse de Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<!-- « black-translucent » : SANS LUI, L'APPLICATION NE REMPLIT PAS L'ÉCRAN.
+     Avec « default », iOS dessine sa propre barre d'état opaque au-dessus de la
+     page : sur un iPhone à encoche, il reste une bande vide en haut, et le
+     contenu ne passe jamais dessous. Traduit, il laisse la page monter jusqu'au
+     bord — l'heure et la batterie se posent alors PAR-DESSUS, d'où le
+     `padding-top: env(safe-area-inset-top)` de la barre du haut, sans lequel le
+     nom du quartier finirait caché sous l'horloge. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Talabi Livreur">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,7 +37,20 @@
 </head>
 <body class="app-driver">
 
-<!-- écran de démarrage -->
+<!-- ÉCRAN DE DÉMARRAGE — le mot-marque s'écrit sur fond blanc (4,3 s)
+     C'ÉTAIT UNE PHOTO PLEINE PAGE (`assets/img/bg/entrer.jpg`). Elle avait deux
+     défauts qu'aucun réglage ne rattrape : elle est rognée dès que le rapport de
+     l'écran s'écarte du sien, et elle pèse le poids d'une photo pour un écran
+     qu'on regarde quatre secondes. Le mot-marque, lui, est du texte et un tracé
+     SVG : net à toute densité, quelques centaines d'octets, et il s'anime.
+
+     TOUT EST ÉCRIT ICI, EN DUR, ET C'EST NÉCESSAIRE. Cet écran doit être peint
+     à la première image, avant que le moindre script ne soit lu — un écran
+     d'ouverture qui attend le JavaScript arrive après ce qu'il est censé
+     couvrir. La photo était posée en CSS pour la même raison.
+
+     Le fichier `entrer.jpg` reste dans le dépôt : l'espace livreur s'en sert
+     encore. -->
 <div class="splash" id="splash">
   <div class="center">
     <img src="../assets/img/logo.jpg" alt="Talabi" class="splash-logo">

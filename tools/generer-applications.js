@@ -60,6 +60,23 @@ for (const a of APPS) {
 
   let html = source;
 
+  /* 0. L'ÉCRAN D'OUVERTURE REDEVIENT CELUI DE CES APPLICATIONS-CI.
+     Le client écrit son mot-marque sur fond blanc, lettre par lettre. Ce n'est
+     pas ce que veulent les deux autres : le livreur ouvre sur la photo pleine
+     page (`body.app-driver .splash::before`), la console sur son logo posé sur
+     un dégradé. Recopié tel quel, le bloc du client aurait posé un mot noir
+     par-dessus la photo du livreur, et un mot noir sur le fond presque noir de
+     la console — illisible dans les deux cas.
+
+     L'échange se fait AVANT la reprise des chemins, plus bas : `assets/…`
+     écrit ici deviendra `../assets/…` comme partout ailleurs, au lieu qu'il
+     faille y penser à cet endroit précis. */
+  html = html.replace(/<!--OUVERTURE[\s\S]*?<!--\/OUVERTURE-->/,
+    '<div class="center">\n' +
+    '    <img src="assets/img/logo.jpg" alt="Talabi" class="splash-logo">\n' +
+    '    <div class="splash-sub">' + a.sousTitre + ' • Tizi Ouzou</div>\n' +
+    '  </div>');
+
   // 1. Les chemins remontent d'un cran — sauf le manifeste et le service
   //    worker, qui sont propres à chaque application.
   html = html
@@ -72,14 +89,24 @@ for (const a of APPS) {
     .replace(/<title>[^<]*<\/title>/, '<title>' + a.nom + '</title>')
     .replace(/<meta name="description" content="[^"]*">/,
              '<meta name="description" content="' + a.description + '">')
+    /* Le long commentaire de index.html explique le BLANC de l'écran
+       d'ouverture du client. Recopié ici, il surmonterait un bleu ou un
+       presque-noir et raconterait une histoire qui n'est pas celle de ce
+       fichier — le pire genre de commentaire, celui qui a l'air documenté.
+       Il est donc remplacé en même temps que la couleur qu'il commente. */
+    .replace(/<!-- LE BLANC DE L'ÉCRAN[\s\S]*?-->\s*<meta name="theme-color" content="[^"]*">/,
+             '<!-- La couleur dont le système peint le pourtour de la page.\n' +
+             '     js/app.js la remet à celle de l’application dès que l’écran\n' +
+             '     d’ouverture s’efface. -->\n' +
+             '<meta name="theme-color" content="' + a.couleur + '">')
     .replace(/<meta name="theme-color" content="[^"]*">/,
              '<meta name="theme-color" content="' + a.couleur + '">')
     .replace(/<meta name="apple-mobile-web-app-title" content="[^"]*">/,
              '<meta name="apple-mobile-web-app-title" content="' + a.nom + '">');
 
-  // 3. Le texte sous le logo de l'écran d'ouverture
-  html = html.replace(/<div class="splash-sub">[^<]*<\/div>/,
-                      '<div class="splash-sub">' + a.sousTitre + ' • Tizi Ouzou</div>');
+  /* 3. Le texte sous le logo est désormais écrit à l'étape 0, avec le bloc
+        qu'il accompagne : le chercher une seconde fois ne trouverait plus rien
+        depuis que le client n'a plus de `.splash-sub`. */
 
   /* 3 bis. Marquer l'application sur <body>, en dur dans le fichier.
      L'écran d'ouverture s'affiche avant que le moindre script ait tourné :

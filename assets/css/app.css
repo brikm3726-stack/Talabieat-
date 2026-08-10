@@ -3983,10 +3983,29 @@ body.app-client .splash::before{
    de chaque côté, exactement comme sur le logo, où le trait dépasse le « t » et
    le « i » au lieu de s'arrêter pile dessus. */
 .ouv-arc{
+  position:relative;
   display:block;width:min(170px,46vw);color:#FF5A1F;
-  animation:ouvArcLueur .9s 2.05s ease-out both;
 }
 .ouv-arc svg{display:block;width:100%;height:auto}
+
+/* ---- la lueur ----
+   UNE COPIE DE L'ARC, FLOUTÉE UNE FOIS POUR TOUTES, QU'ON FAIT APPARAÎTRE.
+   La lueur était d'abord un `filter:drop-shadow` animé sur l'arc lui-même :
+   le téléphone recalculait alors le flou à chaque image, pendant presque une
+   seconde. Sur les appareils d'entrée de gamme, c'est le genre de détail qui
+   transforme une animation en saccade — et une animation qui saccade coûte
+   plus cher en impression qu'elle ne rapporte.
+
+   Ici le flou est calculé une seule fois, sur une couche qui ne bouge pas ;
+   seule son opacité change, ce que la carte graphique fait sans redessiner
+   quoi que ce soit. La copie n'a pas besoin d'être tracée : elle n'apparaît
+   qu'à 2,05 s, quand l'arc est fini depuis longtemps. */
+.ouv-lueur{
+  position:absolute;left:0;top:0;right:0;
+  opacity:0;
+  filter:drop-shadow(0 3px 13px rgba(255,90,31,.62));
+  animation:ouvLueur .9s 2.05s cubic-bezier(.33,1,.68,1) both;
+}
 .ouv-arc path{
   /* 150 dépasse la longueur réelle du chemin (~135) : le tiret couvre donc tout
      le trait. Un tiret trop court laisserait un bout déjà dessiné au départ. */
@@ -4056,12 +4075,8 @@ body.app-client .splash::before{
   to  { opacity:0; transform:translateX(340%) skewX(-14deg) }
 }
 /* La lueur monte et RESTE : elle fait partie du logo fini, elle n'est pas un
-   clignotement. `drop-shadow` et non `box-shadow` — c'est le tracé qui doit
-   rayonner, pas le rectangle qui le contient. */
-@keyframes ouvArcLueur{
-  from{ filter:drop-shadow(0 0 0 rgba(255,90,31,0)) }
-  to  { filter:drop-shadow(0 3px 13px rgba(255,90,31,.55)) }
-}
+   clignotement. C'est une opacité, rien d'autre — voir `.ouv-lueur`. */
+@keyframes ouvLueur{ from{opacity:0} to{opacity:1} }
 @keyframes ouvSouffle{
   0%  { transform:scale(1) }
   45% { transform:scale(1.02) }
@@ -4077,7 +4092,7 @@ body.app-client .splash::before{
    qui reste nécessaire pour ne pas passer du blanc au noir d'un coup. */
 @media(prefers-reduced-motion:reduce){
   .ouv{animation:none}
-  .ouv-arc{animation:none;filter:drop-shadow(0 3px 13px rgba(255,90,31,.45))}
+  .ouv-lueur{animation:none;opacity:1}
   .ouv-arc path{animation:none;stroke-dashoffset:0}
   .ouv-l,
   .ouv-l:first-child{animation:entrerFondu .5s ease both}
@@ -4399,6 +4414,22 @@ html,body{overscroll-behavior-y:none}
     height:100dvh;      /* suit la barre d'adresse là où le navigateur le sait */
     overflow:hidden;
   }
+  /* LA HAUTEUR MESURÉE PASSE DEVANT `100dvh`, ET C'EST UN CORRECTIF iPHONE.
+     Au lancement depuis l'écran d'accueil, iOS annonce une fenêtre plus courte
+     que l'écran, puis l'agrandit sans que `dvh` en tienne compte : la page
+     s'arrêtait avant le bas et la barre du bas flottait trop haut. Une
+     rotation remettait tout en place — c'est ce recalcul-là que
+     `mesurerHauteur()` (js/app.js) provoque, en écrivant `innerHeight` dans
+     `--app-h`.
+
+     La règle est conditionnée à `html.h-js`, posée par ce même code : sans
+     cette classe, la variable n'existe pas, et `height:var(--app-h)` serait
+     alors invalide au calcul — ce qui ne retomberait PAS sur la déclaration
+     précédente mais sur `auto`, cassant la mise en page au lieu de la
+     réparer. C'est le piège classique de `var()`. */
+  html.h-js,
+  html.h-js body{ height:var(--app-h) }
+
   body{display:flex;flex-direction:column}
 
   /* la barre du haut n'a plus besoin d'être collante : elle ne défile plus */

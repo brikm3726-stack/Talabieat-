@@ -18,6 +18,83 @@
   const DUREE_INTRO = 5000;   // ms, animation de sortie comprise
   const SORTIE      = 700;    // doit couvrir la transition CSS de .sortie
 
+  /* ====================================================================
+     LA HAUTEUR DE LA FENÊTRE, MESURÉE ET NON DEVINÉE
+     --------------------------------------------------------------------
+     LE SYMPTÔME, SUR IPHONE : au démarrage, la page s'arrête avant le bas de
+     l'écran et la barre de navigation flotte trop haut. Une rotation en
+     paysage puis retour en portrait remet tout en place — et c'est justement
+     ce détail qui désigne le coupable.
+
+     LA CAUSE. La feuille de style fige la fenêtre à `100dvh` : c'est ce qui
+     empêche le document de défiler et la barre du bas de suivre le doigt
+     (voir « LA FENÊTRE EST FIGÉE » dans app.css). Mais au lancement depuis
+     l'écran d'accueil, iOS annonce d'abord une fenêtre plus courte que
+     l'écran — le temps que la barre d'état translucide et l'indicateur du
+     bas soient pris en compte — puis l'agrandit SANS relayer l'information
+     aux longueurs déjà calculées. `100dvh` garde donc la première valeur,
+     trop petite. La rotation force un nouveau calcul : tout se remet en
+     place, et c'est pour ça que le tour de passe-passe marche.
+
+     LA PARADE. On mesure `innerHeight` nous-mêmes et on l'écrit dans
+     `--app-h`, que la feuille de style utilise à la place de `100dvh` dès que
+     la classe `h-js` est posée. La mesure est refaite à chaque évènement qui
+     peut la changer — rotation, redimensionnement, retour dans l'application
+     — ET quatre fois pendant la première seconde, parce que l'agrandissement
+     d'iOS n'émet parfois aucun évènement du tout. Écrire la même valeur deux
+     fois ne coûte rien : le navigateur ignore une propriété inchangée.
+
+     Ce qu'on ne mesure PAS : `visualViewport.height`. Elle rétrécit quand le
+     clavier s'ouvre — l'application entière se serait repliée à chaque
+     saisie, ce que ni `dvh` ni l'ancien code ne faisaient.
+     ==================================================================== */
+  const racine = document.documentElement;
+  let derniereHauteur = 0;
+
+  function mesurerHauteur() {
+    const h = w.innerHeight;
+    if (!h || h === derniereHauteur) return;
+    derniereHauteur = h;
+    racine.style.setProperty('--app-h', h + 'px');
+    racine.classList.add('h-js');
+    recalerLesBarres();
+  }
+
+  /* LES DEUX BARRES SONT EN `position:fixed` : ELLES NE SUIVENT PAS `--app-h`.
+     Un élément fixe se place par rapport à la fenêtre du navigateur et par
+     rapport aux marges de sécurité (`env(safe-area-inset-bottom)`, l'espace de
+     l'indicateur du bas). Corriger la hauteur du corps ne les déplace donc pas
+     d'un pixel — c'est pour ça que la barre du bas restait montée alors même
+     que le reste de la page se remettait en place.
+
+     Les cacher puis les remontrer force le navigateur à recalculer leur
+     position avec les valeurs du moment. C'est exactement ce que produit la
+     rotation de l'écran, en un aller-retour trop court pour se voir : la
+     lecture de `offsetHeight` entre les deux oblige le calcul à se faire
+     avant que la barre ne réapparaisse.
+
+     Uniquement quand la hauteur A CHANGÉ : appelé à chaque évènement, ce
+     clignotement finirait par se voir. */
+  function recalerLesBarres() {
+    ['topbar', 'bottomnav'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const avant = el.style.display;
+      el.style.display = 'none';
+      void el.offsetHeight;
+      el.style.display = avant;
+    });
+  }
+
+  mesurerHauteur();
+  ['resize', 'orientationchange', 'pageshow', 'focus'].forEach(ev =>
+    w.addEventListener(ev, mesurerHauteur));
+  /* `visualViewport` bouge aussi quand la barre d'adresse du navigateur
+     s'escamote — un cas que `resize` ne signale pas toujours sur iOS. On y lit
+     quand même `innerHeight`, jamais la hauteur du viewport visuel. */
+  if (w.visualViewport) w.visualViewport.addEventListener('resize', mesurerHauteur);
+  [60, 250, 600, 1200].forEach(ms => setTimeout(mesurerHauteur, ms));
+
   function finDeLIntro() {
     const splash = document.getElementById('splash');
     if (!splash) return Promise.resolve();
@@ -46,7 +123,20 @@
            bande clignote entre les deux. */
         const m = document.querySelector('meta[name="theme-color"]');
         if (m) m.setAttribute('content', UI.couleurBarre());
-        setTimeout(() => { splash.remove(); resolve(); }, SORTIE);
+        setTimeout(() => {
+          splash.remove();
+          /* La fenêtre a eu cinq secondes pour prendre sa taille définitive :
+             on la remesure au moment où l'application devient visible. C'est
+             le dernier instant où une correction passe inaperçue.
+
+             Et on recale les barres MÊME SI la hauteur n'a pas bougé : le
+             défaut peut venir des marges de sécurité (l'espace de l'indicateur
+             du bas), qu'iOS annonce parfois trop grandes au lancement puis
+             corrige. Une hauteur inchangée ne dit rien de ces marges-là. */
+          mesurerHauteur();
+          recalerLesBarres();
+          resolve();
+        }, SORTIE);
       }, reste);
     });
   }

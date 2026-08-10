@@ -60,9 +60,20 @@
      Le fichier `entrer.jpg` reste dans le dépôt : l'espace livreur s'en sert
      encore. -->
 <div class="splash" id="splash">
+  <!--OUVERTURE : ce bloc, et lui seul, est remplacé par le générateur pour
+      l'espace livreur et la console (tools/generer-applications.js). Ces deux
+      applications gardent leur propre écran de démarrage — la photo pour le
+      livreur, le logo sur fond sombre pour la console. Les repères délimitent
+      ce qu'il faut échanger : sans eux, le générateur devrait deviner où le
+      bloc commence et où il finit. -->
   <div class="ouv">
     <div class="ouv-logo" role="img" aria-label="Talabi">
-      <span class="ouv-arc" aria-hidden="true"><svg viewBox="0 0 132 26"><path d="M6 24C6 24 24 4 66 4s60 20 60 20" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg></span>
+      <!-- Deux fois le même arc : celui du dessous porte la lueur, en dur, et
+           ne fait qu'apparaître en opacité au moment voulu. Animer un
+           `filter` obligerait le téléphone à redessiner le flou à chaque
+           image — sur les appareils d'entrée de gamme du quartier, c'est la
+           différence entre soixante images par seconde et une saccade. -->
+      <span class="ouv-arc" aria-hidden="true"><span class="ouv-lueur"><svg viewBox="0 0 132 26"><path d="M6 24C6 24 24 4 66 4s60 20 60 20" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg></span><svg viewBox="0 0 132 26"><path d="M6 24C6 24 24 4 66 4s60 20 60 20" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg></span>
       <!-- Une lettre par élément, avec son rang : c'est le rang qui décale son
            entrée dans la feuille de style. Aucun espace entre les balises —
            deux `inline-block` séparés par un retour à la ligne se retrouvent
@@ -71,6 +82,7 @@
     </div>
     <div class="ouv-sub">Livraison de repas • Tizi Ouzou</div>
   </div>
+  <!--/OUVERTURE-->
 </div>
 
 <!-- barre latérale (espace restaurant, sur grand écran) -->
