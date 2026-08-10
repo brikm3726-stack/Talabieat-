@@ -36,10 +36,10 @@
            avec la couleur de `theme-color`. Aucun CSS ne l'atteint : cette
            bande est en dehors de la page.
 
-           Elle vaut donc l'orange du bas de l'affiche pendant l'ouverture
-           (voir index.html), et le noir de l'application dès que l'affiche
-           s'efface. Sans ce second temps, un bandeau orange resterait collé
-           en bas d'une application entièrement sombre.
+           Elle vaut donc le blanc de l'écran d'ouverture pendant celui-ci
+           (voir index.html), et le noir de l'application dès qu'il s'efface.
+           Sans ce second temps, un bandeau blanc resterait collé en bas d'une
+           application entièrement sombre.
 
            Le changement accompagne le fondu de sortie, pas la disparition :
            les deux couleurs se croisent ainsi au même instant, sans que la

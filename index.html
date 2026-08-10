@@ -3,19 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
-<!-- L'ORANGE DU BAS DE L'AFFICHE, ET NON LE NOIR DE L'APPLICATION.
+<!-- LE BLANC DE L'ÉCRAN D'OUVERTURE, ET NON LE NOIR DE L'APPLICATION.
 
      Mesuré sur un iPhone 14 Pro : la fenêtre du navigateur fait 59 pt de moins
      que l'écran, et iOS peint cette bande lui-même — avec CETTE couleur. Aucun
      CSS ne peut l'atteindre : elle est en dehors de la page.
 
-     L'affiche d'ouverture se termine par une courbe orange (#E95403 mesuré sur
-     sa dernière rangée). En donnant la même teinte à la bande, la jointure
-     disparaît : on voit une affiche qui va jusqu'au bord.
+     L'ouverture est désormais un fond blanc sur lequel le mot-marque s'écrit
+     (c'était une photo pleine page, `entrer.jpg`, qui se terminait en courbe
+     orange — d'où le #E95403 qu'on lisait ici). La bande prend donc le même
+     blanc : la jointure disparaît, on voit un écran qui va jusqu'au bord.
 
-     js/app.js repasse au noir de la page dès que l'affiche s'efface — sinon
-     c'est un bandeau orange qui resterait au-dessus d'une application sombre. -->
-<meta name="theme-color" content="#E95403">
+     js/app.js repasse au noir de la page dès que l'écran s'efface — sinon
+     c'est un bandeau blanc qui resterait au-dessus d'une application sombre. -->
+<meta name="theme-color" content="#FFFFFF">
 <meta name="description" content="Talabi — Commandez vos repas préférés en ligne et faites-vous livrer rapidement partout dans la ville de Tizi Ouzou.">
 <title>Talabi — Livraison de repas à domicile</title>
 
@@ -44,11 +45,31 @@
 </head>
 <body class="app-client">
 
-<!-- écran de démarrage -->
+<!-- ÉCRAN DE DÉMARRAGE — le mot-marque s'écrit sur fond blanc (4,3 s)
+     C'ÉTAIT UNE PHOTO PLEINE PAGE (`assets/img/bg/entrer.jpg`). Elle avait deux
+     défauts qu'aucun réglage ne rattrape : elle est rognée dès que le rapport de
+     l'écran s'écarte du sien, et elle pèse le poids d'une photo pour un écran
+     qu'on regarde quatre secondes. Le mot-marque, lui, est du texte et un tracé
+     SVG : net à toute densité, quelques centaines d'octets, et il s'anime.
+
+     TOUT EST ÉCRIT ICI, EN DUR, ET C'EST NÉCESSAIRE. Cet écran doit être peint
+     à la première image, avant que le moindre script ne soit lu — un écran
+     d'ouverture qui attend le JavaScript arrive après ce qu'il est censé
+     couvrir. La photo était posée en CSS pour la même raison.
+
+     Le fichier `entrer.jpg` reste dans le dépôt : l'espace livreur s'en sert
+     encore. -->
 <div class="splash" id="splash">
-  <div class="center">
-    <img src="assets/img/logo.jpg" alt="Talabi" class="splash-logo">
-    <div class="splash-sub">Livraison de repas • Tizi Ouzou</div>
+  <div class="ouv">
+    <div class="ouv-logo" role="img" aria-label="Talabi">
+      <span class="ouv-arc" aria-hidden="true"><svg viewBox="0 0 132 26"><path d="M6 24C6 24 24 4 66 4s60 20 60 20" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg></span>
+      <!-- Une lettre par élément, avec son rang : c'est le rang qui décale son
+           entrée dans la feuille de style. Aucun espace entre les balises —
+           deux `inline-block` séparés par un retour à la ligne se retrouvent
+           séparés par une espace, et le mot s'écrirait « t a l a b i ». -->
+      <span class="ouv-mot" aria-hidden="true"><span class="ouv-l" style="--i:0">t</span><span class="ouv-l" style="--i:1">a</span><span class="ouv-l" style="--i:2">l</span><span class="ouv-l" style="--i:3">a</span><span class="ouv-l or" style="--i:4">b</span><span class="ouv-l or" style="--i:5">i</span><span class="ouv-brille"></span></span>
+    </div>
+    <div class="ouv-sub">Livraison de repas • Tizi Ouzou</div>
   </div>
 </div>
 

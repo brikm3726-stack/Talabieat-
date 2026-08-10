@@ -678,15 +678,30 @@
         .forEach(c => b.classList.remove(c));
       if (nom)    b.classList.add('ecran-' + nom);
       if (sombre) b.classList.add('nuit-' + nom);
-      /* La couleur d'origine est mémorisée pour les espaces professionnels,
-         qui ont chacune la leur ; l'orange de l'affiche d'ouverture est écarté
-         (voir couleurBarre et js/app.js). */
+      /* La couleur d'origine est mémorisée pour les espaces professionnels, qui
+         ont chacun la leur ; celle de l'écran d'ouverture du client est écartée
+         (voir couleurBarre et js/app.js).
+
+         DEUX VALEURS À ÉCARTER, PAS UNE. L'ouverture était une photo qui
+         finissait en orange (#E95403) ; c'est maintenant un fond blanc. Un
+         client qui recharge sur une page sombre aurait sinon gardé une bande
+         blanche en haut de l'écran jusqu'à la fin de l'ouverture. L'ancienne
+         valeur reste écartée : un téléphone peut servir une page mise en cache
+         par une version précédente. */
       const m = document.querySelector('meta[name=theme-color]');
       if (!m) return;
       if (UI._themeInitial === undefined) {
         const v = m.getAttribute('content');
-        UI._themeInitial = (v === '#E95403') ? '#050505' : v;
+        UI._themeInitial = (v === '#E95403' || v === '#FFFFFF') ? '#050505' : v;
       }
+      /* TANT QUE L'ÉCRAN D'OUVERTURE EST LÀ, ON NE TOUCHE PAS À CETTE COULEUR.
+         L'application se charge DERRIÈRE lui : la première route s'affiche et
+         appelle `nuit()` bien avant la fin des quatre secondes. La bande que
+         peint iOS passait donc au noir de l'application alors que l'écran
+         montrait encore le blanc de l'ouverture — un bandeau noir en haut d'un
+         écran blanc, pendant quatre secondes, à chaque démarrage.
+         C'est js/app.js qui fait le changement, au moment du fondu de sortie. */
+      if (document.getElementById('splash')) return;
       m.setAttribute('content', UI.couleurBarre());
     },
 

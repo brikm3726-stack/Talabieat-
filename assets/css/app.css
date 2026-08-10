@@ -3889,17 +3889,14 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
    L'image contient déjà le nom, la promesse et le livreur : le logo et le
    sous-titre de l'ancien écran feraient doublon, ils sont cachés.
    ========================================================================== */
-body.app-client .splash,
 body.app-driver .splash{
   background:#100C09;
   overflow:hidden;
 }
 
 /* le logo et le sous-titre sont déjà dans l'image */
-body.app-client .splash .center,
 body.app-driver .splash .center{display:none}
 
-body.app-client .splash::before,
 body.app-driver .splash::before{
   content:"";position:absolute;inset:0;
   background:url("../img/bg/entrer.jpg") center center/cover no-repeat;
@@ -3911,15 +3908,186 @@ body.app-driver .splash::before{
    bande verticale au milieu de l'affiche. On y repasse à l'image entière —
    ce cas ne concerne pas le téléphone, où le réglage choisi s'applique. */
 @media(min-aspect-ratio:1/1){
-  body.app-client .splash::before,
   body.app-driver .splash::before{ background-size:contain }
 }
 
 /* Panne au démarrage : le message remplace la photo, il doit rester lisible. */
-body.app-client .splash.panne::before,
 body.app-driver .splash.panne::before{display:none}
-body.app-client .splash.panne,
 body.app-driver .splash.panne{background:var(--brand-grad)}
+
+/* ==========================================================================
+   ÉCRAN D'OUVERTURE DU CLIENT — LE MOT-MARQUE S'ÉCRIT (4,3 s)
+   --------------------------------------------------------------------------
+   LA PHOTO PLEINE PAGE EST PARTIE. Elle était rognée dès que le rapport de
+   l'écran s'écartait du sien, et elle pesait le poids d'une photo pour quatre
+   secondes de regard. À sa place : un fond blanc, un arc qui se trace, six
+   lettres qui montent, un reflet qui traverse le mot, une respiration.
+
+   LE DÉCOUPAGE DES 4,3 SECONDES — c'est le temps utile, la sortie occupant les
+   700 ms suivantes (voir DUREE_INTRO dans js/app.js) :
+
+     0,15 → 0,73 s   le « t » seul. Il arrive avant les autres, comme une
+                     première trace de feutre.
+     0,55 → 1,65 s   l'arc se TRACE. Le chemin est transformé en un tiret plus
+                     long que lui (`stroke-dasharray`) puis décalé hors de sa
+                     propre ligne : ramener ce décalage à zéro fait sortir le
+                     trait de la pointe, de gauche à droite.
+     0,95 → 2,01 s   les cinq lettres restantes, 120 ms d'écart chacune. Elles
+                     démarrent PENDANT le tracé : ce chevauchement de 700 ms
+                     fait un geste continu au lieu de deux animations à la file.
+     2,05 → 3,00 s   le reflet traverse le mot, et l'arc reçoit sa lueur.
+     3,05 → 4,25 s   la respiration : 1 → 1,02 → 1. C'est elle qui tient la
+                     dernière seconde, celle où l'on ne fait plus qu'attendre.
+
+   La courbe est `cubic-bezier(.33,1,.68,1)` — easeOutCubic — partout où quelque
+   chose entre : c'est elle qui donne le départ vif puis le posé lent.
+
+   PAS DE VARIANTE SOMBRE, ET C'EST UN CHOIX. Cet écran est un moment de marque,
+   pas une page de l'application : il est blanc pour tout le monde, comme le
+   logo. La sortie dure 650 ms en fondu, ce qui laisse le noir de l'application
+   monter derrière au lieu de remplacer le blanc d'un coup.
+   ========================================================================== */
+body.app-client .splash{
+  background:#FFFFFF;
+  color:#111111;
+  overflow:hidden;
+}
+
+/* La « légère profondeur » : deux halos très pâles, pas une ombre. Un blanc
+   absolument plat se lit comme un écran qui n'a pas fini de charger. */
+body.app-client .splash::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(58% 40% at 50% 44%, rgba(255,90,31,.075), transparent 72%),
+    radial-gradient(120% 55% at 50% 106%, rgba(17,17,17,.055), transparent 68%);
+  animation:entrerFondu .5s ease both;
+}
+
+.ouv{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;
+  animation:ouvSouffle 1.2s 3.05s cubic-bezier(.37,0,.24,1) both;
+}
+.ouv-logo{position:relative;display:flex;flex-direction:column;align-items:center}
+
+/* ---- l'arc ----
+   SA LARGEUR EST FIXE, ET C'EST LE SEUL MOYEN SÛR. `width:100%` semblait plus
+   juste — l'arc prendrait la largeur exacte du mot — mais un SVG sans taille
+   intrinsèque dont le pourcentage ne peut pas se résoudre retombe sur la
+   largeur par défaut d'un élément remplacé : 300 px. L'arc doublait de
+   largeur. Mesurer le mot en JavaScript ne va pas non plus : cet écran doit
+   être peint avant le premier script.
+
+   Les deux mesures sont donc accordées à la main, sur la même échelle : à
+   390 px de large, le mot fait 159 px et l'arc 170 — il déborde de cinq pixels
+   de chaque côté, exactement comme sur le logo, où le trait dépasse le « t » et
+   le « i » au lieu de s'arrêter pile dessus. */
+.ouv-arc{
+  display:block;width:min(170px,46vw);color:#FF5A1F;
+  animation:ouvArcLueur .9s 2.05s ease-out both;
+}
+.ouv-arc svg{display:block;width:100%;height:auto}
+.ouv-arc path{
+  /* 150 dépasse la longueur réelle du chemin (~135) : le tiret couvre donc tout
+     le trait. Un tiret trop court laisserait un bout déjà dessiné au départ. */
+  stroke-dasharray:150;
+  stroke-dashoffset:150;
+  animation:ouvTrace 1.1s .55s cubic-bezier(.33,1,.68,1) both;
+}
+
+/* ---- les lettres ---- */
+.ouv-mot{
+  position:relative;display:inline-flex;
+  margin-top:2px;
+  font-weight:900;font-size:min(62px,17vw);letter-spacing:-.045em;line-height:1.08;
+  color:#111111;
+}
+/* LES LETTRES SE DÉSIGNENT PAR LEUR CLASSE, PAS PAR LEUR BALISE. Le reflet est
+   lui aussi un `<span>` du mot : avec `.ouv-mot > span`, il héritait de
+   l'animation des lettres — plus spécifique que sa propre règle — et se posait
+   donc, opaque et immobile, en rectangle blanc par-dessus « tal ». C'est le
+   genre de collision qui ne casse rien et qu'on ne voit qu'à l'image. */
+.ouv-l{
+  display:inline-block;
+  animation:ouvLettre .58s cubic-bezier(.33,1,.68,1) both;
+  /* le « t » part seul à 0,15 s (règle suivante) ; les autres s'enchaînent à
+     partir de 0,95 s, une fois l'arc engagé */
+  animation-delay:calc(.95s + (var(--i) - 1) * .12s);
+}
+.ouv-l:first-child{animation-delay:.15s}
+.ouv-mot .or{color:#FF5A1F}
+
+/* ---- le reflet ----
+   Une bande blanche translucide qui traverse le mot. Sur un fond déjà blanc,
+   elle ne se voit QUE sur les lettres — ailleurs, c'est du blanc sur du blanc.
+   D'où l'absence de masque : le fond fait le découpage tout seul. */
+.ouv-brille{
+  position:absolute;top:-14%;bottom:-14%;left:0;width:46%;
+  pointer-events:none;
+  background:linear-gradient(100deg,
+    rgba(255,255,255,0) 0%, rgba(255,255,255,.85) 48%, rgba(255,255,255,0) 100%);
+  /* LES BORDS HAUT ET BAS SONT EFFACÉS AU MASQUE. Le fond de l'écran n'est pas
+     un blanc plat mais un halo très pâle : une bande blanche à bords nets y
+     dessinait un rectangle en passant, visible à droite du mot là où il n'y a
+     plus de lettres. Estompée en haut et en bas, elle n'est plus qu'une lueur
+     qui ne se remarque que sur ce qu'elle éclaire. */
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26%,#000 74%,transparent 100%);
+          mask-image:linear-gradient(to bottom,transparent 0,#000 26%,#000 74%,transparent 100%);
+  transform:translateX(-160%) skewX(-14deg);
+  opacity:0;
+  animation:ouvBrille .95s 2.05s cubic-bezier(.45,.05,.35,1) both;
+}
+
+.ouv-sub{
+  margin-top:16px;
+  font-size:13px;font-weight:600;letter-spacing:.01em;color:#8A8A8A;
+  animation:ouvSous .7s 2.7s cubic-bezier(.33,1,.68,1) both;
+}
+
+@keyframes ouvTrace{ to{ stroke-dashoffset:0 } }
+@keyframes ouvLettre{
+  from{ opacity:0; transform:translateY(26%) }
+  to  { opacity:1; transform:none }
+}
+@keyframes ouvBrille{
+  from{ opacity:0; transform:translateX(-160%) skewX(-14deg) }
+  18% { opacity:1 }
+  82% { opacity:1 }
+  to  { opacity:0; transform:translateX(340%) skewX(-14deg) }
+}
+/* La lueur monte et RESTE : elle fait partie du logo fini, elle n'est pas un
+   clignotement. `drop-shadow` et non `box-shadow` — c'est le tracé qui doit
+   rayonner, pas le rectangle qui le contient. */
+@keyframes ouvArcLueur{
+  from{ filter:drop-shadow(0 0 0 rgba(255,90,31,0)) }
+  to  { filter:drop-shadow(0 3px 13px rgba(255,90,31,.55)) }
+}
+@keyframes ouvSouffle{
+  0%  { transform:scale(1) }
+  45% { transform:scale(1.02) }
+  100%{ transform:scale(1) }
+}
+@keyframes ouvSous{
+  from{ opacity:0; transform:translateY(8px) }
+  to  { opacity:1; transform:none }
+}
+
+/* Moins de mouvement : le logo est là, entier, dès la première image. Il n'y a
+   plus ni tracé, ni écriture, ni respiration — seulement le fondu de la page,
+   qui reste nécessaire pour ne pas passer du blanc au noir d'un coup. */
+@media(prefers-reduced-motion:reduce){
+  .ouv{animation:none}
+  .ouv-arc{animation:none;filter:drop-shadow(0 3px 13px rgba(255,90,31,.45))}
+  .ouv-arc path{animation:none;stroke-dashoffset:0}
+  .ouv-l,
+  .ouv-l:first-child{animation:entrerFondu .5s ease both}
+  .ouv-brille{display:none}
+  .ouv-sub{animation:entrerFondu .5s .2s ease both}
+}
+
+/* Panne au démarrage : le message remplace le logo, il doit rester lisible. */
+body.app-client .splash.panne::before{display:none}
+body.app-client .splash.panne{background:var(--brand-grad)}
 
 /* ---- pilule de localisation, orange plein --------------------------------
    Comme sur la maquette. C'est la seule commande de la barre du haut qui
