@@ -28,13 +28,24 @@ window.TALABI_CONFIG = {
   // ouvrant les fichiers en local. La carte retombe alors sur OpenStreetMap,
   // ce qui est exactement ce qu'on veut pendant un essai.
   //
-  // Vider cette valeur suffit à revenir entièrement à OpenStreetMap.
+  // ELLE EST VIDE DEPUIS LE 11 AOÛT 2026, ET C'EST UN RETOUR EN ARRIÈRE
+  // ASSUMÉ : les cartes Google se comportaient mal dans les DEUX applications,
+  // client et livreur. Une carte cassée n'est pas un défaut d'affichage — elle
+  // empêche de choisir son adresse, donc de commander. On revient au moteur
+  // qui fonctionnait, et on cherchera la cause à tête reposée.
+  //
+  // La clé du projet est conservée ci-dessous, en commentaire, pour ne pas
+  // avoir à la retrouver dans la console Google le jour de la reprise :
+  //   AIzaSyD6jN6hL3eZVG1Ej1c4FwdmRj3P0L6Ilv4
+  //
+  // Remettre cette valeur suffit à rebasculer sur Google ; la vider suffit à
+  // revenir entièrement à OpenStreetMap. Aucun autre fichier n'est à toucher.
   //
   // Deux services restent à activer dans la console Google (API et services →
   // Bibliothèque) pour que la RECHERCHE d'adresse passe aussi par Google :
   // « Geocoding API » et « Places API ». Tant qu'ils répondent REQUEST_DENIED,
   // la recherche se fait par Nominatim, sans que rien ne casse.
-  GOOGLE_MAPS_KEY: 'AIzaSyD6jN6hL3eZVG1Ej1c4FwdmRj3P0L6Ilv4',
+  GOOGLE_MAPS_KEY: '',
 
   // ---- Identité ---------------------------------------------------------
   APP_NAME: 'Talabi',
