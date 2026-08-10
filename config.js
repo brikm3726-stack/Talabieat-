@@ -16,13 +16,24 @@ window.TALABI_CONFIG = {
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54d2dycGl1YmdybHZhc3pjbG16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNTkyNTAsImV4cCI6MjEwMDkzNTI1MH0.wKsQIAiB_sJcttPQQbTDfWsVAdbRA_PqokF0TNBeF-c',
 
   // ---- Cartes -----------------------------------------------------------
-  // Les cartes utilisent OpenStreetMap : aucune clé, aucun compte, aucune
-  // carte bancaire. Google Maps exigeait une facturation active même dans le
-  // quota gratuit, et l'ajout de carte échouait (OR_BACR2_44) — la carte
-  // cessait alors de s'afficher sans que rien n'ait changé dans le code.
+  // LES CARTES SONT CELLES DE GOOGLE, avec repli automatique sur
+  // OpenStreetMap. Cette clé est donc lue à nouveau depuis le 10 août 2026 :
+  // la facturation qui bloquait auparavant (OR_BACR2_44 à l'ajout de carte)
+  // est active, vérifiée en chargeant l'API depuis talabi.shop.
   //
-  // Cette clé n'est plus lue par l'application. Conservée au cas où la
-  // facturation Google serait débloquée un jour.
+  // LA CLÉ EST RESTREINTE AU DOMAINE talabi.shop. C'est ce qui permet de la
+  // laisser en clair ici — un fichier de configuration servi au navigateur est
+  // public par nature, et une clé sans restriction s'y ferait ramasser en
+  // quelques heures. Conséquence à connaître : elle ne fonctionne PAS en
+  // ouvrant les fichiers en local. La carte retombe alors sur OpenStreetMap,
+  // ce qui est exactement ce qu'on veut pendant un essai.
+  //
+  // Vider cette valeur suffit à revenir entièrement à OpenStreetMap.
+  //
+  // Deux services restent à activer dans la console Google (API et services →
+  // Bibliothèque) pour que la RECHERCHE d'adresse passe aussi par Google :
+  // « Geocoding API » et « Places API ». Tant qu'ils répondent REQUEST_DENIED,
+  // la recherche se fait par Nominatim, sans que rien ne casse.
   GOOGLE_MAPS_KEY: 'AIzaSyD6jN6hL3eZVG1Ej1c4FwdmRj3P0L6Ilv4',
 
   // ---- Identité ---------------------------------------------------------

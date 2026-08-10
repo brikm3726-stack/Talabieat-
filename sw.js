@@ -17,7 +17,7 @@
 
 /* Changer ce numéro à chaque mise en ligne : c'est lui qui déclenche le
    remplacement de l'ancien cache par le nouveau. */
-const VERSION = 'talabi-v163';
+const VERSION = 'talabi-v164';
 
 /* Quatre applications partagent ce fichier (client à la racine, resto/,
    livreur/, admin/). Chacune a son propre service worker de trois lignes qui
@@ -61,6 +61,7 @@ const A_PRECHARGER = [
   R + 'js/lib/router.js',
   R + 'js/lib/shell.js',
   R + 'js/lib/components.js',
+  R + 'js/lib/mapengine.js',
   R + 'js/lib/mappicker.js',
   R + 'js/lib/livetrack.js',
   R + 'js/lib/livescreen.js',

@@ -9781,7 +9781,35 @@ body.nuit #view .mc-sortie{color:#FF8A3D;border-color:rgba(255,107,0,.45)}
    Dessinés en HTML par MapPicker (`L.divIcon`) : le marqueur bleu de Leaflet est
    le même sur tous les sites du monde, et rien n'y dit lequel des deux points
    est chez vous. Ils sont habillés ici, donc ils suivent le thème. */
+/* ==========================================================================
+   LES REPÈRES, ET LEUR ENVELOPPE COMMUNE AUX DEUX MOTEURS
+   --------------------------------------------------------------------------
+   Google et Leaflet ne posent pas un repère de la même façon : Leaflet
+   positionne l'élément lui-même par un `transform`, Google ne positionne rien
+   du tout et laisse faire une surcouche. Une seule chose devait rester
+   commune — le contenu, puisque c'est lui qu'on a dessiné : le rond, le
+   pictogramme, l'enseigne, le scooter qui s'oriente.
+
+   D'où ces deux classes. `.gm-repere` n'existe que pour Google et reçoit la
+   position en pixels. `.gm-repere-in` est l'enfant, identique des deux côtés,
+   et c'est LUI qui se recentre sur le point. Écrire ce recentrage sur
+   l'élément que Leaflet positionne aurait écrasé son `transform`, et tous les
+   repères se seraient empilés dans le coin de la carte.
+   ========================================================================== */
+.gm-repere{position:absolute;top:0;left:0;will-change:transform}
+.gm-repere-in{
+  position:relative;
+  transform:translate(-50%,-50%);
+  /* Le contenu déborde volontairement de son point d'ancrage — l'étiquette du
+     restaurant s'étend à droite. Rien ne doit le rogner. */
+  overflow:visible;
+}
+
 .mp-repere{
+  /* La taille était donnée par Leaflet (`iconSize`) quand le repère ÉTAIT
+     l'icône. Depuis qu'il est un enfant, elle doit être écrite ici — sans
+     quoi le rond orange du client se réduisait à rien du tout. */
+  width:34px;height:34px;
   border-radius:50%;
   box-shadow:0 3px 10px -2px rgba(16,24,40,.5);
 }
@@ -9792,8 +9820,7 @@ body.nuit #view .mc-sortie{color:#FF8A3D;border-color:rgba(255,107,0,.45)}
 .mp-repere.resto{
   background:#16181D;
   border:3px solid #fff;
-  width:26px !important;height:26px !important;
-  margin:4px 0 0 4px;
+  width:26px;height:26px;
 }
 
 /* ---- apparition ---- */

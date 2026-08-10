@@ -1,26 +1,24 @@
 /* ==========================================================================
-   SÉLECTEUR DE POSITION SUR CARTE — OpenStreetMap
+   SÉLECTEUR DE POSITION SUR CARTE
    --------------------------------------------------------------------------
-   • Carte OpenStreetMap via Leaflet — gratuit, aucune clé, aucun compte
+   • Le fond de carte vient de Google Maps, avec repli automatique sur
+     OpenStreetMap — le choix se fait dans js/lib/mapengine.js, qui explique
+     pourquoi il y a deux moteurs.
    • Bouton « Ma position » via le GPS du téléphone (navigator.geolocation)
-   • Recherche et adresse inverse via Nominatim (OpenStreetMap)
+   • Recherche et adresse inverse : Google quand ses services répondent,
+     Nominatim (OpenStreetMap) sinon — voir « LES DEUX ANNUAIRES » plus bas.
    • Navigation du livreur : liens Google Maps, qui ouvrent l'application du
-     téléphone et ne demandent aucune clé
+     téléphone et ne demandent aucune clé.
 
-   POURQUOI PAS GOOGLE
-   Google Maps exige une carte bancaire liée au projet, même pour rester dans
-   le quota gratuit. En Algérie, l'ajout de carte échoue régulièrement
-   (OR_BACR2_44), et la carte cesse alors de s'afficher du jour au lendemain
-   sans que rien n'ait changé dans le code. Pour ce que la plateforme demande
-   à une carte — montrer un plan, poser trois repères, suivre un livreur —
-   OpenStreetMap fait le même travail sans compte à maintenir ni facture
-   possible. Ce qu'on perd : un rendu un peu moins soigné, et une recherche
-   d'adresse par texte moins fine sur les adresses algériennes.
+   CE FICHIER NE SAIT PLUS DESSINER UNE CARTE. Il sait ce qu'il veut montrer —
+   une position qu'on déplace, trois repères et un trajet, un aperçu figé — et
+   il le demande au moteur. C'est ce qui a permis d'ajouter Google sans
+   réécrire les six cents lignes d'interface qui suivent.
 
    CHARGEMENT À LA DEMANDE
-   Leaflet n'est téléchargé qu'à la première carte affichée. Un client qui
-   parcourt les menus sans jamais ouvrir de carte ne paie pas ce temps de
-   chargement.
+   Le moteur n'est téléchargé qu'à la première carte affichée. Un client qui
+   parcourt les menus sans jamais ouvrir de carte ne paie ni le temps de
+   chargement, ni — pour Google — le chargement facturé.
 
    SANS RÉSEAU
    Tout continue en mode dégradé : on peut enregistrer sa position par le GPS,
@@ -29,89 +27,163 @@
 (function (w) {
   'use strict';
 
-  // Centre de la ville de Tizi Ouzou
-  const CITY = { lat: 36.7118, lng: 4.0458 };
+  const CITY = MapEngine.CITY;
   const NOMINATIM = 'https://nominatim.openstreetmap.org';
 
-  /* Leaflet est DANS le dépôt, et le CDN ne sert plus que de secours.
-     Il arrivait d'unpkg.com : une carte qui dépend d'un domaine étranger est
-     une carte qui ne s'affiche pas quand ce domaine est lent, filtré ou
-     simplement injoignable — ce qui arrive ici, et laisse le client devant un
-     rectangle vide au moment où il attend son repas. Servi depuis notre
-     propre domaine, il est aussi mis en cache par le service worker : la
-     carte s'ouvre alors même sans réseau, sur les tuiles déjà vues. */
-  const LEAFLET_CSS = U.asset('assets/vendor/leaflet/leaflet.css');
-  const LEAFLET_JS  = U.asset('assets/vendor/leaflet/leaflet.js');
-  const LEAFLET_CSS_SECOURS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-  const LEAFLET_JS_SECOURS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  /* ==================================================================
+     LES DEUX ANNUAIRES — Google d'abord, Nominatim toujours prêt
+     ------------------------------------------------------------------
+     Traduire des coordonnées en adresse, et une adresse en coordonnées, est
+     un service SÉPARÉ de l'affichage de la carte : il se facture à part et
+     s'active à part dans la console Google. Au 10 août 2026, sur ce projet,
+     l'API JavaScript répond mais « Geocoding » et « Places » sont désactivées
+     — elles renvoient REQUEST_DENIED.
 
-  const TUILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-  // La licence OpenStreetMap impose de citer la source sur toute carte
-  // affichée. Ce n'est pas décoratif : c'est la contrepartie du service.
-  const CREDIT = '© OpenStreetMap';
+     D'où ce fonctionnement : on essaie Google, et au PREMIER refus on note
+     qu'il ne sait pas faire et on ne le redemande plus de la session. Tout
+     retombe alors sur Nominatim, qui est gratuit, sans clé, et qui fait
+     tourner l'application aujourd'hui.
 
-  let promesse = null;
+     L'intérêt de cette bascule : le jour où les deux API sont activées dans
+     la console, la recherche devient celle de Google sans qu'une seule ligne
+     change ici. Les adresses algériennes y sont infiniment mieux couvertes —
+     c'est le vrai gain, plus encore que le rendu de la carte.
+     ================================================================== */
+  let googleAnnuaire = null;      // null = pas encore essayé, false = refusé
+  let googleSuggestions = null;
 
-  function feuilleDeStyle(href) {
-    const css = document.createElement('link');
-    css.rel = 'stylesheet';
-    css.href = href;
-    css.setAttribute('data-leaflet', '');
-    document.head.appendChild(css);
+  function geocodeur() {
+    if (!(w.google && w.google.maps && w.google.maps.Geocoder)) return null;
+    if (googleAnnuaire === false) return null;
+    if (!googleAnnuaire) googleAnnuaire = new w.google.maps.Geocoder();
+    return googleAnnuaire;
   }
 
-  /**
-   * Charge Leaflet. Résout false si c'est impossible.
-   *
-   * Le fichier local d'abord, le CDN ensuite : deux chances valent mieux
-   * qu'une, et la seconde ne coûte rien tant que la première suffit.
-   *
-   * Un échec n'est PAS mémorisé. La promesse était gardée telle quelle : une
-   * seule tentative ratée au démarrage — le temps que le réseau du téléphone
-   * se réveille — condamnait toutes les cartes de la session, y compris
-   * celle du suivi ouverte dix minutes plus tard avec une connexion revenue.
-   */
-  function chargerLeaflet() {
-    if (w.L && w.L.map) return Promise.resolve(true);
-    if (promesse) return promesse;
+  /** Une seule fois : Google a refusé, on ne le rappellera plus. */
+  function googleRefuseLAnnuaire(statut) {
+    if (statut === 'REQUEST_DENIED' || statut === 'OVER_QUERY_LIMIT') {
+      googleAnnuaire = false;
+      googleSuggestions = false;
+      console.info('[carte] annuaire Google indisponible (' + statut +
+                   ') — recherche par OpenStreetMap.');
+      return true;
+    }
+    return false;
+  }
 
-    promesse = new Promise(resolve => {
-      let fait = false;
-      const fini = ok => {
-        if (fait) return;
-        fait = true;
-        clearTimeout(minuteur);
-        if (!ok) promesse = null;        // on pourra réessayer plus tard
-        resolve(ok);
-      };
-      // au-delà de 12 s, on considère que la carte ne viendra pas : le mode
-      // dégradé vaut mieux qu'une attente sans fin
-      const minuteur = setTimeout(() => fini(false), 12000);
+  /* ------------------------------------------------ coordonnées → adresse */
 
-      if (!document.querySelector('link[data-leaflet]')) feuilleDeStyle(LEAFLET_CSS);
-
-      const charger = (src, secours) => {
-        const s = document.createElement('script');
-        s.src = src;
-        s.async = true;
-        s.onload = () => fini(!!(w.L && w.L.map));
-        s.onerror = () => {
-          if (!secours) return fini(false);
-          feuilleDeStyle(LEAFLET_CSS_SECOURS);
-          charger(secours, null);
+  function inverseGoogle(lat, lng) {
+    const g = geocodeur();
+    if (!g) return Promise.resolve(null);
+    return new Promise(res => {
+      g.geocode({ location: { lat: +lat, lng: +lng }, language: 'fr' }, (rep, statut) => {
+        if (statut !== 'OK' || !rep || !rep.length) {
+          googleRefuseLAnnuaire(statut);
+          return res(null);
+        }
+        /* Google range du plus précis au plus large. On veut la rue et le
+           quartier, pas « Algérie » : le pays n'apprend rien à quelqu'un qui
+           commande dans sa propre ville. */
+        const c = rep[0].address_components || [];
+        const bout = type => {
+          const t = c.find(x => x.types.indexOf(type) >= 0);
+          return t ? t.long_name : '';
         };
-        document.head.appendChild(s);
-      };
-      charger(LEAFLET_JS, LEAFLET_JS_SECOURS);
+        const parts = [
+          bout('route') || bout('neighborhood'),
+          bout('sublocality') || bout('sublocality_level_1'),
+          bout('locality') || bout('administrative_area_level_2')
+        ].filter(Boolean);
+        res(parts.length ? parts.join(', ')
+                         : (rep[0].formatted_address || '').split(',').slice(0, 3).join(', '));
+      });
     });
-    return promesse;
   }
+
+  async function inverseOSM(lat, lng) {
+    try {
+      const r = await fetch(NOMINATIM + '/reverse?format=jsonv2&zoom=18&accept-language=fr' +
+        '&lat=' + lat + '&lon=' + lng);
+      if (!r.ok) return '';
+      const j = await r.json();
+      const a = j.address || {};
+      /* On garde la rue, le quartier et la ville. Le pays et le code postal
+         n'apprennent rien à quelqu'un qui commande dans sa propre ville. */
+      const parts = [
+        a.road || a.pedestrian || a.residential || a.neighbourhood,
+        a.suburb || a.quarter,
+        a.city || a.town || a.village
+      ].filter(Boolean);
+      return parts.length ? parts.join(', ')
+                          : (j.display_name || '').split(',').slice(0, 3).join(', ');
+    } catch (e) { return ''; }
+  }
+
+  /** Coordonnées → adresse lisible */
+  async function inverse(lat, lng) {
+    const g = await inverseGoogle(lat, lng);
+    if (g) return g;
+    return inverseOSM(lat, lng);
+  }
+
+  /* ------------------------------------------------ texte → liste de lieux */
+
+  function chercherGoogle(term) {
+    const g = geocodeur();
+    if (!g) return Promise.resolve(null);
+    return new Promise(res => {
+      g.geocode({
+        address: term, language: 'fr',
+        componentRestrictions: { country: 'dz' },
+        /* Le résultat est trié en fonction de cette zone : sans elle, « rue
+           de la gare » remonte d'abord à Alger, à cent kilomètres d'ici. */
+        bounds: new w.google.maps.LatLngBounds(
+          { lat: CITY.lat - .25, lng: CITY.lng - .25 },
+          { lat: CITY.lat + .25, lng: CITY.lng + .25 })
+      }, (rep, statut) => {
+        if (statut !== 'OK' || !rep || !rep.length) {
+          googleRefuseLAnnuaire(statut);
+          return res(null);
+        }
+        res(rep.slice(0, 6).map(x => ({
+          adresse: x.formatted_address,
+          lat: x.geometry.location.lat(),
+          lng: x.geometry.location.lng()
+        })));
+      });
+    });
+  }
+
+  async function chercherOSM(term) {
+    try {
+      const r = await fetch(NOMINATIM + '/search?format=jsonv2&limit=6&countrycodes=dz' +
+        '&accept-language=fr&q=' + encodeURIComponent(term));
+      if (!r.ok) return [];
+      const l = await r.json();
+      return (l || []).map(x => ({
+        adresse: x.display_name, lat: +x.lat, lng: +x.lon
+      }));
+    } catch (e) { return []; }
+  }
+
+  /** Texte → liste de lieux (limités à l'Algérie) */
+  async function chercher(term) {
+    const g = await chercherGoogle(term);
+    if (g && g.length) return g;
+    return chercherOSM(term);
+  }
+
+  /* ====================================================================== */
 
   const MapPicker = {
 
-    /** Une carte peut-elle s'afficher ? OpenStreetMap ne demande pas de clé :
-        seule la connexion peut manquer, et on ne le sait qu'en essayant. */
+    /** Une carte peut-elle s'afficher ? On ne le sait qu'en essayant : ni
+        Google ni OpenStreetMap ne le disent à l'avance. */
     get available() { return true; },
+
+    /** Quel moteur dessine, une fois qu'une carte a été ouverte. */
+    get moteur() { return MapEngine.nom; },
 
     /**
      * MapPicker.open({ lat, lng, title, onPick })
@@ -123,7 +195,7 @@
       let lng = U.hasCoords(o) ? +o.lng : CITY.lng;
       let label = '';
 
-      if (!(await chargerLeaflet())) return fallback(o);
+      if (!(await MapEngine.preparer())) return fallback(o);
 
       const sheet = UI.sheet({
         title: o.title || 'Choisir la position',
@@ -149,15 +221,14 @@
           '<button class="btn btn-primary btn-block btn-lg" id="mpok">✅ Confirmer cette position</button>',
 
         onMount(el, api) {
-          const map = L.map(el.querySelector('#mpmap'), {
-            zoomControl: true, attributionControl: true
-          }).setView([lat, lng], U.hasCoords(o) ? 17 : 14);
-
-          L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT }).addTo(map);
+          const carte = MapEngine.creer(el.querySelector('#mpmap'), {
+            lat: lat, lng: lng, zoom: U.hasCoords(o) ? 17 : 14
+          });
+          if (!carte) { api.close(); fallback(o); return; }
 
           // la carte naît dans un panneau qui glisse : elle doit se remesurer
           // une fois l'animation terminée, sinon elle reste grise à moitié
-          setTimeout(() => map.invalidateSize(), 320);
+          setTimeout(() => carte.remesurer(), 320);
 
           const addrBox = el.querySelector('#mpaddr');
           const resBox = el.querySelector('#mpres');
@@ -165,7 +236,7 @@
 
           /* ------------------------------------------- adresse du centre */
           const refresh = U.debounce(async () => {
-            const c = map.getCenter();
+            const c = carte.centre();
             lat = +c.lat.toFixed(6); lng = +c.lng.toFixed(6);
             addrBox.innerHTML = '<span class="spinner dark"></span> Recherche de l’adresse…';
             label = await inverse(lat, lng);
@@ -175,8 +246,8 @@
                 '<div class="tiny">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div>';
           }, 550);
 
-          map.on('move', () => pin.classList.add('moving'));
-          map.on('moveend', () => { pin.classList.remove('moving'); refresh(); });
+          carte.sur('bouge', () => pin.classList.add('moving'));
+          carte.sur('finBouge', () => { pin.classList.remove('moving'); refresh(); });
           refresh();
 
           /* --------------------------------------------- ma position GPS */
@@ -188,7 +259,7 @@
             navigator.geolocation.getCurrentPosition(
               pos => {
                 btn.innerHTML = '🎯';
-                map.setView([pos.coords.latitude, pos.coords.longitude], 18);
+                carte.allerA(pos.coords.latitude, pos.coords.longitude, 18);
                 UI.ok('Position trouvée', 'Ajustez le repère si besoin');
               },
               err => {
@@ -208,7 +279,7 @@
             // coordonnées ou lien Google Maps collés : on y va directement
             const c = parseCoords(term);
             if (c) {
-              map.setView([c.lat, c.lng], 18);
+              carte.allerA(c.lat, c.lng, 18);
               resBox.innerHTML = '';
               q.value = '';
               UI.ok('Position appliquée', c.lat.toFixed(5) + ', ' + c.lng.toFixed(5));
@@ -224,7 +295,7 @@
               '<div class="mp-item" data-r="' + i + '">' + UI.pin() + ' ' + U.esc(r.adresse) + '</div>').join('');
             resBox.querySelectorAll('[data-r]').forEach(item => item.onclick = () => {
               const r = list[+item.dataset.r];
-              map.setView([r.lat, r.lng], 17);
+              carte.allerA(r.lat, r.lng, 17);
               resBox.innerHTML = '';
               q.value = '';
             });
@@ -234,6 +305,7 @@
           el.querySelector('#mpok').onclick = function () {
             UI.busy(this, true);
             api.close();
+            carte.detruire();
             o.onPick && o.onPick({ lat: lat, lng: lng, address: label });
           };
         }
@@ -255,7 +327,7 @@
      * repères bougent sans recréer la carte, ce qui évite le clignotement à
      * chaque rafraîchissement.
      *
-     * L'objet est rendu tout de suite, avant même que Leaflet soit chargé :
+     * L'objet est rendu tout de suite, avant même que le moteur soit chargé :
      * les appels reçus entre-temps sont gardés et appliqués à l'ouverture.
      */
     live(container, points, opts) {
@@ -275,33 +347,30 @@
       const marges = (opts && opts.marges) || null;
       const cadre = ecart => {
         const m = typeof marges === 'function' ? marges() : marges;
-        if (!m) return { maxZoom: 16, padding: [ecart, ecart] };
+        if (!m) return ecart;
 
         /* Des marges plus grandes que la carte ne laissent aucune place aux
-           repères : Leaflet calcule alors une zone de largeur négative et
+           repères : le moteur calcule alors une zone de largeur négative et
            part en zoom infini — la carte reste grise. Sur un écran court,
            barre du haut plus feuille du bas dépassent vite la hauteur
            disponible, donc on plafonne à trois quarts de chaque dimension et
            on rabote la marge du bas, la seule qui varie. */
-        const t = map ? map.getSize() : null;
+        const t = container.getBoundingClientRect();
         let tl = m.tl.slice(), br = m.br.slice();
-        if (t && t.y > 0) {
-          const max = t.y * .75;
+        if (t.height > 0) {
+          const max = t.height * .75;
           if (tl[1] + br[1] > max) br[1] = Math.max(0, max - tl[1]);
         }
-        if (t && t.x > 0) {
-          const max = t.x * .75;
+        if (t.width > 0) {
+          const max = t.width * .75;
           if (tl[0] + br[0] > max) { tl[0] = max / 2; br[0] = max / 2; }
         }
-        return { maxZoom: 16, paddingTopLeft: tl, paddingBottomRight: br };
+        return { top: tl[1], left: tl[0], bottom: br[1], right: br[0] };
       };
 
-      let map = null, markers = {}, attendus = points, premier = true, mort = false;
+      let carte = null, presents = {}, attendus = points, premier = true, mort = false;
       /* Le cap du livreur, et la position depuis laquelle il a été calculé. */
       let cap = 0, capDe = null;
-      /* Les trois traits du trajet : le tronçon en cours, les pointillés qui
-         filent dessus, et le tronçon d'après. */
-      const voies = { encours: null, flux: null, apres: null };
       /* Dès que le doigt déplace la carte, on arrête de la recadrer : quelqu'un
          qui regarde le quartier d'à côté ne veut pas être ramené de force
          toutes les quinze secondes. Le bouton de recentrage rend la main. */
@@ -313,12 +382,12 @@
          paraissait plat sur certains Android. */
       const defs = {
         restaurant: [UI.icon('dome', 18), 'lm-resto', 'Restaurant'],
-        client:     [UI.icon('home', 17),     'lm-client', 'Client'],
-        driver:     [UI.icon('scooter', 18),  'lm-driver', 'Livreur']
+        client:     [UI.icon('home', 17), 'lm-client', 'Client'],
+        driver:     [UI.icon('scooter', 18), 'lm-driver', 'Livreur']
       };
 
       /**
-       * Un repère de carte.
+       * Le HTML d'un repère.
        *
        * `logo` : l'enseigne du restaurant, à la place du pictogramme. Un rond
        * générique dit « il y a un restaurant ici » ; le logo dit LEQUEL — et
@@ -330,40 +399,34 @@
        * posé à côté d'un scooter n'apprend rien, et trois étiquettes sur une
        * petite carte se recouvrent.
        */
-      const repere = (icone, cls, titre, sous, logo) => L.divIcon({
-        className: '', iconSize: [44, 44], iconAnchor: [22, 22],
-        html: '<div class="lm-pin ' + (cls || '') + (logo ? ' lm-logo' : '') + '"' +
-            (logo ? ' style="background-image:url(' + U.escUrl(logo) + ')"' : '') + '>' +
-            (logo ? '' : '<span>' + icone + '</span>') +
-          '</div>' +
-          (sous
-            ? '<span class="lm-tag"><b>' + U.esc(titre || '') + '</b>' +
-              U.esc(sous) + '</span>'
-            : '')
-      });
+      const html = (icone, cls, titre, sous, logo) =>
+        '<div class="lm-pin ' + (cls || '') + (logo ? ' lm-logo' : '') + '"' +
+          (logo ? ' style="background-image:url(' + U.escUrl(logo) + ')"' : '') + '>' +
+          (logo ? '' : '<span>' + icone + '</span>') +
+        '</div>' +
+        (sous
+          ? '<span class="lm-tag"><b>' + U.esc(titre || '') + '</b>' + U.esc(sous) + '</span>'
+          : '');
 
       function appliquer(pts) {
-        if (!map) return;
+        if (!carte) return;
         const bornes = [];
 
         Object.keys(defs).forEach(k => {
           const p = pts && pts[k];
           if (!p || !U.hasCoords(p)) {
-            if (markers[k]) { map.removeLayer(markers[k]); delete markers[k]; }
+            if (presents[k]) { carte.retirerRepere(k); delete presents[k]; }
             return;
           }
-          const ll = [+p.lat, +p.lng];
-          bornes.push(ll);
-          if (markers[k]) markers[k].setLatLng(ll);
-          else markers[k] = L.marker(ll, {
-            icon: repere(defs[k][0], defs[k][1], defs[k][2],
-                         pts && pts.noms && pts.noms[k],
-                         pts && pts.logos && pts.logos[k]),
-            title: defs[k][2],
+          bornes.push({ lat: +p.lat, lng: +p.lng });
+          carte.repere(k, p,
+            html(defs[k][0], defs[k][1], defs[k][2],
+                 pts && pts.noms && pts.noms[k],
+                 pts && pts.logos && pts.logos[k]),
             /* Le livreur passe devant : c'est lui qu'on suit, et une épingle
                fixe ne doit pas le recouvrir quand il arrive à destination. */
-            zIndexOffset: k === 'driver' ? 1000 : 0
-          }).addTo(map);
+            k === 'driver' ? 1000 : 0);
+          presents[k] = true;
         });
 
         /* LE SCOOTER TOURNE VERS LÀ OÙ IL VA.
@@ -384,7 +447,7 @@
           } else if (!capDe) {
             capDe = { lat: +d.lat, lng: +d.lng };
           }
-          const el = markers.driver && markers.driver.getElement();
+          const el = carte.elementRepere('driver');
           const pin = el && el.querySelector('.lm-pin');
           if (pin) pin.style.setProperty('--cap', cap.toFixed(0) + 'deg');
         }
@@ -395,7 +458,7 @@
            maintenant » — les minutes restantes descendent trop lentement pour
            qu'on les surveille. */
         const cl = pts && pts.client;
-        const maison = markers.client && markers.client.getElement();
+        const maison = carte.elementRepere('client');
         if (maison) {
           const proche = d && cl && U.hasCoords(d) && U.hasCoords(cl) &&
             U.haversine(+d.lat, +d.lng, +cl.lat, +cl.lng) < 0.3;
@@ -412,50 +475,34 @@
 
            Le tronçon EN COURS est plein et orange, avec des pointillés blancs
            qui filent dessus dans le sens de la marche — c'est ce qui se lit
-           comme « en direct » sans écrire le mot. Le tronçon D'APRÈS est
-           sombre et discret : il existe, il n'est pas commencé.
+           comme « en direct » sans écrire le mot. Le tronçon D'APRÈS est le
+           même orange à 22 % : c'est un seul trajet dont une partie n'est pas
+           encore faite, pas deux choses différentes.
 
            À vol d'oiseau, faute d'un service d'itinéraire : le trait ne
            prétend pas dire par où passer, seulement dans quel sens ça va. */
-        const etapes = (pts && pts.chemin || []).map(k => markers[k])
-          .filter(Boolean).map(m => m.getLatLng());
+        const etapes = (pts && pts.chemin || [])
+          .filter(k => presents[k] && pts[k] && U.hasCoords(pts[k]))
+          .map(k => ({ lat: +pts[k].lat, lng: +pts[k].lng }));
 
-        const pose = (garde, coords, style) => {
-          if (coords.length < 2) {
-            if (voies[garde]) { map.removeLayer(voies[garde]); voies[garde] = null; }
-            return;
-          }
-          if (voies[garde]) voies[garde].setLatLngs(coords);
-          else voies[garde] = L.polyline(coords, style).addTo(map);
-        };
+        carte.ligne('encours', etapes.slice(0, 2),
+                    { couleur: '#FF4D2D', epaisseur: 7, opacite: 1 });
+        carte.ligne('flux', etapes.slice(0, 2), { flux: true });
+        carte.ligne('apres', etapes.slice(1),
+                    { couleur: '#FF4D2D', epaisseur: 7, opacite: .22 });
 
-        /* UNE SEULE COULEUR, DEUX OPACITÉS, comme la maquette : le tronçon en
-           cours plein, celui d'après à 22 %. Il était sombre et pointillé —
-           deux traits qui ne se ressemblent pas se lisent comme deux choses
-           différentes, alors que c'est un seul trajet dont une partie n'est pas
-           encore faite. */
-        pose('encours', etapes.slice(0, 2), {
-          color: '#FF4D2D', weight: 7, opacity: 1,
-          lineCap: 'round', lineJoin: 'round'
-        });
-        pose('flux', etapes.slice(0, 2), {
-          color: '#fff', weight: 3, opacity: .95,
-          lineCap: 'round', dashArray: '2 14', className: 'lm-flux'
-        });
-        pose('apres', etapes.slice(1), {
-          color: '#FF4D2D', weight: 7, opacity: .22,
-          lineCap: 'round', lineJoin: 'round'
-        });
-
-        if (!bornes.length) { map.setView([CITY.lat, CITY.lng], 13); return; }
+        if (!bornes.length) { carte.allerA(CITY.lat, CITY.lng, 13); return; }
 
         /* Carte figée avec un seul repère : la vue le suit, sinon le livreur
            qui roule sortirait du cadre sans pouvoir y revenir au doigt. */
-        if (fige && bornes.length === 1 && !premier) { map.setView(bornes[0]); return; }
+        if (fige && bornes.length === 1 && !premier) {
+          carte.allerA(bornes[0].lat, bornes[0].lng);
+          return;
+        }
 
         if (premier) {
-          if (bornes.length > 1) map.fitBounds(bornes, cadre(42));
-          else map.setView(bornes[0], 16);
+          if (bornes.length > 1) carte.cadrer(bornes, cadre(42), false);
+          else carte.allerA(bornes[0].lat, bornes[0].lng, 16);
           premier = false;
           return;
         }
@@ -463,73 +510,51 @@
         /* Suivi : on garde tout le monde dans le cadre à chaque relevé. Le
            déplacement est animé — un saut sec à chaque position donne
            l'impression que la carte se recharge. */
-        if (suit && !libre) {
-          if (bornes.length > 1)
-            map.flyToBounds(bornes, Object.assign(cadre(56), { duration: .8 }));
-          else map.panTo(bornes[0], { animate: true, duration: .8 });
-        }
+        if (suit && !libre) carte.cadrer(bornes, cadre(56), true);
       }
 
       /* Toute panne passe par ici : une carte qui échoue en silence est la
          pire des pannes, parce qu'on la prend pour une application cassée. */
       const echec = raison => { if (opts && opts.onEchec) opts.onEchec(raison); };
 
-      /* Combien de tuiles sont arrivées, et combien ont échoué. Lu par la
-         sentinelle ci-dessous, qui n'a aucun autre moyen de savoir si la
-         carte est vraiment là. */
-      let rates = 0, recues = 0;
-
       /* LA SENTINELLE
          Une carte peut rester vide sans que rien n'échoue : moteur qui ne
          répond jamais, tuiles muettes, écran refermé entre-temps. Aucun de ces
          cas ne déclenchait quoi que ce soit — on restait devant un rectangle
-         beige, et personne, moi compris, ne pouvait dire pourquoi. Au bout de
-         sept secondes, la carte dit où elle en est. */
+         beige, et personne ne pouvait dire pourquoi. Au bout de sept secondes,
+         la carte dit où elle en est. */
       const sentinelle = setTimeout(() => {
         if (mort) return;
-        if (!map) return echec('Le moteur de carte n’a pas répondu.');
-        if (!recues) return echec(rates
-          ? 'Les tuiles de la carte sont refusées (' + rates + ' essais).'
-          : 'Les tuiles de la carte n’arrivent pas.');
+        if (!carte) return echec('Le moteur de carte n’a pas répondu.');
+        if (!carte.tuilesRecues()) {
+          const rates = carte.tuilesRatees ? carte.tuilesRatees() : 0;
+          return echec(rates
+            ? 'Les tuiles de la carte sont refusées (' + rates + ' essais).'
+            : 'Les tuiles de la carte n’arrivent pas.');
+        }
       }, 7000);
 
-      chargerLeaflet().then(ok => {
+      MapEngine.preparer().then(moteur => {
         if (mort) return;
-        if (!ok)
-          return echec('Le moteur de carte n’a pas pu être chargé.');
+        if (!moteur) return echec('Le moteur de carte n’a pas pu être chargé.');
 
         try {
-          map = L.map(container, Object.assign({
-            zoomControl: true, attributionControl: true
-          }, fige ? {
-            dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
-            touchZoom: false, boxZoom: false, keyboard: false,
-            zoomControl: false, tap: false
-          } : null));
+          carte = MapEngine.creer(container, {
+            lat: CITY.lat, lng: CITY.lng, zoom: 13, fige: fige
+          });
+          if (!carte) return echec('La carte n’a pas pu être construite.');
 
           /* La carte existe : le message d'attente posé par l'appelant n'a plus
-             lieu d'être, et Leaflet ne le retire pas lui-même — il ajoute ses
+             lieu d'être, et le moteur ne le retire pas lui-même — il ajoute ses
              calques par-dessus. */
           if (opts && opts.onPret) opts.onPret();
 
-          const tuiles = L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT });
-
-          /* Le moteur peut très bien se charger et les tuiles ne jamais
-             arriver : filtrage, coupure, quota. On voyait alors un rectangle
-             gris sans explication. Quelques échecs de suite sans une seule
-             tuile reçue, et on le dit. */
-          tuiles.on('tileload', () => { recues++; });
-          tuiles.on('tileerror', () => {
-            if (++rates >= 6 && !recues)
-              echec('Le fond de carte ne répond pas — vérifiez votre connexion.');
-          });
-          tuiles.addTo(map);
-
           /* Le doigt reprend la main : à partir de là, la carte ne se recadre
              plus toute seule. */
-          if (suit) map.on('dragstart', () => { libre = true; });
+          if (suit) carte.sur('traine', () => { libre = true; });
+
           appliquer(attendus);
-          setTimeout(() => { if (map) map.invalidateSize(); }, 260);
+          setTimeout(() => { if (carte) carte.remesurer(); }, 260);
         } catch (e) {
           console.error(e);
           echec(e.message || 'La carte n’a pas pu être construite.');
@@ -539,26 +564,24 @@
       return {
         update(pts) { attendus = pts; appliquer(pts); },
         /* À appeler quand le conteneur a changé de taille ou est redevenu
-           visible : Leaflet mesure une fois et ne s'en aperçoit pas seul. */
-        nudge() { if (map) map.invalidateSize(); },
+           visible : un moteur mesure une fois et ne s'en aperçoit pas seul. */
+        nudge() { if (carte) carte.remesurer(); },
         recenter() {
-          if (!map) return;
+          if (!carte) return;
           libre = false;                 // le suivi automatique reprend
-          const b = Object.keys(markers).map(k => markers[k].getLatLng());
-          if (b.length > 1) map.fitBounds(b, cadre(42));
-          else if (b.length) map.setView(b[0], 16);
+          const b = carte.positionsReperes();
+          if (b.length > 1) carte.cadrer(b, cadre(42), true);
+          else if (b.length) carte.allerA(b[0].lat, b[0].lng, 16);
         },
         destroy() {
           mort = true;
           clearTimeout(sentinelle);
-          try { if (map) map.remove(); } catch (e) {}
-          markers = {}; map = null;
-          voies.encours = voies.flux = voies.apres = null;
+          try { if (carte) carte.detruire(); } catch (e) {}
+          presents = {}; carte = null;
         }
       };
     },
 
-    /** Petite carte non modifiable, pour afficher une position */
     /**
      * Aperçu non interactif d'une position.
      *
@@ -573,65 +596,45 @@
       if (!container || !U.hasCoords({ lat: lat, lng: lng })) return null;
       const o = opts || {};
 
-      chargerLeaflet().then(ok => {
-        if (!ok) return;
+      MapEngine.preparer().then(moteur => {
+        if (!moteur) return;
         const zoom = o.zoom || 16;
-        const map = L.map(container, {
-          zoomControl: false, dragging: false, scrollWheelZoom: false,
-          doubleClickZoom: false, touchZoom: false, keyboard: false,
-          attributionControl: true
-        }).setView([+lat, +lng], o.vol ? Math.max(11, zoom - 3) : zoom);
-        L.tileLayer(TUILES, { maxZoom: 19, attribution: CREDIT }).addTo(map);
-
-        /* Des repères en HTML plutôt que le marqueur bleu par défaut de Leaflet :
-           celui-ci est le même sur tous les sites du monde, et rien ne dit
-           lequel des deux points est chez vous. Le CSS les habille (`.mp-repere`),
-           donc ils suivent le thème sans qu'on écrive une couleur ici. */
-        const repere = (cls, dedans) => L.divIcon({
-          className: 'mp-repere ' + cls,
-          html: dedans,
-          iconSize: [34, 34], iconAnchor: [17, 17]
+        const carte = MapEngine.creer(container, {
+          lat: +lat, lng: +lng,
+          zoom: o.vol ? Math.max(11, zoom - 3) : zoom,
+          fige: true
         });
+        if (!carte) return;
 
         /* La zone AVANT les repères : un cercle dessiné après les recouvrirait. */
         if (o.resto && U.hasCoords(o.resto) && o.rayonKm) {
-          L.circle([+o.resto.lat, +o.resto.lng], {
-            radius: o.rayonKm * 1000,
-            color: '#FF6B00', weight: 1.5, opacity: .55,
-            fillColor: '#FF6B00', fillOpacity: .07,
-            interactive: false
-          }).addTo(map);
+          carte.cercle(o.resto, o.rayonKm * 1000, { couleur: '#FF6B00' });
         }
 
+        /* Des repères en HTML plutôt que le marqueur par défaut du moteur :
+           celui-ci est le même sur tous les sites du monde, et rien ne dit
+           lequel des deux points est chez vous. Le CSS les habille
+           (`.mp-repere`), donc ils suivent le thème sans qu'on écrive une
+           couleur ici. */
         if (o.resto && U.hasCoords(o.resto)) {
-          L.marker([+o.resto.lat, +o.resto.lng], {
-            icon: repere('resto', ''), interactive: false,
-            title: o.resto.nom || ''
-          }).addTo(map);
+          carte.repere('resto', o.resto, '<div class="mp-repere resto"></div>');
         }
-
-        L.marker([+lat, +lng], { icon: repere('moi', ''), interactive: false }).addTo(map);
+        carte.repere('moi', { lat: +lat, lng: +lng }, '<div class="mp-repere moi"></div>');
 
         /* Le vol d'approche : une seule fois, à l'arrivée sur l'écran. Il dit où
            l'on se trouve dans la ville avant de resserrer sur la rue — un plan
-           qui s'ouvre déjà zoomé ne montre que du bitume. Leaflet l'anime par
-           transformations, ce qui reste peu coûteux ; il est coupé si l'on a
-           demandé moins de mouvement. */
+           qui s'ouvre déjà zoomé ne montre que du bitume. Il est coupé si l'on
+           a demandé moins de mouvement. */
         const doux = !(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches);
-        if (o.vol && doux) {
-          setTimeout(() => map.flyTo([+lat, +lng], zoom, { duration: 1.2 }), 380);
-        } else if (o.vol) {
-          map.setView([+lat, +lng], zoom);
-        }
+        if (o.vol && doux) setTimeout(() => carte.voler(+lat, +lng, zoom), 380);
+        else if (o.vol) carte.allerA(+lat, +lng, zoom);
 
-        setTimeout(() => map.invalidateSize(), 250);
+        setTimeout(() => carte.remesurer(), 250);
       });
 
       return null;
     }
   };
-
-  /* ==================================================== OpenStreetMap */
 
   /**
    * Reconnaît une position collée par l'utilisateur :
@@ -658,39 +661,6 @@
       }
     }
     return null;
-  }
-
-  /** Coordonnées → adresse lisible */
-  async function inverse(lat, lng) {
-    try {
-      const r = await fetch(NOMINATIM + '/reverse?format=jsonv2&zoom=18&accept-language=fr' +
-        '&lat=' + lat + '&lon=' + lng);
-      if (!r.ok) return '';
-      const j = await r.json();
-      const a = j.address || {};
-      /* On garde la rue, le quartier et la ville. Le pays et le code postal
-         n'apprennent rien à quelqu'un qui commande dans sa propre ville. */
-      const parts = [
-        a.road || a.pedestrian || a.residential || a.neighbourhood,
-        a.suburb || a.quarter,
-        a.city || a.town || a.village
-      ].filter(Boolean);
-      return parts.length ? parts.join(', ')
-                          : (j.display_name || '').split(',').slice(0, 3).join(', ');
-    } catch (e) { return ''; }
-  }
-
-  /** Texte → liste de lieux (limités à l'Algérie) */
-  async function chercher(term) {
-    try {
-      const r = await fetch(NOMINATIM + '/search?format=jsonv2&limit=6&countrycodes=dz' +
-        '&accept-language=fr&q=' + encodeURIComponent(term));
-      if (!r.ok) return [];
-      const l = await r.json();
-      return (l || []).map(x => ({
-        adresse: x.display_name, lat: +x.lat, lng: +x.lon
-      }));
-    } catch (e) { return []; }
   }
 
   function geoError(err) {
