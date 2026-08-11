@@ -134,6 +134,20 @@
         googleRefuse = true;
         moteurChoisi = null;
         console.warn('[carte] Google a refusé la clé — repli sur OpenStreetMap.');
+
+        /* ON PRÉVIENT LES CARTES DÉJÀ CONSTRUITES, ET C'EST LE CORRECTIF QUI
+           MANQUAIT. Avant, le repli ne valait que pour la carte SUIVANTE :
+           celle qui était à l'écran restait telle que Google l'avait laissée —
+           un cadre gris portant « Une erreur s'est produite ». L'utilisateur
+           n'avait aucune raison de naviguer ailleurs pour la réparer, et
+           l'application paraissait cassée alors qu'un moteur de secours
+           attendait juste d'être appelé.
+
+           Le refus arrive une seconde environ après l'affichage : le temps que
+           Google interroge son serveur d'authentification. Une carte grise
+           pendant une seconde, puis une vraie carte, c'est acceptable — un
+           cadre gris définitif ne l'est pas. */
+        w.dispatchEvent(new Event('carte:refusee'));
       };
 
       /* IL FAUT UN `callback`, ET CE N'EST PAS UNE PRÉFÉRENCE DE STYLE.

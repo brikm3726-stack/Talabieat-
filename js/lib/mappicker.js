@@ -534,7 +534,8 @@
         }
       }, 7000);
 
-      MapEngine.preparer().then(moteur => {
+      function demarrer() {
+      return MapEngine.preparer().then(moteur => {
         if (mort) return;
         if (!moteur) return echec('Le moteur de carte n’a pas pu être chargé.');
 
@@ -560,6 +561,23 @@
           echec(e.message || 'La carte n’a pas pu être construite.');
         }
       });
+      }
+      demarrer();
+
+      /* GOOGLE VIENT DE REFUSER LA CLÉ : on jette ce qu'il a laissé et on
+         refait la carte avec OpenStreetMap. Sans ceci, le repli ne servait
+         qu'aux écrans suivants et celui-ci gardait son cadre gris — c'est
+         exactement ce que les captures du 11 août montraient. `premier` est
+         remis à vrai pour que la nouvelle carte se cadre comme une première
+         fois, sinon elle s'ouvrirait sur le centre-ville par défaut. */
+      const surRefus = function () {
+        if (mort) return;
+        try { if (carte) carte.detruire(); } catch (e) {}
+        carte = null; presents = {}; premier = true;
+        container.innerHTML = '';
+        demarrer();
+      };
+      w.addEventListener('carte:refusee', surRefus);
 
       return {
         update(pts) { attendus = pts; appliquer(pts); },
@@ -576,6 +594,7 @@
         destroy() {
           mort = true;
           clearTimeout(sentinelle);
+          w.removeEventListener('carte:refusee', surRefus);
           try { if (carte) carte.detruire(); } catch (e) {}
           presents = {}; carte = null;
         }
@@ -595,6 +614,17 @@
     preview(container, lat, lng, opts) {
       if (!container || !U.hasCoords({ lat: lat, lng: lng })) return null;
       const o = opts || {};
+
+      /* Le même repli que pour le suivi : si Google refuse la clé, l'aperçu se
+         refait avec OpenStreetMap au lieu de rester sur le cadre gris. Il n'y a
+         rien à défaire ici — un aperçu n'a ni écouteur ni minuterie — donc on
+         se contente de vider le conteneur et de recommencer. */
+      w.addEventListener('carte:refusee', function unefois() {
+        w.removeEventListener('carte:refusee', unefois);
+        if (!container.isConnected) return;
+        container.innerHTML = '';
+        MapPicker.preview(container, lat, lng, o);
+      });
 
       MapEngine.preparer().then(moteur => {
         if (!moteur) return;
