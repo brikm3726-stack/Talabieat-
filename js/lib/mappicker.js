@@ -30,6 +30,33 @@
   const CITY = MapEngine.CITY;
   const NOMINATIM = 'https://nominatim.openstreetmap.org';
 
+  /* ------------------------------------------------------------------
+     LES DEUX DESSINS DE LA FEUILLE « OÙ LIVRER ? »
+     Écrits ici plutôt qu'appelés à travers UI.icon parce qu'ils servent
+     chacun à deux endroits — l'un dans le HTML de départ, l'autre dans une
+     remise à zéro après chargement. Deux tracés recopiés à la main auraient
+     fini par diverger. */
+
+  /* Le viseur du bouton « ma position ». En SVG et non en 🎯 : chaque
+     téléphone dessine l'emoji à sa façon, et sur les Android du quartier il
+     ressortait plat et délavé au milieu d'un bouton de verre. */
+  const VISEUR =
+    '<svg class="ico" width="21" height="21" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>' +
+      '<path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
+
+  /* Le mot-marque des autres écrans : l'arc orange et « tala<i>bi</i> ». La
+     classe .brand-nuit n'est pas reprise — une douzaine de règles la
+     repositionnent selon l'écran, elle serait arrivée ici en absolu au milieu
+     de la feuille. Même dessin, habillage à nous. */
+  const MARQUE =
+    '<span class="ou-marque" aria-hidden="true">' +
+      '<span class="ou-arc"><svg viewBox="0 0 132 26"><path d="M6 24C6 24 24 4 66 4s60 20 60 20" ' +
+        'fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg></span>' +
+      '<span class="ou-mot">tala<i>bi</i></span>' +
+    '</span>';
+
   /* ==================================================================
      LES DEUX ANNUAIRES — Google d'abord, Nominatim toujours prêt
      ------------------------------------------------------------------
@@ -198,27 +225,64 @@
       if (!(await MapEngine.preparer())) return fallback(o);
 
       const sheet = UI.sheet({
-        title: o.title || 'Choisir la position',
+        /* Pas de `sheet-head` : cette feuille écrit le sien, avec le
+           mot-marque, un titre bien plus gros et une croix de verre. Le titre
+           reste celui que l'appelant demande — « Où livrer ? » au moment de
+           commander, « Où se trouve votre restaurant ? » à l'inscription. */
+        title: false,
+        classe: 'ou-ov',
         body:
-          '<div class="mp-search search">' +
-            '<input class="input" id="mpq" autocomplete="off" ' +
-              'placeholder="Rue, repère, ou coordonnées Google Maps…">' +
-          '</div>' +
-          '<div class="tiny" style="margin:-2px 0 8px">💡 Astuce : dans Google Maps, appuie longuement sur le ' +
-            'lieu, copie les coordonnées (ex. <b>36.7132, 4.0438</b>) et colle-les ici.</div>' +
-          '<div id="mpres" class="mp-results"></div>' +
+          '<div class="ou">' +
 
-          '<div class="mp-map">' +
-            '<div id="mpmap"></div>' +
-            '<div class="mp-pin">' + UI.icon('pin', 38) + '</div>' +
-            '<button type="button" class="mp-loc" id="mploc" title="Ma position">🎯</button>' +
-          '</div>' +
+            /* La poignée, la marque et la croix restent en haut pendant que
+               le reste défile : sur un petit iPhone, la feuille est plus
+               haute que l'écran, et une croix qui s'en va avec le titre
+               enferme l'utilisateur dans la carte. */
+            '<div class="ou-fixe">' +
+              '<div class="ou-bar">' +
+                '<div class="ou-poignee" aria-hidden="true"></div>' +
+                MARQUE +
+                '<button type="button" class="ou-x" data-x aria-label="Fermer">' +
+                  '<svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" ' +
+                    'stroke="currentColor" stroke-width="2.6" stroke-linecap="round">' +
+                    '<path d="M6 6l12 12M18 6 6 18"/></svg>' +
+                '</button>' +
+              '</div>' +
+            '</div>' +
 
-          '<div class="mp-hint">Déplacez la carte pour placer le repère sur votre porte exacte.</div>' +
-          '<div class="mp-addr" id="mpaddr"><span class="spinner dark"></span> Localisation…</div>',
+            '<div class="ou-head">' +
+              '<h2 class="ou-titre">' + U.esc(o.title || 'Choisir la position') + '</h2>' +
+              /* « votre porte » est la bonne phrase pour un client qui se fait
+                 livrer, et la mauvaise pour un restaurateur qui place son
+                 enseigne — d'où `o.hint`, que l'appelant remplace. */
+              '<p class="ou-sous">' +
+                U.esc(o.hint || 'Déplacez la carte pour poser le repère sur votre porte.') +
+              '</p>' +
+            '</div>' +
+
+            '<div class="ou-champ">' +
+              '<span class="ou-champ-ic">' + UI.icon('search', 19) + '</span>' +
+              '<input class="ou-input" id="mpq" autocomplete="off" ' +
+                'placeholder="Rue, repère, ou coordonnées…">' +
+            '</div>' +
+            '<p class="ou-astuce">Vous pouvez coller des coordonnées Google Maps ' +
+              '<b>36.7132, 4.0438</b></p>' +
+            '<div id="mpres" class="ou-res"></div>' +
+
+            '<div class="ou-map">' +
+              '<div id="mpmap"></div>' +
+              '<div class="ou-voile" aria-hidden="true"></div>' +
+              '<div class="ou-pin">' + UI.icon('pin', 40) + '</div>' +
+              '<button type="button" class="ou-loc" id="mploc" aria-label="Ma position">' +
+                VISEUR + '</button>' +
+            '</div>' +
+
+            '<div class="ou-addr" id="mpaddr">' + adresseEnCours() + '</div>' +
+          '</div>',
 
         footer:
-          '<button class="btn btn-primary btn-block btn-lg" id="mpok">✅ Confirmer cette position</button>',
+          '<button class="ou-cta" id="mpok">' + UI.icon('check', 19) +
+            ' Confirmer cette position</button>',
 
         onMount(el, api) {
           const carte = MapEngine.creer(el.querySelector('#mpmap'), {
@@ -232,18 +296,15 @@
 
           const addrBox = el.querySelector('#mpaddr');
           const resBox = el.querySelector('#mpres');
-          const pin = el.querySelector('.mp-pin');
+          const pin = el.querySelector('.ou-pin');
 
           /* ------------------------------------------- adresse du centre */
           const refresh = U.debounce(async () => {
             const c = carte.centre();
             lat = +c.lat.toFixed(6); lng = +c.lng.toFixed(6);
-            addrBox.innerHTML = '<span class="spinner dark"></span> Recherche de l’adresse…';
+            addrBox.innerHTML = adresseEnCours();
             label = await inverse(lat, lng);
-            addrBox.innerHTML = label
-              ? '<b>' + UI.pin(16) + ' ' + U.esc(label) + '</b>'
-              : '<b>' + UI.pin(16) + ' Position sélectionnée</b>' +
-                '<div class="tiny">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div>';
+            addrBox.innerHTML = adresseTrouvee(label, lat, lng);
           }, 550);
 
           carte.sur('bouge', () => pin.classList.add('moving'));
@@ -258,12 +319,12 @@
             btn.innerHTML = '<span class="spinner dark"></span>';
             navigator.geolocation.getCurrentPosition(
               pos => {
-                btn.innerHTML = '🎯';
+                btn.innerHTML = VISEUR;
                 carte.allerA(pos.coords.latitude, pos.coords.longitude, 18);
                 UI.ok('Position trouvée', 'Ajustez le repère si besoin');
               },
               err => {
-                btn.innerHTML = '🎯';
+                btn.innerHTML = VISEUR;
                 UI.err('Position introuvable', geoError(err));
               },
               { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
@@ -288,11 +349,13 @@
 
             const list = await chercher(term);
             if (!list.length) {
-              resBox.innerHTML = '<div class="mp-item tiny">Aucun résultat</div>';
+              resBox.innerHTML = '<div class="ou-item vide">Aucun résultat</div>';
               return;
             }
             resBox.innerHTML = list.map((r, i) =>
-              '<div class="mp-item" data-r="' + i + '">' + UI.pin() + ' ' + U.esc(r.adresse) + '</div>').join('');
+              '<div class="ou-item" data-r="' + i + '">' +
+                '<span class="ou-item-ic">' + UI.pin(15) + '</span>' +
+                '<span class="ou-item-t">' + U.esc(r.adresse) + '</span></div>').join('');
             resBox.querySelectorAll('[data-r]').forEach(item => item.onclick = () => {
               const r = list[+item.dataset.r];
               carte.allerA(r.lat, r.lng, 17);
@@ -665,6 +728,33 @@
       return null;
     }
   };
+
+  /* ------------------------------------------------------------------
+     LA CARTE DE VERRE QUI ANNONCE L'ADRESSE
+
+     Deux états, un seul gabarit : un disque à gauche, deux lignes à droite.
+     C'est la même boîte qui change de contenu, jamais de taille — une carte
+     qui grandit de dix pixels à chaque relevé fait sautiller la feuille
+     entière, et le doigt qui visait « Confirmer » rate sa cible.
+
+     L'attente n'affiche pas une phrase seule : une barre grise sous le texte
+     dit qu'une deuxième ligne arrive, donc que la boîte ne bougera pas. */
+
+  function adresseEnCours() {
+    return '<span class="ou-addr-ic charge"><span class="spinner dark"></span></span>' +
+           '<span class="ou-addr-t">' +
+             '<b>Recherche de l’adresse…</b>' +
+             '<span class="ou-skel"></span>' +
+           '</span>';
+  }
+
+  function adresseTrouvee(label, lat, lng) {
+    return '<span class="ou-addr-ic">' + UI.pin(17) + '</span>' +
+           '<span class="ou-addr-t">' +
+             '<b>' + (label ? U.esc(label) : 'Position sélectionnée') + '</b>' +
+             '<span class="ou-addr-c">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</span>' +
+           '</span>';
+  }
 
   /**
    * Reconnaît une position collée par l'utilisateur :

@@ -2923,46 +2923,13 @@ body.role-driver .brand-logo{
   padding:2px 6px;border-radius:999px;letter-spacing:.06em;
 }
 
-/* ---------------------------------------------------- sélecteur de carte */
-.mp-search{margin-bottom:8px}
-.mp-results{max-height:170px;overflow-y:auto}
-.mp-results:not(:empty){border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;background:#fff}
-.mp-item{padding:11px 13px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--line);line-height:1.35}
-.mp-item:last-child{border-bottom:none}
-.mp-item:hover{background:var(--brand-soft)}
+/* ---------------------------------------------------- sélecteur de carte
+   LE SÉLECTEUR DE POSITION A DÉMÉNAGÉ EN FIN DE FICHIER, sous le titre
+   « OÙ LIVRER ? ». Il ne partage plus une seule règle avec le reste des
+   panneaux : c'est un écran blanc à lui, en jetons `--ou-*`.
 
-.mp-map{position:relative;z-index:0;height:300px;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line)}
-.mp-map #mpmap{position:absolute;inset:0}
-/* le repère reste fixe au centre : c'est la carte qui bouge sous lui */
-.mp-pin{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);
-  z-index:500;pointer-events:none;line-height:0;
-  /* l'icône au trait n'a pas de couleur propre, contrairement à l'emoji :
-     on la remplit en orange et on l'entoure de blanc pour qu'elle reste
-     lisible au-dessus de n'importe quelle carte */
-  color:var(--brand);
-  filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 4px 5px rgba(0,0,0,.35));
-  transition:transform .16s ease;
-}
-.mp-pin .ico{stroke-width:2.4}
-.mp-pin.moving{transform:translate(-50%,-118%) scale(1.06)}
-.mp-pin::after{
-  content:'';position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);
-  width:12px;height:5px;border-radius:50%;background:rgba(0,0,0,.28);
-}
-.mp-loc{
-  position:absolute;right:12px;bottom:12px;z-index:500;
-  width:44px;height:44px;border-radius:14px;border:1px solid var(--line);
-  background:#fff;font-size:19px;cursor:pointer;box-shadow:var(--sh-2);
-  display:grid;place-items:center;
-}
-.mp-loc:hover{background:var(--brand-soft)}
-.mp-hint{font-size:12px;color:var(--muted);text-align:center;margin:9px 0}
-.mp-addr{
-  background:var(--bg);border:1px solid var(--line);border-radius:var(--r);
-  padding:12px 14px;font-size:13.5px;min-height:46px;
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-}
+   Ce qui reste ici : `.mp-repere`, plus bas, qui habille les deux points d'un
+   APERÇU figé (`MapPicker.preview`) — rien à voir avec la feuille de choix. */
 
 /* aperçu de position (lecture seule) */
 .map-preview{height:150px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:#F2EDE5}
@@ -2984,7 +2951,7 @@ body.role-driver .brand-logo{
    --------------------------------------------------------------------------- */
 .map-preview,
 .live-map,
-.mp-map,
+.ou-map,
 .leaflet-container{position:relative;z-index:0}
 
 /* ------------------------------------------------ carte de suivi en direct */
@@ -7141,9 +7108,9 @@ body.nuit .overlay .sub{color:#9AA0A9}
 body.nuit .overlay .price{color:#FF8A3D}
 body.nuit .overlay .g-ic{background-color:#1F2125}
 body.nuit .overlay .skel{background:linear-gradient(90deg,#1A1C20,#22252A,#1A1C20)}
-/* Le choix du quartier et la recherche d'adresse ouvrent aussi des feuilles. */
-body.nuit .overlay .mp-results:not(:empty),
-body.nuit .overlay .mp-loc{background-color:#1A1C20}
+/* Le choix du quartier ouvre aussi une feuille. Le sélecteur de position, lui,
+   n'est plus repris ici : il reste blanc dans les deux thèmes, et sa raison
+   est écrite en fin de fichier. */
 body.nuit .overlay .av-comp{background-color:#1A1C20}
 
 /* Le compteur de quantité du pied de page : deux cercles au liseré fin plutôt
@@ -11208,4 +11175,402 @@ body.app-driver #view .driver-page .drv-panel.card,body.role-driver #view .drive
   .drv-hero-credit{border-radius:20px;padding:13px 13px}
   .drv-hero-credit .v{font-size:24px}
   body.app-driver #view .driver-page .drv-stat.card,body.role-driver #view .driver-page .drv-stat.card{border-radius:22px;padding:14px 12px}
+}
+
+/* ==========================================================================
+   « OÙ LIVRER ? » — LE SÉLECTEUR DE POSITION
+   --------------------------------------------------------------------------
+   L'écran le plus cher de l'application : c'est là qu'un client dit où il
+   habite. Une hésitation ici, et la commande ne part pas.
+
+   BLANC DANS LES DEUX THÈMES, et c'est un choix, pas un oubli. Le fond de
+   carte — Google comme OpenStreetMap — est clair. Un cadre noir autour d'un
+   rectangle blanc lumineux ne fait pas « sombre », il fait « trou ». Les
+   jetons sont donc posés une fois et `body.nuit` ne les reprend pas ; les
+   quelques règles sombres qui visaient `.sheet` et `.sheet-foot` sont
+   neutralisées en fin de bloc, une par une.
+
+   Tous les jetons vivent sur `.ou-ov`, L'ENVELOPPE, jamais sur `.ou` : le
+   bouton de confirmation habite `.sheet-foot`, qui est hors de `.ou`. Les y
+   avoir écrits aurait laissé le bouton sans palette — l'erreur exacte déjà
+   payée sur le panneau de personnalisation des plats.
+   ========================================================================== */
+.overlay.ou-ov{
+  --ou-fond:#FFFFFF;
+  --ou-carte:#F4F5F7;                        /* surfaces douces, non vitrées */
+  --ou-verre:rgba(255,255,255,.74);          /* surfaces vitrées */
+  --ou-filet:rgba(16,24,40,.10);
+  --ou-titre:#0B0C0F;
+  --ou-doux:#6B7280;
+  --ou-or:#FF6B00;
+  --ou-grad:linear-gradient(100deg,#FF6B00 0%,#FF5A2A 54%,#FF3D57 100%);
+  /* La police du système avant tout le reste : sur iPhone c'est SF Pro, la
+     vraie, avec ses chiffres et son crénage. Inter reste en secours pour
+     Android, où il est déjà chargé. */
+  --ou-font:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Inter','Segoe UI',Roboto,sans-serif;
+
+  align-items:flex-end;
+  background:rgba(8,10,14,.46);
+  -webkit-backdrop-filter:blur(10px) saturate(125%);
+          backdrop-filter:blur(10px) saturate(125%);
+}
+@media(min-width:700px){ .overlay.ou-ov{align-items:center} }
+
+/* ---- la feuille ---------------------------------------------------------
+   Hauteur AUTOMATIQUE, plafonnée. Une hauteur fixe laissait un vide blanc
+   sous le bouton sur les grands iPhone, et coupait la carte sur les petits.
+   Ici la feuille fait exactement la taille de son contenu, et ne déborde
+   jamais l'écran. */
+.overlay.ou-ov .sheet{
+  position:relative;
+  width:100%;max-width:560px;
+  height:auto;max-height:94dvh;
+  border:0;border-radius:34px 34px 0 0;
+  padding:0;overflow:hidden;
+  display:flex;flex-direction:column;
+  background:var(--ou-fond);color:var(--ou-titre);
+  font-family:var(--ou-font);
+  box-shadow:0 -22px 60px -28px rgba(8,10,14,.65);
+  animation:ouMonte .38s cubic-bezier(.22,.61,.36,1) both;
+}
+@media(min-width:700px){
+  .overlay.ou-ov .sheet{border-radius:34px;max-height:min(94dvh,900px)}
+}
+@keyframes ouMonte{ from{transform:translateY(100%)} to{transform:none} }
+
+/* `min-height:0` est la ligne qui compte : sans elle, un enfant de flexbox
+   refuse de devenir plus petit que son contenu et le défilement n'a jamais
+   rien à faire défiler. */
+.overlay.ou-ov .sheet-body{
+  flex:1;min-height:0;padding:0;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.overlay.ou-ov .sheet-foot{
+  position:static;flex:none;
+  background:var(--ou-fond);border-top:0;
+  padding:8px 20px calc(16px + env(safe-area-inset-bottom));
+  /* Un liseré aurait coupé la feuille en deux ; une ombre très étalée dit
+     seulement qu'il y a quelque chose au-dessus. */
+  box-shadow:0 -14px 26px -22px rgba(8,10,14,.55);
+}
+
+.ou{padding:0 20px 18px;font-family:var(--ou-font)}
+
+/* ---- la barre qui ne défile pas -----------------------------------------
+   HAUTEUR NULLE, CONTENU EN ABSOLU : la rangée ne prend aucune place dans le
+   flux, elle se contente de rester en haut du défilement. C'est la même
+   mécanique que la barre du panneau de personnalisation des plats — elle y a
+   fait ses preuves.
+
+   Le fond est blanc en permanence : sur une feuille blanche il ne se voit
+   pas, et il n'existe que pour avaler proprement le texte qui passe dessous.
+   Le dégradé sous la barre évite que la ligne coupe net. */
+.ou-fixe{position:sticky;top:0;height:0;z-index:8}
+/* Les marges négatives rendent à la barre les 20 px que `.ou` lui prend de
+   chaque côté : sans elles, le texte qui défile réapparaissait dans les deux
+   gouttières laissées transparentes. */
+.ou-bar{
+  position:absolute;top:0;left:-20px;right:-20px;height:66px;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+  padding:0 20px 10px;
+  background:var(--ou-fond);
+}
+.ou-bar::after{
+  content:'';position:absolute;left:0;right:0;top:100%;height:16px;
+  pointer-events:none;
+  background:linear-gradient(180deg,var(--ou-fond),rgba(255,255,255,0));
+}
+.ou-poignee{
+  position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:38px;height:5px;border-radius:3px;
+  background:rgba(16,24,40,.16);
+}
+
+/* ---- l'en-tête ----------------------------------------------------------
+   C'est LUI qui réserve la hauteur de la barre, pas `.ou` : la barre est le
+   premier enfant de `.ou`, donc un remplissage posé sur `.ou` la poussait
+   vers le bas et elle recouvrait le titre. Défaut vu à la première capture —
+   « Où livrer ? » n'apparaissait nulle part. */
+.ou-head{padding-top:66px}
+
+/* Le mot-marque des autres écrans, en petit : l'arc orange et « talabi »,
+   noir avec les deux dernières lettres en orange. */
+.ou-marque{display:flex;flex-direction:column;align-items:center;line-height:1}
+.ou-arc{display:block;width:42px;color:var(--ou-or);margin-bottom:-3px}
+.ou-arc svg{display:block;width:100%;height:auto}
+.ou-mot{font-size:18px;font-weight:900;letter-spacing:-.9px;color:var(--ou-titre)}
+.ou-mot i{font-style:normal;color:var(--ou-or)}
+
+/* La croix : un rond de verre, pas un bouton plein. C'est le seul élément de
+   l'en-tête qui se touche, il doit se détacher sans crier. */
+.ou-x{
+  flex:none;width:38px;height:38px;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;
+  color:var(--ou-doux);
+  background:var(--ou-verre);
+  border:1px solid var(--ou-filet);
+  -webkit-backdrop-filter:blur(16px) saturate(150%);
+          backdrop-filter:blur(16px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 6px 16px -12px rgba(8,10,14,.8);
+  transition:transform .09s cubic-bezier(.22,.61,.36,1);
+}
+.ou-x:active{transform:scale(.9)}
+
+.ou-titre{
+  margin:6px 0 0;
+  font-size:clamp(23px,7vw,31px);line-height:1.12;
+  font-weight:800;letter-spacing:-.035em;color:var(--ou-titre);
+}
+.ou-sous{
+  margin:7px 0 0;
+  font-size:14px;line-height:1.4;color:var(--ou-doux);
+}
+
+/* ---- la recherche ------------------------------------------------------- */
+.ou-champ{
+  display:flex;align-items:center;gap:11px;
+  height:54px;margin-top:18px;padding:0 15px;
+  border-radius:18px;
+  background:var(--ou-verre);
+  border:1px solid var(--ou-filet);
+  -webkit-backdrop-filter:blur(16px) saturate(150%);
+          backdrop-filter:blur(16px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+  transition:border-color .16s ease;
+}
+.ou-champ:focus-within{border-color:rgba(255,107,0,.55)}
+.ou-champ-ic{flex:none;display:grid;place-items:center;color:var(--ou-doux);line-height:0}
+.ou-champ:focus-within .ou-champ-ic{color:var(--ou-or)}
+/* 16 px au minimum, sans négociation : en dessous, Safari agrandit toute la
+   page au moment où le doigt entre dans le champ, et la carte disparaît. */
+.ou-input{
+  flex:1;min-width:0;
+  border:0;background:transparent;outline:none;
+  font-family:inherit;font-size:16.5px;font-weight:500;color:var(--ou-titre);
+  letter-spacing:-.01em;
+}
+.ou-input::placeholder{color:#9AA1AC;font-weight:450}
+
+.ou-astuce{
+  margin:9px 2px 0;
+  font-size:12.5px;line-height:1.35;color:var(--ou-doux);
+}
+/* Un couple de coordonnées coupé en deux lignes n'est plus un couple de
+   coordonnées : il se lit comme deux nombres sans rapport. */
+.ou-astuce b{color:var(--ou-titre);font-weight:650;white-space:nowrap}
+
+/* ---- les résultats ------------------------------------------------------ */
+.ou-res:empty{display:none}
+.ou-res{
+  margin-top:11px;max-height:198px;overflow-y:auto;
+  border-radius:20px;
+  background:var(--ou-verre);
+  border:1px solid var(--ou-filet);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+          backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:0 16px 36px -28px rgba(8,10,14,.95);
+  overscroll-behavior:contain;
+}
+.ou-item{
+  display:flex;align-items:flex-start;gap:11px;
+  padding:13px 15px;cursor:pointer;
+  font-size:14px;line-height:1.35;color:var(--ou-titre);
+  border-bottom:1px solid var(--ou-filet);
+}
+.ou-item:last-child{border-bottom:0}
+.ou-item:active{background:rgba(255,107,0,.09)}
+.ou-item-ic{flex:none;color:var(--ou-or);line-height:0;margin-top:1px}
+.ou-item-t{flex:1;min-width:0}
+.ou-item.vide{color:var(--ou-doux);justify-content:center;cursor:default}
+.ou-item.vide:active{background:transparent}
+
+/* ---- la carte ----------------------------------------------------------- */
+/* La hauteur suit l'écran : 190 px sur un iPhone SE, 330 sur un Pro Max. En
+   dur, elle mangeait la moitié d'un petit écran ou flottait au milieu d'un
+   grand. */
+.ou-map{
+  position:relative;z-index:0;
+  height:clamp(190px,38dvh,330px);
+  margin-top:16px;
+  border-radius:26px;overflow:hidden;
+  border:1px solid var(--ou-filet);
+  background:var(--ou-carte);
+  box-shadow:0 20px 44px -34px rgba(8,10,14,.9);
+}
+.ou-map #mpmap{position:absolute;inset:0}
+/* Le voile de verre : un liseré blanc intérieur, et juste ce qu'il faut de
+   clarté en haut pour que le bord arrondi ne coupe pas les tuiles net. */
+.ou-voile{
+  position:absolute;inset:0;z-index:410;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,0) 22%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);
+}
+/* Le repère ne bouge pas : c'est la carte qui glisse dessous. */
+.ou-pin{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);
+  z-index:520;pointer-events:none;line-height:0;
+  color:var(--ou-or);
+  /* Deux halos blancs et une ombre portée : l'épingle reste lisible au-dessus
+     d'un toit sombre comme d'un carrefour blanc. Le filtre est POSÉ, jamais
+     animé — le recalculer à chaque image coûte la fluidité sur les téléphones
+     d'entrée de gamme. */
+  filter:drop-shadow(0 0 1.6px #fff) drop-shadow(0 0 1.6px #fff) drop-shadow(0 5px 6px rgba(8,10,14,.4));
+  transition:transform .18s cubic-bezier(.22,.61,.36,1);
+}
+.ou-pin .ico{stroke-width:2.4}
+.ou-pin.moving{transform:translate(-50%,-120%) scale(1.06)}
+.ou-pin::after{
+  content:'';position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);
+  width:13px;height:5px;border-radius:50%;background:rgba(8,10,14,.3);
+}
+/* Le bouton flottant « ma position » : un galet de verre posé sur la carte. */
+.ou-loc{
+  position:absolute;right:13px;bottom:13px;z-index:560;
+  width:46px;height:46px;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;
+  color:var(--ou-or);
+  background:rgba(255,255,255,.84);
+  border:1px solid rgba(255,255,255,.7);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);
+          backdrop-filter:blur(16px) saturate(160%);
+  box-shadow:0 12px 26px -14px rgba(8,10,14,.7),inset 0 1px 0 rgba(255,255,255,.95);
+  transition:transform .09s cubic-bezier(.22,.61,.36,1);
+}
+.ou-loc:active{transform:scale(.9)}
+
+/* ---- les commandes d'OpenStreetMap, rhabillées ---------------------------
+   Leaflet pose deux boutons carrés blancs bordés de gris en haut à gauche, et
+   sa mention légale en bas à droite — exactement sous le bouton « ma
+   position ». On ne les supprime pas : le « + » est le seul moyen de zoomer
+   pour qui n'arrive pas à pincer, et la mention est due à OpenStreetMap. On
+   les remet à leur place et on leur donne l'habit de la feuille. */
+.ou-map .leaflet-top.leaflet-left{top:13px;left:auto;right:13px}
+.ou-map .leaflet-control-zoom{
+  margin:0;border:0;border-radius:14px;overflow:hidden;
+  box-shadow:0 12px 26px -14px rgba(8,10,14,.7);
+}
+.ou-map .leaflet-control-zoom a{
+  width:38px;height:38px;line-height:38px;
+  color:var(--ou-titre);font-size:19px;font-weight:600;
+  background:rgba(255,255,255,.84);
+  border-bottom:1px solid var(--ou-filet);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);
+          backdrop-filter:blur(16px) saturate(160%);
+}
+.ou-map .leaflet-control-zoom a:last-child{border-bottom:0}
+.ou-map .leaflet-control-zoom a:hover{background:rgba(255,255,255,.95)}
+
+/* La mention passe à gauche : à droite, elle disparaissait derrière le galet
+   « ma position ». */
+.ou-map .leaflet-bottom.leaflet-right{left:0;right:auto}
+.ou-map .leaflet-control-attribution{
+  margin:0 0 9px 11px;
+  background:rgba(255,255,255,.7);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  padding:2px 8px;border-radius:8px;
+  font-size:9.5px;line-height:1.6;color:#8A919C;
+}
+.ou-map .leaflet-control-attribution a{color:#8A919C}
+
+/* ---- la carte de verre qui annonce l'adresse ---------------------------- */
+.ou-addr{
+  display:flex;align-items:center;gap:12px;
+  min-height:66px;margin-top:14px;padding:12px 15px;
+  border-radius:20px;
+  background:var(--ou-verre);
+  border:1px solid var(--ou-filet);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+          backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 14px 32px -28px rgba(8,10,14,.95);
+}
+.ou-addr-ic{
+  flex:none;width:38px;height:38px;border-radius:50%;
+  display:grid;place-items:center;line-height:0;
+  color:var(--ou-or);background:rgba(255,107,0,.11);
+}
+.ou-addr-ic.charge{background:var(--ou-carte)}
+.ou-addr-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.ou-addr-t b{
+  font-size:14.5px;font-weight:650;line-height:1.3;color:var(--ou-titre);
+  letter-spacing:-.01em;
+}
+.ou-addr-c{
+  font-size:12px;color:var(--ou-doux);
+  font-variant-numeric:tabular-nums;letter-spacing:.01em;
+}
+/* La barre d'attente occupe la place de la deuxième ligne : sans elle, la
+   carte rétrécissait de quinze pixels pendant la recherche et la feuille
+   entière sautillait à chaque déplacement du doigt. Elle respire en OPACITÉ,
+   la seule propriété qui ne coûte rien à animer. */
+.ou-skel{
+  height:9px;width:62%;border-radius:5px;
+  background:rgba(16,24,40,.12);
+  animation:ouRespire 1.15s ease-in-out infinite;
+}
+@keyframes ouRespire{ 0%,100%{opacity:.45} 50%{opacity:1} }
+
+/* ---- le bouton de confirmation ------------------------------------------ */
+.ou-cta{
+  width:100%;height:58px;border:0;border-radius:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  font-family:var(--ou-font);
+  font-size:17px;font-weight:750;letter-spacing:-.015em;
+  color:#fff;background:var(--ou-grad);
+  /* Le reflet intérieur, c'est tout le « verre » qu'un bouton plein supporte :
+     au-delà, l'orange se délave et le bouton cesse d'être le point d'arrivée
+     du regard. */
+  box-shadow:0 18px 36px -20px rgba(255,77,45,.95),inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .09s cubic-bezier(.22,.61,.36,1);
+}
+.ou-cta .ico{stroke-width:2.6}
+.ou-cta:active{transform:scale(.975)}
+.ou-cta[disabled]{cursor:default;opacity:.85}
+
+/* ---- LE THÈME SOMBRE NE PREND PAS CETTE FEUILLE -------------------------
+   Deux règles générales la repeignaient en noir. On les annule ici plutôt que
+   de les rendre plus étroites là-bas : ce sont elles qui habillent tous les
+   autres panneaux, et les toucher les aurait tous déshabillés. */
+body.nuit .overlay.ou-ov .sheet{
+  background:var(--ou-fond);border:0;
+  box-shadow:0 -22px 60px -28px rgba(0,0,0,.9);
+}
+body.nuit .overlay.ou-ov .sheet-foot{
+  background:var(--ou-fond);border-top:0;
+}
+
+/* ---- petits écrans et écrans courts ------------------------------------- */
+/* Sur un iPhone SE, la feuille est plus haute que l'écran : on rend au
+   contenu les pixels que l'en-tête prenait pour respirer. */
+/* La feuille entière doit tenir dans 94 % de 667 px, soit 627 : la carte rend
+   les pixels que le reste ne peut pas rendre. Sans ce réglage, l'adresse
+   trouvée passait derrière le bouton de confirmation, et il fallait faire
+   défiler pour relire ce qu'on s'apprêtait à valider. */
+@media(max-height:700px){
+  .ou-head{padding-top:58px}
+  .ou-bar{height:58px}
+  .ou-arc{width:36px}
+  .ou-mot{font-size:16px}
+  .ou-titre{font-size:24px}
+  .ou-sous{font-size:13px;margin-top:5px}
+  .ou-champ{height:50px;margin-top:14px}
+  .ou-astuce{font-size:12px;margin-top:7px}
+  .ou-map{height:190px;margin-top:12px}
+  .ou-addr{min-height:60px;margin-top:11px}
+  .ou-cta{height:54px}
+}
+@media(max-width:359px){
+  .ou{padding-left:15px;padding-right:15px;padding-bottom:15px}
+  .ou-bar{left:-15px;right:-15px;padding-left:15px;padding-right:15px}
+  .overlay.ou-ov .sheet-foot{padding-left:15px;padding-right:15px}
+  .ou-titre{font-size:22px}
+  .ou-map{border-radius:22px}
+  .ou-cta{font-size:16px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .overlay.ou-ov .sheet{animation:none}
+  .ou-skel{animation:none;opacity:.55}
+  .ou-pin{transition:none}
+  .ou-x,.ou-loc,.ou-cta{transition:none}
 }

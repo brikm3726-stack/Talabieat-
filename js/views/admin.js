@@ -185,6 +185,7 @@
         const r = tous.find(x => x.id === this.dataset.pos);
         MapPicker.open({
           title: 'Position de ' + r.name,
+          hint: 'Déplacez la carte pour poser le repère sur l’entrée du restaurant.',
           lat: r.lat, lng: r.lng,
           onPick: async p => {
             await API.safe(() => API.adminUpdateRestaurant(r.id, { lat: p.lat, lng: p.lng }));

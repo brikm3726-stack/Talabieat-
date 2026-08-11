@@ -618,6 +618,7 @@
 
       posBox.querySelector('#rpick').onclick = () => MapPicker.open({
         title: 'Où se trouve votre restaurant ?',
+        hint: 'Déplacez la carte pour poser le repère sur votre entrée.',
         lat: pos && pos.lat, lng: pos && pos.lng,
         onPick(p) {
           pos = { lat: p.lat, lng: p.lng };
