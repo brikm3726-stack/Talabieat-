@@ -1147,6 +1147,23 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 .lv-note .tx{flex:1;font-size:12.5px;font-weight:600;line-height:1.4;color:#7A6A5C}
 .lv-note .tx b{color:var(--ink)}
 
+/* ---- « Démarrer » — bleu Google, pas orange Talabi ----
+   C'est la couleur qui dit « ce bouton mène ailleurs, dans une autre
+   application » avant même de lire le mot. Le mélanger à l'orange de la
+   marque aurait laissé croire qu'il fait partie du même geste que
+   « Commande récupérée » — deux boutons, deux destinations, deux couleurs. */
+.lv-demarrer{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;height:50px;margin-top:11px;border-radius:15px;
+  background:#1A73E8;color:#fff;
+  font-size:14.5px;font-weight:750;text-decoration:none;
+  box-shadow:0 10px 22px -12px rgba(26,115,232,.85);
+  transition:transform .12s cubic-bezier(.22,.61,.36,1);
+}
+.lv-demarrer:active{transform:scale(.975)}
+.lv-demarrer .ico{stroke-width:2.3}
+@media(prefers-reduced-motion:reduce){ .lv-demarrer{transition:none} }
+
 .lv-act{margin-top:13px}
 
 /* ---- LE LIVREUR EST ARRIVÉ, d'après la maquette 3b ----

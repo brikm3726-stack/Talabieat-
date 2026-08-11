@@ -102,6 +102,9 @@
          Dire la raison reste utile — c'est elle qui permet de réparer — mais
          elle n'a plus à occuper l'écran entier. */
       const panne = raison => {
+        /* La vraie carte a échoué : le plan reprend son rôle, et doit donc
+           redevenir visible s'il avait été masqué par `onPret`. */
+        if (fond) fond.style.display = '';
         if (!etatCarte) return;
         etatCarte.classList.add('ko');
         etatCarte.innerHTML = '🗺️ ' + U.esc(raison || 'Carte indisponible');
@@ -112,8 +115,18 @@
         /* La hauteur OCCUPÉE, pas la hauteur totale : quand la feuille est
            descendue, la place qu'elle libère revient à la carte. */
         marges: () => ({ tl: [22, 74], br: [22, occupe()] }),
-        /* Leaflet est en place : la pastille d'attente disparaît. */
-        onPret() { if (etatCarte) etatCarte.remove(); },
+        onPret() {
+          /* Leaflet ou Google est en place : la pastille d'attente disparaît. */
+          if (etatCarte) etatCarte.remove();
+          /* LE PLAN DE SECOURS EST MASQUÉ, PAS SEULEMENT RECOUVERT.
+             Il vivait sous la vraie carte et comptait sur l'empilement pour
+             rester invisible — mais son seul élément qui bouge, le disque
+             rouge du livreur, se glissait dans la moindre zone où la carte ne
+             peint rien encore (un bord, une tuile qui met une seconde de
+             plus). `display:none` ferme la question au lieu de la confier à
+             l'ordre des calques. */
+          if (fond) fond.style.display = 'none';
+        },
         onEchec: panne
       });
 
@@ -605,6 +618,27 @@
     note(icone, html) {
       return '<div class="lv-note"><span class="ic">' + icone + '</span>' +
         '<span class="tx">' + html + '</span></div>';
+    },
+
+    /**
+     * LE BOUTON « DÉMARRER » — l'itinéraire guidé, dans Google Maps lui-même.
+     *
+     * Ce plan-ci répond à « où en est ma course », pas à « tourne à droite
+     * dans cinquante mètres » : refaire une navigation guidée demanderait la
+     * voix, le recalcul au moindre écart, les panneaux — tout ce que
+     * l'application du téléphone sait déjà faire. Le bouton ouvre donc
+     * l'itinéraire chez Google Maps, prêt à démarrer d'un geste, exactement
+     * comme si le livreur l'avait composé lui-même.
+     *
+     * `url` vient de `U.gmapsRoute(lat, lng)` — un lien officiel `maps/dir/`,
+     * qui ouvre l'application installée plutôt que le navigateur si elle est
+     * là, et ne demande aucune clé. Bleu Google et non orange Talabi : c'est
+     * la couleur qui dit « ce bouton mène ailleurs », avant même de le lire.
+     */
+    demarrer(url) {
+      if (!url) return '';
+      return '<a class="lv-demarrer" href="' + U.escUrl(url) + '" target="_blank" rel="noopener">' +
+        UI.icon('navigation', 19) + ' Démarrer l’itinéraire</a>';
     },
 
     /**

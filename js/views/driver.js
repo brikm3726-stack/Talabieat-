@@ -1215,15 +1215,22 @@
                 name: o.client_name || (o.client && o.client.full_name) || 'Client',
                 meta: U.esc(o.address_street || '') +
                       (o.zone ? ' · ' + U.esc(o.zone.name) : ''),
-                phone: o.client_phone,
-                route: chez() ? U.gmapsRoute(o.address_lat, o.address_lng) : null
+                phone: o.client_phone
               })
             : LiveScreen.person({
                 name: (o.restaurant && o.restaurant.name) || 'Restaurant',
                 meta: U.esc((o.restaurant && o.restaurant.address) || ''),
-                phone: o.restaurant && o.restaurant.phone,
-                route: resto() ? U.gmapsRoute(o.restaurant.lat, o.restaurant.lng) : null
+                phone: o.restaurant && o.restaurant.phone
               })) +
+
+          /* « Démarrer » : un seul bouton, bien visible, plutôt que la petite
+             icône de `person()` — deux façons d'ouvrir Google Maps sur le même
+             écran auraient fait hésiter sur laquelle utiliser. */
+          LiveScreen.demarrer(
+            versClient
+              ? (chez() ? U.gmapsRoute(o.address_lat, o.address_lng) : null)
+              : (resto() ? U.gmapsRoute(o.restaurant.lat, o.restaurant.lng) : null)
+          ) +
 
           /* L'argent, dans le sens où il circule à cet instant : au restaurant
              il avance de sa poche, chez le client il se rembourse. Le même

@@ -389,7 +389,12 @@
           strokeColor: style.couleur,
           strokeOpacity: style.flux ? 0 : style.opacite,
           strokeWeight: style.epaisseur,
-          zIndex: style.flux ? 3 : 1
+          /* `z` : le halo blanc (voir mappicker.js) doit peindre SOUS le
+             trait de couleur, quel que soit l'ordre d'appel — Google ne
+             garantit l'empilement par ordre d'ajout que si le zIndex est
+             identique, et deux traits qui se disputent l'ordre scintillent
+             à chaque relevé de position. */
+          zIndex: style.z != null ? style.z : (style.flux ? 3 : 1)
         };
         if (style.flux) {
           opts.icons = [{

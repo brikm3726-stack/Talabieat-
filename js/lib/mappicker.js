@@ -592,11 +592,21 @@
         const traceEncours = segmentReel('encours', etapes[0], etapes[1], SEUIL_ENCOURS) || etapes.slice(0, 2);
         const traceApres = segmentReel('apres', etapes[1], etapes[2], SEUIL_ENCOURS) || etapes.slice(1);
 
+        /* LE HALO BLANC, COMME CHEZ GOOGLE.
+           Google Maps ne pose jamais sa route en couleur à même le fond : un
+           filet blanc plus large dessous la détache de n'importe quel plan,
+           routier ou satellite. Un second trait, plus large et clair, sous
+           le trait orange — jamais sur le tronçon À VENIR, qui reste discret
+           à dessein. `halo` avant `encours` : c'est l'ORDRE D'APPEL qui fixe
+           l'empilement chez OpenStreetMap ; le zIndex explicite le garantit
+           chez Google (voir mapengine.js). */
+        carte.ligne('halo', traceEncours,
+                    { couleur: '#FFFFFF', epaisseur: 12, opacite: .95, z: 0 });
         carte.ligne('encours', traceEncours,
-                    { couleur: '#FF4D2D', epaisseur: 7, opacite: 1 });
+                    { couleur: '#FF4D2D', epaisseur: 7, opacite: 1, z: 1 });
         carte.ligne('flux', traceEncours, { flux: true });
         carte.ligne('apres', traceApres,
-                    { couleur: '#FF4D2D', epaisseur: 7, opacite: .22 });
+                    { couleur: '#FF4D2D', epaisseur: 7, opacite: .22, z: 1 });
 
         if (!bornes.length) { carte.allerA(CITY.lat, CITY.lng, 13); return; }
 
