@@ -5759,36 +5759,39 @@ body.app-client .bottomnav{
   overflow:visible;
 }
 
-/* ---- LA BARRE PLUS HAUTE ----------------------------------------------- */
-body.app-client{ --nav-h:86px; }
+/* ---- LA BARRE, REVENUE D'UN CRAN --------------------------------------
+   Agrandie ici une première fois, puis jugée trop grande à l'usage : les
+   cinq boutons occupaient trop de place pour ce qu'ils affichent. On
+   redescend d'un cran sans revenir à la taille d'origine (66 px / icônes
+   52×30) — c'est un compromis, pas une annulation. */
+body.app-client{ --nav-h:78px; }
 body.app-client .bottomnav{
-  min-height:74px;
-  padding:9px 4px calc(9px + env(safe-area-inset-bottom));
-  border-radius:26px 26px 0 0;
+  min-height:66px;
+  padding:7px 4px calc(7px + env(safe-area-inset-bottom));
+  border-radius:24px 24px 0 0;
 }
-body.app-client .bottomnav .ic{width:56px;height:34px}
-body.app-client .bottomnav .ic svg{width:25px;height:25px}
-body.app-client .bottomnav .lb{font-size:11.5px}
+body.app-client .bottomnav .ic{width:50px;height:30px}
+body.app-client .bottomnav .ic svg{width:22px;height:22px}
+body.app-client .bottomnav .lb{font-size:10.5px}
 
-/* ---- LE CERCLE DU PANIER, PLUS GRAND ET ENTIER -------------------------
-   58 px, remonté de 24 px. La barre faisant 74 px, il dépasse d'un tiers et
-   reste posé dessus : c'est ce chevauchement qui le fait lire comme le bouton
-   principal, et non comme un cinquième onglet. */
+/* ---- LE CERCLE DU PANIER, RÉDUIT DANS LA MÊME PROPORTION ----------------
+   50 px, remonté de 19 px : le même rapport au reste de la barre qu'avant,
+   à l'échelle du cran redescendu ci-dessus. */
 body.app-client .bottomnav a[data-p="/cart"]{
   overflow:visible;
   justify-content:flex-end;
   padding-bottom:3px;
 }
 body.app-client .bottomnav a[data-p="/cart"] .ic{
-  position:absolute;top:-24px;left:50%;transform:translateX(-50%);
-  width:58px;height:58px;border-radius:50%;
+  position:absolute;top:-19px;left:50%;transform:translateX(-50%);
+  width:50px;height:50px;border-radius:50%;
   background:radial-gradient(120% 120% at 32% 24%,#FFA24D,#FF6500 62%,#E85400);
   box-shadow:
     0 7px 18px -4px rgba(255,101,0,.8),
     0 0 0 6px #0E0E10;
   color:#FFFFFF;
 }
-body.app-client .bottomnav a[data-p="/cart"] .ic svg{width:28px;height:28px}
+body.app-client .bottomnav a[data-p="/cart"] .ic svg{width:24px;height:24px}
 
 /* ---- LE MOT-MARQUE PLUS GRAND ----------------------------------------- */
 body.nuit .brand-nuit .arc{width:74px;margin-bottom:-5px}
@@ -6022,9 +6025,9 @@ body.app-client .bottomnav a[data-p="/cart"] .ic{
     0 7px 18px -4px rgba(255,101,0,.8),
     0 0 0 6px #0E0E10;
 }
-/* La réserve suit : 72 px de barre plus la zone des gestes. */
+/* La réserve suit : 64 px de barre plus la zone des gestes. */
 body.app-client{
-  --nav-h:calc(72px + env(safe-area-inset-bottom));
+  --nav-h:calc(64px + env(safe-area-inset-bottom));
 }
 
 /* ==========================================================================
