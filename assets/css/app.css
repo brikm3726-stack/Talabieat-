@@ -787,6 +787,15 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
   box-shadow:0 6px 16px -6px rgba(0,0,0,.3);
   font-size:12.5px;font-weight:600;line-height:1.35;
 }
+/* LA BARRE BLANCHE VIDE, ET SA CAUSE.
+   `display:flex` ci-dessus l'emporte TOUJOURS sur la règle par défaut du
+   navigateur `[hidden]{display:none}` — pas à cause de la spécificité, mais
+   parce qu'une feuille de style d'auteur l'emporte sur celle du navigateur,
+   quel que soit le sélecteur. `livescreen.js` pose bien `hidden` quand
+   `etat()` ne dit rien (le cas normal, dès que tout est là), mais le
+   bandeau restait affiché : un rectangle blanc, vide, flottant sur la
+   carte. Cette règle rend la main à `hidden`. */
+.lv-etat[hidden]{display:none}
 .lv-etat .ic{
   width:30px;height:30px;flex:none;border-radius:10px;
   background:#FFF1E4;color:#C2560A;display:grid;place-items:center;
@@ -849,10 +858,13 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
 }
 .lv-sheet.glisse .lv-grab span{background:var(--brand);width:58px}
 
-.lv-k{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#9A8B7E}
-.lv-eta{display:flex;align-items:flex-end;gap:9px;margin-top:2px}
-.lv-eta b{font-size:38px;font-weight:800;letter-spacing:-.04em;line-height:1}
-.lv-eta span{font-size:13px;font-weight:600;color:var(--muted);padding-bottom:6px}
+/* La fenêtre « arrivée estimée » redescend d'un cran : 38 px prenait plus de
+   place que le chiffre n'a besoin d'en dire, dans une feuille qui doit aussi
+   loger le livreur et le bouton de réception. */
+.lv-k{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#9A8B7E}
+.lv-eta{display:flex;align-items:flex-end;gap:8px;margin-top:2px}
+.lv-eta b{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.lv-eta span{font-size:12px;font-weight:600;color:var(--muted);padding-bottom:4px}
 
 /* ---- où l'on en est ----
    Quatre segments plutôt que la frise verticale de Cmp.timeline : elle dirait

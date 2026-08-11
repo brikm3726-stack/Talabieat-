@@ -434,6 +434,46 @@
       let carte = null, presents = {}, attendus = points, premier = true, mort = false;
       /* Le cap du livreur, et la position depuis laquelle il a été calculé. */
       let cap = 0, capDe = null;
+
+      /* ================================================================
+         LE VRAI TRACÉ, PAR-DESSUS LA LIGNE DROITE
+         ----------------------------------------------------------------
+         La ligne droite plus bas s'affiche IMMÉDIATEMENT — elle ne dépend
+         de rien. Le tracé réel arrive une fraction de seconde après, une
+         fois que Google a répondu, et la remplace en place.
+
+         DEUX SEGMENTS AU PLUS : `encours` (le livreur vers son prochain
+         arrêt) et `apres` (l'étape suivante, quand la course en compte
+         trois). `apres` relie deux points qui ne bougent jamais le temps
+         d'une course — le restaurant, le client — il n'est donc demandé
+         qu'UNE FOIS. `encours` bouge avec le livreur : il n'est redemandé
+         que s'il s'est éloigné de plus de soixante mètres du point qui a
+         servi au dernier calcul, pour ne pas payer un appel à chaque
+         relevé GPS. */
+      const SEUIL_ENCOURS = 0.06;   // km
+      const SEUIL_CIBLE = 0.03;     // km — la destination ne devrait pas bouger
+      const itin = {};              // { encours: {a,b,points,enCours}, apres: {...} }
+
+      function segmentReel(cle, a, b, seuil) {
+        if (!a || !b) { delete itin[cle]; return null; }
+        const c = itin[cle];
+        const memeCible = c && U.haversine(c.b.lat, c.b.lng, b.lat, b.lng) < SEUIL_CIBLE;
+        const aBouge = !c || !memeCible ||
+          U.haversine(c.a.lat, c.a.lng, a.lat, a.lng) > seuil;
+
+        if (aBouge && !(c && c.enCours)) {
+          const requete = { a: a, b: b, points: (memeCible && c) ? c.points : null, enCours: true };
+          itin[cle] = requete;
+          MapEngine.itineraire(a, b).then(chemin => {
+            if (mort || itin[cle] !== requete) return;   // dépassé entre-temps
+            requete.points = chemin;
+            requete.enCours = false;
+            if (chemin) appliquer(attendus);   // remplace la ligne droite par le vrai tracé
+          });
+          return requete.points;
+        }
+        return c.points;
+      }
       /* Dès que le doigt déplace la carte, on arrête de la recadrer : quelqu'un
          qui regarde le quartier d'à côté ne veut pas être ramené de force
          toutes les quinze secondes. Le bouton de recentrage rend la main. */
@@ -542,16 +582,20 @@
            même orange à 22 % : c'est un seul trajet dont une partie n'est pas
            encore faite, pas deux choses différentes.
 
-           À vol d'oiseau, faute d'un service d'itinéraire : le trait ne
-           prétend pas dire par où passer, seulement dans quel sens ça va. */
+           LE TRACÉ SUIT LES RUES QUAND GOOGLE LE SAIT (voir `segmentReel`
+           plus haut) ; sinon, en ligne droite — le trait ne prétend alors
+           pas dire par où passer, seulement dans quel sens ça va. */
         const etapes = (pts && pts.chemin || [])
           .filter(k => presents[k] && pts[k] && U.hasCoords(pts[k]))
           .map(k => ({ lat: +pts[k].lat, lng: +pts[k].lng }));
 
-        carte.ligne('encours', etapes.slice(0, 2),
+        const traceEncours = segmentReel('encours', etapes[0], etapes[1], SEUIL_ENCOURS) || etapes.slice(0, 2);
+        const traceApres = segmentReel('apres', etapes[1], etapes[2], SEUIL_ENCOURS) || etapes.slice(1);
+
+        carte.ligne('encours', traceEncours,
                     { couleur: '#FF4D2D', epaisseur: 7, opacite: 1 });
-        carte.ligne('flux', etapes.slice(0, 2), { flux: true });
-        carte.ligne('apres', etapes.slice(1),
+        carte.ligne('flux', traceEncours, { flux: true });
+        carte.ligne('apres', traceApres,
                     { couleur: '#FF4D2D', epaisseur: 7, opacite: .22 });
 
         if (!bornes.length) { carte.allerA(CITY.lat, CITY.lng, 13); return; }

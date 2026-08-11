@@ -617,10 +617,63 @@
     return null;
   }
 
+  /* ==================================================================
+     L'ITINÉRAIRE PAR LES RUES — seulement chez Google
+     ------------------------------------------------------------------
+     Un trait droit entre le livreur et sa destination dit dans quel sens
+     ça va, pas par où ça passe. Google le sait : la « Directions API »
+     renvoie le VRAI tracé, celui qui suit les rues. C'est un service
+     séparé de l'affichage de la carte — comme Geocoding et Places en
+     leur temps — et il s'active À PART dans la console Google. Tant qu'il
+     répond REQUEST_DENIED, cette fonction renvoie `null` et l'appelant
+     (`MapPicker.live`) garde son trait droit : rien ne casse, on perd
+     seulement la précision de rue.
+
+     Le refus n'est demandé qu'UNE FOIS par session — même mécanique que
+     l'annuaire d'adresses dans mappicker.js — pour ne pas cogner
+     inutilement contre une API désactivée à chaque relevé de position.
+     OpenStreetMap n'a pas d'équivalent gratuit et fiable ici : le trait
+     droit reste son seul tracé, ce qui est cohérent avec son rôle de
+     repli simple plutôt que de second moteur complet.
+     ================================================================== */
+  let directionsRefuse = false;
+  let directionsService = null;
+
+  function itineraire(a, b) {
+    if (moteurChoisi !== 'google' || googleRefuse || directionsRefuse)
+      return Promise.resolve(null);
+    const gm = w.google && w.google.maps;
+    if (!gm || !gm.DirectionsService) return Promise.resolve(null);
+    if (!directionsService) directionsService = new gm.DirectionsService();
+
+    return new Promise(resolve => {
+      directionsService.route({
+        origin: { lat: +a.lat, lng: +a.lng },
+        destination: { lat: +b.lat, lng: +b.lng },
+        travelMode: gm.TravelMode.DRIVING
+      }, (rep, statut) => {
+        if (statut !== 'OK' || !rep || !rep.routes || !rep.routes[0]) {
+          if (statut === 'REQUEST_DENIED' || statut === 'OVER_QUERY_LIMIT') {
+            directionsRefuse = true;
+            console.info('[carte] Directions API indisponible (' + statut +
+                         ') — trajets en ligne droite pour cette session.');
+          }
+          return resolve(null);
+        }
+        /* `overview_path` : déjà décodé en points {lat,lng}, assez détaillé
+           pour suivre les rues visuellement sans demander la bibliothèque
+           `geometry` ni décoder le polyline à la main. */
+        const chemin = rep.routes[0].overview_path.map(p => ({ lat: p.lat(), lng: p.lng() }));
+        resolve(chemin.length >= 2 ? chemin : null);
+      });
+    });
+  }
+
   w.MapEngine = {
     CITY: CITY,
     preparer: preparer,
     creer: creer,
+    itineraire: itineraire,
     get nom() { return moteurChoisi; },
     get googleDispo() { return !!CLE && !googleRefuse; }
   };
