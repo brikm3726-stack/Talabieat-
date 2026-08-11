@@ -2785,6 +2785,24 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
    de comprendre que le contenu a changé, au lieu de le lui imposer. 380 ms —
    assez pour être perçu, assez court pour ne jamais faire attendre. */
 #view{position:relative}
+
+/* ==========================================================================
+   L'APPLICATION CLIENT, UN CRAN MOINS ZOOMÉE
+   --------------------------------------------------------------------------
+   Toutes les pages atteintes par la navigation — accueil, restaurants,
+   panier, commandes, compte — vivent dans #view. `zoom` (et non `transform`)
+   parce que `transform` sur un ancêtre devient le repère de tout
+   `position:fixed` qu'il contient : c'est le piège documenté juste au-dessus,
+   celui qui avait rendu l'écran de suivi plein écran blanc. `zoom` n'a pas ce
+   défaut — vérifié : un `position:fixed;inset:0` à l'intérieur reste collé
+   aux quatre bords RÉELS de l'écran, zoomé ou non, exactement comme le suivi
+   de commande (`.lv`) en a besoin.
+
+   La barre du haut, la barre de navigation et toutes les feuilles (`UI.sheet`,
+   dont « Où livrer ? » et la personnalisation d'un plat) vivent hors de
+   #view — dans #topbar, #bottomnav et #modal-root — et ne sont donc pas
+   concernées : leur taille a été réglée séparément. */
+body.app-client #view{zoom:.9}
 .fade-in{animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 /* `transform:none` et non `translateY(0)` : ce n'est pas la même chose, et la
    différence casse des écrans entiers.
@@ -3688,42 +3706,50 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
    Un trait court derrière les pastilles. C'est lui qui fait lire « une
    suite » plutôt que « quatre cartes posées côte à côte » — sans lui, rien
    ne dit que l'ordre compte. */
+/* Même carte que « C'est quoi Talabi ? » juste en dessous — même fond, même
+   liseré, même ombre. Un aplat orange plein et une carte blanche sobre l'un
+   sous l'autre se lisaient comme deux styles différents plutôt que comme la
+   même application. La lueur de coin est REPRISE de `.tal-lueur` telle
+   quelle : c'est elle qui porte la couleur, désormais. */
 .h3d-steps{
   position:relative;overflow:hidden;margin-top:30px;
   border-radius:24px;padding:26px 20px 24px;
-  background:linear-gradient(158deg,#FF8A3D 0%,#FF6B35 46%,#F0553C 100%);
-  color:#fff;
-  box-shadow:0 20px 44px -26px rgba(255,107,53,1);
+  background:var(--card);
+  border:1px solid var(--line);
+  box-shadow:var(--sh-2);
+  color:var(--ink);
 }
-/* deux halos très doux : la surface orange n'est pas un aplat mort */
-.h3d-steps::before,
-.h3d-steps::after{
-  content:"";position:absolute;border-radius:50%;pointer-events:none;
-  background:radial-gradient(closest-side,rgba(255,255,255,.22),transparent);
+.h3d-steps::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(90% 62% at 14% 0%,
+             rgba(255,101,0,.14) 0%, rgba(255,101,0,.04) 44%, transparent 74%);
 }
-.h3d-steps::before{width:280px;height:280px;top:-130px;right:-90px}
-.h3d-steps::after{width:220px;height:220px;bottom:-120px;left:-70px}
 
-.h3d-steps .h2{position:relative;z-index:1;color:#fff;font-size:21px;letter-spacing:-.02em}
+.h3d-steps .h2{position:relative;z-index:1;color:var(--ink);font-size:21px;letter-spacing:-.02em}
 .h3d-steps .lead{
   position:relative;z-index:1;margin-top:6px;margin-bottom:20px;
-  font-size:13px;color:rgba(255,255,255,.86);
+  font-size:13px;color:var(--muted);
 }
 
 .h3d-steps .rail{position:relative;z-index:1;display:flex;flex-direction:column;gap:14px}
-/* le trait vertical qui relie les quatre pastilles */
+/* le trait vertical qui relie les trois pastilles, en orange : sur un fond
+   blanc, un trait blanc ne se verrait plus. */
 .h3d-steps .rail::before{
   content:"";position:absolute;left:43px;top:28px;bottom:28px;width:2px;
   background:repeating-linear-gradient(to bottom,
-    rgba(255,255,255,.55) 0 6px, transparent 6px 12px);
+    rgba(255,101,0,.32) 0 6px, transparent 6px 12px);
 }
 
+/* chaque étape est une carte plus douce QUE la carte qui la contient — le
+   même principe que les pastilles de réseaux sociaux sous « C'est quoi
+   Talabi ? » (`.tal-soc-b`) : `--bg`, pas `--card`, pour qu'on distingue
+   l'étape du fond de la section. Le flou n'a plus lieu d'être : il floutait
+   ce qu'il y avait derrière une surface translucide, celle-ci est opaque. */
 .h3d-step{
   position:relative;display:flex;align-items:flex-start;gap:14px;
-  background:rgba(255,255,255,.14);
-  border:1px solid rgba(255,255,255,.22);
+  background:var(--bg);
+  border:1px solid var(--line);
   border-radius:18px;padding:14px 16px 15px;
-  backdrop-filter:blur(6px);
 }
 /* le numéro en filigrane, coin haut-droit : il numérote sans encombrer */
 .h3d-step .num{
@@ -3741,10 +3767,8 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
   box-shadow:0 8px 20px -8px rgba(90,25,0,.6);
 }
 .h3d-step .tx{flex:1;min-width:0;padding-right:34px}
-/* Titres en noir : ils tranchent sur l'orange bien plus nettement que du
-   blanc sur blanc translucide, et l'oeil trouve les trois etapes d'un coup. */
-.h3d-step .h3{font-size:15.5px;font-weight:850;color:#12141A;letter-spacing:-.01em}
-.h3d-step p{margin-top:5px;font-size:12.8px;line-height:1.55;color:rgba(255,255,255,.9)}
+.h3d-step .h3{font-size:15.5px;font-weight:850;color:var(--ink);letter-spacing:-.01em}
+.h3d-step p{margin-top:5px;font-size:12.8px;line-height:1.55;color:var(--ink-2)}
 
 /* ---- les trois cases se mettent en place --------------------------------
    Cinq secondes pendant lesquelles les trois cases tournent, puis chacune
@@ -3832,7 +3856,7 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
   .h3d-steps .rail::before{
     left:56px;right:56px;top:47px;bottom:auto;width:auto;height:2px;
     background:repeating-linear-gradient(to right,
-      rgba(255,255,255,.55) 0 6px, transparent 6px 12px);
+      rgba(255,101,0,.32) 0 6px, transparent 6px 12px);
   }
   .h3d-step{
     flex:1;flex-direction:column;align-items:center;gap:12px;text-align:center;
@@ -5157,29 +5181,19 @@ body.nuit #view .tag-muted{background-color:rgba(255,255,255,.07);color:var(--nu
 body.nuit #view .btn-danger{background-color:rgba(240,68,56,.15);color:#FF8A8A}
 
 /* ==========================================================================
-   « COMMENT ÇA MARCHE » — sombre, avec la lueur qui sort de derrière
+   « COMMENT ÇA MARCHE » — sombre, exactement comme « C'est quoi Talabi ? »
    --------------------------------------------------------------------------
-   C'était le dernier grand aplat orange de l'accueil. Le bloc passe au noir
-   et c'est son OMBRE qui porte l'orange : une lueur large et très diffuse
-   qui déborde du cadre, comme sous le bouton rond de la recherche.
-
-   L'ombre est FIXE. Une lueur qui pulse coûterait un nouveau rendu à chaque
-   image, sur un bloc qui occupe la moitié de l'écran — et la page saccaderait
-   pendant tout le défilement.
+   Même carte noire, même liseré, même ombre que `.tal-quoi` en thème sombre
+   — les deux blocs viennent de la même famille visuelle, ils doivent
+   disparaître l'un dans l'autre au défilement plutôt que de se signaler
+   chacun à sa façon. La lueur de coin (`::before`, hérité de la règle de
+   base) n'a pas besoin d'être reprise ici : `.tal-lueur` ne l'est pas non
+   plus dans son propre thème sombre, elle se lit aussi bien sur du noir.
    ========================================================================== */
 body.nuit #view .h3d-steps{
-  background:linear-gradient(168deg,#141416 0%,#0E0E10 56%,#08080A 100%);
-  border:1px solid var(--nuit-bord);
-  box-shadow:
-    0 0 0 1px rgba(255,101,0,.05),
-    0 12px 34px -18px rgba(255,101,0,.42),
-    0 30px 76px -30px rgba(255,101,0,.75);
-}
-/* les deux halos internes passent du voile blanc à l'orange très dilué :
-   sur du noir, un voile blanc fait un nuage grisâtre */
-body.nuit #view .h3d-steps::before,
-body.nuit #view .h3d-steps::after{
-  background:radial-gradient(closest-side,rgba(255,101,0,.16),transparent);
+  background:#101114;
+  border-color:rgba(255,255,255,.08);
+  box-shadow:0 18px 46px -26px rgba(0,0,0,1);
 }
 body.nuit #view .h3d-steps .h2{color:var(--nuit-texte)}
 body.nuit #view .h3d-steps .lead{color:var(--nuit-doux)}
@@ -7483,6 +7497,19 @@ body.pref-clair.ecran-accueil .tal-plus{color:#6B7280}
 body.pref-clair.ecran-accueil .tal-soc-b{
   background:#fff;border-color:var(--jr-bord);color:#16181D;
 }
+
+/* « Comment ça marche ? » reprend le même traitement, à l'identique : c'est
+   l'écran d'accueil en clair qui règle `.tal-quoi` avec les jetons « jour »
+   plutôt que les jetons par défaut — sans cette reprise, les deux blocs
+   auraient eu un fond blanc à peine différent l'un de l'autre. */
+body.pref-clair.ecran-accueil .h3d-steps{
+  background:#fff;
+  border-color:var(--jr-bord);
+  box-shadow:var(--jr-ombre);
+}
+body.pref-clair.ecran-accueil .h3d-steps .h2{color:#16181D}
+body.pref-clair.ecran-accueil .h3d-steps .lead{color:#4B5563}
+body.pref-clair.ecran-accueil .h3d-step{background:#fff;border-color:var(--jr-bord)}
 
 @media(max-width:379px){
   .tal-quoi{padding:22px 17px 24px;border-radius:22px}
