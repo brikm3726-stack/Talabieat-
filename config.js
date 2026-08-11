@@ -28,24 +28,24 @@ window.TALABI_CONFIG = {
   // ouvrant les fichiers en local. La carte retombe alors sur OpenStreetMap,
   // ce qui est exactement ce qu'on veut pendant un essai.
   //
-  // ELLE EST VIDE DEPUIS LE 11 AOÛT 2026, ET C'EST UN RETOUR EN ARRIÈRE
-  // ASSUMÉ : les cartes Google se comportaient mal dans les DEUX applications,
-  // client et livreur. Une carte cassée n'est pas un défaut d'affichage — elle
-  // empêche de choisir son adresse, donc de commander. On revient au moteur
-  // qui fonctionnait, et on cherchera la cause à tête reposée.
+  // REMISE EN SERVICE LE 11 AOÛT 2026, APRÈS CORRECTION DE LA CLÉ.
+  // Les cartes Google échouaient partout : la restriction par référent HTTP
+  // n'autorisait que 'https://talabi.shop/*'. Il manquait la variante avec
+  // 'www.', que le navigateur envoie selon la façon dont on arrive sur le
+  // site. Google ne dit rien dans ce cas : il peint un cadre gris à la place
+  // de la carte. Les deux motifs sont désormais déclarés dans la console.
   //
-  // La clé du projet est conservée ci-dessous, en commentaire, pour ne pas
-  // avoir à la retrouver dans la console Google le jour de la reprise :
-  //   AIzaSyD6jN6hL3eZVG1Ej1c4FwdmRj3P0L6Ilv4
+  // À VÉRIFIER DEPUIS L'ICÔNE DE L'ÉCRAN D'ACCUEIL, jamais depuis un onglet :
+  // c'est l'erreur qui avait laissé passer le défaut la première fois. Un
+  // onglet envoie le référent attendu, l'application installée pas toujours.
   //
-  // Remettre cette valeur suffit à rebasculer sur Google ; la vider suffit à
-  // revenir entièrement à OpenStreetMap. Aucun autre fichier n'est à toucher.
+  // Vider cette valeur suffit à revenir entièrement à OpenStreetMap.
   //
   // Deux services restent à activer dans la console Google (API et services →
   // Bibliothèque) pour que la RECHERCHE d'adresse passe aussi par Google :
   // « Geocoding API » et « Places API ». Tant qu'ils répondent REQUEST_DENIED,
   // la recherche se fait par Nominatim, sans que rien ne casse.
-  GOOGLE_MAPS_KEY: '',
+  GOOGLE_MAPS_KEY: 'AIzaSyD6jN6hL3eZVG1Ej1c4FwdmRj3P0L6Ilv4',
 
   // ---- Identité ---------------------------------------------------------
   APP_NAME: 'Talabi',
