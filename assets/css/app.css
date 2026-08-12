@@ -5063,12 +5063,20 @@ body.nuit #view .rc-haut::after{border-color:rgba(255,101,0,.5);border-right-col
    photo, ce qui le rendrait illisible en plein soleil. */
 .auth-nuit::before{
   content:'';position:absolute;right:-5%;top:0;
-  width:58%;max-width:310px;height:56%;max-height:350px;
+  /* Réduit sur téléphone : à 58 % / 310 px, la photo débordait sur « Créer un
+     compte CLIENT » — le casque du livreur passait en plein milieu du titre —
+     et redescendait jusque dans la carte du formulaire. Un décor de coin doit
+     rester dans le coin. Le correctif ≥900 px, juste en dessous, existait déjà
+     pour la même raison ; celui-ci manquait au téléphone, qui est pourtant
+     l'écran que presque tout le monde voit ici. */
+  width:40%;max-width:172px;height:34%;max-height:200px;
   z-index:0;pointer-events:none;
   background:url("../img/bg/scooter-nuit.jpg") no-repeat 46% 6%;
   background-size:cover;
-  -webkit-mask-image:linear-gradient(214deg,#000 20%,rgba(0,0,0,.4) 56%,transparent 80%);
-          mask-image:linear-gradient(214deg,#000 20%,rgba(0,0,0,.4) 56%,transparent 80%);
+  /* Le fondu s'arrête plus tôt : il doit avoir disparu avant le titre, pas au
+     milieu de celui-ci. */
+  -webkit-mask-image:linear-gradient(214deg,#000 8%,rgba(0,0,0,.35) 34%,transparent 56%);
+          mask-image:linear-gradient(214deg,#000 8%,rgba(0,0,0,.35) 34%,transparent 56%);
 }
 /* .auth-in est déjà `position:relative` : il passe donc au-dessus du décor
    par simple ordre du document, sans z-index — donc sans créer de contexte
