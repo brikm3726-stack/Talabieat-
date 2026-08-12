@@ -2821,22 +2821,77 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
 #view{position:relative}
 
 /* ==========================================================================
-   L'APPLICATION CLIENT, UN CRAN MOINS ZOOMÉE
+   L'APPLICATION CLIENT — UNE DENSITÉ PLUS COMPACTE, PAS UN ZOOM
    --------------------------------------------------------------------------
-   Toutes les pages atteintes par la navigation — accueil, restaurants,
-   panier, commandes, compte — vivent dans #view. `zoom` (et non `transform`)
-   parce que `transform` sur un ancêtre devient le repère de tout
-   `position:fixed` qu'il contient : c'est le piège documenté juste au-dessus,
-   celui qui avait rendu l'écran de suivi plein écran blanc. `zoom` n'a pas ce
-   défaut — vérifié : un `position:fixed;inset:0` à l'intérieur reste collé
-   aux quatre bords RÉELS de l'écran, zoomé ou non, exactement comme le suivi
-   de commande (`.lv`) en a besoin.
+   Une première version de cette réduction passait par `zoom:.9` sur #view :
+   un seul chiffre, tout rétréci d'un coup. Ça marchait, mais ce n'est pas la
+   même chose qu'une vraie passe de densité — un zoom réduit une mise en page
+   pensée en grand ; il ne la RÉÉQUILIBRE pas. Les proportions entre un titre
+   et son bouton restent celles d'avant, juste vues de plus loin.
 
-   La barre du haut, la barre de navigation et toutes les feuilles (`UI.sheet`,
-   dont « Où livrer ? » et la personnalisation d'un plat) vivent hors de
-   #view — dans #topbar, #bottomnav et #modal-root — et ne sont donc pas
-   concernées : leur taille a été réglée séparément. */
-body.app-client #view{zoom:.9}
+   Ici, chaque jeton et chaque classe partagée reçoit sa propre valeur,
+   posée sur `body.app-client` pour ne toucher QUE l'application cliente —
+   resto/, livreur/ et admin/ partagent le même fichier et gardent les leurs.
+   C'est plus de lignes, mais c'est la différence entre « rétréci » et
+   « redessiné à une échelle plus dense ». Les points de rupture existants
+   (@media(max-width:379px), (min-width:640/760/900/1000/1100px)) ne sont pas
+   touchés : cette passe recalibre la base qu'ils font varier, elle ne change
+   pas la façon dont elle varie — donc tout reste aussi responsive qu'avant,
+   sur un petit comme sur un grand téléphone. */
+body.app-client{
+  /* Les coins : un cran plus serrés, cohérents avec des cartes moins hautes. */
+  --r-sm:9px; --r:13px; --r-lg:18px; --r-xl:25px;
+}
+body.app-client{ font-size:14px }
+
+/* ---- typographie partagée ---- */
+body.app-client .h1{font-size:23px}
+body.app-client .h2{font-size:18px}
+body.app-client .h3{font-size:15.5px}
+body.app-client .sub{font-size:12.5px}
+body.app-client .tiny{font-size:11.5px}
+body.app-client .section-head{margin:18px 0 10px}
+body.app-client .section-head .link{font-size:12.5px}
+
+/* ---- la page : moins d'air en haut, la réserve du bas suit --nav-h ---- */
+body.app-client .page{padding-top:14px}
+
+/* ---- boutons : hauteur proportionnelle au texte, pas fixée en dur ---- */
+body.app-client .btn{padding:11px 16px;font-size:13.5px}
+body.app-client .btn-sm{padding:7px 12px;font-size:12.5px;border-radius:9px}
+body.app-client .btn-lg{padding:13px 20px;font-size:15px;border-radius:14px}
+
+/* ---- cartes : moins de vide intérieur, pas moins de contenu ---- */
+body.app-client .card-p{padding:13px}
+body.app-client .stat{padding:13px}
+body.app-client .stat .v{font-size:21px}
+body.app-client .stat .k{font-size:11px}
+
+/* ---- champs : la hauteur tactile reste confortable, l'air autour non ---- */
+body.app-client .field{gap:5px}
+body.app-client .field label{font-size:12.5px}
+/* `padding-top/bottom` seulement — jamais le raccourci `padding`. Un champ
+   avec icône (`.input-ic .input`) ou avec loupe (`.search input`) réserve sa
+   gauche avec son propre `padding-left` (52 px / 42 px) : un raccourci ici
+   l'aurait réécrasé à la valeur générique, et l'icône serait retombée sur le
+   texte tapé. Vu et corrigé sur l'écran d'inscription — l'icône « email »
+   mangeait le début de « exemple@gmail.com ». */
+body.app-client .input,
+body.app-client select.input,
+body.app-client textarea.input{padding-top:11px;padding-bottom:11px}
+body.app-client .hint,
+body.app-client .field-err{font-size:12px}
+
+/* ---- puces, étiquettes : la barre de recherche et les filtres ---- */
+body.app-client .chip{padding:8px 13px;font-size:12.5px}
+body.app-client .tag{padding:4px 9px;font-size:11px}
+
+/* ---- l'en-tête : logo et bouton rond un cran plus petits ---- */
+body.app-client .topbar-in{height:56px}
+body.app-client .brand{font-size:18px;gap:8px}
+body.app-client .brand-mark{width:31px;height:31px;font-size:15.5px}
+body.app-client .icon-btn{width:37px;height:37px;font-size:16px}
+body.app-client .topbar .zone-pick{padding:6px 11px;font-size:12.5px}
 .fade-in{animation:fadeUp .38s cubic-bezier(.22,1,.36,1) both}
 /* `transform:none` et non `translateY(0)` : ce n'est pas la même chose, et la
    différence casse des écrans entiers.
