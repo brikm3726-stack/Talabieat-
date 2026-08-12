@@ -572,7 +572,12 @@ select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xml
    un masque CSS crée un contexte d'empilement et un « multiply » suffisant
    pour effacer le fond ne l'est pas pour les bords. Le PNG transparent se
    pose proprement sur n'importe quel fond. */
-.auth-rider{display:none;width:340px;flex:none;margin-top:-4px}
+/* `height:auto` pour la même raison que `.auth-logo` juste au-dessus : sans
+   elle, l'attribut HTML `height="228"` s'applique tel quel et la photo
+   s'étire au lieu de suivre `width`. Moins spectaculaire ici (428×228 n'est
+   pas un carré comme le logo), mais faux quand même — environ un quart trop
+   haute. */
+.auth-rider{display:none;width:340px;height:auto;flex:none;margin-top:-4px}
 
 .auth-col{width:100%}
 /* la carte reprend le gabarit de la maquette : large, très arrondie,
@@ -3487,8 +3492,15 @@ body.role-admin .bottomnav a.on{color:#FF8A3D}
 
 /* ====================================================== INSTALLER L'APPLI */
 .auth-brandrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
-/* mix-blend-mode : le logo est sur fond blanc, il se fond dans le fond crème */
-.auth-logo{width:104px;display:block;mix-blend-mode:multiply}
+/* mix-blend-mode : le logo est sur fond blanc, il se fond dans le fond crème.
+   `height:auto`, ET C'EST LUI QUI COMPTE ICI : le fichier porte des attributs
+   HTML `width="1254" height="1254"`, et le navigateur les applique aussi en
+   CSS de présentation — un `height` littéral de 1254 px, qui l'emporte sur le
+   rapport largeur/hauteur dès que cette règle ne fixe QUE la largeur. Résultat
+   sans ce `height:auto` : un logo écrasé sur 104 px de large et 1254 px de
+   haut, un ruban vertical. Vérifié en isolant l'élément : le simple ajout de
+   cette ligne ramène l'image à un carré 88×88 correct. */
+.auth-logo{width:104px;height:auto;display:block;mix-blend-mode:multiply}
 
 .btn-install{
   display:inline-flex;align-items:center;gap:8px;
@@ -6606,13 +6618,25 @@ body.pref-clair.ecran-inscription .auth-head{
   margin-bottom:0;
   padding-top:18px;
 }
+/* MÊME BUG QUE `.auth-nuit::before` (thème sombre), même cause : cette
+   bande n'avait qu'une seule taille, pensée pour un écran large, et sur
+   téléphone elle passait tout simplement sur « Créer un compte CLIENT » — le
+   casque du livreur en plein milieu du mot. Réduite ici pour le téléphone,
+   et rendue à sa taille d'origine à partir de 900 px, où il y a la place. */
 body.pref-clair.ecran-inscription .auth-head::after{
   content:'';position:absolute;right:-16px;top:0;bottom:0;
-  width:64%;max-width:300px;z-index:0;pointer-events:none;
+  width:40%;max-width:150px;z-index:0;pointer-events:none;
   background:url("../img/bg/scooter-inscription-jour.jpg") no-repeat 46% 62%;
   background-size:cover;
-  -webkit-mask-image:linear-gradient(80deg,transparent 0,#000 34%,#000 100%);
-          mask-image:linear-gradient(80deg,transparent 0,#000 34%,#000 100%);
+  -webkit-mask-image:linear-gradient(80deg,transparent 0,#000 55%,#000 100%);
+          mask-image:linear-gradient(80deg,transparent 0,#000 55%,#000 100%);
+}
+@media(min-width:900px){
+  body.pref-clair.ecran-inscription .auth-head::after{
+    width:64%;max-width:300px;
+    -webkit-mask-image:linear-gradient(80deg,transparent 0,#000 34%,#000 100%);
+            mask-image:linear-gradient(80deg,transparent 0,#000 34%,#000 100%);
+  }
 }
 body.pref-clair.ecran-inscription .auth-headtext{position:relative;z-index:1}
 body.pref-clair.ecran-inscription .auth-rider{display:none}
